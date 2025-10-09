@@ -9,7 +9,8 @@ class FisherOfferCard extends StatelessWidget {
     required this.onPressed,
   });
 
-  final FisherOffer offer;
+  // UPDATE: Change type from FisherOffer to the unified Offer
+  final Offer offer;
   final VoidCallback onPressed;
 
   @override
@@ -55,27 +56,34 @@ class FisherOfferCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         color: AppColors.textBlue.withValues(alpha: 0.1),
       ),
-      child: Icon(Icons.local_offer_outlined, color: AppColors.textBlue),
+      child: const Icon(Icons.local_offer_outlined, color: AppColors.textBlue),
     );
   }
 
-  /// Top row: name + rating + date
+  /// Top row: client name + client rating + date
   Widget _headerRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
-            _text(offer.name, AppColors.textGray, fontWeight: FontWeight.w300),
-            const SizedBox(width: 4),
-            Icon(Icons.star, color: AppColors.shellOrange, size: 16),
+            // UPDATE: Use clientName instead of name (which refers to catch name)
             _text(
-              "${offer.fisherRating}",
+              offer.clientName,
+              AppColors.textGray,
+              fontWeight: FontWeight.w300,
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.star, color: AppColors.shellOrange, size: 16),
+            // UPDATE: Use clientRating
+            _text(
+              offer.clientRating.toStringAsFixed(1),
               AppColors.textGray,
               fontWeight: FontWeight.w300,
             ),
           ],
         ),
+        // Date created is on the offer
         _text(
           offer.dateCreated.toFormattedDate(),
           AppColors.blue800,
@@ -92,15 +100,15 @@ class FisherOfferCard extends StatelessWidget {
       children: [
         Row(
           children: [
+            // Weight and Price are on the offer
             _pill("${offer.weight.toInt()} kg"),
             const SizedBox(width: 8),
             _pill("${offer.price.toInt()} CFA"),
           ],
         ),
         Row(
+          spacing: 8,
           children: [
-            _text(offer.status.name.capitalize(), AppColors.textGray),
-            const SizedBox(width: 8),
             Container(
               width: 10,
               height: 10,
@@ -109,6 +117,7 @@ class FisherOfferCard extends StatelessWidget {
                 color: AppColors.getStatusColor(offer.status),
               ),
             ),
+            _text(offer.status.name.capitalize(), AppColors.textGray),
           ],
         ),
       ],

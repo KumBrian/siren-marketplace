@@ -31,9 +31,7 @@ class RoleButton extends StatelessWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: isActive
-                ? null
-                : Border.all(color: AppColors.blue700, width: 2),
+            border: Border.all(color: AppColors.blue700, width: 2),
           ),
           child: Column(
             children: [

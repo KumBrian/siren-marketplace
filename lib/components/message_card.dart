@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/constants/constants.dart';
 
 class MessageCard extends StatelessWidget {
@@ -26,7 +27,9 @@ class MessageCard extends StatelessWidget {
     return Material(
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
-        onTap: onPressed,
+        onTap: () {
+          context.push("/fisher/chat");
+        },
         borderRadius: BorderRadius.circular(16),
         splashColor: AppColors.blue700.withValues(alpha: 0.1),
         child: Container(

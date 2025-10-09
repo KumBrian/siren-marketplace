@@ -3,9 +3,9 @@ import 'package:siren_marketplace/constants/constants.dart';
 import 'package:siren_marketplace/constants/types.dart';
 
 class SoldCard extends StatelessWidget {
-  const SoldCard({super.key, required this.onPressed, required this.catchData});
+  const SoldCard({super.key, required this.onPressed, required this.offer});
 
-  final Catch catchData;
+  final Offer offer;
 
   final VoidCallback onPressed;
 
@@ -26,8 +26,8 @@ class SoldCard extends StatelessWidget {
                 bottomLeft: Radius.circular(16),
               ),
               // round corners
-              child: Image.asset(
-                "assets/images/shrimp.jpg",
+              child: Image.network(
+                offer.catchImages.first,
                 width: 120,
                 height: 120,
                 fit: BoxFit.cover,
@@ -42,7 +42,7 @@ class SoldCard extends StatelessWidget {
                   spacing: 24,
                   children: [
                     Text(
-                      "Prawns",
+                      offer.catchName,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
@@ -68,7 +68,7 @@ class SoldCard extends StatelessWidget {
 
                                 children: [
                                   TextSpan(
-                                    text: "50kg",
+                                    text: "${offer.weight.toInt()} Kg",
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -88,7 +88,7 @@ class SoldCard extends StatelessWidget {
 
                                 children: [
                                   TextSpan(
-                                    text: "10,000 CFA",
+                                    text: "${offer.price.toInt()} CFA",
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,

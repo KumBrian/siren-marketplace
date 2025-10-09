@@ -1,5 +1,4 @@
-import 'dart:ui';
-
+import 'package:flutter/cupertino.dart';
 import 'package:siren_marketplace/constants/types.dart';
 
 class AppColors {
@@ -98,3 +97,29 @@ const List<Species> kSpecies = [
   Species(id: "small-prawn", name: "Small Prawn"),
   Species(id: "large-prawn", name: "Large Prawn"),
 ];
+
+const List<String> kFailedTransactionReasons = [
+  "Buyer did not come to collect the order",
+  "Disagreement on the final price.",
+  "Product already sold elsewhere.",
+];
+
+double calculatePricePerKg(
+  TextEditingController weightController,
+  TextEditingController priceController,
+) {
+  final weightText = weightController.text;
+  final priceText = priceController.text;
+
+  // Attempt to parse input values
+  final weight = double.tryParse(weightText);
+  final price = double.tryParse(priceText);
+
+  double newPricePerKg = 0.0;
+
+  // Ensure both values are valid numbers and weight is not zero
+  if (weight != null && price != null && weight > 0) {
+    newPricePerKg = price / weight;
+  }
+  return newPricePerKg;
+}

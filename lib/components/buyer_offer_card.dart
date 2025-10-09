@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/constants/constants.dart';
-import 'package:siren_marketplace/constants/types.dart';
+// UPDATE: Import the unified Offer type
+import 'package:siren_marketplace/constants/types.dart'
+    show Offer, DateFormatting, StringExtensions;
 
 class BuyerOfferCard extends StatelessWidget {
   const BuyerOfferCard({
     super.key,
+    // UPDATE: Change type to Offer
     required this.offer,
     required this.onPressed,
   });
 
-  final BuyerOffer offer;
+  // UPDATE: Change type to Offer
+  final Offer offer;
   final VoidCallback onPressed;
 
   @override
@@ -19,6 +23,7 @@ class BuyerOfferCard extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(16),
+        // UPDATE: Use standard withOpacity
         splashColor: AppColors.blue700.withValues(alpha: 0.1),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -53,24 +58,34 @@ class BuyerOfferCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
+        // UPDATE: Use standard withOpacity
         color: AppColors.textBlue.withValues(alpha: 0.1),
       ),
-      child: Icon(Icons.local_offer_outlined, color: AppColors.textBlue),
+      child: const Icon(Icons.local_offer_outlined, color: AppColors.textBlue),
     );
   }
 
-  /// Top row: name + rating + date
+  /// Top row: fisher name + fisher rating + date
   Widget _headerRow() {
+    // NOTE: We assume the unified Offer model now contains `offer.fisherName`
+    // for direct display in this card, derived from `offer.fisherId`.
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
-            _text(offer.name, AppColors.textGray, fontWeight: FontWeight.w300),
-            const SizedBox(width: 4),
-            Icon(Icons.star, color: AppColors.shellOrange, size: 16),
+            // UPDATE: Display the Fisher's Name (Seller) as the main identifier
             _text(
-              "${offer.fisherRating}",
+              offer.fisherName, // ASSUMED new field on Offer model
+              AppColors.textGray,
+              fontWeight: FontWeight.w600, // Make name prominent
+            ),
+            const SizedBox(width: 4),
+            const Icon(Icons.star, color: AppColors.shellOrange, size: 16),
+            // Displaying the rating of the fisher who owns the catch
+            _text(
+              offer.fisherRating.toStringAsFixed(1),
               AppColors.textGray,
               fontWeight: FontWeight.w300,
             ),
@@ -85,7 +100,7 @@ class BuyerOfferCard extends StatelessWidget {
     );
   }
 
-  /// Bottom row: pills + status
+  /// Bottom row: pills (weight/price) + status
   Widget _detailsRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

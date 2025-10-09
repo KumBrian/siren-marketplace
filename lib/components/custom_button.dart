@@ -9,6 +9,8 @@ class CustomButton extends StatelessWidget {
     this.cancel = false,
     this.bordered = false,
     this.icon,
+    this.suffixIcon,
+    this.disabled = false,
   });
 
   final String title;
@@ -16,17 +18,19 @@ class CustomButton extends StatelessWidget {
   final bool? cancel;
   final bool? bordered;
   final IconData? icon;
+  final IconData? suffixIcon;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: cancel == true || bordered == true
           ? Colors.transparent
-          : AppColors.textBlue,
-      borderRadius: BorderRadius.circular(16),
+          : AppColors.textBlue.withValues(alpha: disabled ? 0.6 : 1),
+      borderRadius: BorderRadius.circular(8),
       child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(16),
+        onTap: disabled ? null : onPressed,
+        borderRadius: BorderRadius.circular(8),
         splashColor: cancel == true || bordered == true
             ? AppColors.textBlue.withValues(alpha: .1)
             : AppColors.white100.withValues(alpha: 0.1),
@@ -34,7 +38,7 @@ class CustomButton extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
 
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
             border: bordered == true
                 ? Border.all(color: AppColors.textBlue, width: 1)
                 : null,
@@ -66,6 +70,15 @@ class CustomButton extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              suffixIcon != null
+                  ? Icon(
+                      suffixIcon,
+                      size: 20,
+                      color: cancel == true || bordered == true
+                          ? AppColors.textBlue
+                          : AppColors.textWhite,
+                    )
+                  : Container(),
             ],
           ),
         ),

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filter_state.dart';
 import 'package:siren_marketplace/components/component_table.dart';
 import 'package:siren_marketplace/components/custom_button.dart';
 import 'package:siren_marketplace/components/filter_button.dart';
 import 'package:siren_marketplace/components/pill_segmented_button.dart';
+import 'package:siren_marketplace/components/price_line_chart_widget.dart';
 import 'package:siren_marketplace/components/section_header.dart';
 import 'package:siren_marketplace/constants/constants.dart';
 import 'package:siren_marketplace/constants/types.dart';
+import 'package:siren_marketplace/data/chart_data.dart';
 
 class MarketTrends extends StatefulWidget {
   const MarketTrends({super.key});
@@ -18,10 +21,55 @@ class MarketTrends extends StatefulWidget {
 }
 
 class _MarketTrendsState extends State<MarketTrends> {
-  ChartRange _chartRange = ChartRange.day;
+  ChartRange _chartRange = ChartRange.month;
+
+  Map<String, List<ChartData>> _getFilteredPriceData() {
+    // 1. Filter the data based on the selected time range
+    final filteredData = filterDataByRange(mockHistoricalPrices, _chartRange);
+
+    // 2. Group and transform data into the ChartData format expected by the chart
+    final Map<String, List<ChartData>> dataMap = {};
+
+    const speciesKeys = ['pink-shrimp', 'tiger-shrimp', 'gray-shrimp'];
+
+    for (var key in speciesKeys) {
+      final speciesData = filteredData.where((d) => d.species == key).toList();
+
+      // Transform HistoricalPriceData to ChartData with professional date labels
+      final chartData = speciesData.map((d) {
+        String xLabel = '';
+
+        switch (_chartRange) {
+          case ChartRange.day:
+            // Display Hour/Minute for the 'Day' view
+            xLabel = DateFormat('h:mm a').format(d.date);
+            break;
+          case ChartRange.week:
+            // Display Day of the week for 'Week' view
+            xLabel = DateFormat('EEE').format(d.date);
+            break;
+          case ChartRange.month:
+            // Display Day/Month for 'Month' view
+            xLabel = DateFormat('MMM dd').format(d.date);
+            break;
+          case ChartRange.year:
+            // Display Month/Year for 'Year' view
+            xLabel = DateFormat('MMM yy').format(d.date);
+            break;
+        }
+
+        return ChartData(xLabel, d.pricePerKg);
+      }).toList();
+
+      dataMap[key] = chartData;
+    }
+
+    return dataMap;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final priceChartData = _getFilteredPriceData();
     return Scaffold(
       appBar: AppBar(
         leading: const BackButton(),
@@ -293,7 +341,7 @@ class _MarketTrendsState extends State<MarketTrends> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: 16,
+
                   children: [
                     PillSegmentedButton(
                       selected: _chartRange,
@@ -303,64 +351,14 @@ class _MarketTrendsState extends State<MarketTrends> {
                         });
                       },
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 16,
-                      children: [
-                        Row(
-                          spacing: 4,
-                          children: [
-                            Container(
-                              width: 11,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: AppColors.shellOrange,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            Text(
-                              "Tiger Shrimp",
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          spacing: 4,
-                          children: [
-                            Container(
-                              width: 11,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: AppColors.blue400,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            Text("Pink Shrimp", style: TextStyle(fontSize: 12)),
-                          ],
-                        ),
-                        Row(
-                          spacing: 4,
-                          children: [
-                            Container(
-                              width: 11,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                color: AppColors.success500,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            Text("Grey Shrimp", style: TextStyle(fontSize: 12)),
-                          ],
-                        ),
-                      ],
-                    ),
                     Container(
                       height: 200,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: AppColors.gray100,
+                      ),
+                      child: PriceLineChartWidget(
+                        chartDataSources: priceChartData,
                       ),
                     ),
                   ],
@@ -445,6 +443,9 @@ class _MarketTrendsState extends State<MarketTrends> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         color: AppColors.gray100,
+                      ),
+                      child: PriceLineChartWidget(
+                        chartDataSources: priceChartData,
                       ),
                     ),
                   ],

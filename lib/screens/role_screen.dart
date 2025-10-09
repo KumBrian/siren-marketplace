@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -15,29 +16,29 @@ class RoleScreen extends StatefulWidget {
 }
 
 class _RoleScreenState extends State<RoleScreen> {
+  Role? selectedRole;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: BlocBuilder<RoleCubit, Role>(
+          child: BlocBuilder<UserRoleCubit, Role>(
             builder: (context, state) {
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 20,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    spacing: 20,
                     children: [
-                      Image(
-                        image: AssetImage('assets/icons/siren_logo.png'),
+                      Image.asset(
+                        'assets/icons/siren_logo.png',
                         width: 150,
                         height: 100,
                       ),
-
+                      const SizedBox(height: 20),
                       Text(
                         "Welcome",
                         style: TextStyle(
@@ -46,7 +47,8 @@ class _RoleScreenState extends State<RoleScreen> {
                           color: AppColors.textBlue,
                         ),
                       ),
-                      Text(
+                      const SizedBox(height: 10),
+                      const Text(
                         "Please select your role to continue.",
                         style: TextStyle(
                           fontSize: 16,
@@ -55,37 +57,40 @@ class _RoleScreenState extends State<RoleScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 40),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 20,
                     children: [
                       RoleButton(
                         title: "Fisher",
                         icon: "assets/icons/fisher.png",
-                        isActive:
-                            context.watch<RoleCubit>().state == Role.fisher,
+                        isActive: selectedRole == Role.fisher,
                         onPressed: () {
-                          context.read<RoleCubit>().selectRole(Role.fisher);
+                          setState(() => selectedRole = Role.fisher);
                         },
                       ),
+                      const SizedBox(height: 20),
                       RoleButton(
                         title: "Buyer",
                         icon: "assets/icons/buyer.png",
-                        isActive:
-                            context.watch<RoleCubit>().state == Role.buyer,
+                        isActive: selectedRole == Role.buyer,
                         onPressed: () {
-                          context.read<RoleCubit>().selectRole(Role.buyer);
+                          setState(() => selectedRole = Role.buyer);
                         },
                       ),
                     ],
                   ),
-
+                  const SizedBox(height: 40),
                   CustomButton(
                     title: "Continue",
+                    disabled: selectedRole == null,
+
+                    suffixIcon: CupertinoIcons.chevron_forward,
                     onPressed: () {
-                      final role = context.read<RoleCubit>().state;
-                      if (role != Role.unknown) {
+                      if (selectedRole != null &&
+                          selectedRole != Role.unknown) {
                         // router redirect logic will take over
+                        context.read<UserRoleCubit>().setRole(selectedRole!);
                         context.go('/');
                       }
                     },

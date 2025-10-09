@@ -27,7 +27,7 @@ class OrderCard extends StatelessWidget {
               ),
               // round corners
               child: Image.network(
-                order.images.first,
+                order.product.images.first,
                 width: 140,
                 height: 140,
                 fit: BoxFit.cover,
@@ -52,7 +52,7 @@ class OrderCard extends StatelessWidget {
                         SizedBox(
                           width: 130,
                           child: Text(
-                            order.productName,
+                            order.product.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
 
@@ -74,12 +74,14 @@ class OrderCard extends StatelessWidget {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white),
-                                color: AppColors.getStatusColor(order.status),
+                                color: AppColors.getStatusColor(
+                                  order.offer.status,
+                                ),
                               ),
                             ),
                             // Icon(Icons.person, color: AppColors.white100, size: 60),
                             Text(
-                              order.status.name.capitalize(),
+                              order.offer.status.name.capitalize(),
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
@@ -104,7 +106,7 @@ class OrderCard extends StatelessWidget {
 
                             children: [
                               TextSpan(
-                                text: "${order.weight} Kg",
+                                text: "${order.offer.weight.toInt()} Kg",
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -130,7 +132,7 @@ class OrderCard extends StatelessWidget {
 
                               children: [
                                 TextSpan(
-                                  text: order.market,
+                                  text: order.product.market,
                                   style: TextStyle(
                                     fontSize: 12,
                                     overflow: TextOverflow.ellipsis,
@@ -159,7 +161,7 @@ class OrderCard extends StatelessWidget {
                           ),
                           child: Center(
                             child: Text(
-                              "${order.price.toInt()} CFA",
+                              "${order.offer.price.toInt()} CFA",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,

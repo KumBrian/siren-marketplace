@@ -17,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<RoleCubit, Role>(
+      body: BlocBuilder<UserRoleCubit, Role>(
         builder: (context, state) {
           return state == Role.fisher ? const FisherHome() : const BuyerHome();
         },

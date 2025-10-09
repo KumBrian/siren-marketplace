@@ -29,7 +29,7 @@ class ForSaleCard extends StatelessWidget {
                 bottomLeft: Radius.circular(16),
               ),
               // round corners
-              child: Image.asset(
+              child: Image.network(
                 catchData.images[0],
                 width: 120,
 
@@ -111,7 +111,8 @@ class ForSaleCard extends StatelessWidget {
 
                                 children: [
                                   TextSpan(
-                                    text: "${catchData.initialWeight} Kg",
+                                    text:
+                                        "${catchData.initialWeight.toInt()} Kg",
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+// --- NEW IMPORT ---
+import 'package:siren_marketplace/bloc/cubits/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/orders_filter_cubit/orders_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/orders_filter_cubit/orders_filter_state.dart';
 import 'package:siren_marketplace/components/custom_button.dart';
@@ -8,7 +10,7 @@ import 'package:siren_marketplace/components/filter_button.dart';
 import 'package:siren_marketplace/components/order_card.dart';
 import 'package:siren_marketplace/constants/constants.dart';
 import 'package:siren_marketplace/constants/types.dart';
-import 'package:siren_marketplace/data/order_data.dart';
+// REMOVE: import 'package:siren_marketplace/data/order_data.dart';
 
 class BuyerOrders extends StatefulWidget {
   const BuyerOrders({super.key});
@@ -18,7 +20,24 @@ class BuyerOrders extends StatefulWidget {
 }
 
 class _BuyerOrdersState extends State<BuyerOrders> {
-  final orders = sampleOrders;
+  // REMOVED: final orders = sampleOrders; // Now fetched from BLoC
+
+  // Function to apply filtering logic
+  List<Order> _applyFilters(List<Order> orders, OrdersFilterState state) {
+    if (state.selectedStatuses.isEmpty) {
+      return orders;
+    }
+
+    // Filter by Status
+    return orders.where((order) {
+      // Assuming Order object has an offer with a status property
+      // For simplicity, we assume the first offer determines the order status
+      final status = order.offer.status;
+
+      // If the order's status is in the selected statuses, include it.
+      return state.selectedStatuses.contains(status);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +52,10 @@ class _BuyerOrdersState extends State<BuyerOrders> {
             onPressed: () {
               context.go("/buyer/notifications");
             },
-            icon: Icon(Icons.notifications_none, color: AppColors.textBlue),
+            icon: const Icon(
+              Icons.notifications_none,
+              color: AppColors.textBlue,
+            ),
           ),
         ],
         bottom: AppBar(
@@ -41,8 +63,7 @@ class _BuyerOrdersState extends State<BuyerOrders> {
           elevation: 0,
           toolbarHeight: 36,
           backgroundColor: AppColors.white100,
-
-          title: Text(
+          title: const Text(
             "Orders",
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -52,34 +73,72 @@ class _BuyerOrdersState extends State<BuyerOrders> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-        child: Column(
-          spacing: 8,
-          children: [
-            Divider(color: AppColors.textBlue, height: 2, thickness: 2),
-            Expanded(flex: 1, child: OrdersFilter()),
-            Expanded(
-              flex: 12,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 80),
-                child: Column(
-                  spacing: 8,
-                  children: orders
-                      .map(
-                        (order) => OrderCard(
-                          order: order,
-                          onPressed: () {
-                            context.go("/buyer/order-details/${order.orderId}");
-                          },
-                        ),
-                      )
-                      .toList(),
+      // 1. Listen to the BuyerCubit for the list of orders
+      body: BlocBuilder<BuyerCubit, Buyer?>(
+        builder: (context, buyerState) {
+          if (buyerState == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final allOrders = buyerState.orders;
+
+          // 2. Nested BlocBuilder for applying filters
+          return BlocBuilder<OrdersFilterCubit, OrdersFilterState>(
+            builder: (context, filterState) {
+              final filteredOrders = _applyFilters(allOrders, filterState);
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 16,
                 ),
-              ),
-            ),
-          ],
-        ),
+                child: Column(
+                  // Use SizedBox instead of `spacing: 8`
+                  spacing: 8,
+                  children: [
+                    Divider(color: AppColors.textBlue, height: 2, thickness: 2),
+
+                    const Expanded(flex: 1, child: OrdersFilter()),
+
+                    Expanded(
+                      flex: 12,
+                      child: filteredOrders.isEmpty
+                          ? const Center(
+                              child: Text(
+                                "No orders found matching your criteria.",
+                                style: TextStyle(color: AppColors.textGray),
+                              ),
+                            )
+                          : SingleChildScrollView(
+                              padding: const EdgeInsets.only(bottom: 80),
+                              child: Column(
+                                // Use SizedBox instead of `spacing: 8`
+                                children: filteredOrders
+                                    .map(
+                                      (order) => Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 8.0,
+                                        ),
+                                        child: OrderCard(
+                                          order: order,
+                                          onPressed: () {
+                                            context.go(
+                                              "/buyer/order-details/${order.orderId}",
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -90,46 +149,52 @@ class OrdersFilter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      spacing: 16,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          flex: 4,
-          child: SearchBar(
-            hintText: "Search...",
-            scrollPadding: EdgeInsets.symmetric(vertical: 4),
-            textStyle: WidgetStateProperty.all(
-              TextStyle(fontSize: 16, color: AppColors.textBlue),
-            ),
-            backgroundColor: WidgetStateProperty.all(AppColors.white100),
-            shape: WidgetStateProperty.all(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadiusGeometry.circular(16),
+    // 3. Keep OrdersFilter as a StatelessWidget that uses BlocBuilder internally
+    return BlocBuilder<OrdersFilterCubit, OrdersFilterState>(
+      builder: (context, state) {
+        final cubit = context.read<OrdersFilterCubit>();
+
+        return Row(
+          // Use SizedBox instead of `spacing: 16`
+          spacing: 16,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              flex: 5,
+              child: SearchBar(
+                hintText: "Search...",
+                scrollPadding: const EdgeInsets.symmetric(vertical: 4),
+                textStyle: WidgetStateProperty.all(
+                  const TextStyle(fontSize: 16, color: AppColors.textBlue),
+                ),
+                backgroundColor: WidgetStateProperty.all(AppColors.white100),
+                shape: WidgetStateProperty.all(
+                  const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                  ),
+                ),
+
+                trailing: const [Icon(Icons.search, color: AppColors.textBlue)],
+                elevation: WidgetStateProperty.all(0),
               ),
             ),
 
-            trailing: [Icon(Icons.search, color: AppColors.textBlue)],
-            elevation: WidgetStateProperty.all(0),
-          ),
-        ),
-        Expanded(
-          flex: 1,
-          child: Material(
-            color: AppColors.white100,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              splashColor: AppColors.blue700.withValues(alpha: .1),
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  showDragHandle: true,
-                  builder: (context) {
-                    return BlocBuilder<OrdersFilterCubit, OrdersFilterState>(
-                      builder: (context, state) {
-                        final cubit = context.read<OrdersFilterCubit>();
+            Expanded(
+              flex: 1,
+              child: Material(
+                color: AppColors.white100,
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  splashColor: AppColors.blue700.withValues(alpha: .1),
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      showDragHandle: true,
+                      builder: (context) {
+                        // The inner builder is no longer needed since OrdersFilter
+                        // is already a BlocBuilder and we pass the state/cubit implicitly
 
                         return Container(
                           padding: const EdgeInsets.only(
@@ -140,7 +205,7 @@ class OrdersFilter extends StatelessWidget {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 12,
+                            // Use SizedBox instead of `spacing: 12`
                             children: [
                               const Text(
                                 "Filter by:",
@@ -149,14 +214,17 @@ class OrdersFilter extends StatelessWidget {
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
+                              const SizedBox(height: 12),
                               const Text("Status"),
-                              Text(
+                              const SizedBox(height: 12),
+                              const Text(
                                 "Select all that apply",
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textGray,
                                 ),
                               ),
+                              const SizedBox(height: 12),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
@@ -215,14 +283,13 @@ class OrdersFilter extends StatelessWidget {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 crossAxisAlignment: CrossAxisAlignment.center,
-
                                 children: [
                                   TextButton(
                                     onPressed: () {
                                       cubit.clear();
                                       Navigator.pop(context);
                                     },
-                                    child: Text(
+                                    child: const Text(
                                       "Reset All",
                                       style: TextStyle(
                                         decoration: TextDecoration.underline,
@@ -231,7 +298,7 @@ class OrdersFilter extends StatelessWidget {
                                   ),
                                   CustomButton(
                                     title: "Apply Filters",
-                                    onPressed: () {},
+                                    onPressed: () => Navigator.pop(context),
                                   ),
                                 ],
                               ),
@@ -241,18 +308,13 @@ class OrdersFilter extends StatelessWidget {
                       },
                     );
                   },
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
+                  child: Icon(Icons.filter_alt_outlined),
                 ),
-                child: Icon(Icons.filter_alt_outlined),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
