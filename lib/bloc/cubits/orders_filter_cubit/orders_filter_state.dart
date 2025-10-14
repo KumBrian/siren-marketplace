@@ -1,5 +1,4 @@
-import 'package:equatable/equatable.dart';
-import 'package:siren_marketplace/constants/types.dart';
+part of "orders_filter_cubit.dart";
 
 class OrdersFilterState extends Equatable {
   final Set<OfferStatus> selectedStatuses;

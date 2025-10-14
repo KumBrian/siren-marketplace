@@ -2,34 +2,39 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:siren_marketplace/screens/buyer/buyer_congratulations_screen.dart';
-import 'package:siren_marketplace/screens/buyer/buyer_notifications_screen.dart';
-import 'package:siren_marketplace/screens/buyer/buyer_offer_details.dart';
-import 'package:siren_marketplace/screens/buyer/buyer_order_details.dart';
-import 'package:siren_marketplace/screens/buyer/buyer_orders.dart';
-import 'package:siren_marketplace/screens/buyer/product_details.dart';
-import 'package:siren_marketplace/screens/fisher/catch_details.dart';
-import 'package:siren_marketplace/screens/fisher/chat_page.dart';
-import 'package:siren_marketplace/screens/fisher/congratulations_screen.dart';
-import 'package:siren_marketplace/screens/fisher/fisher_home.dart';
-import 'package:siren_marketplace/screens/fisher/fisher_offer_details.dart';
-import 'package:siren_marketplace/screens/fisher/market_trends.dart';
-import 'package:siren_marketplace/screens/fisher/notifications_screen.dart';
-import 'package:siren_marketplace/screens/fisher/order_details.dart';
-import 'package:siren_marketplace/screens/role_screen.dart';
 
-import 'bloc/cubits/role_cubit.dart';
-import 'constants/types.dart' hide Buyer;
-import 'screens/buyer/buyer.dart';
+import 'core/types/enum.dart';
+import 'features/buyer/presentation/screens/buyer.dart';
+import 'features/buyer/presentation/screens/congratulations_screen.dart';
+import 'features/buyer/presentation/screens/notifications_screen.dart';
+import 'features/buyer/presentation/screens/offer_details.dart';
+import 'features/buyer/presentation/screens/order_details.dart';
+import 'features/buyer/presentation/screens/orders_screen.dart';
+import 'features/buyer/presentation/screens/product_details.dart';
+import 'features/chat/presentation/screens/chat_page.dart';
+import 'features/fisher/presentation/screens/catch_details.dart';
+import 'features/fisher/presentation/screens/congratulations_screen.dart';
+import 'features/fisher/presentation/screens/home_screen.dart';
+import 'features/fisher/presentation/screens/market_trends.dart';
+import 'features/fisher/presentation/screens/notifications_screen.dart';
+import 'features/fisher/presentation/screens/offer_details.dart';
+import 'features/fisher/presentation/screens/order_details.dart';
+import 'features/user/logic/bloc/user_bloc.dart';
+import 'features/user/presentation/screens/role_selection_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    _subscription = stream.listen((_) {
-      notifyListeners();
+  // Now listens to the state of the UserBloc
+  GoRouterRefreshStream(Stream<UserState> stream) {
+    // We only need to notify listeners when the role changes from/to 'unknown'
+    // or when the user is successfully loaded.
+    _subscription = stream.listen((state) {
+      if (state is UserLoaded || state is UserError) {
+        notifyListeners();
+      }
     });
   }
 
-  late final StreamSubscription<dynamic> _subscription;
+  late final StreamSubscription<UserState> _subscription;
 
   @override
   void dispose() {
@@ -38,22 +43,56 @@ class GoRouterRefreshStream extends ChangeNotifier {
   }
 }
 
-GoRouter createRouter(UserRoleCubit roleCubit) {
+// -------------------------------------------------------------------------
+// 2. Updated Router Creation Function
+// -------------------------------------------------------------------------
+
+// Accepts the new UserBloc instead of the old RoleCubit
+GoRouter createRouter(UserBloc userBloc) {
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: GoRouterRefreshStream(roleCubit.stream),
-    redirect: (context, state) {
-      final role = roleCubit.state;
+    // Use the UserBloc stream for refresh listening
+    refreshListenable: GoRouterRefreshStream(userBloc.stream),
 
-      if (role == Role.unknown && state.fullPath != '/') {
+    redirect: (context, state) {
+      final userState = userBloc.state;
+      final bool isRoot = state.fullPath == '/';
+
+      // Handle the loading state by waiting
+      if (userState is UserLoading) {
+        return isRoot
+            ? null
+            : '/'; // Allow staying on root, redirect others to root
+      }
+
+      // Get the determined role from the loaded state
+      final Role currentRole = userState is UserLoaded
+          ? userState.role
+          : Role.unknown;
+
+      // ---------------------------------------------------------------------
+      // 🎯 FIX: Modify Rule 2 to allow the root path access.
+      // ---------------------------------------------------------------------
+
+      // Rule 1: Not loaded/Unknown role attempts to access non-root path -> Redirect to root
+      if (currentRole == Role.unknown && !isRoot) {
         return '/';
       }
-      if (role != Role.unknown && state.fullPath == '/') {
-        return role == Role.fisher ? '/fisher' : '/buyer';
+
+      // Rule 2 (MODIFIED): A valid role loaded attempts to access the root path (`/`).
+      // We explicitly allow the user to stay on the root path (the RoleScreen).
+      if (currentRole != Role.unknown && isRoot) {
+        // Return null to allow the current path (which is '/')
+        return null;
       }
 
+      // Rule 3: Allow navigation for all other cases (e.g., Fisher access /fisher/home)
       return null;
     },
+
+    // ---------------------------------------------------------------------
+    // 3. Route Definitions (unchanged, as they are URL-based)
+    // ---------------------------------------------------------------------
     routes: [
       GoRoute(path: '/', builder: (_, __) => const RoleScreen()),
       GoRoute(

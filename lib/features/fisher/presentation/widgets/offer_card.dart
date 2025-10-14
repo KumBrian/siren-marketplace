@@ -1,0 +1,191 @@
+import 'package:flutter/material.dart';
+import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/extensions.dart';
+
+class OfferCard extends StatelessWidget {
+  const OfferCard({
+    super.key,
+    required this.offer,
+    required this.onPressed,
+    // 🆕 Add explicit client details
+    required this.clientName,
+    required this.clientRating,
+  });
+
+  final Offer offer;
+  final VoidCallback onPressed;
+
+  // 🆕 New required fields
+  final String clientName;
+  final double clientRating;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16),
+        splashColor: AppColors.blue700.withValues(alpha: 0.1),
+        // Using .withOpacity
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            // Ensuring the border bottom is applied to the InkWell's child Container
+            border: Border(bottom: BorderSide(color: AppColors.gray200)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _iconBadge(),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 🆕 Pass client details to the header row
+                    _headerRow(context),
+                    const SizedBox(height: 4),
+                    _detailsRow(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Left-hand icon with background
+  Widget _iconBadge() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        // Used withOpacity for cleaner syntax
+        color: AppColors.textBlue.withValues(alpha: 0.1),
+      ),
+      child: const Icon(Icons.local_offer_outlined, color: AppColors.textBlue),
+    );
+  }
+
+  /// Top row: client name + client rating + date
+  // 🆕 Takes BuildContext to ensure proper use of extensions
+  Widget _headerRow(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            // 🆕 Use the passed-in clientName
+            _text(clientName, AppColors.textGray, fontWeight: FontWeight.w300),
+            const SizedBox(width: 4),
+            const Icon(Icons.star, color: AppColors.shellOrange, size: 16),
+            // 🆕 Use the passed-in clientRating
+            Text(
+              clientRating.toStringAsFixed(1),
+              style: TextStyle(
+                color: AppColors.textGray,
+                fontWeight: FontWeight.w300,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        // Date created is on the offer
+        Text(
+          offer.dateCreated.toFormattedDate(),
+          style: TextStyle(
+            color: AppColors.blue800,
+            fontSize: 12,
+            fontWeight: FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Bottom row: pills + status
+  Widget _detailsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            // Weight and Price are on the offer
+            _pill("${offer.weight.toStringAsFixed(1)} kg"),
+
+            const SizedBox(width: 8),
+            _pill("${offer.price.toStringAsFixed(0)} CFA"),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          spacing: 8,
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              // Replaced spacing: 8
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.getStatusColor(offer.status),
+              ),
+            ),
+            Text(
+              offer.status.name.capitalize(),
+              style: TextStyle(
+                color: AppColors.textGray,
+                fontWeight: FontWeight.normal,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Small pill-shaped label
+  Widget _pill(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: AppColors.gray100,
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: AppColors.textBlue,
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
+  /// Centralized text styling
+  Widget _text(
+    String text,
+    Color color, {
+    FontWeight fontWeight = FontWeight.normal,
+    double fontSize = 14,
+  }) {
+    return SizedBox(
+      width: 100,
+      child: Text(
+        text,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+          color: color,
+        ),
+      ),
+    );
+  }
+}

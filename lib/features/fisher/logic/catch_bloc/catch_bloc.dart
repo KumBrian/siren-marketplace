@@ -1,0 +1,108 @@
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
+
+part 'catch_event.dart';
+part 'catch_state.dart';
+
+class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
+  final CatchRepository repository;
+
+  CatchesBloc(this.repository) : super(CatchesInitial()) {
+    on<LoadCatches>(_onLoadCatches);
+    on<LoadCatchesByFisher>(_onLoadCatchesByFisher);
+    on<AddCatch>(_onAddCatch);
+    on<UpdateCatchEvent>(_onUpdateCatch);
+    on<DeleteCatchEvent>(_onDeleteCatch);
+  }
+
+  // 🧩 Assemble Catch + Offer data
+  Future<List<Catch>> _assembleCatches(
+    List<Map<String, dynamic>> catchMaps,
+  ) async {
+    return Future.wait(
+      catchMaps.map((m) async {
+        final catchId = m['catch_id'] as String;
+        final offerMaps = await repository.dbHelper.getOfferMapsByCatchId(
+          catchId,
+        );
+        final offers = offerMaps.map((o) => Offer.fromMap(o)).toList();
+        return Catch.fromMap(m).copyWith(offers: offers);
+      }),
+    );
+  }
+
+  // 🔹 Load all catches
+  Future<void> _onLoadCatches(
+    LoadCatches event,
+    Emitter<CatchesState> emit,
+  ) async {
+    emit(CatchesLoading());
+    try {
+      final catchMaps = await repository.getAllCatchMaps();
+      final catches = await _assembleCatches(catchMaps);
+      emit(CatchesLoaded(catches));
+    } catch (e) {
+      emit(CatchesError('Failed to load catches: $e'));
+    }
+  }
+
+  // 🔹 Load catches by Fisher ID (key method for FisherHome)
+  Future<void> _onLoadCatchesByFisher(
+    LoadCatchesByFisher event,
+    Emitter<CatchesState> emit,
+  ) async {
+    emit(CatchesLoading());
+    try {
+      final catchMaps = await repository.getCatchMapsByFisherId(event.fisherId);
+      final catches = await _assembleCatches(catchMaps);
+      emit(CatchesLoaded(catches));
+    } catch (e) {
+      emit(CatchesError('Failed to load catches for fisher: $e'));
+    }
+  }
+
+  // 🔹 Add new catch
+  Future<void> _onAddCatch(AddCatch event, Emitter<CatchesState> emit) async {
+    try {
+      await repository.insertCatch(event.catchModel);
+      final updatedCatchMaps = await repository.getAllCatchMaps();
+      final updatedCatches = await _assembleCatches(updatedCatchMaps);
+      emit(CatchesLoaded(updatedCatches));
+    } catch (e) {
+      emit(CatchesError('Failed to add catch: $e'));
+    }
+  }
+
+  // 🔹 Update catch
+  Future<void> _onUpdateCatch(
+    UpdateCatchEvent event,
+    Emitter<CatchesState> emit,
+  ) async {
+    try {
+      await repository.updateCatch(event.catchModel);
+      final updatedCatchMaps = await repository.getAllCatchMaps();
+      final updatedCatches = await _assembleCatches(updatedCatchMaps);
+      emit(CatchesLoaded(updatedCatches));
+    } catch (e) {
+      emit(CatchesError('Failed to update catch: $e'));
+    }
+  }
+
+  // 🔹 Delete catch
+  Future<void> _onDeleteCatch(
+    DeleteCatchEvent event,
+    Emitter<CatchesState> emit,
+  ) async {
+    try {
+      await repository.deleteCatch(event.catchId);
+      final updatedCatchMaps = await repository.getAllCatchMaps();
+      final updatedCatches = await _assembleCatches(updatedCatchMaps);
+      emit(CatchesLoaded(updatedCatches));
+    } catch (e) {
+      emit(CatchesError('Failed to delete catch: $e'));
+    }
+  }
+}

@@ -1,5 +1,4 @@
-import 'package:equatable/equatable.dart';
-import 'package:siren_marketplace/constants/types.dart';
+part of 'products_filter_cubit.dart';
 
 class ProductsFilterState extends Equatable {
   final List<Species> selectedSpecies;

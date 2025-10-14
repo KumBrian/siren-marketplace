@@ -1,7 +1,8 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:siren_marketplace/constants/types.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
 
-import 'orders_filter_state.dart';
+part 'orders_filter_state.dart';
 
 class OrdersFilterCubit extends Cubit<OrdersFilterState> {
   OrdersFilterCubit() : super(const OrdersFilterState());

@@ -1,6 +1,6 @@
-import 'dart:math'; // Required for generating random numbers
+import 'dart:math';
 
-import 'package:siren_marketplace/constants/types.dart';
+import 'package:siren_marketplace/core/types/enum.dart'; // Required for generating random numbers
 
 /// Represents a single historical price point for a species.
 class HistoricalPriceData {

@@ -1,7 +1,9 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:siren_marketplace/constants/types.dart';
+import 'package:siren_marketplace/core/models/species.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
 
-import 'products_filter_state.dart';
+part 'products_filter_state.dart';
 
 class ProductsFilterCubit extends Cubit<ProductsFilterState> {
   ProductsFilterCubit() : super(const ProductsFilterState());
