@@ -22,6 +22,14 @@ class _RoleScreenState extends State<RoleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Image.asset(
+          'assets/icons/siren_logo.png',
+          width: 100,
+          height: 100,
+        ),
+        centerTitle: true,
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -68,81 +76,78 @@ class _RoleScreenState extends State<RoleScreen> {
               final buttonDisabled =
                   isLoading || _selectedRole == Role.unknown || isError;
 
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Logo + Intro
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/icons/siren_logo.png',
-                        width: 150,
-                        height: 100,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        "Welcome",
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textBlue,
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 60.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    //Intro
+                    Column(
+                      spacing: 40,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Welcome",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textBlue,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        "Please, select your role to continue.",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                        Text(
+                          "Please, select your role to continue.",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
+                      ],
+                    ),
 
-                  // Role Selection / Switch
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      RoleButton(
-                        title: "Fisher",
-                        icon: "assets/icons/fisher.png",
-                        isActive: _selectedRole == Role.fisher,
-                        onPressed: () =>
-                            setState(() => _selectedRole = Role.fisher),
-                      ),
-                      const SizedBox(height: 20),
-                      RoleButton(
-                        title: "Buyer",
-                        icon: "assets/icons/buyer.png",
-                        isActive: _selectedRole == Role.buyer,
-                        onPressed: () =>
-                            setState(() => _selectedRole = Role.buyer),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
+                    // Role Selection / Switch
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        RoleButton(
+                          title: "Fisher",
+                          icon: "assets/icons/fisher.png",
+                          isActive: _selectedRole == Role.fisher,
+                          onPressed: () =>
+                              setState(() => _selectedRole = Role.fisher),
+                        ),
+                        const SizedBox(height: 20),
+                        RoleButton(
+                          title: "Buyer",
+                          icon: "assets/icons/buyer.png",
+                          isActive: _selectedRole == Role.buyer,
+                          onPressed: () =>
+                              setState(() => _selectedRole = Role.buyer),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
 
-                  // Continue Button (Finalize selection and navigate)
-                  CustomButton(
-                    title: "Continue",
-                    // Disable if role is unknown, or if BLoC is currently loading
-                    disabled:
-                        buttonDisabled ||
-                        _selectedRole == Role.unknown ||
-                        state is UserLoading,
-                    suffixIcon: CupertinoIcons.chevron_forward,
-                    onPressed: () {
-                      // 1. Emit the Finalize event to load the user profile
-                      context.read<UserBloc>().add(
-                        FinalizeRoleSelection(_selectedRole),
-                      );
-                    },
-                  ),
-                ],
+                    // Continue Button (Finalize selection and navigate)
+                    CustomButton(
+                      title: "Continue",
+                      // Disable if role is unknown, or if BLoC is currently loading
+                      disabled:
+                          buttonDisabled ||
+                          _selectedRole == Role.unknown ||
+                          state is UserLoading,
+                      suffixIcon: CupertinoIcons.chevron_forward,
+                      onPressed: () {
+                        // 1. Emit the Finalize event to load the user profile
+                        context.read<UserBloc>().add(
+                          FinalizeRoleSelection(_selectedRole),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               );
             },
           ),

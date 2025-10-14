@@ -101,26 +101,28 @@ class ForSaleCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 8,
                           children: [
-                            RichText(
-                              text: TextSpan(
-                                text: "Size: ",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.gray650,
-                                ),
+                            catchData.species.id == "prawns"
+                                ? RichText(
+                                    text: TextSpan(
+                                      text: "Size: ",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.gray650,
+                                      ),
 
-                                children: [
-                                  TextSpan(
-                                    text: catchData.size,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textBlue,
+                                      children: [
+                                        TextSpan(
+                                          text: catchData.size,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textBlue,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                                  )
+                                : Container(),
                             RichText(
                               text: TextSpan(
                                 text: "Weight: ",

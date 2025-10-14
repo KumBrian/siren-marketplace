@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 import 'enum.dart';
 
 Role roleFromString(String s) =>
@@ -40,3 +42,12 @@ CatchStatus catchStatusFromString(String status) {
 }
 
 String catchStatusToString(CatchStatus status) => status.name;
+
+String formatPrice(double price) {
+  return NumberFormat.currency(
+    locale: 'en_CM',
+    symbol: 'CFA',
+    decimalDigits: 0,
+    customPattern: '###,### CFA',
+  ).format(price);
+}

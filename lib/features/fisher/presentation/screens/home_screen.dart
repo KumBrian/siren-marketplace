@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/custom_nav_bar.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
@@ -44,11 +45,6 @@ class FisherHome extends StatelessWidget {
           context.read<CatchesBloc>().add(
             LoadCatchesByFisher(fisherId: userState.user!.id),
           );
-
-          // NOTE: You must also implement LoadCatchesByFisher in your CatchesBloc:
-          // on<LoadCatchesByFisher>((event, emit) async {
-          //   // ... use catchRepository.getCatchMapsByFisherId(event.fisherId)
-          // });
         }
       },
       child: Scaffold(
@@ -60,7 +56,7 @@ class FisherHome extends StatelessWidget {
           title: Image.asset(
             "assets/icons/siren_logo.png",
             width: 100,
-            height: 50,
+            height: 100,
           ),
           actions: [
             IconButton(
@@ -153,7 +149,7 @@ class FisherHome extends StatelessWidget {
                                     children: [
                                       const Text("Turnover"),
                                       Text(
-                                        "${turnover.toInt()} CFA",
+                                        formatPrice(turnover),
                                         style: const TextStyle(
                                           fontSize: 32,
                                           fontWeight: FontWeight.bold,
@@ -186,10 +182,39 @@ class FisherHome extends StatelessWidget {
                                         children: [
                                           // For Sale List
                                           forSaleCatches.isEmpty
-                                              ? const Center(
-                                                  child: Text(
-                                                    "You have no catches listed for sale.",
-                                                  ),
+                                              ? Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    SizedBox(
+                                                      height: 120,
+                                                      width: 120,
+                                                      child: Image.asset(
+                                                        "assets/images/no-offers.png",
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      "Your shop is empty for now.",
+                                                      style: const TextStyle(
+                                                        color:
+                                                            AppColors.textBlue,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "Add your first item to start selling.",
+                                                      style: const TextStyle(
+                                                        color:
+                                                            AppColors.textGray,
+                                                        fontWeight:
+                                                            FontWeight.w300,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 )
                                               : ListView.separated(
                                                   padding:
@@ -229,10 +254,39 @@ class FisherHome extends StatelessWidget {
 
                                           // Sold List
                                           soldCatches.isEmpty
-                                              ? const Center(
-                                                  child: Text(
-                                                    "No catches have been sold yet.",
-                                                  ),
+                                              ? Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    SizedBox(
+                                                      height: 120,
+                                                      width: 120,
+                                                      child: Image.asset(
+                                                        "assets/images/no-offers.png",
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      "Your shop is empty for now.",
+                                                      style: const TextStyle(
+                                                        color:
+                                                            AppColors.textBlue,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "Add your first item to start selling.",
+                                                      style: const TextStyle(
+                                                        color:
+                                                            AppColors.textGray,
+                                                        fontWeight:
+                                                            FontWeight.w300,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 )
                                               : ListView.separated(
                                                   padding:

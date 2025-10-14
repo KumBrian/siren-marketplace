@@ -5,6 +5,7 @@ import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
@@ -185,11 +186,11 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                           ),
                           InfoRow(
                             label: "Price/Kg",
-                            value: "${selectedOffer.pricePerKg.toInt()} CFA",
+                            value: formatPrice(selectedOffer.pricePerKg),
                           ),
                           InfoRow(
-                            label: "Price",
-                            value: "${selectedOffer.price.toInt()} CFA",
+                            label: "Total",
+                            value: formatPrice(selectedOffer.price),
                           ),
                         ],
                       ),

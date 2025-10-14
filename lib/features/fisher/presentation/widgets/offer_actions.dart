@@ -77,7 +77,7 @@ class _OfferActionsState extends State<OfferActions> {
         const SizedBox(height: 16),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-          // UPDATED: Replaced spacing: 8 with SizedBox
+          spacing: 16,
           children: [
             // Reject Button
             Expanded(
@@ -88,7 +88,6 @@ class _OfferActionsState extends State<OfferActions> {
                 bordered: true,
               ),
             ),
-            const SizedBox(width: 8),
 
             // Counter Offer Button
             Expanded(

@@ -61,23 +61,26 @@ class SoldCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Removed the unused 'spacing' property here
-                    Text(
-                      catchTitle, // 🆕 Using the passed-in catchTitle
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: AppColors.textBlue,
+                    SizedBox(
+                      width: 200,
+                      child: Text(
+                        catchTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: AppColors.textBlue,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16), // Added spacing explicitly
+                    const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Removed the unused 'spacing' property here
                             RichText(
                               text: TextSpan(
                                 text: "Weight: ",

@@ -308,8 +308,9 @@ class CatchSeeder {
     final Map<String, Offer> uniqueConversations = {};
     for (final offer in allOffers) {
       final key = '${offer.buyerId}-${offer.fisherId}';
-      if (!uniqueConversations.containsKey(key))
+      if (!uniqueConversations.containsKey(key)) {
         uniqueConversations[key] = offer;
+      }
     }
 
     for (final offer in uniqueConversations.values) {

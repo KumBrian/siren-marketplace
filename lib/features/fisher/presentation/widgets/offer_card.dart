@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 
 class OfferCard extends StatelessWidget {
@@ -37,18 +38,15 @@ class OfferCard extends StatelessWidget {
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
             children: [
               _iconBadge(),
-              const SizedBox(width: 8),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 🆕 Pass client details to the header row
-                    _headerRow(context),
-                    const SizedBox(height: 4),
-                    _detailsRow(),
-                  ],
+                  spacing: 10,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+
+                  children: [_headerRow(), _detailsRow()],
                 ),
               ),
             ],
@@ -73,7 +71,7 @@ class OfferCard extends StatelessWidget {
 
   /// Top row: client name + client rating + date
   // 🆕 Takes BuildContext to ensure proper use of extensions
-  Widget _headerRow(BuildContext context) {
+  Widget _headerRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -82,14 +80,14 @@ class OfferCard extends StatelessWidget {
             // 🆕 Use the passed-in clientName
             _text(clientName, AppColors.textGray, fontWeight: FontWeight.w300),
             const SizedBox(width: 4),
-            const Icon(Icons.star, color: AppColors.shellOrange, size: 16),
+            const Icon(Icons.star, color: AppColors.shellOrange, size: 12),
             // 🆕 Use the passed-in clientRating
             Text(
               clientRating.toStringAsFixed(1),
               style: TextStyle(
                 color: AppColors.textGray,
                 fontWeight: FontWeight.w300,
-                fontSize: 14,
+                fontSize: 12,
               ),
             ),
           ],
@@ -98,8 +96,8 @@ class OfferCard extends StatelessWidget {
         Text(
           offer.dateCreated.toFormattedDate(),
           style: TextStyle(
-            color: AppColors.blue800,
-            fontSize: 12,
+            color: AppColors.gray500,
+            fontSize: 10,
             fontWeight: FontWeight.normal,
           ),
         ),
@@ -110,36 +108,37 @@ class OfferCard extends StatelessWidget {
   /// Bottom row: pills + status
   Widget _detailsRow() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
             // Weight and Price are on the offer
-            _pill("${offer.weight.toStringAsFixed(1)} kg"),
+            _pill("${offer.weight.toInt()} kg"),
 
             const SizedBox(width: 8),
-            _pill("${offer.price.toStringAsFixed(0)} CFA"),
+            _pill(formatPrice(offer.price)),
           ],
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          spacing: 8,
+          spacing: 4,
           children: [
-            Container(
-              width: 10,
-              height: 10,
-              // Replaced spacing: 8
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.getStatusColor(offer.status),
-              ),
-            ),
             Text(
               offer.status.name.capitalize(),
               style: TextStyle(
                 color: AppColors.textGray,
-                fontWeight: FontWeight.normal,
-                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+            Container(
+              width: 8,
+              height: 8,
+              // Replaced spacing: 8
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.getStatusColor(offer.status),
               ),
             ),
           ],
@@ -151,16 +150,16 @@ class OfferCard extends StatelessWidget {
   /// Small pill-shaped label
   Widget _pill(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         color: AppColors.gray100,
       ),
       child: Text(
         text,
         style: TextStyle(
           color: AppColors.textBlue,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           fontSize: 14,
         ),
       ),
