@@ -133,7 +133,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                 OfferActions(offer: offer, formKey: _formKey),
                 const SizedBox(height: 16),
 
-                if (offer.previousOfferId != null) ...[
+                if (offer.previousPrice != null) ...[
                   const SectionHeader("Last Counter-Offer"),
                   const SizedBox(height: 16),
                   Container(

@@ -25,18 +25,35 @@ class NumberInputField extends StatefulWidget {
 
 class _NumberInputFieldState extends State<NumberInputField> {
   @override
+  void initState() {
+    super.initState();
+
+    // --- NEW LOGIC: Initialize the read-only 'Weight' field ---
+    if (widget.label == "Weight" && widget.value != null) {
+      // Defer setting text to ensure controller is safely attached
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final newText = widget.value!.toStringAsFixed(2);
+        if (widget.controller.text.isEmpty ||
+            widget.controller.text != newText) {
+          widget.controller.text = newText;
+        }
+      });
+    }
+  }
+
+  @override
   void didUpdateWidget(covariant NumberInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     // This logic ensures the controller is updated only when the external
-    // calculated value (widget.value) changes.
+    // calculated value (widget.value) changes for the 'Price/Kg' field.
     if (widget.label == "Price/Kg") {
       final newValue = widget.value;
 
       // Check if the calculated value is different from the old value.
       if (newValue != oldWidget.value) {
-        // *** CRITICAL FIX: Defer the controller update to the next frame ***
-        // This avoids triggering Form rebuild notifications during the current update cycle.
+        // CRITICAL FIX: Defer the controller update to the next frame
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return; // Safety check if the widget was disposed
 
@@ -57,23 +74,31 @@ class _NumberInputFieldState extends State<NumberInputField> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine if the field should be read-only (i.e., the calculated Price/Kg field)
-    final isReadOnly = widget.label == "Price/Kg";
+    // Check is updated to include 'Weight' as read-only.
+    final isReadOnly = widget.label == "Price/Kg" || widget.label == "Weight";
 
     return TextFormField(
       controller: widget.controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
 
-      // Only attach onChanged for the input fields ("Weight" and "Total")
+      // Only attach onChanged for the input fields ("Total" is now the only one)
       onChanged: isReadOnly ? null : widget.onChanged,
       readOnly: isReadOnly,
+      style: TextStyle(
+        color: isReadOnly
+            ? AppColors.textBlue.withValues(alpha: .7)
+            : AppColors.textBlue,
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      ),
 
       decoration: InputDecoration(
         labelText: widget.label,
+
         labelStyle: const TextStyle(color: AppColors.textGray, fontSize: 12),
         suffix: Text(
           widget.suffix,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textBlue,
             fontSize: 12,
             fontWeight: FontWeight.w600,

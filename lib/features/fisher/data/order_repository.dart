@@ -1,11 +1,16 @@
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
+import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/models/order.dart';
+import 'package:siren_marketplace/features/fisher/data/fisher_repository.dart';
+import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
 import 'package:sqflite/sqflite.dart';
 
 class OrderRepository {
   final DatabaseHelper dbHelper = DatabaseHelper();
+  final OfferRepository offerRepository = OfferRepository();
+  final FisherRepository fisherRepository = FisherRepository();
 
-  // --- ORDER METHODS ---
+  // --- CREATE ---
 
   Future<void> insertOrder(Order order) async {
     final db = await dbHelper.database;
@@ -16,27 +21,53 @@ class OrderRepository {
     );
   }
 
+  // --- READ ---
+
   Future<List<Map<String, dynamic>>> getAllOrderMaps() async {
     final db = await dbHelper.database;
     return await db.query('orders', orderBy: 'date_updated DESC');
   }
 
-  Future<Map<String, dynamic>?> getOrderMapById(String id) async {
+  Future<Order?> getOrderById(String id) async {
     final db = await dbHelper.database;
     final maps = await db.query(
       'orders',
       where: 'order_id = ?',
       whereArgs: [id],
+      limit: 1,
     );
-    if (maps.isNotEmpty) return maps.first;
-    return null;
+    if (maps.isEmpty) return null;
+
+    final m = maps.first;
+    final offerId = m['offer_id'] as String?;
+    final fisherId = m['fisher_id'] as String?;
+
+    if (offerId == null || fisherId == null) return null;
+
+    final offerMap = await offerRepository.getOfferMapById(offerId);
+    final fisher = await fisherRepository.getFisherById(fisherId);
+
+    if (offerMap == null) return null;
+
+    final offer = Offer.fromMap(offerMap);
+    return Order.fromMap(m: m, linkedOffer: offer, linkedFisher: fisher);
   }
 
-  // 🆕 NEW: Fetch all raw Order maps where the user is either the Fisher or the Buyer.
-  /// This single method replaces both getFisherOrderMaps and getBuyerOrderMaps.
-  Future<List<Map<String, dynamic>>> getOrderMapsByUserId(String userId) async {
-    // Uses the dedicated DatabaseHelper method for dual-role querying
-    return await dbHelper.getOrdersByUserId(userId);
+  Future<List<Order>> getOrdersByUserId(String userId) async {
+    final db = await dbHelper.database;
+    final rawOrders = await dbHelper.getOrdersByUserId(userId);
+
+    final List<Order> orders = [];
+    for (final m in rawOrders) {
+      final offerMap = await offerRepository.getOfferMapById(m['offer_id']);
+      final fisher = await fisherRepository.getFisherById(m['fisher_id']);
+      if (offerMap == null) continue;
+
+      final offer = Offer.fromMap(offerMap);
+      orders.add(Order.fromMap(m: m, linkedOffer: offer, linkedFisher: fisher));
+    }
+
+    return orders;
   }
 
   Future<Map<String, dynamic>?> getOrderMapByOfferId(String offerId) async {
@@ -51,22 +82,41 @@ class OrderRepository {
     return null;
   }
 
-  Future<Map<String, dynamic>?> getOrderByOfferId(String offerId) async {
-    final db = await dbHelper.database;
-    final results = await db.query(
-      'orders',
-      where: 'offer_id = ?',
-      whereArgs: [offerId],
-      limit: 1,
-    );
-    if (results.isNotEmpty) {
-      return results.first;
-    }
-    return null;
+  Future<Order?> getOrderByOfferId(String offerId) async {
+    final m = await getOrderMapByOfferId(offerId);
+    if (m == null) return null;
+
+    final offerMap = await offerRepository.getOfferMapById(m['offer_id']);
+    final fisher = await fisherRepository.getFisherById(m['fisher_id']);
+    if (offerMap == null) return null;
+
+    final offer = Offer.fromMap(offerMap);
+    return Order.fromMap(m: m, linkedOffer: offer, linkedFisher: fisher);
   }
+
+  Future<List<Map<String, dynamic>>> getOrderMapsByUserId(String userId) async {
+    final db = await dbHelper.database;
+
+    // This query gets all orders where the user is either the fisher or the buyer.
+    return await db.query(
+      'orders',
+      where: 'fisher_id = ? OR buyer_id = ?',
+      whereArgs: [userId, userId],
+      orderBy: 'date_updated DESC',
+    );
+  }
+
+  // --- DELETE ---
 
   Future<void> deleteOrder(String id) async {
     final db = await dbHelper.database;
     await db.delete('orders', where: 'order_id = ?', whereArgs: [id]);
+  }
+
+  // --- UTILS ---
+
+  Future<void> clearAllOrders() async {
+    final db = await dbHelper.database;
+    await db.delete('orders');
   }
 }

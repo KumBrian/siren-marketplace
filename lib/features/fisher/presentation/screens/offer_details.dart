@@ -9,8 +9,8 @@ import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
-import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_actions.dart';
 
 // --- Helper Extension for finding element in Iterable ---
@@ -24,14 +24,28 @@ extension IterableExtensions<T> on Iterable<T> {
     return null;
   }
 }
-// ---
 
-// NEW: Data structure to hold data dependencies for the UI
+// Assumed file: transaction_models.dart or similar
+
+/// Holds the necessary historical negotiation details for display.
+class PreviousOfferDetails {
+  final double price;
+  final double weight;
+  final double pricePerKg;
+
+  const PreviousOfferDetails({
+    required this.price,
+    required this.weight,
+    required this.pricePerKg,
+  });
+}
+
+/// Update the main transaction data wrapper to use the new simple class
 class OfferTransactionData {
   final Buyer? buyer;
-  final Offer? previousOffer;
+  final PreviousOfferDetails? previousDetails; // ⬅️ NEW FIELD TYPE
 
-  const OfferTransactionData({this.buyer, this.previousOffer});
+  const OfferTransactionData({this.buyer, this.previousDetails});
 }
 
 class FisherOfferDetails extends StatefulWidget {
@@ -48,7 +62,6 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
 
   // NEW: Repositories for fetching dependent data
   final UserRepository _userRepository = UserRepository();
-  final OfferRepository _offerRepository = OfferRepository();
 
   @override
   void dispose() {
@@ -64,39 +77,43 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
         .firstWhereOrNull((offer) => offer.id == widget.offerId);
   }
 
-  Future<OfferTransactionData> _loadTransactionData(Offer offer) async {
-    // 1. Fetch Buyer Details
+  // fisher_offer_details.dart (or wherever _loadTransactionData resides)
 
-    // 🆕 Use the raw map retrieval method
+  Future<OfferTransactionData> _loadTransactionData(Offer offer) async {
+    // 1. Fetch Buyer Details (No change here)
     final Map<String, dynamic>? buyerMap = await _userRepository.getUserMapById(
       offer.buyerId,
     );
 
     Buyer? buyer;
     if (buyerMap != null) {
-      // 🆕 Use the clean Buyer.fromMap factory to assemble the model
       buyer = Buyer.fromMap(buyerMap);
-
-      // NOTE: This factory should handle populating base AppUser fields.
-      // If you need the Buyer with default empty lists, Buyer.fromMap does this.
     }
 
-    // 2. Fetch Previous Counter Offer (MUST use raw map and conversion)
-    Offer? previousOffer;
-    if (offer.previousOfferId != null) {
-      // 🆕 Use getOfferMapById to fetch the raw map
-      final previousOfferMap = await _offerRepository.getOfferMapById(
-        offer.previousOfferId!,
+    // 2. Extract Previous Negotiation Details (CRITICAL FIX)
+    PreviousOfferDetails? previousDetails;
+
+    // Check if all three necessary previous fields are available.
+    // We use the non-nullable assertion (!) here because the 'if' condition
+    // ensures all parts are present before we construct the object.
+    final hasPreviousNegotiation =
+        offer.previousPrice != null &&
+        offer.previousWeight != null &&
+        offer.previousPricePerKg != null;
+
+    if (hasPreviousNegotiation) {
+      previousDetails = PreviousOfferDetails(
+        price: offer.previousPrice!,
+        weight: offer.previousWeight!,
+        pricePerKg: offer.previousPricePerKg!,
       );
-
-      if (previousOfferMap != null) {
-        // ⚠️ ASSUMPTION: Offer.fromMap can assemble the model from the map.
-        // This is correct as per your new repository pattern.
-        previousOffer = Offer.fromMap(previousOfferMap);
-      }
     }
 
-    return OfferTransactionData(buyer: buyer, previousOffer: previousOffer);
+    // 3. Return the updated transaction data
+    return OfferTransactionData(
+      buyer: buyer,
+      previousDetails: previousDetails, // ⬅️ Passing the simple object
+    );
   }
 
   @override
@@ -127,83 +144,77 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
         }
 
         // 2. Use FutureBuilder to fetch dependent data (Buyer, Previous Offer)
-        return FutureBuilder<OfferTransactionData>(
-          future: _loadTransactionData(selectedOffer),
-          builder: (context, snapshot) {
-            // Handle loading of dependent data
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+        return BlocListener<OffersBloc, OffersState>(
+          listener: (context, offerState) {
+            // ⚠️ FIX: Listen for the specific OfferActionSuccess state.
+            if (offerState is OfferActionSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('✅ Offer ${offerState.action}ed successfully!'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              // CRITICAL FIX: Refresh catches so list reflects updated offer status
+              context.read<CatchesBloc>().add(LoadCatches());
+
+              // ⚠️ FIX: Listen for the specific OfferActionFailure state (from BLoC).
+            } else if (offerState is OfferActionFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '❌ ${offerState.action} failed: ${offerState.error}',
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                ),
               );
             }
+          },
+          child: FutureBuilder<OfferTransactionData>(
+            key: ValueKey('${selectedOffer.id}-${selectedOffer.dateCreated}'),
+            future: _loadTransactionData(selectedOffer),
+            builder: (context, snapshot) {
+              // Handle loading of dependent data
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
 
-            final transactionData = snapshot.data;
-            final Buyer? buyer = transactionData?.buyer;
-            final Offer? previousCounterOffer = transactionData?.previousOffer;
+              final transactionData = snapshot.data;
 
-            // The Offer is found, proceed with the UI
-            return Scaffold(
-              appBar: AppBar(
-                leading: BackButton(onPressed: () => context.pop()),
-                title: const Text(
-                  "Offer Details",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textBlue,
-                    fontSize: 24,
-                  ),
-                ),
-                actions: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.more_vert),
-                  ),
-                ],
-              ),
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Pass the fetched Buyer data
-                    OfferHeader(offer: selectedOffer, buyer: buyer),
-                    const SizedBox(height: 16),
+              final Buyer? buyer = transactionData?.buyer;
+              final PreviousOfferDetails? previous =
+                  transactionData?.previousDetails;
 
-                    const SectionHeader("Current Offer"),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.gray200),
-                      ),
-                      child: InfoTable(
-                        rows: [
-                          InfoRow(
-                            label: "Total Weight",
-                            value:
-                                "${selectedOffer.weight.toStringAsFixed(1)} Kg",
-                          ),
-                          InfoRow(
-                            label: "Price/Kg",
-                            value: formatPrice(selectedOffer.pricePerKg),
-                          ),
-                          InfoRow(
-                            label: "Total",
-                            value: formatPrice(selectedOffer.price),
-                          ),
-                        ],
-                      ),
+              // The Offer is found, proceed with the UI
+              return Scaffold(
+                appBar: AppBar(
+                  leading: BackButton(onPressed: () => context.pop()),
+                  title: const Text(
+                    "Offer Details",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textBlue,
+                      fontSize: 24,
                     ),
-                    const SizedBox(height: 16),
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.more_vert),
+                    ),
+                  ],
+                ),
+                body: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Pass the fetched Buyer data
+                      OfferHeader(offer: selectedOffer, buyer: buyer),
+                      const SizedBox(height: 16),
 
-                    // Action buttons (Accept, Reject, Counter)
-                    OfferActions(offer: selectedOffer, formKey: _formKey),
-                    const SizedBox(height: 16),
-
-                    // Conditional rendering for the Previous Counter-Offer
-                    if (previousCounterOffer != null) ...[
-                      const SectionHeader("Last Counter-Offer"),
+                      const SectionHeader("Current Offer"),
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -213,32 +224,68 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                         ),
                         child: InfoTable(
                           rows: [
-                            // Use the found previousCounterOffer data
                             InfoRow(
-                              label: "Weight",
+                              label: "Total Weight",
                               value:
-                                  "${previousCounterOffer.weight.toInt()} Kg",
+                                  "${selectedOffer.weight.toStringAsFixed(1)} Kg",
                             ),
                             InfoRow(
-                              label: "Price",
-                              value:
-                                  "${previousCounterOffer.price.toInt()} CFA",
+                              label: "Price/Kg",
+                              value: formatPrice(selectedOffer.pricePerKg),
                             ),
                             InfoRow(
-                              label: "Price Per Kg",
-                              value:
-                                  "${previousCounterOffer.pricePerKg.toInt()} CFA",
+                              label: "Total",
+                              value: formatPrice(selectedOffer.price),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 16),
+
+                      // Action buttons (Accept, Reject, Counter)
+                      OfferActions(offer: selectedOffer, formKey: _formKey),
+                      const SizedBox(height: 16),
+
+                      // Conditional rendering for the Previous Counter-Offer
+                      if (previous != null) ...[
+                        const SectionHeader("Last Counter-Offer"),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.gray200),
+                          ),
+                          child: InfoTable(
+                            rows: [
+                              // Use the found previousCounterOffer data
+                              InfoRow(
+                                label: "Weight",
+                                // ⚠️ FIX: Use toStringAsFixed for weights
+                                value:
+                                    "${previous.weight.toStringAsFixed(1)} Kg",
+                              ),
+                              InfoRow(
+                                label: "Price",
+                                // ⚠️ FIX: Use formatPrice for currency
+                                value: formatPrice(previous.price),
+                              ),
+                              InfoRow(
+                                label: "Price Per Kg",
+                                // ⚠️ FIX: Use formatPrice for currency
+                                value: formatPrice(previous.pricePerKg),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );

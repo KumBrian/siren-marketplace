@@ -1,7 +1,12 @@
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
+import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:sqflite/sqflite.dart';
+
+import 'order_repository.dart';
 
 class OfferRepository {
   final DatabaseHelper dbHelper = DatabaseHelper();
@@ -135,5 +140,60 @@ class OfferRepository {
   Future<void> deleteOffer(String id) async {
     final db = await dbHelper.database;
     await db.delete('offers', where: 'offer_id = ?', whereArgs: [id]);
+  }
+}
+
+extension OfferRepositoryActions on OfferRepository {
+  /// Marks an offer as accepted and generates an Order
+  Future<void> acceptOffer({
+    required Offer offer,
+    required Catch catchItem,
+    required Fisher fisher,
+    required OrderRepository orderRepo,
+  }) async {
+    // Update the offer’s status to accepted
+    final accepted = offer.copyWith(status: OfferStatus.accepted);
+    await updateOffer(accepted);
+
+    // Create a new Order instance from the accepted Offer and Catch
+    final newOrder = Order.fromOfferAndCatch(
+      offer: accepted,
+      catchItem: catchItem,
+      fisher: fisher,
+    );
+
+    // Insert the order through repository
+    await orderRepo.insertOrder(newOrder);
+  }
+
+  /// Marks an offer as rejected (no further side effects)
+  Future<void> rejectOffer(Offer offer) async {
+    final rejected = offer.copyWith(status: OfferStatus.rejected);
+    await updateOffer(rejected);
+  }
+
+  /// Creates a new counter-offer linked to a previous one
+  Future<Offer> counterOffer({
+    required Offer previous,
+    required double newPrice,
+    required double newWeight,
+  }) async {
+    // 1. Calculate new values
+    final newPricePerKg = newPrice / newWeight;
+    final now = DateTime.now().toIso8601String();
+
+    // 2. Create the updated Offer object
+    final updatedOffer = previous.copyWith(
+      pricePerKg: newPricePerKg,
+      price: newPrice,
+      weight: newWeight,
+      status: OfferStatus.countered,
+      dateCreated: now,
+      previousPricePerKg: previous.pricePerKg,
+      previousPrice: previous.price,
+      previousWeight: previous.weight,
+    );
+    await updateOffer(updatedOffer);
+    return updatedOffer;
   }
 }

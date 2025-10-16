@@ -14,7 +14,9 @@ class Offer extends Equatable {
   final double weight;
   final OfferStatus status;
   final String dateCreated;
-  final String? previousOfferId;
+  final double? previousPrice;
+  final double? previousWeight;
+  final double? previousPricePerKg;
 
   // Denormalized fields
   final String catchName;
@@ -39,7 +41,9 @@ class Offer extends Equatable {
     required this.buyerName,
     required this.buyerRating,
     required this.buyerAvatarUrl,
-    this.previousOfferId,
+    this.previousPrice,
+    this.previousWeight,
+    this.previousPricePerKg,
     required this.catchName,
     required this.catchImageUrl,
     required this.fisherName,
@@ -58,7 +62,9 @@ class Offer extends Equatable {
     weight,
     status,
     dateCreated,
-    previousOfferId,
+    previousPrice,
+    previousWeight,
+    previousPricePerKg,
     catchName,
     catchImageUrl,
     fisherName,
@@ -70,19 +76,29 @@ class Offer extends Equatable {
   ];
 
   // Used for transactional updates (e.g., accepting or countering)
-  Offer copyWith({OfferStatus? status, String? previousOfferId}) {
+  Offer copyWith({
+    OfferStatus? status,
+    double? previousPrice,
+    double? previousWeight,
+    double? previousPricePerKg,
+    double? price,
+    double? weight,
+    double? pricePerKg,
+    String? dateCreated,
+  }) {
     return Offer(
       id: id,
       catchId: catchId,
       fisherId: fisherId,
       buyerId: buyerId,
-      pricePerKg: pricePerKg,
-      price: price,
-      weight: weight,
+      pricePerKg: pricePerKg ?? this.pricePerKg,
+      price: price ?? this.price,
+      weight: weight ?? this.weight,
       status: status ?? this.status,
-      dateCreated: dateCreated,
-      previousOfferId: previousOfferId ?? this.previousOfferId,
-
+      dateCreated: dateCreated ?? this.dateCreated,
+      previousPrice: previousPrice,
+      previousWeight: previousWeight,
+      previousPricePerKg: previousPricePerKg,
       // Crucially, include all denormalized fields in copyWith
       catchName: catchName,
       catchImageUrl: catchImageUrl,
@@ -109,7 +125,9 @@ class Offer extends Equatable {
     'weight': weight,
     'status': offerStatusToString(status),
     'date_created': dateCreated,
-    'previous_counter_offer': previousOfferId,
+    'previous_price': previousPrice,
+    'previous_weight': previousWeight,
+    'previous_price_per_kg': previousPricePerKg,
 
     // Include new fields in map for storage/transfer
     'catch_name': catchName,
@@ -132,8 +150,9 @@ class Offer extends Equatable {
     weight: (m['weight'] as num).toDouble(),
     status: offerStatusFromString(m['status'] as String),
     dateCreated: m['date_created'] as String,
-    previousOfferId: m['previous_counter_offer'] as String?,
-
+    previousPrice: (m['previous_price'] as num?)?.toDouble(),
+    previousWeight: (m['previous_weight'] as num?)?.toDouble(),
+    previousPricePerKg: (m['previous_price_per_kg'] as num?)?.toDouble(),
     // Extract new fields from the map
     catchName: m['catch_name'] as String,
     catchImageUrl: m['catch_image_url'] as String,

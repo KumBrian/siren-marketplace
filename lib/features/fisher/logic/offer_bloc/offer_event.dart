@@ -49,3 +49,34 @@ class LoadAllFisherOffers extends OffersEvent {
   @override
   List<Object?> get props => [catchIds];
 }
+
+class AcceptOfferEvent extends OffersEvent {
+  final Offer offer;
+  final Catch catchItem;
+  final Fisher fisher;
+
+  AcceptOfferEvent(this.offer, this.catchItem, this.fisher);
+
+  @override
+  List<Object?> get props => [offer, catchItem, fisher];
+}
+
+class RejectOfferEvent extends OffersEvent {
+  final Offer offer;
+
+  RejectOfferEvent(this.offer);
+
+  @override
+  List<Object?> get props => [offer];
+}
+
+class CounterOfferEvent extends OffersEvent {
+  final Offer previous;
+  final double newPrice;
+  final double newWeight;
+
+  CounterOfferEvent(this.previous, this.newPrice, this.newWeight);
+
+  @override
+  List<Object?> get props => [previous, newPrice, newWeight];
+}

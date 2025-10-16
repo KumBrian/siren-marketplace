@@ -2,14 +2,19 @@
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
+import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
 
 part "offer_event.dart";
 part "offer_state.dart";
 
 class OffersBloc extends Bloc<OffersEvent, OffersState> {
   final OfferRepository repository;
+  final OrderRepository _orderRepo = OrderRepository();
 
   OffersBloc(this.repository) : super(OffersInitial()) {
     on<LoadOffers>(_onLoadOffers);
@@ -17,6 +22,80 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     on<UpdateOfferEvent>(_onUpdateOffer);
     on<DeleteOfferEvent>(_onDeleteOffer);
     on<LoadAllFisherOffers>(_onLoadAllFisherOffers);
+
+    on<AcceptOfferEvent>(_onAcceptOffer);
+    on<RejectOfferEvent>(_onRejectOffer);
+    on<CounterOfferEvent>(_onCounterOffer);
+  }
+
+  Future<void> _onAcceptOffer(
+    AcceptOfferEvent event,
+    Emitter<OffersState> emit,
+  ) async {
+    try {
+      final catchItem = event.catchItem;
+      final fisher = event.fisher;
+
+      // 1. Execute repository logic (updates offer, creates order)
+      await repository.acceptOffer(
+        offer: event.offer,
+        catchItem: catchItem,
+        fisher: fisher,
+        orderRepo: _orderRepo,
+      );
+
+      // 2. Emit success state to signal UI (FisherOfferDetails) to refresh
+      emit(
+        OfferActionSuccess(
+          "accept",
+          event.offer.copyWith(
+            status: OfferStatus.accepted,
+          ), // Use the updated status
+        ),
+      );
+    } catch (e) {
+      emit(OfferActionFailure("accept", "Accept failed: $e"));
+    }
+  }
+
+  Future<void> _onRejectOffer(
+    RejectOfferEvent event,
+    Emitter<OffersState> emit,
+  ) async {
+    try {
+      await repository.rejectOffer(event.offer);
+
+      // 1. Emit success state to signal UI to refresh
+      emit(
+        OfferActionSuccess(
+          "reject",
+          event.offer.copyWith(
+            status: OfferStatus.rejected,
+          ), // Use the updated status
+        ),
+      );
+    } catch (e) {
+      emit(OfferActionFailure("reject", "Reject failed: $e"));
+    }
+  }
+
+  Future<void> _onCounterOffer(
+    CounterOfferEvent event,
+    Emitter<OffersState> emit,
+  ) async {
+    try {
+      // ⚠️ FIX: Repository now updates the existing offer and returns it.
+      final updatedOffer = await repository.counterOffer(
+        previous: event.previous,
+        newPrice: event.newPrice,
+        newWeight: event.newWeight,
+      );
+
+      // 1. Emit success state with the updated offer.
+      emit(OfferActionSuccess("counter", updatedOffer));
+    } catch (e) {
+      emit(OffersError("Counter failed: $e"));
+    }
   }
 
   // --- Helper function to convert raw maps to Offer objects ---

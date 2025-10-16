@@ -206,7 +206,9 @@ class CatchSeeder {
           ),
           status: OfferStatus.pending,
           dateCreated: DateTime.now().toIso8601String(),
-          previousOfferId: null,
+          previousPrice: null,
+          previousPricePerKg: null,
+          previousWeight: null,
           catchName: catchItem.name,
           catchImageUrl: catchItem.images.first,
           fisherName: fisher1.name,
@@ -238,7 +240,9 @@ class CatchSeeder {
             dateCreated: DateTime.now()
                 .subtract(Duration(days: 1))
                 .toIso8601String(),
-            previousOfferId: null,
+            previousPrice: null,
+            previousPricePerKg: null,
+            previousWeight: null,
             catchName: catchItem.name,
             catchImageUrl: catchItem.images.first,
             fisherName: fisher1.name,

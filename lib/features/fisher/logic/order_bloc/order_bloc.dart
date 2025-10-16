@@ -18,7 +18,6 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   OrdersBloc(this.orderRepository, this.offerRepository, this.userRepository)
     : super(OrdersInitial()) {
     on<LoadOrders>(_onLoadOrders);
-    // 🆕 Register the new event handler
     on<LoadAllFisherOrders>(_onLoadAllFisherOrders);
     on<AddOrder>(_onAddOrder);
     on<DeleteOrderEvent>(_onDeleteOrder);
@@ -27,20 +26,33 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
 
   // --- Helper function to assemble the full Order model ---
   Future<Order?> _assembleOrder(Map<String, dynamic> orderMap) async {
-    final offerId = orderMap['offer_id'] as String;
-    final fisherId = orderMap['fisher_id'] as String;
+    // Defensive casts
+    final offerId = orderMap['offer_id'] as String?;
+    final fisherId = orderMap['fisher_id'] as String?;
 
-    // 1. Fetch the corresponding Offer map and assemble the Offer object
+    if (offerId == null || fisherId == null) {
+      // Log for traceability
+      print('[OrdersBloc] Missing offer_id or fisher_id in orderMap');
+      return null;
+    }
+
+    // 1. Fetch corresponding Offer map and assemble Offer object
     final offerMap = await offerRepository.getOfferMapById(offerId);
-    if (offerMap == null) return null;
+    if (offerMap == null) {
+      print('[OrdersBloc] Offer not found for ID $offerId');
+      return null;
+    }
     final linkedOffer = Offer.fromMap(offerMap);
 
-    // 2. Fetch the Fisher map and assemble the Fisher object
+    // 2. Fetch the Fisher map and assemble Fisher object
     final fisherMap = await userRepository.getUserMapById(fisherId);
-    if (fisherMap == null) return null;
+    if (fisherMap == null) {
+      print('[OrdersBloc] Fisher not found for ID $fisherId');
+      return null;
+    }
     final linkedFisher = Fisher.fromMap(fisherMap);
 
-    // 3. Use the required factory to build the full Order object
+    // 3. Use the factory constructor to build the Order
     return Order.fromMap(
       m: orderMap,
       linkedOffer: linkedOffer,
@@ -58,12 +70,10 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
         event.userId,
       );
 
-      final List<Order> orders = [];
+      final orders = <Order>[];
       for (final map in orderMaps) {
         final order = await _assembleOrder(map);
-        if (order != null) {
-          orders.add(order);
-        }
+        if (order != null) orders.add(order);
       }
 
       emit(OrdersLoaded(orders));
@@ -78,16 +88,12 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   ) async {
     emit(OrdersLoading());
     try {
-      // 1. Fetch ALL raw order maps (Used for general global view/initial seeding check)
       final orderMaps = await orderRepository.getAllOrderMaps();
 
-      // 2. Assemble the full Order objects, filtering out any that can't be assembled
-      final List<Order> orders = [];
+      final orders = <Order>[];
       for (final map in orderMaps) {
         final order = await _assembleOrder(map);
-        if (order != null) {
-          orders.add(order);
-        }
+        if (order != null) orders.add(order);
       }
 
       emit(OrdersLoaded(orders));
@@ -99,8 +105,6 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   Future<void> _onAddOrder(AddOrder event, Emitter<OrdersState> emit) async {
     try {
       await orderRepository.insertOrder(event.order);
-      // NOTE: You may want to reload using the specific LoadAllFisherOrders
-      // event here if the bloc is currently displaying user-specific orders.
       await _onLoadOrders(LoadOrders(), emit);
     } catch (e) {
       emit(OrdersError(e.toString()));
@@ -113,7 +117,6 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   ) async {
     try {
       await orderRepository.deleteOrder(event.orderId);
-      // Reload the list to reflect the deletion
       await _onLoadOrders(LoadOrders(), emit);
     } catch (e) {
       emit(OrdersError(e.toString()));
@@ -125,7 +128,6 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     Emitter<OrdersState> emit,
   ) async {
     try {
-      // 1. Fetch raw order map by offer ID
       final orderMap = await orderRepository.getOrderMapByOfferId(
         event.offerId,
       );
@@ -135,18 +137,11 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
         return;
       }
 
-      // 2. Assemble the full Order object
       final order = await _assembleOrder(orderMap);
-
       if (order != null) {
         emit(SingleOrderLoaded(order));
       } else {
-        // Handle case where Order map exists but linked Offer/Fisher is missing
-        emit(
-          OrdersError(
-            'Linked dependencies (Offer/Fisher) not found for Order.',
-          ),
-        );
+        emit(OrdersError('Incomplete Order data: missing Offer/Fisher.'));
       }
     } catch (e) {
       emit(OrdersError(e.toString()));
