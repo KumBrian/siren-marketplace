@@ -109,8 +109,8 @@ GoRouter createRouter(UserBloc userBloc) {
           GoRoute(
             path: 'order-details/:id',
             builder: (context, state) {
-              final offerId = state.pathParameters['id']!;
-              return OrderDetails(offerId: offerId);
+              final orderId = state.pathParameters['id']!;
+              return OrderDetails(orderId: orderId);
             },
           ),
           GoRoute(

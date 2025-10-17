@@ -37,17 +37,35 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => dbHelper);
 
   // ----------------------------
-  // Repositories
+  // Repositories (MUST take dbHelper in constructor)
   // ----------------------------
-  sl.registerLazySingleton<UserRepository>(() => UserRepository());
-  sl.registerLazySingleton<FisherRepository>(() => FisherRepository());
-  sl.registerLazySingleton<CatchRepository>(() => CatchRepository());
-  sl.registerLazySingleton<OfferRepository>(() => OfferRepository());
-  sl.registerLazySingleton<OrderRepository>(() => OrderRepository());
+  // Registering repositories with the injected DatabaseHelper
+  sl.registerLazySingleton<UserRepository>(
+    () => UserRepository(dbHelper: sl()),
+  );
+  sl.registerLazySingleton<FisherRepository>(
+    () => FisherRepository(dbHelper: sl()),
+  );
+  sl.registerLazySingleton<CatchRepository>(
+    () => CatchRepository(dbHelper: sl(), offerRepository: sl()),
+  );
+  sl.registerLazySingleton<OfferRepository>(
+    () => OfferRepository(dbHelper: sl()),
+  );
+  // OrderRepository takes other repositories as dependencies
+  sl.registerLazySingleton<OrderRepository>(
+    () => OrderRepository(
+      dbHelper: sl(),
+      offerRepository: sl(),
+      fisherRepository: sl(),
+    ),
+  );
   sl.registerLazySingleton<ConversationRepository>(
     () => ConversationRepository(dbHelper: sl()),
   );
-  sl.registerLazySingleton<BuyerRepository>(() => BuyerRepository());
+  sl.registerLazySingleton<BuyerRepository>(
+    () => BuyerRepository(dbHelper: sl()),
+  );
 
   // ----------------------------
   // Cubits
@@ -79,16 +97,28 @@ Future<void> initDependencies() async {
   // ----------------------------
   // Blocs
   // ----------------------------
-  sl.registerFactory(() => UserBloc(userRepository: sl()));
-  sl.registerFactory(() => CatchesBloc(sl<CatchRepository>()));
-  sl.registerFactory(() => OffersBloc(sl<OfferRepository>()));
-  sl.registerFactory(
+  // FIX 1: Change UserBloc to LazySingleton if its state needs to persist across the app's lifetime.
+  // Assuming User state should persist:
+  sl.registerLazySingleton(() => UserBloc(userRepository: sl()));
+
+  // FIX 2: Change OrdersBloc to LazySingleton so its state (OrdersLoaded) persists on navigation.
+  sl.registerLazySingleton(
     () => OrdersBloc(
       sl<OrderRepository>(),
       sl<OfferRepository>(),
       sl<UserRepository>(),
+      sl<CatchRepository>(),
     ),
   );
+
+  // Consider changing these too if their state needs to persist across navigation/screens:
+  // sl.registerLazySingleton(() => CatchesBloc(sl<CatchRepository>()));
+  // sl.registerLazySingleton(() => OffersBloc(sl<OfferRepository>()));
+
+  // Keeping these as Factory as they might be scoped per screen or flow, but
+  // typically if a bloc is used in MultiBlocProvider at the root, LazySingleton is better.
+  sl.registerFactory(() => CatchesBloc(sl<CatchRepository>()));
+  sl.registerFactory(() => OffersBloc(sl<OfferRepository>()));
   sl.registerFactory(() => BuyerMarketBloc(sl<BuyerRepository>()));
   sl.registerFactory(() => BuyerOrdersBloc(sl<BuyerRepository>()));
   sl.registerFactory(() => ConversationsBloc(sl<ConversationRepository>()));

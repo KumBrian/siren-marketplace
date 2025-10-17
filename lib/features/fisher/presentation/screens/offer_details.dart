@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
+import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
@@ -11,7 +12,7 @@ import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
-import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_actions.dart';
+import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_actions.dart'; // Import for dialog helpers
 
 // --- Helper Extension for finding element in Iterable ---
 extension IterableExtensions<T> on Iterable<T> {
@@ -61,7 +62,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   // NEW: Repositories for fetching dependent data
-  final UserRepository _userRepository = UserRepository();
+  final UserRepository _userRepository = sl<UserRepository>();
 
   @override
   void dispose() {
@@ -77,10 +78,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
         .firstWhereOrNull((offer) => offer.id == widget.offerId);
   }
 
-  // fisher_offer_details.dart (or wherever _loadTransactionData resides)
-
   Future<OfferTransactionData> _loadTransactionData(Offer offer) async {
-    // 1. Fetch Buyer Details (No change here)
     final Map<String, dynamic>? buyerMap = await _userRepository.getUserMapById(
       offer.buyerId,
     );
@@ -90,12 +88,8 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
       buyer = Buyer.fromMap(buyerMap);
     }
 
-    // 2. Extract Previous Negotiation Details (CRITICAL FIX)
     PreviousOfferDetails? previousDetails;
 
-    // Check if all three necessary previous fields are available.
-    // We use the non-nullable assertion (!) here because the 'if' condition
-    // ensures all parts are present before we construct the object.
     final hasPreviousNegotiation =
         offer.previousPrice != null &&
         offer.previousWeight != null &&
@@ -116,9 +110,31 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
     );
   }
 
+  // NEW METHOD: Handles the final success UI and navigation logic
+  void _handleOfferAcceptSuccess(String orderId) {
+    // 1. Show the success dialog with the navigation button
+    showActionSuccessDialog(
+      context,
+      message: 'Offer accepted! The order has been created.',
+      actionTitle: 'View Order Details',
+      autoCloseSeconds: 0, // Prevent auto-close since we have a button
+      onAction: () async {
+        // ⚠️ FIX 1: Increased delay to 1000ms to ensure the newly created Order
+        // has been fully written to the database before the next screen attempts to read it.
+        await Future.delayed(const Duration(milliseconds: 1000));
+
+        // 3. Perform navigation when the button is pressed
+        if (context.mounted) {
+          context.pushReplacement('/fisher/order-details/$orderId');
+        }
+      },
+    );
+    // 4. Reload catches for background update
+    context.read<CatchesBloc>().add(LoadCatches());
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 1. Listen to the CatchesBloc for the current Offer data
     return BlocBuilder<CatchesBloc, CatchesState>(
       builder: (context, catchesState) {
         if (catchesState is CatchesLoading || catchesState is CatchesInitial) {
@@ -143,21 +159,47 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
           );
         }
 
-        // 2. Use FutureBuilder to fetch dependent data (Buyer, Previous Offer)
         return BlocListener<OffersBloc, OffersState>(
           listener: (context, offerState) {
-            // ⚠️ FIX: Listen for the specific OfferActionSuccess state.
-            if (offerState is OfferActionSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('✅ Offer ${offerState.action}ed successfully!'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              // CRITICAL FIX: Refresh catches so list reflects updated offer status
-              context.read<CatchesBloc>().add(LoadCatches());
+            // 1. Close the loading dialog opened by _handleAccept
+            if (offerState is OfferActionSuccess ||
+                offerState is OfferActionFailure) {
+              if (Navigator.of(context).canPop()) {
+                // Ensure we pop the loading dialog/modal
+                Navigator.of(context).pop();
+              }
+            }
 
-              // ⚠️ FIX: Listen for the specific OfferActionFailure state (from BLoC).
+            if (offerState is OfferActionSuccess) {
+              if (offerState.action == 'Accept') {
+                // ⚠️ FIX 2: Check for null or empty orderId before calling the success handler.
+                final String? orderId = offerState.orderId;
+
+                if (orderId != null && orderId.isNotEmpty) {
+                  _handleOfferAcceptSuccess(orderId);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        '❌ Offer accepted, but failed to retrieve Order ID. Please check the orders list.',
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  context.read<CatchesBloc>().add(LoadCatches());
+                }
+              } else {
+                // For Counter or Reject, just show Snackbar and reload the catches
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '✅ Offer ${offerState.action}ed successfully!',
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                context.read<CatchesBloc>().add(LoadCatches());
+              }
             } else if (offerState is OfferActionFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -167,6 +209,8 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                   behavior: SnackBarBehavior.floating,
                 ),
               );
+              // Reload catches to ensure the UI reflects the current state if the action failed
+              context.read<CatchesBloc>().add(LoadCatches());
             }
           },
           child: FutureBuilder<OfferTransactionData>(

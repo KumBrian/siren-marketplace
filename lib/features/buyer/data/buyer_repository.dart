@@ -5,7 +5,9 @@ import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 
 class BuyerRepository {
-  final DatabaseHelper dbHelper = DatabaseHelper();
+  final DatabaseHelper dbHelper;
+
+  BuyerRepository({required this.dbHelper});
 
   // --- FETCH ORDERS FOR A BUYER ---
   Future<List<Order>> getOrdersByBuyerId(String buyerId) async {

@@ -4,7 +4,9 @@ import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:sqflite/sqflite.dart';
 
 class UserRepository {
-  final DatabaseHelper dbHelper = DatabaseHelper();
+  final DatabaseHelper dbHelper;
+
+  UserRepository({required this.dbHelper});
 
   // 1. INSERT: Renaming to the method used in the Seeder
   Future<void> insertUser(AppUser user) async {

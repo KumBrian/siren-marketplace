@@ -2,6 +2,7 @@
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
@@ -14,7 +15,7 @@ part "offer_state.dart";
 
 class OffersBloc extends Bloc<OffersEvent, OffersState> {
   final OfferRepository repository;
-  final OrderRepository _orderRepo = OrderRepository();
+  final OrderRepository _orderRepo = sl<OrderRepository>();
 
   OffersBloc(this.repository) : super(OffersInitial()) {
     on<LoadOffers>(_onLoadOffers);
@@ -36,25 +37,24 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       final catchItem = event.catchItem;
       final fisher = event.fisher;
 
-      // 1. Execute repository logic (updates offer, creates order)
-      await repository.acceptOffer(
+      // 1. Execute repository logic, capturing the new Order ID
+      final String newOrderId = await repository.acceptOffer(
         offer: event.offer,
         catchItem: catchItem,
         fisher: fisher,
         orderRepo: _orderRepo,
       );
 
-      // 2. Emit success state to signal UI (FisherOfferDetails) to refresh
+      // 2. Emit success state with the new order ID
       emit(
         OfferActionSuccess(
-          "accept",
-          event.offer.copyWith(
-            status: OfferStatus.accepted,
-          ), // Use the updated status
+          "Accept",
+          event.offer.copyWith(status: OfferStatus.accepted),
+          newOrderId, // <-- Pass the new Order ID
         ),
       );
     } catch (e) {
-      emit(OfferActionFailure("accept", "Accept failed: $e"));
+      emit(OfferActionFailure("Accept", "Accept failed: $e"));
     }
   }
 
@@ -69,9 +69,8 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       emit(
         OfferActionSuccess(
           "reject",
-          event.offer.copyWith(
-            status: OfferStatus.rejected,
-          ), // Use the updated status
+          event.offer.copyWith(status: OfferStatus.rejected),
+          null, // <-- No new Order ID for rejection
         ),
       );
     } catch (e) {
@@ -92,7 +91,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       );
 
       // 1. Emit success state with the updated offer.
-      emit(OfferActionSuccess("counter", updatedOffer));
+      emit(OfferActionSuccess("counter", updatedOffer, null));
     } catch (e) {
       emit(OffersError("Counter failed: $e"));
     }

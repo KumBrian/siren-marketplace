@@ -40,13 +40,14 @@ class OfferActionInProgress extends OffersState {
 }
 
 class OfferActionSuccess extends OffersState {
-  final String action; // e.g. "accept", "reject", "counter"
-  final Offer updatedOffer; // Optional: helps UI refresh contextually
+  final String? orderId;
+  final String action;
+  final Offer updatedOffer;
 
-  OfferActionSuccess(this.action, this.updatedOffer);
+  OfferActionSuccess(this.action, this.updatedOffer, this.orderId);
 
   @override
-  List<Object?> get props => [action, updatedOffer];
+  List<Object?> get props => [action, updatedOffer, orderId];
 }
 
 class OfferActionFailure extends OffersState {

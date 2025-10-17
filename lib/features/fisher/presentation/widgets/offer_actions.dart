@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
+import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/catch.dart' as CatchModel;
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
@@ -13,7 +14,85 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
-import 'package:siren_marketplace/features/fisher/presentation/screens/offer_details.dart';
+
+// Helper: show a small modal progress indicator (MOVED TO TOP-LEVEL)
+void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => AlertDialog(
+      content: Row(
+        children: [
+          const SizedBox(width: 8),
+          const CircularProgressIndicator(),
+          const SizedBox(width: 16),
+          Expanded(child: Text(message)),
+        ],
+      ),
+    ),
+  );
+}
+
+// Helper: reusable success dialog (MOVED TO TOP-LEVEL)
+Future<void> showActionSuccessDialog(
+  BuildContext context, {
+  required String message,
+  String? actionTitle,
+  VoidCallback? onAction,
+  int autoCloseSeconds = 3,
+}) async {
+  if (!context.mounted) return;
+  showDialog(
+    context: context,
+    barrierDismissible: actionTitle == null,
+    builder: (ctx) {
+      // <--- The local dialog context
+      if (autoCloseSeconds > 0 && actionTitle == null) {
+        Future.delayed(Duration(seconds: autoCloseSeconds), () {
+          if (ctx.mounted) Navigator.of(ctx).pop();
+        });
+      }
+
+      return AlertDialog(
+        title: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.textBlue,
+            border: Border.all(color: AppColors.textBlue, width: 2),
+          ),
+          child: const Icon(Icons.check, color: AppColors.textWhite),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: AppColors.textBlue,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            if (actionTitle != null && onAction != null)
+              // Use ctx to pop the dialog first, then call onAction.
+              CustomButton(
+                title: actionTitle,
+                onPressed: () {
+                  if (ctx.mounted) {
+                    Navigator.of(ctx).pop(); // 1. Close the dialog safely
+                    onAction(); // 2. Execute the navigation
+                  }
+                },
+              ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
 class OfferActions extends StatefulWidget {
   const OfferActions({super.key, required this.offer, required this.formKey});
@@ -31,7 +110,7 @@ class _OfferActionsState extends State<OfferActions> {
   final TextEditingController _pricePerKgController = TextEditingController();
 
   double _calculatedPricePerKg = 0;
-  final UserRepository _userRepository = UserRepository();
+  final UserRepository _userRepository = sl<UserRepository>();
 
   @override
   void dispose() {
@@ -41,107 +120,33 @@ class _OfferActionsState extends State<OfferActions> {
     super.dispose();
   }
 
-  // Helper: show a small modal progress indicator
-  void _showLoadingDialog(
-    BuildContext context, {
-    String message = 'Please wait',
-  }) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        content: Row(
-          children: [
-            const SizedBox(width: 8),
-            const CircularProgressIndicator(),
-            const SizedBox(width: 16),
-            Expanded(child: Text(message)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper: reusable success dialog
-  Future<void> _showSuccessDialog(
-    BuildContext context, {
-    required String message,
-    String? actionTitle,
-    VoidCallback? onAction,
-    int autoCloseSeconds = 3,
-  }) async {
-    if (!context.mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: actionTitle == null,
-      builder: (ctx) {
-        // <--- The local dialog context
-        if (autoCloseSeconds > 0 && actionTitle == null) {
-          Future.delayed(Duration(seconds: autoCloseSeconds), () {
-            if (ctx.mounted) Navigator.of(ctx).pop();
-          });
-        }
-
-        return AlertDialog(
-          title: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.textBlue,
-              border: Border.all(color: AppColors.textBlue, width: 2),
-            ),
-            child: const Icon(Icons.check, color: AppColors.textWhite),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                message,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: AppColors.textBlue,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              if (actionTitle != null && onAction != null)
-                // ⚠️ FIX APPLIED HERE: Use ctx to pop the dialog first, then call onAction.
-                CustomButton(
-                  title: actionTitle,
-                  onPressed: () {
-                    if (ctx.mounted) {
-                      Navigator.of(ctx).pop(); // 1. Close the dialog safely
-                      onAction(); // 2. Execute the navigation
-                    }
-                  },
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   // Retrieves the Catch model from the CatchesBloc (synchronously from state)
   CatchModel.Catch? _findCatchFromBloc(String catchId) {
     final catchesState = context.read<CatchesBloc>().state;
     if (catchesState is! CatchesLoaded) return null;
 
     // ⚠️ FIX: Use the firstWhereOrNull extension to avoid the bad cast
-    return catchesState.catches.firstWhereOrNull((c) => c.id == catchId);
+    // Note: Assuming firstWhereOrNull is available via an import or extension,
+    // otherwise, use a standard loop or try/catch around firstWhere.
+    try {
+      return catchesState.catches.firstWhere((c) => c.id == catchId);
+    } catch (_) {
+      return null;
+    }
   }
 
   // Accept flow:
   // 1. gather required Catch and Fisher
   // 2. dispatch AcceptOfferEvent(offer, catch, fisher)
   Future<void> _handleAccept(BuildContext outerContext) async {
+    // 1. If any prior dialog is open (e.g., confirmation dialog), close it.
     if (Navigator.of(outerContext).canPop()) Navigator.of(outerContext).pop();
 
     final catchItem = _findCatchFromBloc(widget.offer.catchId);
     if (catchItem == null) {
       if (!outerContext.mounted) return;
-      await _showSuccessDialog(
+      await showActionSuccessDialog(
+        // Using top-level function
         outerContext,
         message: 'Related catch not found',
         autoCloseSeconds: 2,
@@ -149,7 +154,11 @@ class _OfferActionsState extends State<OfferActions> {
       return;
     }
 
-    _showLoadingDialog(outerContext, message: 'Creating order...');
+    // 2. Show loading dialog, which must be closed by the BLoC Listener on success/failure.
+    showLoadingDialog(
+      outerContext,
+      message: 'Creating order...',
+    ); // Using top-level function
 
     try {
       final fisherMap = await _userRepository.getUserMapById(
@@ -157,8 +166,9 @@ class _OfferActionsState extends State<OfferActions> {
       );
       if (fisherMap == null) {
         if (outerContext.mounted) {
-          Navigator.of(outerContext).pop();
-          await _showSuccessDialog(
+          Navigator.of(outerContext).pop(); // close loading
+          await showActionSuccessDialog(
+            // Using top-level function
             outerContext,
             message: 'Fisher not found',
             autoCloseSeconds: 2,
@@ -169,35 +179,20 @@ class _OfferActionsState extends State<OfferActions> {
 
       final fisher = Fisher.fromMap(fisherMap);
 
-      // Dispatch event (Bloc will now emit OfferActionSuccess)
+      // 3. Dispatch event
       if (context.mounted) {
         context.read<OffersBloc>().add(
           AcceptOfferEvent(widget.offer, catchItem, fisher),
         );
       }
 
-      if (outerContext.mounted) {
-        Navigator.of(outerContext).pop(); // close loading
-
-        // Show success and navigate. The pop logic is now inside _showSuccessDialog
-        await _showSuccessDialog(
-          outerContext,
-          message: 'Offer successfully accepted!',
-          actionTitle: 'Offer Details',
-          onAction: () {
-            if (outerContext.mounted) {
-              // ⚠️ FIX: Only navigate now, as the dialog is already closed.
-              outerContext.pushReplacement(
-                '/fisher/congratulations/${widget.offer.id}',
-              );
-            }
-          },
-        );
-      }
+      // CRITICAL: The BLoC Listener in FisherOfferDetails handles the subsequent action and UI.
     } catch (e) {
+      // 4. Handle sync error and close loading dialog if open
       if (outerContext.mounted) {
         Navigator.of(outerContext).pop();
-        await _showSuccessDialog(
+        await showActionSuccessDialog(
+          // Using top-level function
           outerContext,
           message: 'Accept failed: $e',
           autoCloseSeconds: 3,
@@ -211,14 +206,16 @@ class _OfferActionsState extends State<OfferActions> {
     if (Navigator.of(outerContext).canPop()) Navigator.of(outerContext).pop();
     try {
       context.read<OffersBloc>().add(RejectOfferEvent(widget.offer));
-      await _showSuccessDialog(
+      await showActionSuccessDialog(
+        // Using top-level function
         outerContext,
         message: 'Offer Rejected!',
         autoCloseSeconds: 3,
       );
     } catch (e) {
       if (outerContext.mounted) {
-        await _showSuccessDialog(
+        await showActionSuccessDialog(
+          // Using top-level function
           outerContext,
           message: 'Reject failed: $e',
           autoCloseSeconds: 3,
@@ -254,7 +251,8 @@ class _OfferActionsState extends State<OfferActions> {
 
     if (newWeight <= 0 || newPrice <= 0) {
       if (dialogContext.mounted) {
-        await _showSuccessDialog(
+        await showActionSuccessDialog(
+          // Using top-level function
           dialogContext,
           message: 'Invalid price or weight',
           autoCloseSeconds: 2,
@@ -273,14 +271,14 @@ class _OfferActionsState extends State<OfferActions> {
       );
 
       // show confirmation then navigate to order-details when pressed
-      await _showSuccessDialog(
+      await showActionSuccessDialog(
+        // Using top-level function
         dialogContext,
         message: 'Counter-Offer Sent!',
         actionTitle: 'Offer details',
-        // ⚠️ The push logic here will benefit from the fix in _showSuccessDialog as well
+        // The push logic here will benefit from the fix in showActionSuccessDialog as well
         onAction: () {
           if (dialogContext.mounted) {
-            // Navigator.of(dialogContext).pop(); // REMOVED: Handled in _showSuccessDialog
             dialogContext.pushReplacement(
               '/fisher/order-details/${widget.offer.id}',
             );
@@ -288,7 +286,8 @@ class _OfferActionsState extends State<OfferActions> {
         },
       );
     } catch (e) {
-      await _showSuccessDialog(
+      await showActionSuccessDialog(
+        // Using top-level function
         dialogContext,
         message: 'Counter failed: $e',
         autoCloseSeconds: 3,
@@ -338,9 +337,9 @@ class _OfferActionsState extends State<OfferActions> {
                     Center(
                       child: Column(
                         children: [
-                          Text(
+                          const Text(
                             "Accept the offer?",
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               color: AppColors.textBlue,
                             ),
@@ -405,7 +404,8 @@ class _OfferActionsState extends State<OfferActions> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
+                          const Text(
+                            // Removed const from Text because it was causing problems
                             "Reject the offer?",
                             style: TextStyle(
                               fontSize: 16,

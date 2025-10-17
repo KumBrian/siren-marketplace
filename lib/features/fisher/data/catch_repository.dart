@@ -7,8 +7,10 @@ import 'package:sqflite/sqflite.dart';
 import 'offer_repositories.dart';
 
 class CatchRepository {
-  final DatabaseHelper dbHelper = DatabaseHelper();
-  final OfferRepository offerRepository = OfferRepository();
+  final DatabaseHelper dbHelper;
+  final OfferRepository offerRepository;
+
+  CatchRepository({required this.dbHelper, required this.offerRepository});
 
   // --- STANDARD CRUD OPERATIONS ---
 
@@ -35,6 +37,16 @@ class CatchRepository {
       limit: 1,
     );
     return maps.isNotEmpty ? maps.first : null;
+  }
+
+  Future<Catch?> getCatchById(String id) async {
+    final catchMap = await getCatchMapById(id);
+    if (catchMap == null) return null;
+    
+    final offerMaps = await dbHelper.getOfferMapsByCatchId(id);
+    final offers = offerMaps.map((m) => Offer.fromMap(m)).toList();
+
+    return Catch.fromMap(catchMap).copyWith(offers: offers);
   }
 
   Future<void> updateCatch(Catch catchModel) async {

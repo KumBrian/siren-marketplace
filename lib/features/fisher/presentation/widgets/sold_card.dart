@@ -30,7 +30,7 @@ class SoldCard extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(16),
         splashColor: AppColors.blue700.withValues(alpha: 0.1),
-        // Used withOpacity for cleaner syntax
+        // Simplified usage of withOpacity
         child: Row(
           children: [
             ClipRRect(
@@ -61,23 +61,23 @@ class SoldCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      width: 200,
-                      child: Text(
-                        catchTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: AppColors.textBlue,
-                        ),
+                    // FIX: Removed fixed width SizedBox to prevent overflow.
+                    // The text will now use the space provided by the surrounding Expanded widget.
+                    Text(
+                      catchTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: AppColors.textBlue,
                       ),
                     ),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        // Column holding the RichText widgets (Price and Weight)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -135,7 +135,8 @@ class SoldCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8), // Final padding
+                    const SizedBox(height: 8),
+                    // Final padding
                   ],
                 ),
               ),

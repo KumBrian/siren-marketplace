@@ -46,3 +46,21 @@ class LoadAllFisherOrders extends OrdersEvent {
   @override
   List<Object> get props => [userId];
 }
+
+class GetOrderById extends OrdersEvent {
+  final String orderId;
+
+  const GetOrderById(this.orderId);
+
+  @override
+  List<Object> get props => [orderId];
+}
+
+class MarkOrderAsCompleted extends OrdersEvent {
+  final Order order;
+
+  const MarkOrderAsCompleted(this.order);
+
+  @override
+  List<Object> get props => [order];
+}

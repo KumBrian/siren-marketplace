@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
+import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/models/order.dart';
+import 'package:siren_marketplace/core/types/enum.dart'; // Import OfferStatus enum
+import 'package:siren_marketplace/features/fisher/data/catch_repository.dart'; // Import CatchRepository
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
 import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
@@ -14,45 +19,65 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   final OrderRepository orderRepository;
   final OfferRepository offerRepository;
   final UserRepository userRepository;
+  final CatchRepository catchRepository; // Add CatchRepository
 
-  OrdersBloc(this.orderRepository, this.offerRepository, this.userRepository)
-    : super(OrdersInitial()) {
+  OrdersBloc(
+    this.orderRepository,
+    this.offerRepository,
+    this.userRepository,
+    this.catchRepository, // Inject CatchRepository
+  ) : super(OrdersInitial()) {
     on<LoadOrders>(_onLoadOrders);
     on<LoadAllFisherOrders>(_onLoadAllFisherOrders);
     on<AddOrder>(_onAddOrder);
     on<DeleteOrderEvent>(_onDeleteOrder);
     on<GetOrderByOfferId>(_onGetOrderByOfferId);
+    on<MarkOrderAsCompleted>(_onMarkOrderAsCompleted); // New handler
+
+    // Previous Fix: Removed generic OrdersLoading()
+    on<GetOrderById>((event, emit) async {
+      try {
+        final order = await orderRepository.getOrderById(event.orderId);
+
+        if (order != null) {
+          emit(SingleOrderLoaded(order));
+        } else {
+          emit(OrdersError('Order with ID ${event.orderId} not found.'));
+        }
+      } catch (e) {
+        emit(OrdersError('Failed to fetch order: $e'));
+      }
+    });
   }
 
-  // --- Helper function to assemble the full Order model ---
   Future<Order?> _assembleOrder(Map<String, dynamic> orderMap) async {
-    // Defensive casts
     final offerId = orderMap['offer_id'] as String?;
     final fisherId = orderMap['fisher_id'] as String?;
 
     if (offerId == null || fisherId == null) {
-      // Log for traceability
-      print('[OrdersBloc] Missing offer_id or fisher_id in orderMap');
       return null;
     }
 
-    // 1. Fetch corresponding Offer map and assemble Offer object
-    final offerMap = await offerRepository.getOfferMapById(offerId);
+    // These two operations run sequentially within this function,
+    // but the calls to _assembleOrder() will run in parallel below.
+    final offerMap = await offerRepository
+        .getOfferMapById(offerId)
+        .timeout(const Duration(seconds: 10));
+
     if (offerMap == null) {
-      print('[OrdersBloc] Offer not found for ID $offerId');
       return null;
     }
     final linkedOffer = Offer.fromMap(offerMap);
 
-    // 2. Fetch the Fisher map and assemble Fisher object
-    final fisherMap = await userRepository.getUserMapById(fisherId);
+    final fisherMap = await userRepository
+        .getUserMapById(fisherId)
+        .timeout(const Duration(seconds: 10));
+
     if (fisherMap == null) {
-      print('[OrdersBloc] Fisher not found for ID $fisherId');
       return null;
     }
     final linkedFisher = Fisher.fromMap(fisherMap);
 
-    // 3. Use the factory constructor to build the Order
     return Order.fromMap(
       m: orderMap,
       linkedOffer: linkedOffer,
@@ -64,17 +89,27 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     LoadAllFisherOrders event,
     Emitter<OrdersState> emit,
   ) async {
-    emit(OrdersLoading());
+    if (state is OrdersLoaded) {
+      return;
+    }
+
+    if (state is OrdersInitial || state is OrdersError) {
+      emit(OrdersLoading());
+    }
+
     try {
       final orderMaps = await orderRepository.getOrderMapsByUserId(
         event.userId,
       );
 
-      final orders = <Order>[];
-      for (final map in orderMaps) {
-        final order = await _assembleOrder(map);
-        if (order != null) orders.add(order);
-      }
+      // 🚀 BOTTLENECK FIX: Use Future.wait to execute all _assembleOrder lookups concurrently.
+      final orderFutures = orderMaps.map((map) {
+        return _assembleOrder(map).timeout(const Duration(seconds: 20));
+      }).toList();
+
+      final orders = (await Future.wait(
+        orderFutures,
+      )).whereType<Order>().toList();
 
       emit(OrdersLoaded(orders));
     } catch (e) {
@@ -86,15 +121,25 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     LoadOrders event,
     Emitter<OrdersState> emit,
   ) async {
-    emit(OrdersLoading());
+    if (state is OrdersLoaded) {
+      return;
+    }
+
+    if (state is OrdersInitial || state is OrdersError) {
+      emit(OrdersLoading());
+    }
+
     try {
       final orderMaps = await orderRepository.getAllOrderMaps();
 
-      final orders = <Order>[];
-      for (final map in orderMaps) {
-        final order = await _assembleOrder(map);
-        if (order != null) orders.add(order);
-      }
+      // 🚀 BOTTLENECK FIX: Use Future.wait to execute all _assembleOrder lookups concurrently.
+      final orderFutures = orderMaps.map((map) {
+        return _assembleOrder(map).timeout(const Duration(seconds: 20));
+      }).toList();
+
+      final orders = (await Future.wait(
+        orderFutures,
+      )).whereType<Order>().toList();
 
       emit(OrdersLoaded(orders));
     } catch (e) {
@@ -105,7 +150,20 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   Future<void> _onAddOrder(AddOrder event, Emitter<OrdersState> emit) async {
     try {
       await orderRepository.insertOrder(event.order);
-      await _onLoadOrders(LoadOrders(), emit);
+
+      // Perform silent refresh
+      final orderMaps = await orderRepository.getAllOrderMaps();
+
+      // 🚀 BOTTLENECK FIX: Use Future.wait for silent refresh after AddOrder
+      final orderFutures = orderMaps.map((map) {
+        return _assembleOrder(map).timeout(const Duration(seconds: 20));
+      }).toList();
+
+      final orders = (await Future.wait(
+        orderFutures,
+      )).whereType<Order>().toList();
+
+      emit(OrdersLoaded(orders));
     } catch (e) {
       emit(OrdersError(e.toString()));
     }
@@ -117,7 +175,20 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   ) async {
     try {
       await orderRepository.deleteOrder(event.orderId);
-      await _onLoadOrders(LoadOrders(), emit);
+
+      // Perform silent refresh
+      final orderMaps = await orderRepository.getAllOrderMaps();
+
+      // 🚀 BOTTLENECK FIX: Use Future.wait for silent refresh after DeleteOrder
+      final orderFutures = orderMaps.map((map) {
+        return _assembleOrder(map).timeout(const Duration(seconds: 20));
+      }).toList();
+
+      final orders = (await Future.wait(
+        orderFutures,
+      )).whereType<Order>().toList();
+
+      emit(OrdersLoaded(orders));
     } catch (e) {
       emit(OrdersError(e.toString()));
     }
@@ -127,10 +198,14 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     GetOrderByOfferId event,
     Emitter<OrdersState> emit,
   ) async {
+    // Note: Single item loading is not significantly bottlenecked by N+1,
+    // but the sequential assembly within _assembleOrder still applies.
+    emit(OrdersLoading());
+
     try {
-      final orderMap = await orderRepository.getOrderMapByOfferId(
-        event.offerId,
-      );
+      final orderMap = await orderRepository
+          .getOrderMapByOfferId(event.offerId)
+          .timeout(const Duration(seconds: 15));
 
       if (orderMap == null) {
         emit(OrdersError('Order not found for offer ID: ${event.offerId}'));
@@ -138,13 +213,71 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
       }
 
       final order = await _assembleOrder(orderMap);
+
       if (order != null) {
         emit(SingleOrderLoaded(order));
       } else {
         emit(OrdersError('Incomplete Order data: missing Offer/Fisher.'));
       }
     } catch (e) {
-      emit(OrdersError(e.toString()));
+      emit(OrdersError('Failed to load order details: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onMarkOrderAsCompleted(
+    MarkOrderAsCompleted event,
+    Emitter<OrdersState> emit,
+  ) async {
+    emit(OrdersLoading());
+    try {
+      final order = event.order;
+
+      // 1. Update Offer status to completed
+      final updatedOffer = order.offer.copyWith(status: OfferStatus.completed);
+      await offerRepository.updateOffer(updatedOffer);
+
+      // 2. Update Catch available weight
+      final double acceptedWeight = order.offer.weight;
+      final originalCatch = await catchRepository.getCatchById(
+        order.offer.catchId,
+      );
+
+      if (originalCatch == null) {
+        throw Exception('Original catch not found for order completion.');
+      }
+
+      final newAvailableWeight = originalCatch.availableWeight - acceptedWeight;
+      final updatedCatch = originalCatch.copyWith(
+        availableWeight: newAvailableWeight > 0 ? newAvailableWeight : 0,
+        status: newAvailableWeight <= 0
+            ? CatchStatus.sold
+            : originalCatch.status, // Mark as sold if weight is 0 or less
+      );
+      await catchRepository.updateCatch(updatedCatch);
+
+      // 3. Re-create catchSnapshotJson from the updatedCatch
+      // Ensure the snapshot includes the accepted transaction details
+      final Map<String, dynamic> updatedCatchSnapshotMap = updatedCatch.toMap()
+        ..['accepted_weight'] = acceptedWeight
+        ..['accepted_price_per_kg'] = order.offer.pricePerKg
+        ..['accepted_price'] = order.offer.price;
+
+      final updatedCatchSnapshotJson = jsonEncode(updatedCatchSnapshotMap);
+
+      // 4. Update Order with the updated Offer and new catchSnapshotJson
+      final fullyUpdatedOrder = order.copyWith(
+        offer: updatedOffer,
+        catchSnapshotJson: updatedCatchSnapshotJson,
+        catchModel: Catch.fromMap(updatedCatchSnapshotMap),
+        // Update catchModel as well
+        dateUpdated: DateTime.now().toIso8601String(), // Update dateUpdated
+      );
+      await orderRepository.updateOrder(fullyUpdatedOrder);
+
+      // After all updates, emit the single updated order to refresh the UI
+      emit(SingleOrderLoaded(fullyUpdatedOrder));
+    } catch (e) {
+      emit(OrdersError('Failed to mark order as completed: ${e.toString()}'));
     }
   }
 }

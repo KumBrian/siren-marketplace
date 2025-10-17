@@ -6,9 +6,15 @@ import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
 import 'package:sqflite/sqflite.dart';
 
 class OrderRepository {
-  final DatabaseHelper dbHelper = DatabaseHelper();
-  final OfferRepository offerRepository = OfferRepository();
-  final FisherRepository fisherRepository = FisherRepository();
+  final DatabaseHelper dbHelper;
+  final OfferRepository offerRepository;
+  final FisherRepository fisherRepository;
+
+  OrderRepository({
+    required this.dbHelper,
+    required this.offerRepository,
+    required this.fisherRepository,
+  });
 
   // --- CREATE ---
 
@@ -103,6 +109,18 @@ class OrderRepository {
       where: 'fisher_id = ? OR buyer_id = ?',
       whereArgs: [userId, userId],
       orderBy: 'date_updated DESC',
+    );
+  }
+
+  // --- UPDATE ---
+
+  Future<void> updateOrder(Order order) async {
+    final db = await dbHelper.database;
+    await db.update(
+      'orders',
+      order.toMap(),
+      where: 'order_id = ?',
+      whereArgs: [order.id],
     );
   }
 

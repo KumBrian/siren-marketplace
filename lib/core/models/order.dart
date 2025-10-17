@@ -64,7 +64,7 @@ class Order extends Equatable {
     final Catch computedCatchModel = Catch.fromMap(snapshotMap);
 
     return Order(
-      id: 'order-${DateTime.now().millisecondsSinceEpoch}',
+      id: offer.id,
       offer: offer,
       fisher: fisher,
       // Pass the assembled Fisher object
@@ -116,6 +116,28 @@ class Order extends Equatable {
       catchSnapshotJson: catchSnapshotJson,
       dateUpdated: m['date_updated'] as String,
       catchModel: computedCatchModel,
+    );
+  }
+
+  Order copyWith({
+    String? id,
+    Offer? offer,
+    Fisher? fisher,
+    String? fisherId,
+    String? buyerId,
+    String? catchSnapshotJson,
+    String? dateUpdated,
+    Catch? catchModel,
+  }) {
+    return Order(
+      id: id ?? this.id,
+      offer: offer ?? this.offer,
+      fisher: fisher ?? this.fisher,
+      fisherId: fisherId ?? this.fisherId,
+      buyerId: buyerId ?? this.buyerId,
+      catchSnapshotJson: catchSnapshotJson ?? this.catchSnapshotJson,
+      dateUpdated: dateUpdated ?? this.dateUpdated,
+      catchModel: catchModel ?? this.catchModel,
     );
   }
 }

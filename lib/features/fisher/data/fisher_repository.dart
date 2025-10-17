@@ -3,7 +3,9 @@ import 'package:siren_marketplace/core/data/database/database_helper.dart';
 import 'models/fisher.dart';
 
 class FisherRepository {
-  final DatabaseHelper dbHelper = DatabaseHelper();
+  final DatabaseHelper dbHelper;
+
+  FisherRepository({required this.dbHelper});
 
   Future<Fisher> getFisherById(String id) async {
     final userMap = await dbHelper.getUserMapById(id);

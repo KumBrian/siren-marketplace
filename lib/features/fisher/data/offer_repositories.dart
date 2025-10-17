@@ -9,7 +9,9 @@ import 'package:sqflite/sqflite.dart';
 import 'order_repository.dart';
 
 class OfferRepository {
-  final DatabaseHelper dbHelper = DatabaseHelper();
+  final DatabaseHelper dbHelper;
+
+  OfferRepository({required this.dbHelper});
 
   // 1. INSERT: Inserts a full Offer object map into the 'offers' table
   Future<void> insertOffer(Offer offer) async {
@@ -54,6 +56,7 @@ class OfferRepository {
   // 4. QUERY BY ID (RAW MAP): Retrieves a single offer map by its ID
   Future<Map<String, dynamic>?> getOfferMapById(String id) async {
     final db = await dbHelper.database;
+
     final data = await db.query(
       'offers',
       where: 'offer_id = ?',
@@ -145,7 +148,7 @@ class OfferRepository {
 
 extension OfferRepositoryActions on OfferRepository {
   /// Marks an offer as accepted and generates an Order
-  Future<void> acceptOffer({
+  Future<String> acceptOffer({
     required Offer offer,
     required Catch catchItem,
     required Fisher fisher,
@@ -164,6 +167,9 @@ extension OfferRepositoryActions on OfferRepository {
 
     // Insert the order through repository
     await orderRepo.insertOrder(newOrder);
+
+    // CRITICAL CHANGE: Return the ID of the newly created order
+    return newOrder.id;
   }
 
   /// Marks an offer as rejected (no further side effects)

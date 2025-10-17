@@ -90,6 +90,7 @@ class MyApp extends StatelessWidget {
             sl<OrderRepository>(),
             sl<OfferRepository>(),
             sl<UserRepository>(),
+            sl<CatchRepository>(),
           )..add(const LoadAllFisherOrders(userId: CURRENT_FISHER_ID)),
         ),
 

@@ -1,10 +1,9 @@
-// lib/screens/fisher/fisher_home.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/models/offer.dart'; // Import Offer model
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/custom_nav_bar.dart';
@@ -13,30 +12,54 @@ import 'package:siren_marketplace/features/fisher/presentation/widgets/for_sale_
 import 'package:siren_marketplace/features/fisher/presentation/widgets/sold_card.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
+// Create a professional data structure for the list view
+class SoldItemData {
+  final Catch parentCatch;
+  final Offer acceptedOffer;
+
+  SoldItemData({required this.parentCatch, required this.acceptedOffer});
+}
+
 class FisherHome extends StatelessWidget {
   const FisherHome({super.key});
 
   // Helper method to calculate turnover
-  double _calculateTurnover(List<Catch> soldCatches) {
-    // ... (logic remains the same)
-    return soldCatches.fold<double>(
+  double _calculateTurnover(List<SoldItemData> soldItems) {
+    // We now fold over the pre-filtered accepted offers
+    return soldItems.fold<double>(
       0,
-      (sum, c) =>
-          sum +
-          c.offers
-              .where(
-                (o) =>
-                    o.status == OfferStatus.accepted ||
-                    o.status == OfferStatus.completed,
-              )
-              .fold(0, (s, o) => s + o.price),
+      (sum, item) => sum + item.acceptedOffer.price,
     );
   }
+
+  // --- New Helper Method: Filter Catches into a flat list of SoldItemData ---
+  List<SoldItemData> _getSoldItemData(List<Catch> allCatches) {
+    final soldItems = <SoldItemData>[];
+
+    for (final c in allCatches) {
+      // Find all offers for this catch that represent a completed sale
+      final acceptedOffers = c.offers
+          .where(
+            (o) =>
+                o.status == OfferStatus.accepted ||
+                o.status == OfferStatus.completed,
+          )
+          .toList();
+
+      for (final offer in acceptedOffers) {
+        // Create one SoldItemData entry for each successful offer
+        soldItems.add(SoldItemData(parentCatch: c, acceptedOffer: offer));
+      }
+    }
+    return soldItems;
+  }
+
+  // --------------------------------------------------------------------------
 
   // --- Main Build Method ---
   @override
   Widget build(BuildContext context) {
-    // 🆕 1. Use BlocListener to trigger the CatchesBloc once the User is loaded.
+    // 1. Use BlocListener to trigger the CatchesBloc once the User is loaded.
     return BlocListener<UserBloc, UserState>(
       // Listen only to transitions that result in a successful load of a Fisher user.
       listener: (context, userState) {
@@ -97,7 +120,7 @@ class FisherHome extends StatelessWidget {
                 if (catchesState is CatchesLoaded) {
                   final allCatches = catchesState.catches;
 
-                  // --- Filtering Logic (Remains the same) ---
+                  // --- Filtering Logic (Revised) ---
                   final forSaleCatches = allCatches
                       .where(
                         (c) =>
@@ -108,19 +131,11 @@ class FisherHome extends StatelessWidget {
                       )
                       .toList();
 
-                  final soldCatches = allCatches
-                      .where(
-                        (c) =>
-                            (c.offers.isNotEmpty) &&
-                            c.offers.any(
-                              (o) =>
-                                  o.status == OfferStatus.accepted ||
-                                  o.status == OfferStatus.completed,
-                            ),
-                      )
-                      .toList();
+                  // Get the flattened list of SoldItemData
+                  final soldItems = _getSoldItemData(allCatches);
 
-                  final turnover = _calculateTurnover(soldCatches);
+                  // Calculate turnover from the consolidated list
+                  final turnover = _calculateTurnover(soldItems);
                   // ------------------------------------------
 
                   return Stack(
@@ -180,7 +195,7 @@ class FisherHome extends StatelessWidget {
                                       child: TabBarView(
                                         physics: const BouncingScrollPhysics(),
                                         children: [
-                                          // For Sale List
+                                          // For Sale List (Logic remains the same)
                                           forSaleCatches.isEmpty
                                               ? Column(
                                                   mainAxisAlignment:
@@ -252,8 +267,8 @@ class FisherHome extends StatelessWidget {
                                                   },
                                                 ),
 
-                                          // Sold List
-                                          soldCatches.isEmpty
+                                          // Sold List (Revised to use soldItems)
+                                          soldItems.isEmpty
                                               ? Column(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.center,
@@ -267,7 +282,7 @@ class FisherHome extends StatelessWidget {
                                                     ),
                                                     const SizedBox(height: 8),
                                                     Text(
-                                                      "Your shop is empty for now.",
+                                                      "No sales recorded yet.",
                                                       style: const TextStyle(
                                                         color:
                                                             AppColors.textBlue,
@@ -277,7 +292,7 @@ class FisherHome extends StatelessWidget {
                                                       ),
                                                     ),
                                                     Text(
-                                                      "Add your first item to start selling.",
+                                                      "Complete an accepted offer to see your turnover.",
                                                       style: const TextStyle(
                                                         color:
                                                             AppColors.textGray,
@@ -294,43 +309,40 @@ class FisherHome extends StatelessWidget {
                                                         bottom: 80,
                                                         top: 16,
                                                       ),
-                                                  itemCount: soldCatches.length,
+                                                  itemCount: soldItems.length,
                                                   separatorBuilder:
                                                       (context, index) =>
                                                           const SizedBox(
                                                             height: 8,
                                                           ),
                                                   itemBuilder: (context, index) {
-                                                    final item =
-                                                        soldCatches[index];
-
-                                                    // Safely get the first accepted/completed offer
-                                                    final acceptedOffer = item
-                                                        .offers
-                                                        .firstWhere(
-                                                          (o) =>
-                                                              o.status ==
-                                                                  OfferStatus
-                                                                      .accepted ||
-                                                              o.status ==
-                                                                  OfferStatus
-                                                                      .completed,
-                                                        );
+                                                    final soldData =
+                                                        soldItems[index];
 
                                                     final catchImageUrl =
-                                                        item.images.isNotEmpty
-                                                        ? item.images.first
+                                                        soldData
+                                                            .parentCatch
+                                                            .images
+                                                            .isNotEmpty
+                                                        ? soldData
+                                                              .parentCatch
+                                                              .images
+                                                              .first
                                                         : "";
-                                                    final catchTitle =
-                                                        item.name;
+                                                    final catchTitle = soldData
+                                                        .parentCatch
+                                                        .name;
 
                                                     return SoldCard(
-                                                      offer: acceptedOffer,
+                                                      offer: soldData
+                                                          .acceptedOffer,
+                                                      // Directly pass the accepted offer
                                                       catchImageUrl:
                                                           catchImageUrl,
                                                       catchTitle: catchTitle,
                                                       onPressed: () => context.go(
-                                                        "/fisher/order-details/${acceptedOffer.id}",
+                                                        // Navigate using the accepted offer's ID, which maps to the Order ID.
+                                                        "/fisher/order-details/${soldData.acceptedOffer.id}",
                                                       ),
                                                     );
                                                   },
