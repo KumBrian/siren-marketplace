@@ -54,6 +54,14 @@ class FisherHome extends StatelessWidget {
     return soldItems;
   }
 
+  int _totalPendingOffers(List<Catch> allCatches) {
+    int total = 0;
+    for (final c in allCatches) {
+      total += c.offers.where((o) => o.status == OfferStatus.pending).length;
+    }
+    return total;
+  }
+
   // --------------------------------------------------------------------------
 
   // --- Main Build Method ---
@@ -82,15 +90,21 @@ class FisherHome extends StatelessWidget {
             height: 100,
           ),
           actions: [
-            IconButton(
-              onPressed: () => context.go("/fisher/notifications"),
-              icon: const Badge(
-                label: Text("3"),
-                child: Icon(
-                  Icons.notifications_none,
-                  color: AppColors.textBlue,
-                ),
-              ),
+            BlocBuilder<CatchesBloc, CatchesState>(
+              builder: (context, cState) {
+                if (cState is! CatchesLoaded) return const SizedBox.shrink();
+                final allCatches = (cState).catches;
+                return IconButton(
+                  onPressed: () => context.go("/fisher/notifications"),
+                  icon: Badge(
+                    label: Text("${_totalPendingOffers(allCatches)}"),
+                    child: Icon(
+                      Icons.notifications_none,
+                      color: AppColors.textBlue,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),

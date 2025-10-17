@@ -115,21 +115,9 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
     // 1. Show the success dialog with the navigation button
     showActionSuccessDialog(
       context,
-      message: 'Offer accepted! The order has been created.',
-      actionTitle: 'View Order Details',
-      autoCloseSeconds: 0, // Prevent auto-close since we have a button
-      onAction: () async {
-        // ⚠️ FIX 1: Increased delay to 1000ms to ensure the newly created Order
-        // has been fully written to the database before the next screen attempts to read it.
-        await Future.delayed(const Duration(milliseconds: 1000));
-
-        // 3. Perform navigation when the button is pressed
-        if (context.mounted) {
-          context.pushReplacement('/fisher/order-details/$orderId');
-        }
-      },
+      message: 'Offer successfully accepted!',
+      autoCloseSeconds: 2,
     );
-    // 4. Reload catches for background update
     context.read<CatchesBloc>().add(LoadCatches());
   }
 
@@ -242,12 +230,6 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                       fontSize: 24,
                     ),
                   ),
-                  actions: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.more_vert),
-                    ),
-                  ],
                 ),
                 body: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),

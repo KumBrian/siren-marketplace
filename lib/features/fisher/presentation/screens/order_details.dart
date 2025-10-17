@@ -150,24 +150,6 @@ class _OrderDetailsState extends State<OrderDetails> {
         if (state != _lastOrdersState) {
           _lastOrdersState = state;
         }
-
-        if (state is OrdersError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${state.message}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        } else if (state is SingleOrderLoaded &&
-            state.order.id == widget.orderId &&
-            state.order.offer.status == OfferStatus.completed) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Order marked as completed!'),
-              backgroundColor: AppColors.success500,
-            ),
-          );
-        }
       },
       child: BlocBuilder<OrdersBloc, OrdersState>(
         builder: (context, state) {
@@ -522,7 +504,9 @@ class _OrderDetailsState extends State<OrderDetails> {
                                 immersive: true,
                                 useSafeArea: true,
                                 doubleTapZoomable: true,
-                                backgroundColor: Colors.black.withOpacity(0.4),
+                                backgroundColor: Colors.black.withValues(
+                                  alpha: 0.4,
+                                ),
                               );
                             },
                             child: ClipRRect(

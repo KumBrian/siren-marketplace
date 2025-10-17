@@ -96,9 +96,9 @@ class Offer extends Equatable {
       weight: weight ?? this.weight,
       status: status ?? this.status,
       dateCreated: dateCreated ?? this.dateCreated,
-      previousPrice: previousPrice,
-      previousWeight: previousWeight,
-      previousPricePerKg: previousPricePerKg,
+      previousPrice: previousPrice ?? this.previousPrice,
+      previousWeight: previousWeight ?? this.previousWeight,
+      previousPricePerKg: previousPricePerKg ?? this.previousPricePerKg,
       // Crucially, include all denormalized fields in copyWith
       catchName: catchName,
       catchImageUrl: catchImageUrl,

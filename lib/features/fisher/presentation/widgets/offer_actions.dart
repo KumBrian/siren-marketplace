@@ -9,6 +9,7 @@ import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/catch.dart' as CatchModel;
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
@@ -146,7 +147,6 @@ class _OfferActionsState extends State<OfferActions> {
     if (catchItem == null) {
       if (!outerContext.mounted) return;
       await showActionSuccessDialog(
-        // Using top-level function
         outerContext,
         message: 'Related catch not found',
         autoCloseSeconds: 2,
@@ -312,83 +312,18 @@ class _OfferActionsState extends State<OfferActions> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CustomButton(
-          title: "Accept",
-          icon: Icons.check,
-          onPressed: () {
-            // Show confirm dialog then call _handleAccept if confirmed
-            showDialog(
-              context: context,
-              builder: (confirmCtx) => AlertDialog(
-                title: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.textBlue, width: 3),
-                  ),
-                  child: const Icon(Icons.question_mark_outlined),
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Column(
-                        children: [
-                          const Text(
-                            "Accept the offer?",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.textBlue,
-                            ),
-                          ),
-                          Text(
-                            "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price)}",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                              color: AppColors.textBlue,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    CustomButton(
-                      title: "Accept",
-                      onPressed: () => _handleAccept(confirmCtx),
-                    ),
-                    const SizedBox(height: 16),
-                    CustomButton(
-                      title: "Cancel",
-                      cancel: true,
-                      onPressed: () {
-                        if (Navigator.of(confirmCtx).canPop()) {
-                          Navigator.of(confirmCtx).pop();
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 16),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: CustomButton(
-                title: "Reject",
-                icon: Icons.close,
+    return widget.offer.status == OfferStatus.pending ||
+            widget.offer.status == OfferStatus.countered
+        ? Column(
+            children: [
+              CustomButton(
+                title: "Accept",
+                icon: Icons.check,
                 onPressed: () {
-                  // show confirm dialog and call _handleReject
+                  // Show confirm dialog then call _handleAccept if confirmed
                   showDialog(
                     context: context,
-                    builder: (rejectCtx) => AlertDialog(
+                    builder: (confirmCtx) => AlertDialog(
                       title: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -404,26 +339,39 @@ class _OfferActionsState extends State<OfferActions> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
-                            // Removed const from Text because it was causing problems
-                            "Reject the offer?",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: AppColors.textBlue,
+                          Center(
+                            child: Column(
+                              children: [
+                                const Text(
+                                  "Accept the offer?",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.textBlue,
+                                  ),
+                                ),
+                                Text(
+                                  "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price)}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 18,
+                                    color: AppColors.textBlue,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           CustomButton(
-                            title: "Reject",
-                            onPressed: () => _handleReject(rejectCtx),
+                            title: "Accept",
+                            onPressed: () => _handleAccept(confirmCtx),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           CustomButton(
                             title: "Cancel",
                             cancel: true,
                             onPressed: () {
-                              if (Navigator.of(rejectCtx).canPop()) {
-                                Navigator.of(rejectCtx).pop();
+                              if (Navigator.of(confirmCtx).canPop()) {
+                                Navigator.of(confirmCtx).pop();
                               }
                             },
                           ),
@@ -432,115 +380,188 @@ class _OfferActionsState extends State<OfferActions> {
                     ),
                   );
                 },
-                bordered: true,
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: CustomButton(
-                title: "Counter-Offer",
-                icon: Icons.autorenew_rounded,
-                onPressed: () {
-                  // Open counter dialog (stateful) and handle send
-                  showDialog(
-                    context: context,
-                    builder: (dialogCtx) {
-                      _initializeCounterState();
-
-                      return AlertDialog(
-                        contentPadding: const EdgeInsets.only(
-                          left: 24,
-                          right: 24,
-                          bottom: 24,
-                        ),
-                        constraints: const BoxConstraints(
-                          maxWidth: 500,
-                          minWidth: 450,
-                        ),
-                        title: Align(
-                          alignment: Alignment.centerRight,
-                          child: IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () {
-                              if (Navigator.of(dialogCtx).canPop()) {
-                                Navigator.of(dialogCtx).pop();
-                              }
-                            },
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      title: "Reject",
+                      icon: Icons.close,
+                      onPressed: () {
+                        // show confirm dialog and call _handleReject
+                        showDialog(
+                          context: context,
+                          builder: (rejectCtx) => AlertDialog(
+                            title: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.textBlue,
+                                  width: 3,
+                                ),
+                              ),
+                              child: const Icon(Icons.question_mark_outlined),
+                            ),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text(
+                                  // Removed const from Text because it was causing problems
+                                  "Reject the offer?",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.textBlue,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                CustomButton(
+                                  title: "Reject",
+                                  onPressed: () => _handleReject(rejectCtx),
+                                ),
+                                const SizedBox(height: 8),
+                                CustomButton(
+                                  title: "Cancel",
+                                  cancel: true,
+                                  onPressed: () {
+                                    if (Navigator.of(rejectCtx).canPop()) {
+                                      Navigator.of(rejectCtx).pop();
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        content: StatefulBuilder(
-                          builder:
-                              (
-                                BuildContext statefulCtx,
-                                StateSetter localSetState,
-                              ) {
-                                void onFieldChanged(String? _) =>
-                                    _calculatePricePerKg(localSetState);
+                        );
+                      },
+                      bordered: true,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: CustomButton(
+                      title: "Counter-Offer",
+                      icon: Icons.autorenew_rounded,
+                      onPressed: () {
+                        // Open counter dialog (stateful) and handle send
+                        showDialog(
+                          context: context,
+                          builder: (dialogCtx) {
+                            _initializeCounterState();
 
-                                return Form(
-                                  key: widget.formKey,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: AppColors.textBlue,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
+                            return AlertDialog(
+                              contentPadding: const EdgeInsets.only(
+                                left: 24,
+                                right: 24,
+                                bottom: 24,
+                              ),
+                              constraints: const BoxConstraints(
+                                maxWidth: 500,
+                                minWidth: 450,
+                              ),
+                              title: Align(
+                                alignment: Alignment.centerRight,
+                                child: IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () {
+                                    if (Navigator.of(dialogCtx).canPop()) {
+                                      Navigator.of(dialogCtx).pop();
+                                    }
+                                  },
+                                ),
+                              ),
+                              content: StatefulBuilder(
+                                builder:
+                                    (
+                                      BuildContext statefulCtx,
+                                      StateSetter localSetState,
+                                    ) {
+                                      void onFieldChanged(String? _) =>
+                                          _calculatePricePerKg(localSetState);
+
+                                      return Form(
+                                        key: widget.formKey,
                                         child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
                                           children: [
-                                            NumberInputField(
-                                              controller: _weightController,
-                                              label: "Weight",
-                                              suffix: "Kg",
-                                              value: widget.offer.weight,
-                                              onChanged: onFieldChanged,
+                                            Container(
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: AppColors.textBlue,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              child: Column(
+                                                children: [
+                                                  NumberInputField(
+                                                    controller:
+                                                        _weightController,
+                                                    label: "Weight",
+                                                    suffix: "Kg",
+                                                    value: widget.offer.weight,
+                                                    onChanged: onFieldChanged,
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  NumberInputField(
+                                                    controller:
+                                                        _priceController,
+                                                    label: "Total",
+                                                    suffix: "CFA",
+                                                    onChanged: onFieldChanged,
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  NumberInputField(
+                                                    controller:
+                                                        _pricePerKgController,
+                                                    label: "Price/Kg",
+                                                    suffix: "CFA",
+                                                    value:
+                                                        _calculatedPricePerKg,
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                            const SizedBox(height: 12),
-                                            NumberInputField(
-                                              controller: _priceController,
-                                              label: "Total",
-                                              suffix: "CFA",
-                                              onChanged: onFieldChanged,
-                                            ),
-                                            const SizedBox(height: 12),
-                                            NumberInputField(
-                                              controller: _pricePerKgController,
-                                              label: "Price/Kg",
-                                              suffix: "CFA",
-                                              value: _calculatedPricePerKg,
+                                            const SizedBox(height: 16),
+                                            CustomButton(
+                                              title: "Send Counter-Offer",
+                                              onPressed: () =>
+                                                  _handleSendCounter(
+                                                    statefulCtx,
+                                                  ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      CustomButton(
-                                        title: "Send Counter-Offer",
-                                        onPressed: () =>
-                                            _handleSendCounter(statefulCtx),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                        ),
-                      );
-                    },
-                  );
-                },
-                bordered: true,
+                                      );
+                                    },
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      bordered: true,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-      ],
-    );
+            ],
+          )
+        : widget.offer.status == OfferStatus.accepted ||
+              widget.offer.status == OfferStatus.completed
+        ? CustomButton(
+            title: "Order Details",
+            onPressed: () {
+              context.pushReplacement(
+                "/fisher/order-details/${widget.offer.id}",
+              );
+            },
+          )
+        : Container();
   }
 }
