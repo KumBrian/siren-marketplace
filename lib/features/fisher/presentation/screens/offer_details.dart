@@ -122,6 +122,12 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    context.read<CatchesBloc>().add(LoadCatches());
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<CatchesBloc, CatchesState>(
       builder: (context, catchesState) {

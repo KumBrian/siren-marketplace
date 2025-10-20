@@ -5,6 +5,7 @@ import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
 
 import 'order_repository.dart';
 
@@ -28,19 +29,28 @@ class OfferRepository {
     required String catchId,
     required String buyerId,
     required String fisherId,
-
     required double price,
     required double weight,
     required double pricePerKg,
   }) async {
     final db = await dbHelper.database;
+    final fisher = await dbHelper.getUserMapById(fisherId);
+    final fisherData = Fisher.fromMap(fisher!);
+    final buyer = await dbHelper.getUserMapById(buyerId);
+    final buyerData = Fisher.fromMap(buyer!);
+
     final newOffer = Offer(
-      id: DateTime.now().toIso8601String(),
-      // Simple ID generation
+      id: const Uuid().v4(),
       catchId: catchId,
-      fisherId: fisherId,
+      fisherId: fisherData.id,
+      fisherName: fisherData.name,
+      fisherRating: fisherData.rating,
+      fisherAvatarUrl: fisherData.avatarUrl,
       // This will be populated by the service layer or when fetching the catch
-      buyerId: buyerId,
+      buyerId: buyerData.id,
+      buyerName: buyerData.name,
+      buyerRating: buyerData.rating,
+      buyerAvatarUrl: buyerData.avatarUrl,
       price: price,
       weight: weight,
       pricePerKg: pricePerKg,

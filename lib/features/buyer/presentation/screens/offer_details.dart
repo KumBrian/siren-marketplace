@@ -6,6 +6,7 @@ import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
@@ -133,21 +134,37 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                 OfferActions(offer: offer, formKey: _formKey),
                 const SizedBox(height: 16),
 
-                if (offer.previousPrice != null) ...[
+                if (offer.previousPrice != null &&
+                    offer.previousWeight != null) ...[
                   const SectionHeader("Last Counter-Offer"),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppColors.gray200),
                     ),
-                    child: const Center(
-                      child: Text(
-                        "Display of previous counter-offer requires loading its full data.",
-                      ),
+                    child: InfoTable(
+                      rows: [
+                        // Use the found previousCounterOffer data
+                        InfoRow(
+                          label: "Weight",
+                          // ⚠️ FIX: Use toStringAsFixed for weights
+                          value: "${offer.previousWeight} Kg",
+                        ),
+                        InfoRow(
+                          label: "Price",
+                          value: formatPrice(offer.previousPrice!),
+                        ),
+                        InfoRow(
+                          label: "Price Per Kg",
+                          // ⚠️ FIX: Use formatPrice for currency
+                          value: formatPrice(offer.previousPricePerKg!),
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 16),
                 ],
               ],
             ),

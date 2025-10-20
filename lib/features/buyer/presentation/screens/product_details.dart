@@ -14,6 +14,7 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
+import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
@@ -215,6 +216,8 @@ class _ProductDetailsState extends State<ProductDetails> {
                               pricePerKg: pricePerKg,
                             ),
                           );
+                          context.read<CatchesBloc>().add(LoadCatches());
+
                           context.pop(); // Close the dialog
                           showDialog(
                             context: context,

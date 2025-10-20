@@ -70,7 +70,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       // A more robust solution would involve fetching the relevant catchId's offers again.
       emit(OfferActionSuccess("Create", newOffer, null));
       // Optionally, re-trigger loading of offers if needed:
-      // add(LoadOffers(event.catchId)); // If you know the catchId
+      add(LoadOffers(event.catchId)); // If you know the catchId
     } catch (e) {
       emit(OfferActionFailure("Create", "Offer creation failed: $e"));
     }
