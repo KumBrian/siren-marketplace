@@ -4,9 +4,71 @@ import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/widgets/counter_offer_dialog.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/offer_details_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+
+Future<void> showActionSuccessDialog(
+  BuildContext context, {
+  required String message,
+  String? actionTitle,
+  VoidCallback? onAction,
+  int autoCloseSeconds = 3,
+}) async {
+  if (!context.mounted) return;
+  showDialog(
+    context: context,
+    barrierDismissible: actionTitle == null,
+    builder: (ctx) {
+      // <--- The local dialog context
+      if (autoCloseSeconds > 0 && actionTitle == null) {
+        Future.delayed(Duration(seconds: autoCloseSeconds), () {
+          if (ctx.mounted) Navigator.of(ctx).pop();
+        });
+      }
+
+      return AlertDialog(
+        title: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.textBlue,
+            border: Border.all(color: AppColors.textBlue, width: 2),
+          ),
+          child: const Icon(Icons.check, color: AppColors.textWhite),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: AppColors.textBlue,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            if (actionTitle != null && onAction != null)
+              // Use ctx to pop the dialog first, then call onAction.
+              CustomButton(
+                title: actionTitle,
+                onPressed: () {
+                  if (ctx.mounted) {
+                    Navigator.of(ctx).pop(); // 1. Close the dialog safely
+                    onAction(); // 2. Execute the navigation
+                  }
+                },
+              ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
 class OfferActions extends StatefulWidget {
   const OfferActions({
@@ -119,7 +181,7 @@ class _OfferActionsState extends State<OfferActions> {
           }
         }
 
-        // Handle errors in a Snackbar or specific dialog
+        // Handle errors in a Snack bar or specific dialog
         if (state is OfferDetailsError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Action Failed: ${state.message}')),
@@ -186,7 +248,36 @@ class _OfferActionsState extends State<OfferActions> {
               Expanded(
                 child: CustomButton(
                   title: "Counter Back",
-                  onPressed: () => _showOfferDialog(context, isCounter: true),
+                  onPressed: () {
+                    showCounterOfferDialog(
+                      context: context,
+                      role: Role.buyer,
+                      formKey: widget.formKey,
+                      initialWeight: widget.offer.weight,
+                      initialPrice: widget.offer.price,
+                      onSubmit: (newWeight, newPrice, dialogCtx) async {
+                        if (Navigator.of(dialogCtx).canPop()) {
+                          Navigator.of(dialogCtx).pop();
+                        }
+
+                        context.read<OffersBloc>().add(
+                          CounterOfferEvent(widget.offer, newPrice, newWeight),
+                        );
+
+                        await showActionSuccessDialog(
+                          dialogCtx,
+                          message: 'Counter-Offer Sent!',
+                          actionTitle: 'Offer details',
+                          onAction: () {
+                            dialogCtx.pushReplacement(
+                              '/buyer/order-details/${widget.offer.id}',
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+
                   bordered: true,
                 ),
               ),

@@ -10,6 +10,7 @@ import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/multi_select_dropdown.dart';
+import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_card.dart';
 
@@ -21,10 +22,12 @@ class BuyerHome extends StatefulWidget {
 }
 
 class _BuyerHomeState extends State<BuyerHome> {
+  final TextEditingController _weightController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
-    // Trigger market load once
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BuyerMarketBloc>().add(LoadMarketCatches());
     });
@@ -35,7 +38,6 @@ class _BuyerHomeState extends State<BuyerHome> {
     return BlocListener<BuyerMarketBloc, BuyerMarketState>(
       listener: (context, marketState) {
         if (marketState is BuyerMarketLoaded) {
-          // Feed the filtered cubit safely after data loads
           context.read<FilteredProductsCubit>().setAllCatches(
             marketState.catches,
           );
@@ -54,7 +56,6 @@ class _BuyerHomeState extends State<BuyerHome> {
               body: Center(
                 child: Text(
                   'Error loading products: ${marketState.message}',
-                  textAlign: TextAlign.center,
                   style: const TextStyle(color: AppColors.fail500),
                 ),
               ),
@@ -69,13 +70,8 @@ class _BuyerHomeState extends State<BuyerHome> {
             backgroundColor: AppColors.gray50,
             appBar: AppBar(
               elevation: 0,
-              scrolledUnderElevation: 0,
               centerTitle: true,
-              title: Image.asset(
-                "assets/icons/siren_logo.png",
-                width: 100,
-                height: 50,
-              ),
+              title: Image.asset("assets/icons/siren_logo.png", width: 100),
               actions: [
                 IconButton(
                   onPressed: () => context.go("/buyer/notifications"),
@@ -146,12 +142,6 @@ class _BuyerHomeState extends State<BuyerHome> {
                             },
                           ),
                     ),
-                    if (allCatches.isNotEmpty &&
-                        marketState is BuyerMarketLoading)
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
                   ],
                 ),
               ),
@@ -167,13 +157,13 @@ class _BuyerHomeState extends State<BuyerHome> {
     List<Catch> allCatches,
   ) {
     return Row(
+      spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          flex: 5,
+          flex: 4,
           child: SearchBar(
             hintText: "Search...",
-            scrollPadding: const EdgeInsets.symmetric(vertical: 4),
             textStyle: WidgetStateProperty.all(
               const TextStyle(fontSize: 16, color: AppColors.textBlue),
             ),
@@ -187,7 +177,22 @@ class _BuyerHomeState extends State<BuyerHome> {
             elevation: WidgetStateProperty.all(0),
           ),
         ),
-        const SizedBox(width: 16),
+        Expanded(
+          flex: 1,
+          child: Material(
+            color: AppColors.white100,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              splashColor: AppColors.blue700.withAlpha(25),
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => _showSortModal(context, allCatches),
+              child: const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Icon(Icons.sort, color: AppColors.textBlue),
+              ),
+            ),
+          ),
+        ),
         Expanded(
           flex: 1,
           child: Material(
@@ -214,47 +219,119 @@ class _BuyerHomeState extends State<BuyerHome> {
         builder: (context, filterState) {
           final filterCubit = context.read<ProductsFilterCubit>();
           final filteredState = context.read<FilteredProductsCubit>().state;
+          final height = MediaQuery.of(context).size.height * 0.45;
 
-          final height = MediaQuery.of(context).size.height * 0.65;
+          return Form(
+            key: _formKey,
+            child: Container(
+              height: height,
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 12,
+                children: [
+                  const Text(
+                    "Filter by:",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+
+                  const Text("Species", style: TextStyle(fontSize: 12)),
+                  MultiSelectDropdown<Species>(
+                    label: "Species",
+                    options: filteredState.uniqueSpecies,
+                    selectedValues: filterState.selectedSpecies,
+                    optionLabel: (s) => s.name.capitalize(),
+                    onChanged: filterCubit.setSpecies,
+                  ),
+
+                  const Text("Location", style: TextStyle(fontSize: 12)),
+                  MultiSelectDropdown<String>(
+                    label: "Location",
+                    options: filteredState.uniqueLocations,
+                    selectedValues: filterState.selectedLocations,
+                    optionLabel: (s) => s,
+                    onChanged: filterCubit.setLocations,
+                  ),
+
+                  NumberInputField(
+                    label: "Min Weight",
+                    suffix: "(kg)",
+                    controller: _weightController,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return null;
+                      final numValue = double.tryParse(value);
+                      if (numValue == null || numValue < 0) {
+                        return 'Enter a valid number';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          filterCubit.clear();
+                          filterCubit.applyFilters();
+                          _weightController.clear();
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          "Reset All",
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                      CustomButton(
+                        title: "Apply Filters",
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            final minWeight = double.tryParse(
+                              _weightController.text.trim(),
+                            );
+                            filterCubit.setMinWeight(minWeight);
+                            filterCubit.applyFilters();
+                            Navigator.pop(context);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showSortModal(BuildContext context, List<Catch> allCatches) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => BlocBuilder<ProductsFilterCubit, ProductsFilterState>(
+        builder: (context, filterState) {
+          final filterCubit = context.read<ProductsFilterCubit>();
+          final height = MediaQuery.of(context).size.height * 0.45;
 
           return Container(
             height: height,
             padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 8,
               children: [
-                const Text(
-                  "Filter by:",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 12),
-                const Text("Species", style: TextStyle(fontSize: 12)),
-                const SizedBox(height: 12),
-                MultiSelectDropdown<Species>(
-                  label: "Species",
-                  options: filteredState.uniqueSpecies,
-                  selectedValues: filterState.selectedSpecies,
-                  optionLabel: (s) => s.name.capitalize(),
-                  onChanged: filterCubit.setSpecies,
-                ),
-                const SizedBox(height: 12),
-                const Text("Location", style: TextStyle(fontSize: 12)),
-                const SizedBox(height: 12),
-                MultiSelectDropdown<String>(
-                  label: "Location",
-                  options: filteredState.uniqueLocations,
-                  selectedValues: filterState.selectedLocations,
-                  optionLabel: (s) => s,
-                  onChanged: filterCubit.setLocations,
-                ),
-                const SizedBox(height: 12),
                 const Text(
                   "Sort by:",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
-                const SizedBox(height: 12),
                 _buildDateSortOptions(filterCubit, filterState),
-                const SizedBox(height: 8),
+                Divider(thickness: 2, color: AppColors.gray200),
                 _buildPriceSortOptions(filterCubit, filterState),
                 const Spacer(),
                 Row(
@@ -263,6 +340,7 @@ class _BuyerHomeState extends State<BuyerHome> {
                     TextButton(
                       onPressed: () {
                         filterCubit.clear();
+                        filterCubit.applyFilters();
                         Navigator.pop(context);
                       },
                       child: const Text(
@@ -271,8 +349,11 @@ class _BuyerHomeState extends State<BuyerHome> {
                       ),
                     ),
                     CustomButton(
-                      title: "Apply Filters",
-                      onPressed: () => Navigator.pop(context),
+                      title: "Apply",
+                      onPressed: () {
+                        filterCubit.applyFilters();
+                        Navigator.pop(context);
+                      },
                     ),
                   ],
                 ),
@@ -289,36 +370,23 @@ class _BuyerHomeState extends State<BuyerHome> {
     ProductsFilterState state,
   ) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
         RadioListTile<SortBy>(
-          contentPadding: EdgeInsets.zero,
           dense: true,
-          groupValue: state.sortByPrice == SortBy.none
-              ? state.sortByDate
-              : null,
+          groupValue: state.sortByDate,
           title: const Text('Oldest to Newest', style: TextStyle(fontSize: 14)),
           value: SortBy.oldNew,
           onChanged: (v) {
-            if (v != null) {
-              cubit.setSortDate(v);
-              cubit.setSortPrice(SortBy.none);
-            }
+            if (v != null) cubit.setSortDate(v);
           },
         ),
         RadioListTile<SortBy>(
-          contentPadding: EdgeInsets.zero,
           dense: true,
-          groupValue: state.sortByPrice == SortBy.none
-              ? state.sortByDate
-              : null,
+          groupValue: state.sortByDate,
           title: const Text('Newest to Oldest', style: TextStyle(fontSize: 14)),
           value: SortBy.newOld,
           onChanged: (v) {
-            if (v != null) {
-              cubit.setSortDate(v);
-              cubit.setSortPrice(SortBy.none);
-            }
+            if (v != null) cubit.setSortDate(v);
           },
         ),
       ],
@@ -330,42 +398,29 @@ class _BuyerHomeState extends State<BuyerHome> {
     ProductsFilterState state,
   ) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
         RadioListTile<SortBy>(
-          contentPadding: EdgeInsets.zero,
           dense: true,
-          groupValue: state.sortByDate == SortBy.none
-              ? state.sortByPrice
-              : null,
+          groupValue: state.sortByPrice,
           title: const Text(
             'Price: Low to High',
             style: TextStyle(fontSize: 14),
           ),
           value: SortBy.lowHigh,
           onChanged: (v) {
-            if (v != null) {
-              cubit.setSortPrice(v);
-              cubit.setSortDate(SortBy.none);
-            }
+            if (v != null) cubit.setSortPrice(v);
           },
         ),
         RadioListTile<SortBy>(
-          contentPadding: EdgeInsets.zero,
           dense: true,
-          groupValue: state.sortByDate == SortBy.none
-              ? state.sortByPrice
-              : null,
+          groupValue: state.sortByPrice,
           title: const Text(
             'Price: High to Low',
             style: TextStyle(fontSize: 14),
           ),
           value: SortBy.highLow,
           onChanged: (v) {
-            if (v != null) {
-              cubit.setSortPrice(v);
-              cubit.setSortDate(SortBy.none);
-            }
+            if (v != null) cubit.setSortPrice(v);
           },
         ),
       ],

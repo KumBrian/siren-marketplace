@@ -29,6 +29,7 @@ class Offer extends Equatable {
   final String buyerAvatarUrl;
 
   const Offer({
+    // Core fields, required for any offer
     required this.id,
     required this.catchId,
     required this.fisherId,
@@ -38,17 +39,19 @@ class Offer extends Equatable {
     required this.weight,
     required this.status,
     required this.dateCreated,
-    required this.buyerName,
-    required this.buyerRating,
-    required this.buyerAvatarUrl,
+    // Denormalized fields, provide defaults or make optional if not always available
+    this.catchName = '', // Default to empty string
+    this.catchImageUrl = '', // Default to empty string
+    this.fisherName = '', // Default to empty string
+    this.fisherRating = 0.0, // Default to 0.0
+    this.fisherAvatarUrl = '', // Default to empty string
+    this.buyerName = '', // Default to empty string
+    this.buyerRating = 0.0, // Default to 0.0
+    this.buyerAvatarUrl = '', // Default to empty string
+    // Previous fields, already optional
     this.previousPrice,
     this.previousWeight,
     this.previousPricePerKg,
-    required this.catchName,
-    required this.catchImageUrl,
-    required this.fisherName,
-    required this.fisherRating,
-    required this.fisherAvatarUrl,
   });
 
   @override
@@ -85,6 +88,15 @@ class Offer extends Equatable {
     double? weight,
     double? pricePerKg,
     String? dateCreated,
+    // Add parameters for denormalized fields if they can change
+    String? catchName,
+    String? catchImageUrl,
+    String? fisherName,
+    double? fisherRating,
+    String? fisherAvatarUrl,
+    String? buyerName,
+    double? buyerRating,
+    String? buyerAvatarUrl,
   }) {
     return Offer(
       id: id,
@@ -99,15 +111,15 @@ class Offer extends Equatable {
       previousPrice: previousPrice ?? this.previousPrice,
       previousWeight: previousWeight ?? this.previousWeight,
       previousPricePerKg: previousPricePerKg ?? this.previousPricePerKg,
-      // Crucially, include all denormalized fields in copyWith
-      catchName: catchName,
-      catchImageUrl: catchImageUrl,
-      fisherName: fisherName,
-      fisherRating: fisherRating,
-      fisherAvatarUrl: fisherAvatarUrl,
-      buyerName: buyerName,
-      buyerRating: buyerRating,
-      buyerAvatarUrl: buyerAvatarUrl,
+      // Update denormalized fields if provided, otherwise keep existing
+      catchName: catchName ?? this.catchName,
+      catchImageUrl: catchImageUrl ?? this.catchImageUrl,
+      fisherName: fisherName ?? this.fisherName,
+      fisherRating: fisherRating ?? this.fisherRating,
+      fisherAvatarUrl: fisherAvatarUrl ?? this.fisherAvatarUrl,
+      buyerName: buyerName ?? this.buyerName,
+      buyerRating: buyerRating ?? this.buyerRating,
+      buyerAvatarUrl: buyerAvatarUrl ?? this.buyerAvatarUrl,
     );
   }
 
@@ -153,14 +165,14 @@ class Offer extends Equatable {
     previousPrice: (m['previous_price'] as num?)?.toDouble(),
     previousWeight: (m['previous_weight'] as num?)?.toDouble(),
     previousPricePerKg: (m['previous_price_per_kg'] as num?)?.toDouble(),
-    // Extract new fields from the map
-    catchName: m['catch_name'] as String,
-    catchImageUrl: m['catch_image_url'] as String,
-    fisherName: m['fisher_name'] as String,
-    fisherRating: (m['fisher_rating'] as num).toDouble(),
-    fisherAvatarUrl: m['fisher_avatar_url'] as String,
-    buyerName: m['buyer_name'] as String,
-    buyerRating: (m['buyer_rating'] as num).toDouble(),
-    buyerAvatarUrl: m['buyer_avatar_url'] as String,
+    // Extract new fields from the map, providing defaults if null
+    catchName: m['catch_name'] as String? ?? '',
+    catchImageUrl: m['catch_image_url'] as String? ?? '',
+    fisherName: m['fisher_name'] as String? ?? '',
+    fisherRating: (m['fisher_rating'] as num? ?? 0.0).toDouble(),
+    fisherAvatarUrl: m['fisher_avatar_url'] as String? ?? '',
+    buyerName: m['buyer_name'] as String? ?? '',
+    buyerRating: (m['buyer_rating'] as num? ?? 0.0).toDouble(),
+    buyerAvatarUrl: m['buyer_avatar_url'] as String? ?? '',
   );
 }

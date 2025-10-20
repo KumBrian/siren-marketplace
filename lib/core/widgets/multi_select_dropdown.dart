@@ -77,90 +77,107 @@ class _MultiSelectDropdownState<T> extends State<MultiSelectDropdown<T>> {
     final size = renderBox.size;
     final offset = renderBox.localToGlobal(Offset.zero);
 
+    final screenHeight = MediaQuery.of(context).size.height;
+    const dropdownMaxHeight = 400.0;
+    const spacing = 4.0;
+    const itemHeightEstimate = 48.0; // average height of each checkbox row
+
+    // Calculate estimated dropdown height dynamically
+    final estimatedHeight =
+        (widget.options.length * itemHeightEstimate) +
+        40; // 40 for padding/header
+    final dropdownHeight = estimatedHeight > dropdownMaxHeight
+        ? dropdownMaxHeight
+        : estimatedHeight;
+
+    // Check if there’s enough space below, otherwise show above
+    final spaceBelow = screenHeight - (offset.dy + size.height);
+    final showAbove = spaceBelow < dropdownHeight + spacing;
+
+    // Compute vertical position
+    final dropdownTop = showAbove
+        ? offset.dy - dropdownHeight - spacing
+        : offset.dy + size.height + spacing;
+
     return OverlayEntry(
       builder: (context) => Stack(
         children: [
-          // Full-screen invisible barrier for outside taps
+          // Tap outside to close
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: _closeDropdown,
             ),
           ),
-          // Dropdown
+
+          // Dropdown body
           Positioned(
             left: offset.dx,
-            top: offset.dy + size.height + 4,
+            top: dropdownTop.clamp(0.0, screenHeight - dropdownHeight - 8),
             width: size.width,
-            child: CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              offset: Offset(0, size.height + 4),
-              child: Material(
-                elevation: 4,
-                borderRadius: BorderRadius.circular(8),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 300),
-                  // max height
-                  child: StatefulBuilder(
-                    builder: (context, setInnerState) {
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        // shrink column to content
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24.0,
-                              vertical: 8,
-                            ),
-                            child: Text(
-                              "Filter ${widget.label}",
-                              style: TextStyle(fontSize: 12),
-                            ),
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(8),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: dropdownMaxHeight,
+                  minHeight: 60,
+                ),
+                child: StatefulBuilder(
+                  builder: (context, setInnerState) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                            vertical: 8,
                           ),
-                          Flexible(
-                            // <-- makes ListView scrollable when needed
-                            child: ListView.builder(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              itemCount: widget.options.length,
-                              itemBuilder: (context, index) {
-                                final option = widget.options[index];
-                                final isSelected = _selected.any(
-                                  (e) => _equals(e, option),
-                                );
+                          child: Text(
+                            "Filter ${widget.label}",
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        Flexible(
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: widget.options.length,
+                            itemBuilder: (context, index) {
+                              final option = widget.options[index];
+                              final isSelected = _selected.any(
+                                (e) => _equals(e, option),
+                              );
 
-                                return CheckboxListTile(
-                                  dense: true,
-                                  controlAffinity:
-                                      ListTileControlAffinity.leading,
-                                  checkboxShape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  title: Text(widget.optionLabel(option)),
-                                  value: isSelected,
-                                  onChanged: (checked) {
-                                    setInnerState(() {
-                                      if (checked == true && !isSelected) {
-                                        _selected = [..._selected, option];
-                                      } else if (checked == false &&
-                                          isSelected) {
-                                        _selected = _selected
-                                            .where((e) => !_equals(e, option))
-                                            .toList();
-                                      }
-                                    });
-                                    widget.onChanged(_selected);
-                                  },
-                                );
-                              },
-                            ),
+                              return CheckboxListTile(
+                                dense: true,
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
+                                checkboxShape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                title: Text(widget.optionLabel(option)),
+                                value: isSelected,
+                                onChanged: (checked) {
+                                  setInnerState(() {
+                                    if (checked == true && !isSelected) {
+                                      _selected = [..._selected, option];
+                                    } else if (checked == false && isSelected) {
+                                      _selected = _selected
+                                          .where((e) => !_equals(e, option))
+                                          .toList();
+                                    }
+                                  });
+                                  widget.onChanged(_selected);
+                                },
+                              );
+                            },
                           ),
-                        ],
-                      );
-                    },
-                  ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

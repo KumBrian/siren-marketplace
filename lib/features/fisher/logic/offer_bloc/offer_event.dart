@@ -80,3 +80,33 @@ class CounterOfferEvent extends OffersEvent {
   @override
   List<Object?> get props => [previous, newPrice, newWeight];
 }
+
+class CreateOfferEvent extends OffersEvent {
+  final String catchId;
+  final String buyerId;
+  final String fisherId;
+  final double price;
+  final double weight;
+  final double pricePerKg;
+
+  CreateOfferEvent({
+    required this.catchId,
+    required this.buyerId,
+    required this.fisherId,
+    required this.price,
+    required this.weight,
+    required this.pricePerKg,
+  });
+
+  @override
+  List<Object?> get props => [catchId, buyerId, price, weight, pricePerKg];
+}
+
+class LoadBuyerOffersEvent extends OffersEvent {
+  final String buyerId;
+
+  LoadBuyerOffersEvent(this.buyerId);
+
+  @override
+  List<Object?> get props => [buyerId];
+}

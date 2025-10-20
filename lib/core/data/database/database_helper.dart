@@ -59,29 +59,29 @@ class DatabaseHelper {
 
     // --- OFFERS ---
     await db.execute('''
-      CREATE TABLE offers (
-        offer_id TEXT PRIMARY KEY,
-        catch_id TEXT NOT NULL,
-        fisher_id TEXT NOT NULL,
-        buyer_id TEXT NOT NULL,
-        price_per_kg REAL NOT NULL,
-        price REAL NOT NULL,
-        weight REAL NOT NULL,
-        status TEXT NOT NULL,
-        date_created TEXT NOT NULL,
-        previous_price_per_kg REAL,
-        previous_price REAL,
-        previous_weight REAL,
-        catch_name TEXT NOT NULL,
-        catch_image_url TEXT NOT NULL,
-        fisher_name TEXT NOT NULL,
-        fisher_rating REAL NOT NULL,
-        fisher_avatar_url TEXT NOT NULL,
-        buyer_name TEXT NOT NULL,
-        buyer_rating REAL NOT NULL,
-        buyer_avatar_url TEXT NOT NULL
-      )
-    ''');
+  CREATE TABLE offers (
+    offer_id TEXT PRIMARY KEY,
+    catch_id TEXT NOT NULL,
+    fisher_id TEXT NOT NULL,
+    buyer_id TEXT NOT NULL,
+    price_per_kg REAL NOT NULL,
+    price REAL NOT NULL,
+    weight REAL NOT NULL,
+    status TEXT NOT NULL,
+    date_created TEXT NOT NULL,
+    previous_price_per_kg REAL,
+    previous_price REAL,
+    previous_weight REAL,
+    catch_name TEXT NOT NULL,
+    catch_image_url TEXT NOT NULL,
+    fisher_name TEXT NOT NULL,
+    fisher_rating REAL NOT NULL,
+    fisher_avatar_url TEXT NOT NULL,
+    buyer_name TEXT NOT NULL,
+    buyer_rating REAL NOT NULL,
+    buyer_avatar_url TEXT NOT NULL
+  )
+''');
 
     // --- ORDERS ---
     await db.execute('''

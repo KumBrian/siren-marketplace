@@ -18,6 +18,7 @@ import 'package:siren_marketplace/features/buyer/data/buyer_repository.dart';
 // Features
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
+import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/offer_details_bloc.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_orders_bloc/buyer_orders_bloc.dart';
 import 'package:siren_marketplace/features/chat/data/conversation_repository.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
@@ -92,6 +93,14 @@ class MyApp extends StatelessWidget {
             sl<UserRepository>(),
             sl<CatchRepository>(),
           )..add(const LoadAllFisherOrders(userId: CURRENT_FISHER_ID)),
+        ),
+
+        BlocProvider(
+          create: (_) => OfferDetailsBloc(
+            sl<OfferRepository>(),
+            sl<CatchRepository>(),
+            sl<UserRepository>(),
+          ),
         ),
 
         // Buyer Feature

@@ -1,10 +1,10 @@
 part of 'filtered_products_cubit.dart';
 
 class FilteredProductsState extends Equatable {
-  final List<Catch> allCatches; // Full list loaded from repo
-  final List<Catch> displayedCatches; // Filtered & sorted for UI
-  final List<Species> uniqueSpecies; // For species filter dropdown
-  final List<String> uniqueLocations; // For location filter dropdown
+  final List<Catch> allCatches;
+  final List<Catch> displayedCatches;
+  final List<Species> uniqueSpecies;
+  final List<String> uniqueLocations;
   final bool isLoading;
   final String? errorMessage;
 

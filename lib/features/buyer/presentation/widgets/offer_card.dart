@@ -30,9 +30,7 @@ class OfferCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            // Use the correct syntax for Border
-            border: Border.all(color: AppColors.gray200, width: 1.0),
-            borderRadius: BorderRadius.circular(16),
+            border: Border(bottom: BorderSide(color: AppColors.gray200)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -13,6 +13,7 @@ import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.d
 import 'package:siren_marketplace/features/buyer/presentation/widgets/offer_card.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
 
 class BuyerNotificationsScreen extends StatefulWidget {
   const BuyerNotificationsScreen({super.key});
@@ -38,10 +39,14 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
 
     final buyerCubit = context.read<BuyerCubit>();
     if (buyerCubit.state is BuyerLoaded) {
-      final buyerId = (buyerCubit.state as BuyerLoaded).buyer.id;
+      final buyerLoadedState = buyerCubit.state as BuyerLoaded;
+      final buyerId = buyerLoadedState.buyer.id;
 
+      // Dispatch the event to load offers for this buyer
+      context.read<OffersBloc>().add(LoadBuyerOffersEvent(buyerId));
+
+      // Existing logic for loading conversations
       final conversationsBloc = context.read<ConversationsBloc>();
-      // Use the correct event parameter name based on the seeder logic
       if (conversationsBloc.state is ConversationsInitial) {
         conversationsBloc.add(LoadConversations(buyerId: buyerId));
       }
@@ -337,16 +342,43 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
                             child: TabBarView(
                               physics: const BouncingScrollPhysics(),
                               children: [
-                                // --- Offers Tab ---
-                                BlocBuilder<
-                                  OrdersFilterCubit,
-                                  OrdersFilterState
-                                >(
-                                  builder: (context, filterState) {
-                                    final filteredOffers = _applyOfferFilters(
-                                      allOffers,
-                                      filterState,
-                                    );
+                                BlocBuilder<OffersBloc, OffersState>(
+                                  // <-- Use OffersBloc here
+                                  builder: (context, offerState) {
+                                    // <-- Renamed state variable
+                                    if (offerState is OffersLoading) {
+                                      return const Center(
+                                        child: Padding(
+                                          padding: EdgeInsets.only(top: 64.0),
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      );
+                                    }
+
+                                    if (offerState is OffersError) {
+                                      return Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 64.0,
+                                          ),
+                                          child: Text(
+                                            'Error loading offers: ${offerState.message}',
+                                            style: const TextStyle(
+                                              color: AppColors.fail500,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    // Assuming OffersLoaded contains a list of offers
+                                    final allOffers =
+                                        (offerState is OffersLoaded)
+                                        ? offerState
+                                              .offers // <-- Access offers from OffersLoaded state
+                                        : <Offer>[];
+                                    final filteredOffers =
+                                        allOffers; // Replace with filtered if filter logic is needed here
 
                                     return SingleChildScrollView(
                                       padding: EdgeInsets.only(
@@ -364,7 +396,8 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
                                                   ),
                                                 ),
                                                 const Text(
-                                                  "No offers match your filters.",
+                                                  "You have no offers yet.",
+                                                  // Adjusted text
                                                   style: TextStyle(
                                                     color: AppColors.textGray,
                                                     fontWeight: FontWeight.bold,
@@ -372,7 +405,7 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
                                                   ),
                                                 ),
                                                 const Text(
-                                                  "Try adjusting your filters.",
+                                                  "Make an offer on a product.",
                                                   style: TextStyle(
                                                     color: AppColors.textGray,
                                                     fontWeight: FontWeight.w300,
@@ -385,12 +418,19 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
                                               children: filteredOffers.map((
                                                 offer,
                                               ) {
+                                                // Assuming OfferCard can display buyer-side offer details
+                                                // You might need to adjust OfferCard or create a new widget
+                                                // to display offers from the buyer's perspective.
                                                 return OfferCard(
                                                   offer: offer,
+                                                  // Pass the full offer object
                                                   fisherRating:
                                                       offer.fisherRating,
+                                                  // Use denormalized fields
                                                   fisherName: offer.fisherName,
+                                                  // Use denormalized fields
                                                   onPressed: () {
+                                                    // Navigate to offer details, passing the offer ID
                                                     context.push(
                                                       "/buyer/offer-details/${offer.id}",
                                                     );

@@ -7,12 +7,16 @@ import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
 // Helper extension
 extension IterableExtensions<T> on Iterable<T> {
@@ -35,6 +39,8 @@ class ProductDetails extends StatefulWidget {
 
 class _ProductDetailsState extends State<ProductDetails> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  // Re-instantiating the CarouselController as requested
   final CarouselController _controller = CarouselController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
@@ -78,15 +84,8 @@ class _ProductDetailsState extends State<ProductDetails> {
       final weight = double.tryParse(_weightController.text);
       final totalPrice = double.tryParse(_priceController.text);
       if (weight != null && weight > 0 && totalPrice != null) {
-        _pricePerKgController.text = (totalPrice / weight).toStringAsFixed(0);
-      }
-    }
-
-    void calculateTotalPrice() {
-      final weight = double.tryParse(_weightController.text);
-      final pricePerKg = double.tryParse(_pricePerKgController.text);
-      if (weight != null && pricePerKg != null) {
-        _priceController.text = (weight * pricePerKg).toStringAsFixed(0);
+        // FIX: Use 2 decimal places for price/currency
+        _pricePerKgController.text = (totalPrice / weight).toStringAsFixed(2);
       }
     }
 
@@ -94,6 +93,7 @@ class _ProductDetailsState extends State<ProductDetails> {
       final totalPrice = double.tryParse(_priceController.text);
       final pricePerKg = double.tryParse(_pricePerKgController.text);
       if (pricePerKg != null && pricePerKg > 0 && totalPrice != null) {
+        // Weight is typically 1 decimal place
         _weightController.text = (totalPrice / pricePerKg).toStringAsFixed(1);
       }
     }
@@ -101,8 +101,6 @@ class _ProductDetailsState extends State<ProductDetails> {
     _weightController.addListener(() {
       if (_priceController.text.isNotEmpty) {
         calculatePricePerKg();
-      } else if (_pricePerKgController.text.isNotEmpty) {
-        calculateTotalPrice();
       }
     });
 
@@ -110,14 +108,6 @@ class _ProductDetailsState extends State<ProductDetails> {
       if (_weightController.text.isNotEmpty) {
         calculatePricePerKg();
       } else if (_pricePerKgController.text.isNotEmpty) {
-        calculateWeight();
-      }
-    });
-
-    _pricePerKgController.addListener(() {
-      if (_weightController.text.isNotEmpty) {
-        calculateTotalPrice();
-      } else if (_priceController.text.isNotEmpty) {
         calculateWeight();
       }
     });
@@ -153,6 +143,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                     NumberInputField(
                       controller: _weightController,
                       label: "Weight",
+                      role: Role.buyer,
                       suffix: "Kg",
                       validator: (value) {
                         final weight = double.tryParse(value ?? "");
@@ -195,53 +186,89 @@ class _ProductDetailsState extends State<ProductDetails> {
                 ),
               ),
               const SizedBox(height: 16),
-              CustomButton(
-                title: "Send Offer",
-                onPressed: () {
-                  if (formKey.currentState!.validate()) {
-                    context.pop();
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.textBlue,
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            color: AppColors.textWhite,
-                          ),
-                        ),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              "Offer Sent",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textBlue,
-                              ),
+              BlocBuilder<UserBloc, UserState>(
+                builder: (context, userState) {
+                  final user = userState is UserLoaded ? userState.user : null;
+                  return CustomButton(
+                    title: "Send Offer",
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        final weight = double.tryParse(_weightController.text);
+                        final totalPrice = double.tryParse(
+                          _priceController.text,
+                        );
+                        final pricePerKg = double.tryParse(
+                          _pricePerKgController.text,
+                        );
+
+                        if (weight != null &&
+                            totalPrice != null &&
+                            pricePerKg != null) {
+                          // Dispatch the CreateOfferEvent
+                          context.read<OffersBloc>().add(
+                            CreateOfferEvent(
+                              catchId: c.id,
+                              buyerId: user!.id,
+                              fisherId: c.fisherId,
+                              price: totalPrice,
+                              weight: weight,
+                              pricePerKg: pricePerKg,
                             ),
-                            const SizedBox(height: 16),
-                            BlocBuilder<BottomNavCubit, int>(
-                              builder: (context, state) => CustomButton(
-                                title: "OK",
-                                onPressed: () {
-                                  Navigator.of(
-                                    context,
-                                    rootNavigator: true,
-                                  ).popUntil((route) => route.isFirst);
-                                  context.read<BottomNavCubit>().changeIndex(2);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
+                          );
+                          context.pop(); // Close the dialog
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.textBlue,
+                                  ),
+                                  child: const Icon(
+                                    Icons.check,
+                                    color: AppColors.textWhite,
+                                  ),
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      "Offer Sent",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textBlue,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    BlocBuilder<BottomNavCubit, int>(
+                                      builder: (context, state) {
+                                        return CustomButton(
+                                          title: "OK",
+                                          onPressed: () {
+                                            Navigator.of(
+                                              context,
+                                              rootNavigator: true,
+                                            ).popUntil(
+                                              (route) => route.isFirst,
+                                            );
+                                            context
+                                                .read<BottomNavCubit>()
+                                                .changeIndex(2);
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        }
+                      }
+                    },
+                  );
                 },
               ),
             ],
@@ -294,9 +321,10 @@ class _ProductDetailsState extends State<ProductDetails> {
           appBar: AppBar(leading: const BackButton()),
           body: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
                 children: [
                   // Images
                   SizedBox(
@@ -332,30 +360,62 @@ class _ProductDetailsState extends State<ProductDetails> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 16),
+
                   SectionHeader(c.name),
-                  InfoTable(
-                    rows: [
-                      InfoRow(label: "Market", value: c.market.capitalize()),
-                      InfoRow(
-                        label: "Species",
-                        value: c.species.name.capitalize(),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.gray100,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.gray500),
+                        ),
+                        child: Center(
+                          child: Text(
+                            // Using the price from the Catch model
+                            formatPrice(c.pricePerKg),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: AppColors.textBlue,
+                            ),
+                          ),
+                        ),
                       ),
-                      InfoRow(
-                        label: "Available Weight",
-                        value: "${c.availableWeight.toStringAsFixed(1)} Kg",
-                      ),
-                      InfoRow(
-                        label: "Total Lot Price",
-                        value: "${c.total.toStringAsFixed(0)} CFA",
-                      ),
-                      InfoRow(
-                        label: "Date Posted",
-                        value: c.datePosted.toFormattedDate(),
-                      ),
+                      const SizedBox(width: 4),
+                      const Text("/Kg"),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 8),
+
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.gray200),
+                    ),
+                    child: InfoTable(
+                      rows: [
+                        InfoRow(label: "Market", value: c.market.capitalize()),
+                        c.species.id == "prawns"
+                            ? InfoRow(label: "Average Size", value: c.size)
+                            : null,
+                        InfoRow(
+                          label: "Available",
+                          value: "${c.availableWeight.toStringAsFixed(1)} Kg",
+                        ),
+                        InfoRow(
+                          label: "Date Posted",
+                          value: c.datePosted.toFormattedDate(),
+                        ),
+                      ].whereType<InfoRow>().toList(), // Filter out nulls
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
@@ -375,9 +435,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+
                   const SectionHeader("Seller"),
-                  const SizedBox(height: 8),
+
                   BlocBuilder<FisherCubit, FisherState>(
                     builder: (context, state) {
                       if (state is FisherLoading || state is FisherInitial) {
@@ -393,6 +453,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                               radius: 30,
                               backgroundImage: fisher.avatarUrl.contains("http")
                                   ? NetworkImage(fisher.avatarUrl)
+                                        as ImageProvider
                                   : AssetImage(fisher.avatarUrl),
                             ),
                             const SizedBox(width: 10),

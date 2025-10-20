@@ -11,12 +11,14 @@ class InfoTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final editable = rows.any((row) => row.editable);
+
     return Table(
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      columnWidths: const {
-        0: FlexColumnWidth(1),
-        1: FlexColumnWidth(0.7),
-        2: FlexColumnWidth(0.3),
+      columnWidths: {
+        0: const FlexColumnWidth(0.8),
+        1: const FlexColumnWidth(1),
+        2: FlexColumnWidth(editable ? 0.2 : 0.001), // 👈 never actually 0
       },
       border: TableBorder.all(style: BorderStyle.none),
       children: rows.map((row) {
@@ -31,29 +33,22 @@ class InfoTable extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: SizedBox(
-                width: 150,
-                child: Text(
-                  "${row.value.toString()} ${row.suffix ?? ""}".capitalize(),
-                  maxLines: 2,
-                  softWrap: true,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0A2A45),
-                  ),
+              child: Text(
+                "${row.value} ${row.suffix ?? ""}".capitalize(),
+                maxLines: 2,
+                softWrap: true,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0A2A45),
                 ),
               ),
             ),
             row.editable
                 ? IconButton(
-                    style: ButtonStyle(
-                      visualDensity: VisualDensity.compact,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
+                    visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
                     splashRadius: 5,
-                    visualDensity: VisualDensity.compact,
                     icon: const Icon(
                       Icons.edit,
                       size: 14,
@@ -61,7 +56,7 @@ class InfoTable extends StatelessWidget {
                     ),
                     onPressed: row.onEdit,
                   )
-                : Container(),
+                : const SizedBox.shrink(), // 👈 fixed
           ],
         );
       }).toList(),

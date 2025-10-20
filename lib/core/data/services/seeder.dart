@@ -24,14 +24,14 @@ class CatchSeeder {
   // (index) => 'https://i.pravatar.cc/150?img=${index + 1}',
   static final List<String> _avatarUrls = List.generate(
     10,
-    (index) => "assets/images/user-profile.png",
+    (index) => 'https://i.pravatar.cc/150?img=${index + 1}',
   );
 
   // Dummy Catch Images
   // (index) => 'https://picsum.photos/400/300?random=${500 + index}',
   static final List<String> _catchImageUrls = List.generate(
     10,
-    (index) => "assets/images/prawns.jpg",
+    (index) => 'https://picsum.photos/400/300?random=${500 + index}',
   );
 
   static final List<Species> _speciesList = [

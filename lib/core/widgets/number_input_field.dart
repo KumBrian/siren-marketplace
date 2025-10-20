@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
 
 class NumberInputField extends StatefulWidget {
   const NumberInputField({
     super.key,
     required this.label,
+    this.role = Role.fisher,
     this.value,
     required this.suffix,
     required this.controller,
@@ -13,6 +15,7 @@ class NumberInputField extends StatefulWidget {
   });
 
   final String label;
+  final Role role;
   final double? value;
   final String suffix;
   final TextEditingController controller;
@@ -29,7 +32,9 @@ class _NumberInputFieldState extends State<NumberInputField> {
     super.initState();
 
     // --- NEW LOGIC: Initialize the read-only 'Weight' field ---
-    if (widget.label == "Weight" && widget.value != null) {
+    if (widget.label == "Weight" &&
+        widget.value != null &&
+        widget.role == Role.fisher) {
       // Defer setting text to ensure controller is safely attached
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -75,7 +80,9 @@ class _NumberInputFieldState extends State<NumberInputField> {
   @override
   Widget build(BuildContext context) {
     // Check is updated to include 'Weight' as read-only.
-    final isReadOnly = widget.label == "Price/Kg" || widget.label == "Weight";
+    final isReadOnly =
+        widget.label == "Price/Kg" ||
+        (widget.label == "Weight" && widget.role == Role.fisher);
 
     return TextFormField(
       controller: widget.controller,

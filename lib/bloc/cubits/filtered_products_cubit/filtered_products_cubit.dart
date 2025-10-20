@@ -21,18 +21,16 @@ class FilteredProductsCubit extends Cubit<FilteredProductsState> {
   }) : _catchRepository = catchRepository,
        _filterCubit = filterCubit,
        super(const FilteredProductsState()) {
-    // Listen for any filter changes and re-apply filters/sort
-    _filterSubscription = _filterCubit.stream.listen(
-      (_) => _applyFiltersAndSort(),
-    );
+    // Apply filters only when "Apply" is pressed
+    _filterSubscription = _filterCubit.stream.listen((filterState) {
+      if (filterState.applyFilters) {
+        _applyFiltersAndSort();
+      }
+    });
 
-    // Load initial products
     loadProducts();
   }
 
-  // --------------------------------------------------------------------------
-  // Data Loading
-  // --------------------------------------------------------------------------
   Future<void> loadProducts() async {
     if (state.isLoading) return;
 
@@ -41,7 +39,6 @@ class FilteredProductsCubit extends Cubit<FilteredProductsState> {
     try {
       final catches = await _catchRepository.fetchMarketCatches();
 
-      // Extract unique species and locations for filters
       final uniqueSpecies = catches.map((c) => c.species).toSet().toList();
       final uniqueLocations = catches.map((c) => c.market).toSet().toList();
 
@@ -54,9 +51,6 @@ class FilteredProductsCubit extends Cubit<FilteredProductsState> {
           isLoading: false,
         ),
       );
-
-      // Apply any active filters/sort
-      _applyFiltersAndSort();
     } catch (e) {
       emit(
         state.copyWith(
@@ -67,77 +61,75 @@ class FilteredProductsCubit extends Cubit<FilteredProductsState> {
     }
   }
 
-  // --------------------------------------------------------------------------
-  // Filtering & Sorting
-  // --------------------------------------------------------------------------
   void _applyFiltersAndSort() {
-    List<Catch> filteredList = List.from(state.allCatches);
     final filterState = _filterCubit.state;
+    List<Catch> filteredList = List.from(state.allCatches);
 
-    // Apply species filter
+    // Filter by species
     if (filterState.selectedSpecies.isNotEmpty) {
-      final selectedIds = filterState.selectedSpecies.map((s) => s.id).toSet();
+      final ids = filterState.selectedSpecies.map((s) => s.id).toSet();
       filteredList = filteredList
-          .where((c) => selectedIds.contains(c.species.id))
+          .where((c) => ids.contains(c.species.id))
           .toList();
     }
 
-    // Apply location filter
+    // Filter by location
     if (filterState.selectedLocations.isNotEmpty) {
-      final selectedLocationsSet = filterState.selectedLocations.toSet();
+      final locs = filterState.selectedLocations.toSet();
       filteredList = filteredList
-          .where((c) => selectedLocationsSet.contains(c.market))
+          .where((c) => locs.contains(c.market))
           .toList();
     }
 
-    // Apply sorting
+    // Filter by min weight
+    if (filterState.minWeight > 0) {
+      filteredList = filteredList
+          .where((c) => c.availableWeight >= filterState.minWeight)
+          .toList();
+    }
+
+    // Apply both sorts (composite)
     filteredList = _sortCatches(filteredList, filterState);
 
     emit(state.copyWith(displayedCatches: filteredList));
   }
 
   List<Catch> _sortCatches(List<Catch> list, ProductsFilterState filterState) {
-    // Price sort has priority
-    if (filterState.sortByPrice != SortBy.none) {
-      list.sort((a, b) {
+    int comparator(Catch a, Catch b) {
+      // 1) Sort by price first (if selected)
+      if (filterState.sortByPrice != SortBy.none) {
         final priceA = a.pricePerKg;
         final priceB = b.pricePerKg;
-        return filterState.sortByPrice == SortBy.highLow
-            ? priceB.compareTo(priceA)
-            : priceA.compareTo(priceB);
-      });
-      return list;
-    }
+        final priceCompare = priceA.compareTo(priceB);
+        final priceResult = filterState.sortByPrice == SortBy.highLow
+            ? -priceCompare
+            : priceCompare;
+        if (priceResult != 0) return priceResult;
+      }
 
-    // Date sort if price is not applied
-    if (filterState.sortByDate != SortBy.none) {
-      list.sort((a, b) {
+      // 2) Sort by date (if selected)
+      if (filterState.sortByDate != SortBy.none) {
         final dateA = DateTime.tryParse(a.datePosted) ?? DateTime(1970);
         final dateB = DateTime.tryParse(b.datePosted) ?? DateTime(1970);
-        return filterState.sortByDate == SortBy.newOld
-            ? dateB.compareTo(dateA)
-            : dateA.compareTo(dateB);
-      });
-      return list;
+        final dateCompare = dateA.compareTo(dateB);
+        final dateResult = filterState.sortByDate == SortBy.newOld
+            ? -dateCompare
+            : dateCompare;
+        if (dateResult != 0) return dateResult;
+      }
+
+      // Default fallback: newest first
+      final fallbackA = DateTime.tryParse(a.datePosted) ?? DateTime(1970);
+      final fallbackB = DateTime.tryParse(b.datePosted) ?? DateTime(1970);
+      return fallbackB.compareTo(fallbackA);
     }
 
-    // Default: newest first
-    list.sort((a, b) {
-      final dateA = DateTime.tryParse(a.datePosted) ?? DateTime(1970);
-      final dateB = DateTime.tryParse(b.datePosted) ?? DateTime(1970);
-      return dateB.compareTo(dateA);
-    });
-
+    list.sort(comparator);
     return list;
   }
 
-  // --------------------------------------------------------------------------
-  // Helper: set all catches directly (used by BuyerMarketBloc)
-  // --------------------------------------------------------------------------
   void setAllCatches(List<Catch> catches) {
     emit(state.copyWith(allCatches: catches, displayedCatches: catches));
-
-    _applyFiltersAndSort();
   }
 
   @override

@@ -10,11 +10,12 @@ import 'package:siren_marketplace/core/models/catch.dart' as CatchModel;
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/widgets/counter_offer_dialog.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
-import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
 // Helper: show a small modal progress indicator (MOVED TO TOP-LEVEL)
 void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
@@ -110,7 +111,6 @@ class _OfferActionsState extends State<OfferActions> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _pricePerKgController = TextEditingController();
 
-  double _calculatedPricePerKg = 0;
   final UserRepository _userRepository = sl<UserRepository>();
 
   @override
@@ -221,92 +221,6 @@ class _OfferActionsState extends State<OfferActions> {
           autoCloseSeconds: 3,
         );
       }
-    }
-  }
-
-  void _initializeCounterState() {
-    // 1. Reset state (we don't clear weight as it is handled by the NumberInputField now)
-    _priceController.clear();
-    _pricePerKgController.clear();
-    _calculatedPricePerKg = 0.0;
-
-    // 2. Set initial Total Price (Editable)
-    final initialPrice = widget.offer.price;
-    if (initialPrice > 0.0) {
-      _priceController.text = initialPrice.toStringAsFixed(0);
-    }
-
-    final initialWeight = widget.offer.weight;
-    if (initialWeight > 0) {
-      _calculatedPricePerKg = initialPrice / initialWeight;
-      _pricePerKgController.text = _calculatedPricePerKg.toStringAsFixed(0);
-    }
-  }
-
-  Future<void> _handleSendCounter(BuildContext dialogContext) async {
-    if (!widget.formKey.currentState!.validate()) return;
-
-    final newWeight = double.tryParse(_weightController.text) ?? 0.0;
-    final newPrice = double.tryParse(_priceController.text) ?? 0.0;
-
-    if (newWeight <= 0 || newPrice <= 0) {
-      if (dialogContext.mounted) {
-        await showActionSuccessDialog(
-          // Using top-level function
-          dialogContext,
-          message: 'Invalid price or weight',
-          autoCloseSeconds: 2,
-        );
-      }
-      return;
-    }
-
-    // close the counter dialog
-    if (Navigator.of(dialogContext).canPop()) Navigator.of(dialogContext).pop();
-
-    // dispatch counter event (previous, newPrice, newWeight)
-    try {
-      context.read<OffersBloc>().add(
-        CounterOfferEvent(widget.offer, newPrice, newWeight),
-      );
-
-      // show confirmation then navigate to order-details when pressed
-      await showActionSuccessDialog(
-        // Using top-level function
-        dialogContext,
-        message: 'Counter-Offer Sent!',
-        actionTitle: 'Offer details',
-        // The push logic here will benefit from the fix in showActionSuccessDialog as well
-        onAction: () {
-          if (dialogContext.mounted) {
-            dialogContext.pushReplacement(
-              '/fisher/order-details/${widget.offer.id}',
-            );
-          }
-        },
-      );
-    } catch (e) {
-      await showActionSuccessDialog(
-        // Using top-level function
-        dialogContext,
-        message: 'Counter failed: $e',
-        autoCloseSeconds: 3,
-      );
-    }
-  }
-
-  void _calculatePricePerKg(StateSetter localSetState) {
-    final weight = double.tryParse(_weightController.text);
-    final price = double.tryParse(_priceController.text);
-    double newPricePerKg = 0.0;
-
-    // Only calculate if we have valid input
-    if (weight != null && weight > 0 && price != null) {
-      newPricePerKg = price / weight;
-    }
-
-    if (_calculatedPricePerKg != newPricePerKg) {
-      localSetState(() => _calculatedPricePerKg = newPricePerKg);
     }
   }
 
@@ -442,110 +356,52 @@ class _OfferActionsState extends State<OfferActions> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: CustomButton(
-                      title: "Counter-Offer",
-                      icon: Icons.autorenew_rounded,
-                      onPressed: () {
-                        // Open counter dialog (stateful) and handle send
-                        showDialog(
-                          context: context,
-                          builder: (dialogCtx) {
-                            _initializeCounterState();
+                    child: BlocBuilder<UserBloc, UserState>(
+                      builder: (context, state) {
+                        if (state is UserLoaded) {
+                          final user = state.user;
+                          return CustomButton(
+                            title: "Counter-Offer",
+                            icon: Icons.autorenew_rounded,
+                            onPressed: () {
+                              showCounterOfferDialog(
+                                context: context,
+                                role: user!.role,
+                                formKey: widget.formKey,
+                                initialWeight: widget.offer.weight,
+                                initialPrice: widget.offer.price,
+                                onSubmit: (newWeight, newPrice, dialogCtx) async {
+                                  if (Navigator.of(dialogCtx).canPop()) {
+                                    Navigator.of(dialogCtx).pop();
+                                  }
 
-                            return AlertDialog(
-                              contentPadding: const EdgeInsets.only(
-                                left: 24,
-                                right: 24,
-                                bottom: 24,
-                              ),
-                              constraints: const BoxConstraints(
-                                maxWidth: 500,
-                                minWidth: 450,
-                              ),
-                              title: Align(
-                                alignment: Alignment.centerRight,
-                                child: IconButton(
-                                  icon: const Icon(Icons.close),
-                                  onPressed: () {
-                                    if (Navigator.of(dialogCtx).canPop()) {
-                                      Navigator.of(dialogCtx).pop();
-                                    }
-                                  },
-                                ),
-                              ),
-                              content: StatefulBuilder(
-                                builder:
-                                    (
-                                      BuildContext statefulCtx,
-                                      StateSetter localSetState,
-                                    ) {
-                                      void onFieldChanged(String? _) =>
-                                          _calculatePricePerKg(localSetState);
+                                  context.read<OffersBloc>().add(
+                                    CounterOfferEvent(
+                                      widget.offer,
+                                      newPrice,
+                                      newWeight,
+                                    ),
+                                  );
 
-                                      return Form(
-                                        key: widget.formKey,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.stretch,
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(16),
-                                              decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  color: AppColors.textBlue,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                              ),
-                                              child: Column(
-                                                children: [
-                                                  NumberInputField(
-                                                    controller:
-                                                        _weightController,
-                                                    label: "Weight",
-                                                    suffix: "Kg",
-                                                    value: widget.offer.weight,
-                                                    onChanged: onFieldChanged,
-                                                  ),
-                                                  const SizedBox(height: 12),
-                                                  NumberInputField(
-                                                    controller:
-                                                        _priceController,
-                                                    label: "Total",
-                                                    suffix: "CFA",
-                                                    onChanged: onFieldChanged,
-                                                  ),
-                                                  const SizedBox(height: 12),
-                                                  NumberInputField(
-                                                    controller:
-                                                        _pricePerKgController,
-                                                    label: "Price/Kg",
-                                                    suffix: "CFA",
-                                                    value:
-                                                        _calculatedPricePerKg,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            const SizedBox(height: 16),
-                                            CustomButton(
-                                              title: "Send Counter-Offer",
-                                              onPressed: () =>
-                                                  _handleSendCounter(
-                                                    statefulCtx,
-                                                  ),
-                                            ),
-                                          ],
-                                        ),
+                                  await showActionSuccessDialog(
+                                    dialogCtx,
+                                    message: 'Counter-Offer Sent!',
+                                    actionTitle: 'Offer details',
+                                    onAction: () {
+                                      dialogCtx.pushReplacement(
+                                        '/fisher/order-details/${widget.offer.id}',
                                       );
                                     },
-                              ),
-                            );
-                          },
-                        );
+                                  );
+                                },
+                              );
+                            },
+
+                            bordered: true,
+                          );
+                        }
+                        return Container();
                       },
-                      bordered: true,
                     ),
                   ),
                 ],

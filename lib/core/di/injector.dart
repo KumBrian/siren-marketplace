@@ -13,6 +13,7 @@ import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/features/buyer/data/buyer_repository.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
+import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/offer_details_bloc.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_orders_bloc/buyer_orders_bloc.dart';
 import 'package:siren_marketplace/features/chat/data/conversation_repository.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
@@ -120,6 +121,13 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => CatchesBloc(sl<CatchRepository>()));
   sl.registerFactory(() => OffersBloc(sl<OfferRepository>()));
   sl.registerFactory(() => BuyerMarketBloc(sl<BuyerRepository>()));
+  sl.registerFactory(
+    () => OfferDetailsBloc(
+      sl<OfferRepository>(),
+      sl<CatchRepository>(),
+      sl<UserRepository>(),
+    ),
+  );
   sl.registerFactory(() => BuyerOrdersBloc(sl<BuyerRepository>()));
   sl.registerFactory(() => ConversationsBloc(sl<ConversationRepository>()));
 }

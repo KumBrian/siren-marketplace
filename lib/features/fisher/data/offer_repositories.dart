@@ -23,6 +23,51 @@ class OfferRepository {
     );
   }
 
+  // 🆕 NEW: Creates a new offer
+  Future<Offer> createOffer({
+    required String catchId,
+    required String buyerId,
+    required String fisherId,
+
+    required double price,
+    required double weight,
+    required double pricePerKg,
+  }) async {
+    final db = await dbHelper.database;
+    final newOffer = Offer(
+      id: DateTime.now().toIso8601String(),
+      // Simple ID generation
+      catchId: catchId,
+      fisherId: fisherId,
+      // This will be populated by the service layer or when fetching the catch
+      buyerId: buyerId,
+      price: price,
+      weight: weight,
+      pricePerKg: pricePerKg,
+      status: OfferStatus.pending,
+      dateCreated: DateTime.now().toIso8601String(),
+    );
+
+    await db.insert(
+      'offers',
+      newOffer.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    return newOffer;
+  }
+
+  Future<List<Map<String, dynamic>>> getOfferMapsByBuyerId(
+    String buyerId,
+  ) async {
+    final db = await dbHelper.database;
+    return await db.query(
+      'offers',
+      where: 'buyer_id = ?',
+      whereArgs: [buyerId],
+      orderBy: 'date_created DESC',
+    );
+  }
+
   // --- Retrieval Methods (Returning Raw Maps for Service Layer Assembly) ---
 
   // 2. QUERY BY CATCH ID (RAW MAPS): Retrieves all offer maps for a single Catch
@@ -77,19 +122,6 @@ class OfferRepository {
       'offers',
       where: 'fisher_id = ?',
       whereArgs: [fisherId],
-      orderBy: 'date_created DESC',
-    );
-  }
-
-  // 🆕 NEW: For Buyer side (Made Offers)
-  Future<List<Map<String, dynamic>>> getOfferMapsByBuyerId(
-    String buyerId,
-  ) async {
-    final db = await dbHelper.database;
-    return await db.query(
-      'offers',
-      where: 'buyer_id = ?',
-      whereArgs: [buyerId],
       orderBy: 'date_created DESC',
     );
   }

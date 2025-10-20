@@ -27,6 +27,53 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     on<AcceptOfferEvent>(_onAcceptOffer);
     on<RejectOfferEvent>(_onRejectOffer);
     on<CounterOfferEvent>(_onCounterOffer);
+    on<CreateOfferEvent>(_onCreateOffer);
+    on<LoadBuyerOffersEvent>(_onLoadBuyerOffers);
+  }
+
+  Future<void> _onLoadBuyerOffers(
+    LoadBuyerOffersEvent event,
+    Emitter<OffersState> emit,
+  ) async {
+    emit(OffersLoading());
+    try {
+      final offerMaps = await repository.getOfferMapsByBuyerId(event.buyerId);
+
+      // 2. Assemble Offer objects
+      final offers = _assembleOffers(
+        offerMaps,
+      ); // Assuming _assembleOffers is already defined
+
+      emit(OffersLoaded(offers));
+    } catch (e) {
+      emit(OffersError(e.toString()));
+    }
+  }
+
+  Future<void> _onCreateOffer(
+    CreateOfferEvent event,
+    Emitter<OffersState> emit,
+  ) async {
+    try {
+      final newOffer = await repository.createOffer(
+        catchId: event.catchId,
+        buyerId: event.buyerId,
+        fisherId: event.fisherId,
+        price: event.price,
+        weight: event.weight,
+        pricePerKg: event.pricePerKg,
+      );
+
+      // Refresh the offers list after creating a new one
+      // Assuming the offers are loaded by catchId, you might need to adjust this.
+      // For simplicity, we'll emit a success state with the new offer and reload.
+      // A more robust solution would involve fetching the relevant catchId's offers again.
+      emit(OfferActionSuccess("Create", newOffer, null));
+      // Optionally, re-trigger loading of offers if needed:
+      // add(LoadOffers(event.catchId)); // If you know the catchId
+    } catch (e) {
+      emit(OfferActionFailure("Create", "Offer creation failed: $e"));
+    }
   }
 
   Future<void> _onAcceptOffer(
