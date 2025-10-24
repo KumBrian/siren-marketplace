@@ -15,8 +15,6 @@ OfferStatus offerStatusFromString(String status) {
       return OfferStatus.accepted;
     case 'rejected':
       return OfferStatus.rejected;
-    case 'countered':
-      return OfferStatus.countered;
     case 'completed':
       return OfferStatus.completed;
     default:

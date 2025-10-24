@@ -68,6 +68,8 @@ class DatabaseHelper {
     price REAL NOT NULL,
     weight REAL NOT NULL,
     status TEXT NOT NULL,
+    has_update_buyer INTEGER NOT NULL DEFAULT 1,
+    has_update_fisher INTEGER NOT NULL DEFAULT 1,
     date_created TEXT NOT NULL,
     previous_price_per_kg REAL,
     previous_price REAL,

@@ -81,6 +81,8 @@ class Catch extends Equatable {
     double? availableWeight,
     CatchStatus? status,
     List<Offer>? offers,
+    double? pricePerKg,
+    double? total,
   }) {
     return Catch(
       id: id,
@@ -90,8 +92,8 @@ class Catch extends Equatable {
       // Only mutable fields are updated
       availableWeight: availableWeight ?? this.availableWeight,
       offers: offers ?? this.offers,
-      pricePerKg: pricePerKg,
-      total: total,
+      pricePerKg: pricePerKg ?? this.pricePerKg,
+      total: total ?? this.total,
       size: size,
       market: market,
       images: images,

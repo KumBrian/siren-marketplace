@@ -67,8 +67,6 @@ class AppColors {
         return AppColors.textGray;
       case OfferStatus.rejected:
         return AppColors.fail500;
-      case OfferStatus.countered:
-        return AppColors.textGray;
     }
   }
 }

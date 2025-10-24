@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
@@ -23,6 +24,83 @@ class CatchRepository {
     );
   }
 
+  Future<void> cleanUpExpiredCatches() async {
+    final db = await dbHelper.database;
+    final now = DateTime.now();
+    final oneDayInSeconds = 24 * 60 * 60; // 1 day in seconds
+
+    // 1. Fetch all 'expired' catches
+    final expiredCatchMaps = await db.query(
+      'catches',
+      where: 'status = ?',
+      whereArgs: [CatchStatus.expired.name],
+    );
+
+    // 2. Determine which ones are older than 8 days (i.e., expired for > 1 day)
+    final catchesToDelete = <String>[];
+
+    for (final catchMap in expiredCatchMaps) {
+      try {
+        final dateCreatedString = catchMap['date_created'] as String;
+        final dateCreated = DateTime.parse(dateCreatedString);
+
+        // 7 days (the expiry period) + 1 day (the grace period before deletion) = 8 days
+        final deletionDate = dateCreated.add(const Duration(days: 8));
+
+        if (now.isAfter(deletionDate)) {
+          catchesToDelete.add(catchMap['catch_id'] as String);
+        }
+      } catch (e) {
+        // Handle cases where date_created is invalid
+        debugPrint('Error parsing date for catch deletion: $e');
+      }
+    }
+
+    // 3. Execute deletion for the identified catches
+    if (catchesToDelete.isNotEmpty) {
+      final placeholders = List.filled(catchesToDelete.length, '?').join(',');
+      await db.delete(
+        'catches',
+        where: 'catch_id IN ($placeholders)',
+        whereArgs: catchesToDelete,
+      );
+      debugPrint('Cleanup: Deleted ${catchesToDelete.length} expired catches.');
+    }
+  }
+
+  Future<void> updateExpiredStatuses() async {
+    final db = await dbHelper.database;
+    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+
+    // Find catches that are 'available' but are older than 7 days
+    final result = await db.rawUpdate(
+      '''
+      UPDATE catches
+      SET status = ?
+      WHERE status = ? AND date_created < ?
+      ''',
+      [
+        CatchStatus.expired.name,
+        CatchStatus.available.name,
+        sevenDaysAgo.toIso8601String(),
+      ],
+    );
+
+    if (result > 0) {
+      debugPrint('Expiry Check: Updated $result catches to EXPIRED status.');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getCatchMapsByFisherId(
+    String fisherId,
+  ) async {
+    // 1. 🔑 Run the cleanup and status update *before* fetching data
+    await updateExpiredStatuses();
+    await cleanUpExpiredCatches();
+
+    return await dbHelper.getCatchMapsByFisherId(fisherId);
+  }
+
   Future<List<Map<String, dynamic>>> getAllCatchMaps() async {
     final db = await dbHelper.database;
     return await db.query('catches', orderBy: 'date_created DESC');
@@ -42,7 +120,7 @@ class CatchRepository {
   Future<Catch?> getCatchById(String id) async {
     final catchMap = await getCatchMapById(id);
     if (catchMap == null) return null;
-    
+
     final offerMaps = await dbHelper.getOfferMapsByCatchId(id);
     final offers = offerMaps.map((m) => Offer.fromMap(m)).toList();
 
@@ -83,14 +161,10 @@ class CatchRepository {
     return catchesWithOffers;
   }
 
-  Future<List<Map<String, dynamic>>> getCatchMapsByFisherId(
-    String fisherId,
-  ) async {
-    return await dbHelper.getCatchMapsByFisherId(fisherId);
-  }
-
   /// Fetches all catches currently available on the market with their offers
   Future<List<Catch>> fetchMarketCatches() async {
+    await updateExpiredStatuses();
+    await cleanUpExpiredCatches();
     final db = await dbHelper.database;
 
     final catchMaps = await db.query(

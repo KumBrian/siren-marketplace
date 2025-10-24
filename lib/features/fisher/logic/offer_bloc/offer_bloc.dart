@@ -29,6 +29,38 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     on<CounterOfferEvent>(_onCounterOffer);
     on<CreateOfferEvent>(_onCreateOffer);
     on<LoadBuyerOffersEvent>(_onLoadBuyerOffers);
+    on<MarkOfferAsViewedEvent>(_onMarkOfferAsViewed);
+  }
+
+  // In OffersBloc
+  Future<void> _onMarkOfferAsViewed(
+    MarkOfferAsViewedEvent event,
+    Emitter<OffersState> emit,
+  ) async {
+    final bool needsUpdate = event.viewingRole == Role.fisher
+        ? event.offer.hasUpdateForFisher
+        : event.offer.hasUpdateForBuyer;
+
+    if (!needsUpdate) return; // Flag is already false
+
+    // Create the updated model, clearing only the viewing user's flag
+    final viewedOffer = event.offer.copyWith(
+      hasUpdateForFisher: event.viewingRole == Role.fisher ? false : null,
+      hasUpdateForBuyer: event.viewingRole == Role.buyer ? false : null,
+    );
+    try {
+      await repository.updateOffer(viewedOffer);
+      if (state is OffersLoaded) {
+        final currentLoadedState = state as OffersLoaded;
+        final updatedOffers = currentLoadedState.offers.map((o) {
+          return o.id == viewedOffer.id ? viewedOffer : o;
+        }).toList();
+
+        emit(OffersLoaded(updatedOffers));
+      }
+    } catch (e) {
+      print('Failed to mark offer as viewed: ${e.toString()}');
+    }
   }
 
   Future<void> _onLoadBuyerOffers(
@@ -135,6 +167,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
         previous: event.previous,
         newPrice: event.newPrice,
         newWeight: event.newWeight,
+        role: event.role,
       );
 
       // 1. Emit success state with the updated offer.

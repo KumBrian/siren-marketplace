@@ -8,11 +8,13 @@ import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/species.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/multi_select_dropdown.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_card.dart';
+import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
 
 class BuyerHome extends StatefulWidget {
   const BuyerHome({super.key});
@@ -33,122 +35,136 @@ class _BuyerHomeState extends State<BuyerHome> {
     });
   }
 
+  int _calculateNotificationCount(OffersState state) {
+    if (state is OffersLoaded) {
+      // Filter for offers where the buyer has an update
+      return state.offers.where((offer) => offer.hasUpdateForBuyer).length;
+    }
+    // Return 0 or null if the state is not loaded, loading, or an error
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocListener<BuyerMarketBloc, BuyerMarketState>(
-      listener: (context, marketState) {
-        if (marketState is BuyerMarketLoaded) {
-          context.read<FilteredProductsCubit>().setAllCatches(
-            marketState.catches,
-          );
-        }
-      },
-      child: BlocBuilder<BuyerMarketBloc, BuyerMarketState>(
-        builder: (context, marketState) {
-          if (marketState is BuyerMarketLoading) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
+    return BlocBuilder<OffersBloc, OffersState>(
+      builder: (context, offersState) {
+        final notificationCount = _calculateNotificationCount(offersState);
+        return BlocListener<BuyerMarketBloc, BuyerMarketState>(
+          listener: (context, marketState) {
+            if (marketState is BuyerMarketLoaded) {
+              context.read<FilteredProductsCubit>().setAllCatches(
+                marketState.catches,
+              );
+            }
+          },
+          child: BlocBuilder<BuyerMarketBloc, BuyerMarketState>(
+            builder: (context, marketState) {
+              if (marketState is BuyerMarketLoading) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
 
-          if (marketState is BuyerMarketError) {
-            return Scaffold(
-              body: Center(
-                child: Text(
-                  'Error loading products: ${marketState.message}',
-                  style: const TextStyle(color: AppColors.fail500),
-                ),
-              ),
-            );
-          }
-
-          final allCatches = marketState is BuyerMarketLoaded
-              ? marketState.catches
-              : <Catch>[];
-
-          return Scaffold(
-            backgroundColor: AppColors.gray50,
-            appBar: AppBar(
-              elevation: 0,
-              centerTitle: true,
-              title: Image.asset("assets/icons/siren_logo.png", width: 100),
-              actions: [
-                IconButton(
-                  onPressed: () => context.go("/buyer/notifications"),
-                  icon: const Badge(
-                    label: Text("5"),
-                    child: Icon(
-                      Icons.notifications_none,
-                      color: AppColors.textBlue,
+              if (marketState is BuyerMarketError) {
+                return Scaffold(
+                  body: Center(
+                    child: Text(
+                      'Error loading products: ${marketState.message}',
+                      style: const TextStyle(color: AppColors.fail500),
                     ),
                   ),
-                ),
-              ],
-            ),
-            body: RefreshIndicator(
-              onRefresh: () async {
-                context.read<BuyerMarketBloc>().add(LoadMarketCatches());
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 56,
-                      child: _buildSearchAndFilterRow(context, allCatches),
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child:
-                          BlocBuilder<
-                            FilteredProductsCubit,
-                            FilteredProductsState
-                          >(
-                            builder: (context, filteredState) {
-                              final filteredCatches =
-                                  filteredState.displayedCatches;
-                              if (filteredCatches.isEmpty &&
-                                  allCatches.isNotEmpty) {
-                                return const Center(
-                                  child: Text(
-                                    "No products match your filters.",
-                                  ),
-                                );
-                              }
+                );
+              }
 
-                              return GridView.builder(
-                                padding: const EdgeInsets.only(bottom: 100),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      crossAxisSpacing: 8,
-                                      mainAxisSpacing: 8,
-                                      mainAxisExtent: 250,
-                                    ),
-                                itemCount: filteredCatches.length,
-                                itemBuilder: (context, index) {
-                                  final c = filteredCatches[index];
-                                  return ProductCard(
-                                    onTap: () => context.go(
-                                      "/buyer/product-details/${c.id}",
-                                    ),
-                                    catchModel: c,
-                                  );
-                                },
-                              );
-                            },
-                          ),
+              final allCatches = marketState is BuyerMarketLoaded
+                  ? marketState.catches
+                  : <Catch>[];
+
+              return Scaffold(
+                backgroundColor: AppColors.gray50,
+                appBar: AppBar(
+                  elevation: 0,
+                  centerTitle: true,
+                  title: Image.asset("assets/icons/siren_logo.png", width: 100),
+                  actions: [
+                    IconButton(
+                      onPressed: () => context.go("/buyer/notifications"),
+                      icon: Badge(
+                        label: Text("$notificationCount"),
+                        child: Icon(
+                          CustomIcons.notificationbell,
+                          color: AppColors.textBlue,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ),
-          );
-        },
-      ),
+                body: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<BuyerMarketBloc>().add(LoadMarketCatches());
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 56,
+                          child: _buildSearchAndFilterRow(context, allCatches),
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child:
+                              BlocBuilder<
+                                FilteredProductsCubit,
+                                FilteredProductsState
+                              >(
+                                builder: (context, filteredState) {
+                                  final filteredCatches =
+                                      filteredState.displayedCatches;
+                                  if (filteredCatches.isEmpty &&
+                                      allCatches.isNotEmpty) {
+                                    return const Center(
+                                      child: Text(
+                                        "No products match your filters.",
+                                      ),
+                                    );
+                                  }
+
+                                  return GridView.builder(
+                                    padding: const EdgeInsets.only(bottom: 100),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 2,
+                                          crossAxisSpacing: 8,
+                                          mainAxisSpacing: 8,
+                                          mainAxisExtent: 250,
+                                        ),
+                                    itemCount: filteredCatches.length,
+                                    itemBuilder: (context, index) {
+                                      final c = filteredCatches[index];
+                                      return ProductCard(
+                                        onTap: () => context.go(
+                                          "/buyer/product-details/${c.id}",
+                                        ),
+                                        catchModel: c,
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -173,7 +189,9 @@ class _BuyerHomeState extends State<BuyerHome> {
                 borderRadius: BorderRadius.all(Radius.circular(16)),
               ),
             ),
-            trailing: const [Icon(Icons.search, color: AppColors.textBlue)],
+            trailing: const [
+              Icon(CustomIcons.search, color: AppColors.textBlue),
+            ],
             elevation: WidgetStateProperty.all(0),
           ),
         ),
@@ -186,9 +204,9 @@ class _BuyerHomeState extends State<BuyerHome> {
               splashColor: AppColors.blue700.withAlpha(25),
               borderRadius: BorderRadius.circular(16),
               onTap: () => _showSortModal(context, allCatches),
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: Icon(Icons.sort, color: AppColors.textBlue),
+                child: Icon(CustomIcons.sort, color: AppColors.textBlue),
               ),
             ),
           ),
@@ -202,7 +220,7 @@ class _BuyerHomeState extends State<BuyerHome> {
               splashColor: AppColors.blue700.withAlpha(25),
               borderRadius: BorderRadius.circular(16),
               onTap: () => _showFilterModal(context, allCatches),
-              child: const Icon(Icons.filter_alt_outlined),
+              child: const Icon(CustomIcons.filter),
             ),
           ),
         ),

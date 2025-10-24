@@ -11,6 +11,8 @@ class CatchesInitial extends CatchesState {}
 
 class CatchesLoading extends CatchesState {}
 
+class CatchDeletedSuccess extends CatchesState {}
+
 class CatchesLoaded extends CatchesState {
   final List<Catch> catches;
 

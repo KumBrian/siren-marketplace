@@ -16,11 +16,16 @@ class BuyerLoaded extends BuyerState {
 
   // 🆕 Include the full list of assembled orders for the buyer
   final List<Order> orders;
+  final List<Offer> madeOffers;
 
-  const BuyerLoaded({required this.buyer, required this.orders});
+  const BuyerLoaded({
+    required this.buyer,
+    required this.orders,
+    required this.madeOffers,
+  });
 
   @override
-  List<Object> get props => [buyer, orders];
+  List<Object> get props => [buyer, orders, madeOffers];
 }
 
 class BuyerError extends BuyerState {

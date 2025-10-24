@@ -72,7 +72,7 @@ class _CongratulationsScreenState extends State<CongratulationsScreen> {
           final selectedOffer = offerState.offer;
 
           // Check for correct offer status early
-          if (selectedOffer.status != OfferStatus.accepted) {
+          if (selectedOffer.status != OfferStatus.completed) {
             return Scaffold(
               appBar: AppBar(
                 leading: BackButton(onPressed: () => context.pop()),
@@ -124,23 +124,31 @@ class _CongratulationsScreenState extends State<CongratulationsScreen> {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
                     children: [
                       // Use the dynamically retrieved catchName
                       SectionHeader(catchName),
-                      const Divider(color: AppColors.gray200),
-                      InfoTable(
-                        rows: [
-                          InfoRow(
-                            label: "Weight",
-                            value: selectedOffer.weight.toStringAsFixed(1),
-                            suffix: "Kg",
-                          ),
-                          InfoRow(
-                            label: "Total",
-                            value: selectedOffer.price.toStringAsFixed(0),
-                            suffix: "CFA",
-                          ),
-                        ],
+
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.gray200),
+                        ),
+                        child: InfoTable(
+                          rows: [
+                            InfoRow(
+                              label: "Weight",
+                              value: selectedOffer.weight.toStringAsFixed(1),
+                              suffix: "Kg",
+                            ),
+                            InfoRow(
+                              label: "Total",
+                              value: selectedOffer.price.toStringAsFixed(0),
+                              suffix: "CFA",
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 40),
                       Row(

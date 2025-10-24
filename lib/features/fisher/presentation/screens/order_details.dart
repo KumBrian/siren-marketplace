@@ -17,6 +17,7 @@ import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
@@ -697,14 +698,14 @@ class _OrderDetailsState extends State<OrderDetails> {
                               onPressed: () => _makePhoneCall('651204966'),
                               // Using the provided phone number
                               bordered: true,
-                              icon: Icons.phone_outlined,
+                              icon: CustomIcons.phone,
                             ),
                             CustomButton(
                               title: "Message Buyer",
                               onPressed: () => context.push("/fisher/chat"),
                               // Using the provided phone number
                               bordered: true,
-                              icon: Icons.chat_bubble_outline_outlined,
+                              icon: CustomIcons.chatbubble,
                             ),
 
                             const SizedBox(height: 16),
@@ -759,6 +760,9 @@ class _OrderDetailsState extends State<OrderDetails> {
                                                           selectedOrder,
                                                         ),
                                                       );
+                                                  context.push(
+                                                    "/fisher/congratulations/${selectedOrder.offer.id}",
+                                                  );
                                                 },
                                                 icon: Icons.check,
                                               ),

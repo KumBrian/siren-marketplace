@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:hugeicons/styles/stroke_rounded.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 
 class OfferCard extends StatelessWidget {
   const OfferCard({
@@ -40,7 +43,7 @@ class OfferCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 8,
             children: [
-              _iconBadge(),
+              _iconBadge(offer),
               Expanded(
                 child: Column(
                   spacing: 10,
@@ -57,7 +60,7 @@ class OfferCard extends StatelessWidget {
   }
 
   /// Left-hand icon with background
-  Widget _iconBadge() {
+  Widget _iconBadge(Offer offer) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -65,7 +68,12 @@ class OfferCard extends StatelessWidget {
         // Used withOpacity for cleaner syntax
         color: AppColors.textBlue.withValues(alpha: 0.1),
       ),
-      child: const Icon(Icons.local_offer_outlined, color: AppColors.textBlue),
+      child: offer.hasUpdateForFisher
+          ? Icon(CustomIcons.moneybag, color: AppColors.textBlue)
+          : HugeIcon(
+              icon: HugeIconsStrokeRounded.moneyBag01,
+              color: AppColors.textBlue,
+            ),
     );
   }
 
@@ -78,15 +86,27 @@ class OfferCard extends StatelessWidget {
         Row(
           children: [
             // 🆕 Use the passed-in clientName
-            _text(clientName, AppColors.textGray, fontWeight: FontWeight.w300),
+            _text(
+              clientName,
+              offer.hasUpdateForFisher
+                  ? AppColors.textBlue
+                  : AppColors.textGray,
+              fontWeight: offer.hasUpdateForFisher
+                  ? FontWeight.w500
+                  : FontWeight.w300,
+            ),
             const SizedBox(width: 4),
             const Icon(Icons.star, color: AppColors.shellOrange, size: 12),
             // 🆕 Use the passed-in clientRating
             Text(
               clientRating.toStringAsFixed(1),
               style: TextStyle(
-                color: AppColors.textGray,
-                fontWeight: FontWeight.w300,
+                color: offer.hasUpdateForFisher
+                    ? AppColors.textBlue
+                    : AppColors.textGray,
+                fontWeight: offer.hasUpdateForFisher
+                    ? FontWeight.w500
+                    : FontWeight.w300,
                 fontSize: 12,
               ),
             ),
@@ -96,9 +116,13 @@ class OfferCard extends StatelessWidget {
         Text(
           offer.dateCreated.toFormattedDate(),
           style: TextStyle(
-            color: AppColors.gray500,
+            color: offer.hasUpdateForFisher
+                ? AppColors.textBlue
+                : AppColors.textGray,
+            fontWeight: offer.hasUpdateForFisher
+                ? FontWeight.w500
+                : FontWeight.w300,
             fontSize: 10,
-            fontWeight: FontWeight.normal,
           ),
         ),
       ],

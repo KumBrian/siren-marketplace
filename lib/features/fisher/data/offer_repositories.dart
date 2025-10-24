@@ -55,6 +55,8 @@ class OfferRepository {
       weight: weight,
       pricePerKg: pricePerKg,
       status: OfferStatus.pending,
+      hasUpdateForFisher: true,
+      hasUpdateForBuyer: false,
       dateCreated: DateTime.now().toIso8601String(),
     );
 
@@ -197,7 +199,10 @@ extension OfferRepositoryActions on OfferRepository {
     required OrderRepository orderRepo,
   }) async {
     // Update the offer’s status to accepted
-    final accepted = offer.copyWith(status: OfferStatus.accepted);
+    final accepted = offer.copyWith(
+      status: OfferStatus.accepted,
+      hasUpdateForBuyer: true,
+    );
     await updateOffer(accepted);
 
     // Create a new Order instance from the accepted Offer and Catch
@@ -216,7 +221,10 @@ extension OfferRepositoryActions on OfferRepository {
 
   /// Marks an offer as rejected (no further side effects)
   Future<void> rejectOffer(Offer offer) async {
-    final rejected = offer.copyWith(status: OfferStatus.rejected);
+    final rejected = offer.copyWith(
+      status: OfferStatus.rejected,
+      hasUpdateForBuyer: true,
+    );
     await updateOffer(rejected);
   }
 
@@ -225,6 +233,7 @@ extension OfferRepositoryActions on OfferRepository {
     required Offer previous,
     required double newPrice,
     required double newWeight,
+    required Role role,
   }) async {
     // 1. Calculate new values
     final newPricePerKg = newPrice / newWeight;
@@ -235,7 +244,9 @@ extension OfferRepositoryActions on OfferRepository {
       pricePerKg: newPricePerKg,
       price: newPrice,
       weight: newWeight,
-      status: OfferStatus.countered,
+      status: OfferStatus.pending,
+      hasUpdateForBuyer: role == Role.buyer ? false : true,
+      hasUpdateForFisher: role == Role.buyer ? true : false,
       dateCreated: now,
       previousPricePerKg: previous.pricePerKg,
       previousPrice: previous.price,

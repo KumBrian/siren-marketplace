@@ -74,11 +74,12 @@ class CounterOfferEvent extends OffersEvent {
   final Offer previous;
   final double newPrice;
   final double newWeight;
+  final Role role;
 
-  CounterOfferEvent(this.previous, this.newPrice, this.newWeight);
+  CounterOfferEvent(this.previous, this.newPrice, this.newWeight, this.role);
 
   @override
-  List<Object?> get props => [previous, newPrice, newWeight];
+  List<Object?> get props => [previous, newPrice, newWeight, role];
 }
 
 class CreateOfferEvent extends OffersEvent {
@@ -109,4 +110,14 @@ class LoadBuyerOffersEvent extends OffersEvent {
 
   @override
   List<Object?> get props => [buyerId];
+}
+
+class MarkOfferAsViewedEvent extends OffersEvent {
+  final Offer offer;
+  final Role viewingRole;
+
+  MarkOfferAsViewedEvent(this.offer, this.viewingRole);
+
+  @override
+  List<Object> get props => [offer, viewingRole];
 }

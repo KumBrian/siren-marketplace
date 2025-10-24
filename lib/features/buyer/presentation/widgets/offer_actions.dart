@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
-import 'package:siren_marketplace/core/widgets/counter_offer_dialog.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/offer_details_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 
 Future<void> showActionSuccessDialog(
   BuildContext context, {
@@ -73,11 +73,13 @@ Future<void> showActionSuccessDialog(
 class OfferActions extends StatefulWidget {
   const OfferActions({
     super.key,
-    required this.offer, // Still passed for initial data, but BLoC handles state
+    required this.offer,
+    required this.role,
     required this.formKey,
   });
 
   final Offer offer;
+  final Role role;
   final GlobalKey<FormState> formKey;
 
   @override
@@ -93,8 +95,7 @@ class _OfferActionsState extends State<OfferActions> {
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with current offer details if it's a counter-back scenario
-    if (widget.offer.status == OfferStatus.countered) {
+    if (widget.offer.previousPricePerKg != null) {
       _weightController.text = widget.offer.weight.toStringAsFixed(1);
       _priceController.text = widget.offer.price.toStringAsFixed(0);
       _calculatedPricePerKg = calculatePricePerKg(
@@ -133,23 +134,25 @@ class _OfferActionsState extends State<OfferActions> {
       // Dispatch the BLoC event
       context.read<OfferDetailsBloc>().add(
         SendCounterOffer(
-          offerId: widget.offer.id,
+          offer: widget.offer,
           newWeight: weight,
           newPrice: price,
           // isCounter determines if it's a new offer or a counter-back
-          isCounter: isCounter || widget.offer.status == OfferStatus.countered,
+          role: widget.role,
         ),
       );
     }
   }
 
   // Helper to dispatch the AcceptOffer event
-  void _acceptOffer() {
+  void _acceptOffer(Catch catchItem, Fisher fisher) {
     // Close the dialog
     context.pop();
 
     // Dispatch the BLoC event
-    context.read<OfferDetailsBloc>().add(AcceptOffer(offerId: widget.offer.id));
+    context.read<OfferDetailsBloc>().add(
+      AcceptOffer(offer: widget.offer, catchItem: catchItem, fisher: fisher),
+    );
   }
 
   @override
@@ -242,40 +245,15 @@ class _OfferActionsState extends State<OfferActions> {
         }
 
         // --- Countered Offer (Action required by Buyer) ---
-        if (currentOffer.status == OfferStatus.countered) {
+        if (currentOffer.status == OfferStatus.pending &&
+            currentOffer.previousPricePerKg != null) {
           return Row(
             children: [
               Expanded(
                 child: CustomButton(
-                  title: "Counter Back",
+                  title: "Marketplace",
                   onPressed: () {
-                    showCounterOfferDialog(
-                      context: context,
-                      role: Role.buyer,
-                      formKey: widget.formKey,
-                      initialWeight: widget.offer.weight,
-                      initialPrice: widget.offer.price,
-                      onSubmit: (newWeight, newPrice, dialogCtx) async {
-                        if (Navigator.of(dialogCtx).canPop()) {
-                          Navigator.of(dialogCtx).pop();
-                        }
-
-                        context.read<OffersBloc>().add(
-                          CounterOfferEvent(widget.offer, newPrice, newWeight),
-                        );
-
-                        await showActionSuccessDialog(
-                          dialogCtx,
-                          message: 'Counter-Offer Sent!',
-                          actionTitle: 'Offer details',
-                          onAction: () {
-                            dialogCtx.pushReplacement(
-                              '/buyer/order-details/${widget.offer.id}',
-                            );
-                          },
-                        );
-                      },
-                    );
+                    context.go("/");
                   },
 
                   bordered: true,
@@ -284,8 +262,8 @@ class _OfferActionsState extends State<OfferActions> {
               const SizedBox(width: 8),
               Expanded(
                 child: CustomButton(
-                  title: "Accept Offer",
-                  onPressed: () => _showAcceptDialog(context, currentOffer),
+                  title: "Make Offer",
+                  onPressed: () => _showOfferDialog(context, isCounter: true),
                 ),
               ),
             ],
@@ -402,7 +380,12 @@ class _OfferActionsState extends State<OfferActions> {
   }
 
   // Dialog for accepting a Fisher's counter-offer
-  void _showAcceptDialog(BuildContext context, Offer offerToAccept) {
+  void _showAcceptDialog(
+    BuildContext context,
+    Offer offerToAccept,
+    Fisher fisher,
+    Catch catchItem,
+  ) {
     // Use the details of the offer passed from the BLoC state
     final weight = offerToAccept.weight.toStringAsFixed(1);
     final price = offerToAccept.price.toStringAsFixed(0);
@@ -455,7 +438,7 @@ class _OfferActionsState extends State<OfferActions> {
             CustomButton(
               title: "Yes",
               // 🆕 Call the helper function that dispatches the event and handles navigation
-              onPressed: _acceptOffer,
+              onPressed: () => _acceptOffer(catchItem, fisher),
             ),
             const SizedBox(height: 16),
             CustomButton(

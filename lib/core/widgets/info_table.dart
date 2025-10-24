@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 
 class InfoTable extends StatelessWidget {
   const InfoTable({super.key, required this.rows});
@@ -49,14 +50,14 @@ class InfoTable extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
                     splashRadius: 5,
-                    icon: const Icon(
-                      Icons.edit,
+                    icon: Icon(
+                      CustomIcons.edit,
                       size: 14,
                       color: Color(0xFF0A2A45),
                     ),
                     onPressed: row.onEdit,
                   )
-                : const SizedBox.shrink(), // 👈 fixed
+                : const SizedBox.shrink(),
           ],
         );
       }).toList(),

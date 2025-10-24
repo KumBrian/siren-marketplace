@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:hugeicons/styles/stroke_rounded.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 
 class OfferCard extends StatelessWidget {
   const OfferCard({
@@ -63,7 +66,12 @@ class OfferCard extends StatelessWidget {
         // ✅ Use standard withOpacity()
         color: AppColors.textBlue.withValues(alpha: 0.1),
       ),
-      child: const Icon(Icons.local_offer_outlined, color: AppColors.textBlue),
+      child: offer.hasUpdateForBuyer
+          ? Icon(CustomIcons.moneybag, color: AppColors.textBlue)
+          : HugeIcon(
+              icon: HugeIconsStrokeRounded.moneyBag01,
+              color: AppColors.textBlue,
+            ),
     );
   }
 
@@ -77,22 +85,29 @@ class OfferCard extends StatelessWidget {
             // 🆕 Use the passed-in fisherName
             _text(
               fisherName,
-              AppColors.textGray,
-              fontWeight: FontWeight.w600, // Make name prominent
+              offer.hasUpdateForBuyer ? AppColors.textBlue : AppColors.textGray,
+              fontWeight: offer.hasUpdateForBuyer
+                  ? FontWeight.w600
+                  : FontWeight.w400, // Make name prominent
             ),
             const SizedBox(width: 4),
             const Icon(Icons.star, color: AppColors.shellOrange, size: 16),
             // 🆕 Use the passed-in fisherRating
             _text(
               fisherRating.toStringAsFixed(1), // Ensure proper formatting
-              AppColors.textGray,
-              fontWeight: FontWeight.w300,
+              offer.hasUpdateForBuyer ? AppColors.textBlue : AppColors.textGray,
+              fontWeight: offer.hasUpdateForBuyer
+                  ? FontWeight.w500
+                  : FontWeight.w300,
             ),
           ],
         ),
         _text(
           offer.dateCreated.toFormattedDate(),
-          AppColors.blue800,
+          offer.hasUpdateForBuyer ? AppColors.textBlue : AppColors.textGray,
+          fontWeight: offer.hasUpdateForBuyer
+              ? FontWeight.w500
+              : FontWeight.w300,
           fontSize: 12,
         ),
       ],

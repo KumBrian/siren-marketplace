@@ -17,7 +17,6 @@ import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.da
 import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
-// Helper: show a small modal progress indicator (MOVED TO TOP-LEVEL)
 void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
   showDialog(
     context: context,
@@ -35,7 +34,6 @@ void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
   );
 }
 
-// Helper: reusable success dialog (MOVED TO TOP-LEVEL)
 Future<void> showActionSuccessDialog(
   BuildContext context, {
   required String message,
@@ -48,7 +46,6 @@ Future<void> showActionSuccessDialog(
     context: context,
     barrierDismissible: actionTitle == null,
     builder: (ctx) {
-      // <--- The local dialog context
       if (autoCloseSeconds > 0 && actionTitle == null) {
         Future.delayed(Duration(seconds: autoCloseSeconds), () {
           if (ctx.mounted) Navigator.of(ctx).pop();
@@ -79,13 +76,12 @@ Future<void> showActionSuccessDialog(
             ),
             const SizedBox(height: 12),
             if (actionTitle != null && onAction != null)
-              // Use ctx to pop the dialog first, then call onAction.
               CustomButton(
                 title: actionTitle,
                 onPressed: () {
                   if (ctx.mounted) {
-                    Navigator.of(ctx).pop(); // 1. Close the dialog safely
-                    onAction(); // 2. Execute the navigation
+                    Navigator.of(ctx).pop();
+                    onAction();
                   }
                 },
               ),
@@ -121,14 +117,10 @@ class _OfferActionsState extends State<OfferActions> {
     super.dispose();
   }
 
-  // Retrieves the Catch model from the CatchesBloc (synchronously from state)
   CatchModel.Catch? _findCatchFromBloc(String catchId) {
     final catchesState = context.read<CatchesBloc>().state;
     if (catchesState is! CatchesLoaded) return null;
 
-    // ⚠️ FIX: Use the firstWhereOrNull extension to avoid the bad cast
-    // Note: Assuming firstWhereOrNull is available via an import or extension,
-    // otherwise, use a standard loop or try/catch around firstWhere.
     try {
       return catchesState.catches.firstWhere((c) => c.id == catchId);
     } catch (_) {
@@ -136,11 +128,7 @@ class _OfferActionsState extends State<OfferActions> {
     }
   }
 
-  // Accept flow:
-  // 1. gather required Catch and Fisher
-  // 2. dispatch AcceptOfferEvent(offer, catch, fisher)
   Future<void> _handleAccept(BuildContext outerContext) async {
-    // 1. If any prior dialog is open (e.g., confirmation dialog), close it.
     if (Navigator.of(outerContext).canPop()) Navigator.of(outerContext).pop();
 
     final catchItem = _findCatchFromBloc(widget.offer.catchId);
@@ -154,11 +142,7 @@ class _OfferActionsState extends State<OfferActions> {
       return;
     }
 
-    // 2. Show loading dialog, which must be closed by the BLoC Listener on success/failure.
-    showLoadingDialog(
-      outerContext,
-      message: 'Creating order...',
-    ); // Using top-level function
+    showLoadingDialog(outerContext, message: 'Creating order...');
 
     try {
       final fisherMap = await _userRepository.getUserMapById(
@@ -166,9 +150,8 @@ class _OfferActionsState extends State<OfferActions> {
       );
       if (fisherMap == null) {
         if (outerContext.mounted) {
-          Navigator.of(outerContext).pop(); // close loading
+          Navigator.of(outerContext).pop();
           await showActionSuccessDialog(
-            // Using top-level function
             outerContext,
             message: 'Fisher not found',
             autoCloseSeconds: 2,
@@ -179,20 +162,15 @@ class _OfferActionsState extends State<OfferActions> {
 
       final fisher = Fisher.fromMap(fisherMap);
 
-      // 3. Dispatch event
       if (context.mounted) {
         context.read<OffersBloc>().add(
           AcceptOfferEvent(widget.offer, catchItem, fisher),
         );
       }
-
-      // CRITICAL: The BLoC Listener in FisherOfferDetails handles the subsequent action and UI.
     } catch (e) {
-      // 4. Handle sync error and close loading dialog if open
       if (outerContext.mounted) {
         Navigator.of(outerContext).pop();
         await showActionSuccessDialog(
-          // Using top-level function
           outerContext,
           message: 'Accept failed: $e',
           autoCloseSeconds: 3,
@@ -201,7 +179,6 @@ class _OfferActionsState extends State<OfferActions> {
     }
   }
 
-  // Reject flow: fire event immediately and show short confirmation
   Future<void> _handleReject(BuildContext outerContext) async {
     if (Navigator.of(outerContext).canPop()) Navigator.of(outerContext).pop();
     try {
@@ -227,14 +204,14 @@ class _OfferActionsState extends State<OfferActions> {
   @override
   Widget build(BuildContext context) {
     return widget.offer.status == OfferStatus.pending ||
-            widget.offer.status == OfferStatus.countered
+            (widget.offer.previousPricePerKg != null &&
+                widget.offer.status == OfferStatus.pending)
         ? Column(
             children: [
               CustomButton(
                 title: "Accept",
                 icon: Icons.check,
                 onPressed: () {
-                  // Show confirm dialog then call _handleAccept if confirmed
                   showDialog(
                     context: context,
                     builder: (confirmCtx) => AlertDialog(
@@ -304,7 +281,6 @@ class _OfferActionsState extends State<OfferActions> {
                       title: "Reject",
                       icon: Icons.close,
                       onPressed: () {
-                        // show confirm dialog and call _handleReject
                         showDialog(
                           context: context,
                           builder: (rejectCtx) => AlertDialog(
@@ -380,6 +356,7 @@ class _OfferActionsState extends State<OfferActions> {
                                       widget.offer,
                                       newPrice,
                                       newWeight,
+                                      user.role,
                                     ),
                                   );
 

@@ -20,30 +20,54 @@ class LoadOfferDetails extends OfferDetailsEvent {
   List<Object?> get props => [offerId];
 }
 
-// 2. 🆕 Event to accept the current offer/counter-offer
-class AcceptOffer extends OfferDetailsEvent {
-  final String offerId;
+class LoadOffers extends OfferDetailsEvent {
+  final String catchId;
 
-  const AcceptOffer({required this.offerId});
+  const LoadOffers(this.catchId);
 
   @override
-  List<Object?> get props => [offerId];
+  List<Object?> get props => [catchId];
+}
+
+// 2. 🆕 Event to accept the current offer/counter-offer
+class AcceptOffer extends OfferDetailsEvent {
+  final Offer offer;
+  final Catch catchItem;
+  final Fisher fisher;
+
+  const AcceptOffer({
+    required this.offer,
+    required this.catchItem,
+    required this.fisher,
+  });
+
+  @override
+  List<Object?> get props => [offer, catchItem, fisher];
 }
 
 // 3. 🆕 Event to send a new offer or a counter-offer
 class SendCounterOffer extends OfferDetailsEvent {
-  final String offerId; // The ID of the offer being responded to
+  final Offer offer; // The ID of the offer being responded to
   final double newWeight;
   final double newPrice;
-  final bool isCounter; // True if it's a counter to the previous offer
+  final Role role;
 
   const SendCounterOffer({
-    required this.offerId,
+    required this.offer,
     required this.newWeight,
     required this.newPrice,
-    required this.isCounter,
+    required this.role,
   });
 
   @override
-  List<Object?> get props => [offerId, newWeight, newPrice, isCounter];
+  List<Object?> get props => [offer, newWeight, newPrice, role];
+}
+
+class MarkOfferAsViewed extends OfferDetailsEvent {
+  final Role viewingRole;
+
+  const MarkOfferAsViewed(this.viewingRole);
+
+  @override
+  List<Object> get props => [viewingRole];
 }

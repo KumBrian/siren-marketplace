@@ -9,6 +9,7 @@ import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/message_card.dart';
+// 🔑 Key Import
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/offer_card.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
@@ -23,7 +24,10 @@ class BuyerNotificationsScreen extends StatefulWidget {
       _BuyerNotificationsScreenState();
 }
 
-class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
+class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
+    with WidgetsBindingObserver {
+  // 👈 Implement Observer
+
   List<Offer> _applyOfferFilters(List<Offer> offers, OrdersFilterState state) {
     if (state.selectedStatuses.isEmpty) {
       return offers;
@@ -31,6 +35,39 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
     return offers.where((offer) {
       return state.selectedStatuses.contains(offer.status);
     }).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // 🔑 Add the observer to listen for app state changes
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    // 🔑 Remove the observer when the widget is removed
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // 🔑 The critical method: runs when the app comes to the foreground
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // When the app resumes (e.g., coming back from the detail screen)
+    if (state == AppLifecycleState.resumed) {
+      final buyerCubit = context.read<BuyerCubit>();
+
+      if (buyerCubit.state is BuyerLoaded) {
+        final buyerId = (buyerCubit.state as BuyerLoaded).buyer.id;
+
+        // 🔄 Force a reload of the Buyer data, which includes the Offers list,
+        // picking up the update made by the OfferDetailsBloc.
+        buyerCubit.loadBuyerData(buyerId: buyerId);
+      }
+    }
   }
 
   @override
@@ -42,10 +79,14 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
       final buyerLoadedState = buyerCubit.state as BuyerLoaded;
       final buyerId = buyerLoadedState.buyer.id;
 
-      // Dispatch the event to load offers for this buyer
-      context.read<OffersBloc>().add(LoadBuyerOffersEvent(buyerId));
+      // 🔑 Dispatch the new event to the OffersBloc to load buyer-specific offers
+      final offersBloc = context.read<OffersBloc>();
+      if (offersBloc.state is OffersInitial ||
+          offersBloc.state is OffersError) {
+        offersBloc.add(LoadBuyerOffersEvent(buyerId));
+      }
 
-      // Existing logic for loading conversations
+      // Existing logic for loading conversations remains:
       final conversationsBloc = context.read<ConversationsBloc>();
       if (conversationsBloc.state is ConversationsInitial) {
         conversationsBloc.add(LoadConversations(buyerId: buyerId));
@@ -54,9 +95,10 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
   }
 
   // ----------------------------------------------------------------------
-  // 🎯 NEW: Extracted Messages Tab Build Method for clarity
+  // Messages Tab Build Method (No structural change needed)
   // ----------------------------------------------------------------------
   Widget _buildMessagesTab() {
+    // ... (Implementation remains as shown previously) ...
     return BlocBuilder<ConversationsBloc, ConversationsState>(
       builder: (context, conversationState) {
         if (conversationState is ConversationsLoading) {
@@ -91,7 +133,6 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
           ),
           child: Column(
             children: [
-              // SearchBar definition
               const SearchBar(
                 hintText: "Search",
                 scrollPadding: EdgeInsets.symmetric(vertical: 8),
@@ -104,10 +145,7 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
                 leading: Icon(Icons.search, color: AppColors.textBlue),
                 elevation: WidgetStatePropertyAll(0),
               ),
-
               const SizedBox(height: 8),
-
-              // Check if allMessages is empty
               if (allMessages.isEmpty)
                 Column(
                   children: [
@@ -134,11 +172,9 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
                     ),
                   ],
                 )
-              // 🎯 FIX: Use ListView.separated for efficient list display
               else
                 ListView.separated(
                   physics: const NeverScrollableScrollPhysics(),
-                  // Prevent scrolling conflict
                   shrinkWrap: true,
                   itemCount: allMessages.length,
                   separatorBuilder: (context, index) =>
@@ -165,296 +201,286 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen> {
     );
   }
 
+  // ----------------------------------------------------------------------
+  // Main Build Method (Only needs to observe BuyerCubit state)
+  // ----------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
+    // Outer BlocBuilder remains for fetching the BuyerID and Chat data
     return BlocBuilder<BuyerCubit, BuyerState>(
       builder: (context, buyerState) {
-        if (buyerState is BuyerLoading || buyerState is BuyerInitial) {
+        // --- 1. Handle Buyer State Loading/Error ---
+        if (buyerState is! BuyerLoaded) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        if (buyerState is BuyerError) {
-          return Scaffold(
-            body: Center(
-              child: Text('Error loading buyer data: ${buyerState.message}'),
-            ),
-          );
-        }
+        final buyerId =
+            buyerState.buyer.id; // Get the ID to pass to OfferDetails
 
-        final loadedState = buyerState as BuyerLoaded;
-        final allOffers = loadedState.buyer.madeOffers;
+        // --- 2. 🔑 Listen to OffersBloc for the Offers List ---
+        return BlocBuilder<OffersBloc, OffersState>(
+          builder: (context, offersState) {
+            // Check if offers are loading/error/initial
+            if (offersState is OffersLoading || offersState is OffersInitial) {
+              // ⚠️ Ensure the offers load starts if it's initial
+              if (offersState is OffersInitial) {
+                context.read<OffersBloc>().add(LoadBuyerOffersEvent(buyerId));
+              }
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (offersState is OffersError) {
+              return Scaffold(
+                body: Center(
+                  child: Text('Error loading offers: ${offersState.message}'),
+                ),
+              );
+            }
 
-        return Scaffold(
-          appBar: AppBar(
-            leading: const BackButton(),
-            actions: [
-              // ... Filter button logic remains the same ...
-              IconButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    showDragHandle: true,
-                    builder: (context) {
-                      return BlocBuilder<OrdersFilterCubit, OrdersFilterState>(
-                        builder: (context, state) {
-                          final cubit = context.read<OrdersFilterCubit>();
-
-                          return Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Filter by",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                const SizedBox(height: 12),
-                                const Text("Status"),
-                                const SizedBox(height: 12),
-                                Text(
-                                  "Select all that apply",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textGray,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
+            // --- 3. Offers are Loaded ---
+            final allOffers = offersState is OffersLoaded
+                ? offersState.offers
+                : <Offer>[];
+            return Scaffold(
+              appBar: AppBar(
+                leading: const BackButton(),
+                actions: [
+                  IconButton(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        showDragHandle: true,
+                        builder: (context) {
+                          return BlocBuilder<
+                            OrdersFilterCubit,
+                            OrdersFilterState
+                          >(
+                            builder: (context, state) {
+                              final cubit = context.read<OrdersFilterCubit>();
+                              return Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    FilterButton(
-                                      title: "Pending",
-                                      color: AppColors.shellOrange,
-                                      isSelected: state.selectedStatuses
-                                          .contains(OfferStatus.pending),
-                                      onPressed: () => cubit.toggleStatus(
-                                        OfferStatus.pending,
+                                    const Text(
+                                      "Filter by",
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const Text("Status"),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Select all that apply",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textGray,
                                       ),
                                     ),
-                                    FilterButton(
-                                      title: "Accepted",
-                                      color: AppColors.blue400,
-                                      isSelected: state.selectedStatuses
-                                          .contains(OfferStatus.accepted),
-                                      onPressed: () => cubit.toggleStatus(
-                                        OfferStatus.accepted,
-                                      ),
-                                    ),
-                                    FilterButton(
-                                      title: "Completed",
-                                      color: AppColors.textGray,
-                                      isSelected: state.selectedStatuses
-                                          .contains(OfferStatus.completed),
-                                      onPressed: () => cubit.toggleStatus(
-                                        OfferStatus.completed,
-                                      ),
-                                    ),
-                                    FilterButton(
-                                      title: "Rejected",
-                                      color: AppColors.fail500,
-                                      isSelected: state.selectedStatuses
-                                          .contains(OfferStatus.rejected),
-                                      onPressed: () => cubit.toggleStatus(
-                                        OfferStatus.rejected,
-                                      ),
-                                    ),
-                                    FilterButton(
-                                      title: "Countered",
-                                      color: AppColors.textBlue,
-                                      isSelected: state.selectedStatuses
-                                          .contains(OfferStatus.countered),
-                                      onPressed: () => cubit.toggleStatus(
-                                        OfferStatus.countered,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Divider(),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    TextButton(
-                                      onPressed: () {
-                                        cubit.clear();
-                                        context.pop();
-                                      },
-                                      child: const Text(
-                                        "Reset All",
-                                        style: TextStyle(
-                                          decoration: TextDecoration.underline,
+                                    const SizedBox(height: 12),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        FilterButton(
+                                          title: "Pending",
+                                          color: AppColors.shellOrange,
+                                          isSelected: state.selectedStatuses
+                                              .contains(OfferStatus.pending),
+                                          onPressed: () => cubit.toggleStatus(
+                                            OfferStatus.pending,
+                                          ),
                                         ),
-                                      ),
+                                        FilterButton(
+                                          title: "Accepted",
+                                          color: AppColors.blue400,
+                                          isSelected: state.selectedStatuses
+                                              .contains(OfferStatus.accepted),
+                                          onPressed: () => cubit.toggleStatus(
+                                            OfferStatus.accepted,
+                                          ),
+                                        ),
+                                        FilterButton(
+                                          title: "Completed",
+                                          color: AppColors.textGray,
+                                          isSelected: state.selectedStatuses
+                                              .contains(OfferStatus.completed),
+                                          onPressed: () => cubit.toggleStatus(
+                                            OfferStatus.completed,
+                                          ),
+                                        ),
+                                        FilterButton(
+                                          title: "Rejected",
+                                          color: AppColors.fail500,
+                                          isSelected: state.selectedStatuses
+                                              .contains(OfferStatus.rejected),
+                                          onPressed: () => cubit.toggleStatus(
+                                            OfferStatus.rejected,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    CustomButton(
-                                      title: "Apply Filters",
-                                      onPressed: () => context.pop(),
+                                    const Divider(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () {
+                                            cubit.clear();
+                                            context.pop();
+                                          },
+                                          child: const Text(
+                                            "Reset All",
+                                            style: TextStyle(
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                        CustomButton(
+                                          title: "Apply Filters",
+                                          onPressed: () => context.pop(),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           );
                         },
                       );
                     },
-                  );
-                },
-                icon: const Icon(Icons.filter_alt_outlined),
-              ),
-            ],
-            title: const Text(
-              "Notifications",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.textBlue,
-                fontSize: 24,
-              ),
-            ),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: DefaultTabController(
-                      length: 2,
-                      child: Column(
-                        children: [
-                          const TabBar(
-                            dividerHeight: 0,
-                            indicatorSize: TabBarIndicatorSize.tab,
-                            tabs: [
-                              Tab(text: "Offers"),
-                              Tab(text: "Messages"),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              physics: const BouncingScrollPhysics(),
-                              children: [
-                                BlocBuilder<OffersBloc, OffersState>(
-                                  // <-- Use OffersBloc here
-                                  builder: (context, offerState) {
-                                    // <-- Renamed state variable
-                                    if (offerState is OffersLoading) {
-                                      return const Center(
-                                        child: Padding(
-                                          padding: EdgeInsets.only(top: 64.0),
-                                          child: CircularProgressIndicator(),
-                                        ),
-                                      );
-                                    }
-
-                                    if (offerState is OffersError) {
-                                      return Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 64.0,
-                                          ),
-                                          child: Text(
-                                            'Error loading offers: ${offerState.message}',
-                                            style: const TextStyle(
-                                              color: AppColors.fail500,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-
-                                    // Assuming OffersLoaded contains a list of offers
-                                    final allOffers =
-                                        (offerState is OffersLoaded)
-                                        ? offerState
-                                              .offers // <-- Access offers from OffersLoaded state
-                                        : <Offer>[];
-                                    final filteredOffers =
-                                        allOffers; // Replace with filtered if filter logic is needed here
-
-                                    return SingleChildScrollView(
-                                      padding: EdgeInsets.only(
-                                        bottom: 80,
-                                        top: filteredOffers.isEmpty ? 32 : 0,
-                                      ),
-                                      child: filteredOffers.isEmpty
-                                          ? Column(
-                                              children: [
-                                                SizedBox(
-                                                  height: 120,
-                                                  width: 120,
-                                                  child: Image.asset(
-                                                    "assets/images/no-offers.png",
-                                                  ),
-                                                ),
-                                                const Text(
-                                                  "You have no offers yet.",
-                                                  // Adjusted text
-                                                  style: TextStyle(
-                                                    color: AppColors.textGray,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                                const Text(
-                                                  "Make an offer on a product.",
-                                                  style: TextStyle(
-                                                    color: AppColors.textGray,
-                                                    fontWeight: FontWeight.w300,
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ],
-                                            )
-                                          : Column(
-                                              children: filteredOffers.map((
-                                                offer,
-                                              ) {
-                                                // Assuming OfferCard can display buyer-side offer details
-                                                // You might need to adjust OfferCard or create a new widget
-                                                // to display offers from the buyer's perspective.
-                                                return OfferCard(
-                                                  offer: offer,
-                                                  // Pass the full offer object
-                                                  fisherRating:
-                                                      offer.fisherRating,
-                                                  // Use denormalized fields
-                                                  fisherName: offer.fisherName,
-                                                  // Use denormalized fields
-                                                  onPressed: () {
-                                                    // Navigate to offer details, passing the offer ID
-                                                    context.push(
-                                                      "/buyer/offer-details/${offer.id}",
-                                                    );
-                                                  },
-                                                );
-                                              }).toList(),
-                                            ),
-                                    );
-                                  },
-                                ),
-
-                                // --- Messages Tab (Now uses extracted method) ---
-                                _buildMessagesTab(),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    icon: const Icon(Icons.filter_alt_outlined),
+                  ),
+                ],
+                title: const Text(
+                  "Notifications",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textBlue,
+                    fontSize: 24,
                   ),
                 ),
-              ],
-            ),
-          ),
+              ),
+              body: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: DefaultTabController(
+                          length: 2,
+                          child: Column(
+                            children: [
+                              const TabBar(
+                                dividerHeight: 0,
+                                indicatorSize: TabBarIndicatorSize.tab,
+                                tabs: [
+                                  Tab(text: "Offers"),
+                                  Tab(text: "Messages"),
+                                ],
+                              ),
+                              Expanded(
+                                child: TabBarView(
+                                  physics: const BouncingScrollPhysics(),
+                                  children: [
+                                    // Offers Tab: Listens to Filter Cubit, uses data from BuyerCubit
+                                    BlocBuilder<
+                                      OrdersFilterCubit,
+                                      OrdersFilterState
+                                    >(
+                                      builder: (context, filterState) {
+                                        final filteredOffers =
+                                            _applyOfferFilters(
+                                              allOffers,
+                                              filterState,
+                                            );
+
+                                        return SingleChildScrollView(
+                                          padding: EdgeInsets.only(
+                                            bottom: 80,
+                                            top: filteredOffers.isEmpty
+                                                ? 32
+                                                : 0,
+                                          ),
+                                          child: filteredOffers.isEmpty
+                                              ? Column(
+                                                  children: [
+                                                    SizedBox(
+                                                      height: 120,
+                                                      width: 120,
+                                                      child: Image.asset(
+                                                        "assets/images/no-offers.png",
+                                                      ),
+                                                    ),
+                                                    const Text(
+                                                      "You have no offers yet.",
+                                                      style: TextStyle(
+                                                        color:
+                                                            AppColors.textGray,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    const Text(
+                                                      "Make an offer on a product.",
+                                                      style: TextStyle(
+                                                        color:
+                                                            AppColors.textGray,
+                                                        fontWeight:
+                                                            FontWeight.w300,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                              : Column(
+                                                  children: filteredOffers.map((
+                                                    offer,
+                                                  ) {
+                                                    return OfferCard(
+                                                      offer: offer,
+                                                      fisherRating:
+                                                          offer.fisherRating,
+                                                      fisherName:
+                                                          offer.fisherName,
+                                                      onPressed: () {
+                                                        context.push(
+                                                          "/buyer/offer-details/${offer.id}",
+                                                        );
+                                                      },
+                                                    );
+                                                  }).toList(),
+                                                ),
+                                        );
+                                      },
+                                    ),
+                                    // Messages Tab
+                                    _buildMessagesTab(),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );

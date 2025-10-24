@@ -126,6 +126,7 @@ Future<void> initDependencies() async {
       sl<OfferRepository>(),
       sl<CatchRepository>(),
       sl<UserRepository>(),
+      sl<OrderRepository>(),
     ),
   );
   sl.registerFactory(() => BuyerOrdersBloc(sl<BuyerRepository>()));

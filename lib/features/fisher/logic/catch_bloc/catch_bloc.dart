@@ -18,7 +18,6 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
     on<DeleteCatchEvent>(_onDeleteCatch);
   }
 
-  // 🧩 Assemble Catch + Offer data
   Future<List<Catch>> _assembleCatches(
     List<Map<String, dynamic>> catchMaps,
   ) async {
@@ -34,7 +33,6 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
     );
   }
 
-  // 🔹 Load all catches
   Future<void> _onLoadCatches(
     LoadCatches event,
     Emitter<CatchesState> emit,
@@ -49,7 +47,6 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
     }
   }
 
-  // 🔹 Load catches by Fisher ID (key method for FisherHome)
   Future<void> _onLoadCatchesByFisher(
     LoadCatchesByFisher event,
     Emitter<CatchesState> emit,
@@ -64,7 +61,6 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
     }
   }
 
-  // 🔹 Add new catch
   Future<void> _onAddCatch(AddCatch event, Emitter<CatchesState> emit) async {
     try {
       await repository.insertCatch(event.catchModel);
@@ -76,7 +72,6 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
     }
   }
 
-  // 🔹 Update catch
   Future<void> _onUpdateCatch(
     UpdateCatchEvent event,
     Emitter<CatchesState> emit,
@@ -98,6 +93,7 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
   ) async {
     try {
       await repository.deleteCatch(event.catchId);
+      emit(CatchDeletedSuccess());
       final updatedCatchMaps = await repository.getAllCatchMaps();
       final updatedCatches = await _assembleCatches(updatedCatchMaps);
       emit(CatchesLoaded(updatedCatches));

@@ -6,6 +6,7 @@ import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart'; // Import Offer model
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_nav_bar.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/for_sale_card.dart';
@@ -54,10 +55,10 @@ class FisherHome extends StatelessWidget {
     return soldItems;
   }
 
-  int _totalPendingOffers(List<Catch> allCatches) {
+  int _totalOffersWithUpdates(List<Catch> allCatches) {
     int total = 0;
     for (final c in allCatches) {
-      total += c.offers.where((o) => o.status == OfferStatus.pending).length;
+      total += c.offers.where((o) => o.hasUpdateForFisher).length;
     }
     return total;
   }
@@ -97,9 +98,9 @@ class FisherHome extends StatelessWidget {
                 return IconButton(
                   onPressed: () => context.go("/fisher/notifications"),
                   icon: Badge(
-                    label: Text("${_totalPendingOffers(allCatches)}"),
+                    label: Text("${_totalOffersWithUpdates(allCatches)}"),
                     child: Icon(
-                      Icons.notifications_none,
+                      CustomIcons.notificationbell,
                       color: AppColors.textBlue,
                     ),
                   ),

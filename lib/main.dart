@@ -100,6 +100,7 @@ class MyApp extends StatelessWidget {
             sl<OfferRepository>(),
             sl<CatchRepository>(),
             sl<UserRepository>(),
+            sl<OrderRepository>(),
           ),
         ),
 

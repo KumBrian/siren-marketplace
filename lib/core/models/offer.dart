@@ -18,6 +18,10 @@ class Offer extends Equatable {
   final double? previousWeight;
   final double? previousPricePerKg;
 
+  // 🆕 ADDED FIELD
+  final bool hasUpdateForFisher;
+  final bool hasUpdateForBuyer;
+
   // Denormalized fields
   final String catchName;
   final String catchImageUrl;
@@ -39,6 +43,9 @@ class Offer extends Equatable {
     required this.weight,
     required this.status,
     required this.dateCreated,
+    // 🆕 ADDED FIELD WITH DEFAULT
+    this.hasUpdateForBuyer = true, // Default to true for new offers
+    this.hasUpdateForFisher = true, // Default to true for new offers
     // Denormalized fields, provide defaults or make optional if not always available
     this.catchName = '', // Default to empty string
     this.catchImageUrl = '', // Default to empty string
@@ -68,6 +75,9 @@ class Offer extends Equatable {
     previousPrice,
     previousWeight,
     previousPricePerKg,
+    // 🆕 ADDED PROP
+    hasUpdateForBuyer,
+    hasUpdateForFisher,
     catchName,
     catchImageUrl,
     fisherName,
@@ -88,6 +98,8 @@ class Offer extends Equatable {
     double? weight,
     double? pricePerKg,
     String? dateCreated,
+    bool? hasUpdateForFisher,
+    bool? hasUpdateForBuyer,
     // Add parameters for denormalized fields if they can change
     String? catchName,
     String? catchImageUrl,
@@ -120,6 +132,9 @@ class Offer extends Equatable {
       buyerName: buyerName ?? this.buyerName,
       buyerRating: buyerRating ?? this.buyerRating,
       buyerAvatarUrl: buyerAvatarUrl ?? this.buyerAvatarUrl,
+      // 🆕 UPDATED COPYWITH LOGIC
+      hasUpdateForBuyer: hasUpdateForBuyer ?? this.hasUpdateForBuyer,
+      hasUpdateForFisher: hasUpdateForFisher ?? this.hasUpdateForFisher,
     );
   }
 
@@ -140,6 +155,10 @@ class Offer extends Equatable {
     'previous_price': previousPrice,
     'previous_weight': previousWeight,
     'previous_price_per_kg': previousPricePerKg,
+    // 🆕 ADDED FIELD TO MAP
+    'has_update_buyer': hasUpdateForBuyer ? 1 : 0,
+    'has_update_fisher': hasUpdateForFisher ? 1 : 0,
+    // Store as integer (0 or 1) for SQLite boolean
 
     // Include new fields in map for storage/transfer
     'catch_name': catchName,
@@ -165,6 +184,9 @@ class Offer extends Equatable {
     previousPrice: (m['previous_price'] as num?)?.toDouble(),
     previousWeight: (m['previous_weight'] as num?)?.toDouble(),
     previousPricePerKg: (m['previous_price_per_kg'] as num?)?.toDouble(),
+    // 🆕 EXTRACTED FIELD
+    hasUpdateForBuyer: (m['has_update_buyer'] as int) == 1,
+    hasUpdateForFisher: (m['has_update_fisher'] as int) == 1,
     // Extract new fields from the map, providing defaults if null
     catchName: m['catch_name'] as String? ?? '',
     catchImageUrl: m['catch_image_url'] as String? ?? '',

@@ -7,12 +7,15 @@ import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
-import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_actions.dart'; // Import for dialog helpers
+import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_actions.dart';
+import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart'; // Import for dialog helpers
 
 // --- Helper Extension for finding element in Iterable ---
 extension IterableExtensions<T> on Iterable<T> {
@@ -121,6 +124,18 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
     context.read<CatchesBloc>().add(LoadCatches());
   }
 
+  bool _hasMarkedAsViewed = false;
+
+  void _markOfferAsViewed(Offer offer, Role role) {
+    if (role == Role.fisher &&
+        offer.hasUpdateForFisher &&
+        !_hasMarkedAsViewed) {
+      // We assume UserRole is the same as the imported Role enum
+      context.read<OffersBloc>().add(MarkOfferAsViewedEvent(offer, role));
+      _hasMarkedAsViewed = true;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -129,195 +144,244 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CatchesBloc, CatchesState>(
-      builder: (context, catchesState) {
-        if (catchesState is CatchesLoading || catchesState is CatchesInitial) {
+    return BlocBuilder<UserBloc, UserState>(
+      builder: (context, userState) {
+        final Role? role = userState is UserLoaded ? userState.role : null;
+
+        if (role == null) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        final Offer? selectedOffer = _getOfferFromState(catchesState);
-
-        if (selectedOffer == null) {
-          final errorMessage = catchesState is CatchesError
-              ? "Error loading offers: ${catchesState.message}"
-              : "Offer with ID ${widget.offerId} not found.";
-
-          return Scaffold(
-            appBar: AppBar(
-              leading: BackButton(onPressed: () => context.pop()),
-              title: const Text("Offer Details"),
-            ),
-            body: Center(child: Text(errorMessage)),
-          );
-        }
-
-        return BlocListener<OffersBloc, OffersState>(
-          listener: (context, offerState) {
-            // 1. Close the loading dialog opened by _handleAccept
-            if (offerState is OfferActionSuccess ||
-                offerState is OfferActionFailure) {
-              if (Navigator.of(context).canPop()) {
-                // Ensure we pop the loading dialog/modal
-                Navigator.of(context).pop();
-              }
-            }
-
-            if (offerState is OfferActionSuccess) {
-              if (offerState.action == 'Accept') {
-                // ⚠️ FIX 2: Check for null or empty orderId before calling the success handler.
-                final String? orderId = offerState.orderId;
-
-                if (orderId != null && orderId.isNotEmpty) {
-                  _handleOfferAcceptSuccess(orderId);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        '❌ Offer accepted, but failed to retrieve Order ID. Please check the orders list.',
-                      ),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                  context.read<CatchesBloc>().add(LoadCatches());
-                }
-              } else {
-                // For Counter or Reject, just show Snackbar and reload the catches
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      '✅ Offer ${offerState.action}ed successfully!',
-                    ),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-                context.read<CatchesBloc>().add(LoadCatches());
-              }
-            } else if (offerState is OfferActionFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    '❌ ${offerState.action} failed: ${offerState.error}',
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                ),
+        return BlocBuilder<CatchesBloc, CatchesState>(
+          builder: (context, catchesState) {
+            if (catchesState is CatchesLoading ||
+                catchesState is CatchesInitial) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
               );
-              // Reload catches to ensure the UI reflects the current state if the action failed
-              context.read<CatchesBloc>().add(LoadCatches());
             }
-          },
-          child: FutureBuilder<OfferTransactionData>(
-            key: ValueKey('${selectedOffer.id}-${selectedOffer.dateCreated}'),
-            future: _loadTransactionData(selectedOffer),
-            builder: (context, snapshot) {
-              // Handle loading of dependent data
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
 
-              final transactionData = snapshot.data;
+            final Offer? selectedOffer = _getOfferFromState(catchesState);
 
-              final Buyer? buyer = transactionData?.buyer;
-              final PreviousOfferDetails? previous =
-                  transactionData?.previousDetails;
+            if (selectedOffer == null) {
+              final errorMessage = catchesState is CatchesError
+                  ? "Error loading offers: ${catchesState.message}"
+                  : "Offer with ID ${widget.offerId} not found.";
 
-              // The Offer is found, proceed with the UI
               return Scaffold(
                 appBar: AppBar(
                   leading: BackButton(onPressed: () => context.pop()),
-                  title: const Text(
-                    "Offer Details",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textBlue,
-                      fontSize: 24,
-                    ),
-                  ),
+                  title: const Text("Offer Details"),
                 ),
-                body: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Pass the fetched Buyer data
-                      OfferHeader(offer: selectedOffer, buyer: buyer),
-                      const SizedBox(height: 16),
+                body: Center(child: Text(errorMessage)),
+              );
+            }
 
-                      const SectionHeader("Current Offer"),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.gray200),
-                        ),
-                        child: InfoTable(
-                          rows: [
-                            InfoRow(
-                              label: "Total Weight",
-                              value:
-                                  "${selectedOffer.weight.toStringAsFixed(1)} Kg",
-                            ),
-                            InfoRow(
-                              label: "Price/Kg",
-                              value: formatPrice(selectedOffer.pricePerKg),
-                            ),
-                            InfoRow(
-                              label: "Total",
-                              value: formatPrice(selectedOffer.price),
-                            ),
-                          ],
+            _markOfferAsViewed(selectedOffer, role);
+
+            return BlocListener<OffersBloc, OffersState>(
+              listener: (context, offerState) {
+                // 1. Close the loading dialog opened by _handleAccept
+                if (offerState is OfferActionSuccess ||
+                    offerState is OfferActionFailure) {
+                  if (Navigator.of(context).canPop()) {
+                    // Ensure we pop the loading dialog/modal
+                    Navigator.of(context).pop();
+                  }
+                }
+
+                if (offerState is OfferActionSuccess) {
+                  if (offerState.action == 'Accept') {
+                    final String? orderId = offerState.orderId;
+
+                    if (orderId != null && orderId.isNotEmpty) {
+                      _handleOfferAcceptSuccess(orderId);
+                    } else {
+                      context.read<CatchesBloc>().add(LoadCatches());
+                    }
+                  } else {
+                    context.read<CatchesBloc>().add(LoadCatches());
+                  }
+                } else if (offerState is OfferActionFailure) {
+                  context.read<CatchesBloc>().add(LoadCatches());
+                }
+              },
+              child: FutureBuilder<OfferTransactionData>(
+                key: ValueKey(
+                  '${selectedOffer.id}-${selectedOffer.dateCreated}',
+                ),
+                future: _loadTransactionData(selectedOffer),
+                builder: (context, snapshot) {
+                  // Handle loading of dependent data
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  final transactionData = snapshot.data;
+
+                  final Buyer? buyer = transactionData?.buyer;
+                  final PreviousOfferDetails? previous =
+                      transactionData?.previousDetails;
+
+                  // The Offer is found, proceed with the UI
+                  return Scaffold(
+                    appBar: AppBar(
+                      leading: BackButton(onPressed: () => context.pop()),
+                      title: const Text(
+                        "Offer Details",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textBlue,
+                          fontSize: 24,
                         ),
                       ),
-                      const SizedBox(height: 16),
-
-                      // Action buttons (Accept, Reject, Counter)
-                      OfferActions(offer: selectedOffer, formKey: _formKey),
-                      const SizedBox(height: 16),
-
-                      // Conditional rendering for the Previous Counter-Offer
-                      if (previous != null) ...[
-                        const SectionHeader("Last Counter-Offer"),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.gray200),
-                          ),
-                          child: InfoTable(
-                            rows: [
-                              // Use the found previousCounterOffer data
-                              InfoRow(
-                                label: "Weight",
-                                // ⚠️ FIX: Use toStringAsFixed for weights
-                                value:
-                                    "${previous.weight.toStringAsFixed(1)} Kg",
-                              ),
-                              InfoRow(
-                                label: "Price",
-                                // ⚠️ FIX: Use formatPrice for currency
-                                value: formatPrice(previous.price),
-                              ),
-                              InfoRow(
-                                label: "Price Per Kg",
-                                // ⚠️ FIX: Use formatPrice for currency
-                                value: formatPrice(previous.pricePerKg),
+                    ),
+                    body: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        spacing: 8,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const SectionHeader("Current Offer"),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    selectedOffer.status.name.capitalize(),
+                                    // Use actual status
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.getStatusColor(
+                                        selectedOffer.status,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    margin: const EdgeInsets.only(left: 4),
+                                    // Added margin
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white),
+                                      color: AppColors.getStatusColor(
+                                        selectedOffer.status,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.gray200),
+                            ),
+                            child: InfoTable(
+                              rows: [
+                                InfoRow(
+                                  label: "Total Weight",
+                                  value:
+                                      "${selectedOffer.weight.toStringAsFixed(1)} Kg",
+                                ),
+                                InfoRow(
+                                  label: "Price/Kg",
+                                  value: formatPrice(selectedOffer.pricePerKg),
+                                ),
+                                InfoRow(
+                                  label: "Total",
+                                  value: formatPrice(selectedOffer.price),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Action buttons (Accept, Reject, Counter)
+                          OfferActions(offer: selectedOffer, formKey: _formKey),
+                          selectedOffer.status == OfferStatus.rejected
+                              ? Row(
+                                  spacing: 8,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      color: AppColors.fail500,
+                                      size: 16,
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        "You have declined this offer. The buyer has been informed.",
+                                        softWrap: true,
+                                        style: TextStyle(
+                                          color: AppColors.fail500,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : const SizedBox.shrink(),
+
+                          // Buyer Details,
+                          const SizedBox(height: 8),
+
+                          // Conditional rendering for the Previous Counter-Offer
+                          if (previous != null) ...[
+                            const SectionHeader("Last Counter-Offer"),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.gray200),
+                              ),
+                              child: InfoTable(
+                                rows: [
+                                  // Use the found previousCounterOffer data
+                                  InfoRow(
+                                    label: "Weight",
+                                    // ⚠️ FIX: Use toStringAsFixed for weights
+                                    value:
+                                        "${previous.weight.toStringAsFixed(1)} Kg",
+                                  ),
+                                  InfoRow(
+                                    label: "Price",
+                                    // ⚠️ FIX: Use formatPrice for currency
+                                    value: formatPrice(previous.price),
+                                  ),
+                                  InfoRow(
+                                    label: "Price Per Kg",
+                                    // ⚠️ FIX: Use formatPrice for currency
+                                    value: formatPrice(previous.pricePerKg),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          const SizedBox(height: 8),
+                          OfferHeader(offer: selectedOffer, buyer: buyer),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
         );
       },
     );

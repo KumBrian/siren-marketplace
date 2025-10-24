@@ -15,6 +15,15 @@ class OfferDetailsInitial extends OfferDetailsState {
   List<Object?> get props => [];
 }
 
+class OffersLoaded extends OfferDetailsState {
+  final List<Offer> offers;
+
+  OffersLoaded(this.offers);
+
+  @override
+  List<Object?> get props => [offers];
+}
+
 class OfferDetailsLoading extends OfferDetailsState {
   @override
   List<Object?> get props => [];
@@ -34,9 +43,32 @@ class OfferDetailsLoaded extends OfferDetailsState with EquatableMixin {
   final Catch catchItem;
   final Fisher fisher;
 
-  const OfferDetailsLoaded(this.offer, this.catchItem, this.fisher);
+  // 🆕 ADDED: Transient identifier for one-time success messages
+  final String? successMessageId;
 
-  // 2. 🔑 Change to List<Object?> here as well.
+  const OfferDetailsLoaded(
+    this.offer,
+    this.catchItem,
+    this.fisher, {
+    this.successMessageId, // 🔑 Include in constructor
+  });
+
+  // 🔑 Updated to include the new field
   @override
-  List<Object?> get props => [offer, catchItem, fisher];
+  List<Object?> get props => [offer, catchItem, fisher, successMessageId];
+
+  // 🆕 ADDED: copyWith for easily generating new states
+  OfferDetailsLoaded copyWith({
+    Offer? offer,
+    Catch? catchItem,
+    Fisher? fisher,
+    String? successMessageId,
+  }) {
+    return OfferDetailsLoaded(
+      offer ?? this.offer,
+      catchItem ?? this.catchItem,
+      fisher ?? this.fisher,
+      successMessageId: successMessageId,
+    );
+  }
 }

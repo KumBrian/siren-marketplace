@@ -7,6 +7,7 @@ import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/message_card.dart';
@@ -17,8 +18,6 @@ import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.da
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
 
 const String CURRENT_FISHER_ID = 'fisher_id_1';
-
-// -----------------------------------------------------------
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -41,10 +40,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
         // 1. Apply Filtering Logic
         final filteredOffers = allOffers.where((offer) {
-          if (filterState.selectedStatuses.isEmpty) {
+          if (filterState.activeStatuses.isEmpty) {
             return true;
           }
-          return filterState.selectedStatuses.contains(
+          return filterState.activeStatuses.contains(
             offer.status.name.capitalize(),
           );
         }).toList();
@@ -54,7 +53,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           final dateA = DateTime.parse(a.dateCreated);
           final dateB = DateTime.parse(b.dateCreated);
 
-          if (filterState.sortBy == "ascending") {
+          if (filterState.activeSortBy == "ascending") {
             return dateA.compareTo(dateB);
           } else {
             return dateB.compareTo(dateA);
@@ -66,15 +65,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           child: Column(
             children: [
               // SearchBar component
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(bottom: 8.0),
                 child: SearchBar(
                   hintText: "Search",
                   textStyle: WidgetStatePropertyAll(
                     TextStyle(fontSize: 16, color: AppColors.textBlue),
                   ),
-                  side: WidgetStatePropertyAll(
-                    BorderSide(color: AppColors.gray200),
+                  shape: WidgetStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
                   ),
                   leading: Icon(Icons.search, color: AppColors.textBlue),
                   elevation: WidgetStatePropertyAll(0),
@@ -129,8 +130,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final offer = filteredOffers[index];
-
-                    // 🎯 FIX 1: Use denormalized buyer data from the Offer model
                     return OfferCard(
                       offer: offer,
                       clientName: offer.buyerName,
@@ -149,9 +148,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  // ----------------------------------------------------------------------
-  // 🆕 Build method for the Messages Tab (Uses ConversationsBloc)
-  // ----------------------------------------------------------------------
   Widget _buildMessagesTab(BuildContext context) {
     return BlocBuilder<ConversationsBloc, ConversationsState>(
       builder: (context, messagesState) {
@@ -204,27 +200,47 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                   ],
                 )
-              : ListView.separated(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: allMessages.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final msg = allMessages[index];
-                    return MessageCard(
-                      // 🎯 FIX 2: Use the new ConversationPreview fields
-                      messageId: msg.id,
-                      name: msg.contactName,
-                      time: msg.lastMessageTime.toFormattedDate(),
-                      message: msg.lastMessage,
-                      unreadCount: msg.unreadCount,
-                      avatarPath: msg.contactAvatarPath,
-                      onPressed: () {
-                        context.push("/fisher/chat/${msg.id}");
+              : Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 8.0),
+                      child: SearchBar(
+                        hintText: "Search",
+                        textStyle: WidgetStatePropertyAll(
+                          TextStyle(fontSize: 16, color: AppColors.textBlue),
+                        ),
+                        shape: WidgetStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                        ),
+
+                        leading: Icon(Icons.search, color: AppColors.textBlue),
+                        elevation: WidgetStatePropertyAll(0),
+                      ),
+                    ),
+                    ListView.separated(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: allMessages.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final msg = allMessages[index];
+                        return MessageCard(
+                          messageId: msg.id,
+                          name: msg.contactName,
+                          time: msg.lastMessageTime.toFormattedDate(),
+                          message: msg.lastMessage,
+                          unreadCount: msg.unreadCount,
+                          avatarPath: msg.contactAvatarPath,
+                          onPressed: () {
+                            context.push("/fisher/chat/${msg.id}");
+                          },
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ],
                 ),
         );
       },
@@ -236,9 +252,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return BlocListener<CatchesBloc, CatchesState>(
       listener: (context, state) {
         if (state is CatchesLoaded) {
-          // Extract all Catch IDs
           final catchIds = state.catches.map((c) => c.id).toList();
-          // Dispatch event to load all offers related to these catches
           context.read<OffersBloc>().add(LoadAllFisherOffers(catchIds));
         }
       },
@@ -248,88 +262,116 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             appBar: AppBar(
               leading: const BackButton(),
               actions: [
-                // --- Filter Button Logic ---
-                IconButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      showDragHandle: true,
-                      builder: (context) {
-                        return BlocBuilder<CatchFilterCubit, CatchFilterState>(
-                          builder: (context, state) {
-                            final cubit = context.read<CatchFilterCubit>();
+                BlocBuilder<CatchFilterCubit, CatchFilterState>(
+                  builder: (context, state) {
+                    final cubit = context.read<CatchFilterCubit>();
 
-                            return Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Filter by",
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  const Text("Status"),
-                                  Text(
-                                    "Select all that apply",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.textGray,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: OfferStatus.values.map((status) {
-                                      final title = status.name.capitalize();
-
-                                      return FilterButton(
-                                        title: title,
-                                        color: AppColors.getStatusColor(status),
-                                        isSelected: state.selectedStatuses
-                                            .contains(title),
-                                        onPressed: () =>
-                                            cubit.toggleStatus(title),
-                                      );
-                                    }).toList(),
-                                  ),
-                                  const Divider(),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                    return IconButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          showDragHandle: true,
+                          builder: (context) {
+                            return BlocBuilder<
+                              CatchFilterCubit,
+                              CatchFilterState
+                            >(
+                              builder: (innerContext, innerState) {
+                                final innerCubit = innerContext
+                                    .read<CatchFilterCubit>();
+                                return Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.center,
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      TextButton(
-                                        onPressed: () {
-                                          cubit.clear();
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text(
-                                          "Reset All",
-                                          style: TextStyle(
-                                            decoration:
-                                                TextDecoration.underline,
-                                          ),
+                                      const Text(
+                                        "Filter by",
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Text("Status"),
+                                      Text(
+                                        "Select all that apply",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.textGray,
                                         ),
                                       ),
-                                      CustomButton(
-                                        title: "Apply Filters",
-                                        onPressed: () => Navigator.pop(context),
+                                      const SizedBox(height: 12),
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: OfferStatus.values.map((
+                                          status,
+                                        ) {
+                                          final title =
+                                              status.name
+                                                  .substring(0, 1)
+                                                  .toUpperCase() +
+                                              status.name.substring(1);
+
+                                          return FilterButton(
+                                            title: title,
+                                            color: AppColors.getStatusColor(
+                                              status,
+                                            ),
+                                            isSelected: innerState
+                                                .pendingStatuses
+                                                .contains(title),
+                                            onPressed: () =>
+                                                innerCubit.toggleStatus(title),
+                                          );
+                                        }).toList(),
+                                      ),
+                                      const Divider(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          TextButton(
+                                            onPressed: () {
+                                              innerCubit.clearAllFilters();
+                                              innerContext.pop();
+                                            },
+                                            child: const Text(
+                                              "Reset All",
+                                              style: TextStyle(
+                                                decoration:
+                                                    TextDecoration.underline,
+                                              ),
+                                            ),
+                                          ),
+                                          CustomButton(
+                                            title: "Apply Filters",
+                                            onPressed: () {
+                                              innerCubit.applyFilters();
+                                              innerContext.pop();
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
+                                );
+                              },
                             );
                           },
                         );
                       },
+                      icon: state.activeStatuses.isEmpty
+                          ? const Icon(CustomIcons.filter)
+                          : Badge(
+                              label: Text(
+                                state.activeStatuses.length.toString(),
+                              ),
+                              child: const Icon(CustomIcons.filter),
+                            ),
                     );
                   },
-                  icon: const Icon(Icons.filter_alt_outlined),
                 ),
               ],
               title: const Text(
