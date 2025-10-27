@@ -149,21 +149,12 @@ class _MultiSelectDropdownState<T> extends State<MultiSelectDropdown<T>> {
                               final isSelected = _selected.any(
                                 (e) => _equals(e, option),
                               );
-
-                              return CheckboxListTile(
-                                dense: true,
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                checkboxShape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                title: Text(widget.optionLabel(option)),
-                                value: isSelected,
-                                onChanged: (checked) {
+                              return InkWell(
+                                onTap: () {
                                   setInnerState(() {
-                                    if (checked == true && !isSelected) {
+                                    if (!isSelected) {
                                       _selected = [..._selected, option];
-                                    } else if (checked == false && isSelected) {
+                                    } else {
                                       _selected = _selected
                                           .where((e) => !_equals(e, option))
                                           .toList();
@@ -171,6 +162,50 @@ class _MultiSelectDropdownState<T> extends State<MultiSelectDropdown<T>> {
                                   });
                                   widget.onChanged(_selected);
                                 },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                    vertical: 4.0,
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Checkbox(
+                                        value: isSelected,
+                                        onChanged: (bool? newValue) {
+                                          setInnerState(() {
+                                            if (!isSelected) {
+                                              _selected = [
+                                                ..._selected,
+                                                option,
+                                              ];
+                                            } else {
+                                              _selected = _selected
+                                                  .where(
+                                                    (e) => !_equals(e, option),
+                                                  )
+                                                  .toList();
+                                            }
+                                          });
+                                          widget.onChanged(_selected);
+                                        },
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                      ),
+
+                                      Expanded(
+                                        child: Text(
+                                          widget.optionLabel(option),
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               );
                             },
                           ),

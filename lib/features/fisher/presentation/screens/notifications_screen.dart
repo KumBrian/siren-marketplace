@@ -61,26 +61,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         });
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 80, top: 16),
+          padding: const EdgeInsets.only(bottom: 80),
           child: Column(
             children: [
               // SearchBar component
-              Padding(
-                padding: EdgeInsets.only(bottom: 8.0),
-                child: SearchBar(
-                  hintText: "Search",
-                  textStyle: WidgetStatePropertyAll(
-                    TextStyle(fontSize: 16, color: AppColors.textBlue),
-                  ),
-                  shape: WidgetStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                  ),
-                  leading: Icon(Icons.search, color: AppColors.textBlue),
-                  elevation: WidgetStatePropertyAll(0),
-                ),
-              ),
+              // Padding(
+              //   padding: EdgeInsets.only(bottom: 8.0),
+              //   child: SearchBar(
+              //     hintText: "Search",
+              //     textStyle: WidgetStatePropertyAll(
+              //       TextStyle(fontSize: 16, color: AppColors.textBlue),
+              //     ),
+              //     shape: WidgetStateProperty.all(
+              //       RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.all(Radius.circular(12)),
+              //       ),
+              //     ),
+              //     leading: Icon(Icons.search, color: AppColors.textBlue),
+              //     elevation: WidgetStatePropertyAll(0),
+              //   ),
+              // ),
 
               // 3. Display offers or placeholder
               if (filteredOffers.isEmpty)
@@ -202,23 +202,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 )
               : Column(
                   children: [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 8.0),
-                      child: SearchBar(
-                        hintText: "Search",
-                        textStyle: WidgetStatePropertyAll(
-                          TextStyle(fontSize: 16, color: AppColors.textBlue),
-                        ),
-                        shape: WidgetStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                          ),
-                        ),
-
-                        leading: Icon(Icons.search, color: AppColors.textBlue),
-                        elevation: WidgetStatePropertyAll(0),
-                      ),
-                    ),
+                    // Padding(
+                    //   padding: EdgeInsets.only(bottom: 8.0),
+                    //   child: SearchBar(
+                    //     hintText: "Search",
+                    //     textStyle: WidgetStatePropertyAll(
+                    //       TextStyle(fontSize: 16, color: AppColors.textBlue),
+                    //     ),
+                    //     shape: WidgetStateProperty.all(
+                    //       RoundedRectangleBorder(
+                    //         borderRadius: BorderRadius.all(Radius.circular(12)),
+                    //       ),
+                    //     ),
+                    //
+                    //     leading: Icon(Icons.search, color: AppColors.textBlue),
+                    //     elevation: WidgetStatePropertyAll(0),
+                    //   ),
+                    // ),
                     ListView.separated(
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,

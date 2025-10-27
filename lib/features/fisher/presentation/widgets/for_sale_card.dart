@@ -38,6 +38,11 @@ class ForSaleCard extends StatelessWidget {
 
                       height: 120,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        "assets/images/shrimp.jpg",
+                        height: 120,
+                        width: 120,
+                      ),
                     )
                   : Image.asset(
                       catchData.images[0],

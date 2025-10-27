@@ -287,6 +287,14 @@ class _CatchDetailsState extends State<CatchDetails>
                                         width: 60,
                                         height: 60,
                                         fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stacktrace) =>
+                                                Image.asset(
+                                                  'assets/images/shrimp.jpg',
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                ),
                                       )
                                     : Image.asset(
                                         selectedCatch.images.isNotEmpty
@@ -626,176 +634,218 @@ class _CatchDetailsState extends State<CatchDetails>
                         ),
 
                         // --- Filters ---
-                        BlocBuilder<CatchFilterCubit, CatchFilterState>(
-                          builder: (context, state) {
-                            final cubit = context.read<CatchFilterCubit>();
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () {
-                                    // Filter Modal logic
-                                    showModalBottomSheet(
-                                      context: context,
-                                      showDragHandle: true,
-                                      builder: (context) {
-                                        return BlocBuilder<
-                                          CatchFilterCubit,
-                                          CatchFilterState
-                                        >(
-                                          builder: (innerContext, innerState) {
-                                            final innerCubit = innerContext
-                                                .read<CatchFilterCubit>();
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 16,
-                                                right: 16,
-                                                top: 16,
-                                                bottom: 32,
-                                              ),
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  const Text(
-                                                    "Filter by",
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 12),
-                                                  const Text("Status"),
-                                                  Text(
-                                                    "Select all that apply",
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: AppColors.textGray,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 12),
-                                                  Wrap(
-                                                    spacing: 8,
-                                                    runSpacing: 8,
-                                                    children: OfferStatus.values.map((
-                                                      status,
-                                                    ) {
-                                                      final title =
-                                                          status.name
-                                                              .substring(0, 1)
-                                                              .toUpperCase() +
-                                                          status.name.substring(
-                                                            1,
-                                                          );
-                                                      return FilterButton(
-                                                        title: title,
-                                                        color:
-                                                            AppColors.getStatusColor(
-                                                              status,
-                                                            ),
-                                                        isSelected: innerState
-                                                            .pendingStatuses
-                                                            .contains(title),
-                                                        onPressed: () =>
-                                                            innerCubit
-                                                                .toggleStatus(
-                                                                  title,
-                                                                ),
-                                                      );
-                                                    }).toList(),
-                                                  ),
-                                                  const Divider(),
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          innerCubit
-                                                              .clearAllFilters();
-                                                          innerContext.pop();
-                                                        },
-                                                        child: const Text(
-                                                          "Reset All",
+                        // Locate the section labeled: // --- Filters ---
+
+                        // --- Filters ---
+                        // --- Filters ---
+                        AnimatedBuilder(
+                          animation: _tabController,
+                          builder: (context, child) {
+                            // 🔑 The Row will now always return, but its contents are conditional.
+                            return BlocBuilder<
+                              CatchFilterCubit,
+                              CatchFilterState
+                            >(
+                              builder: (context, state) {
+                                final cubit = context.read<CatchFilterCubit>();
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    // 1. FILTER BUTTON: Only show on the Offers tab (index 0)
+                                    if (_tabController.index == 0)
+                                      TextButton(
+                                        onPressed: () {
+                                          // Filter Modal logic
+                                          showModalBottomSheet(
+                                            context: context,
+                                            showDragHandle: true,
+                                            builder: (context) {
+                                              return BlocBuilder<
+                                                CatchFilterCubit,
+                                                CatchFilterState
+                                              >(
+                                                builder: (innerContext, innerState) {
+                                                  final innerCubit =
+                                                      innerContext
+                                                          .read<
+                                                            CatchFilterCubit
+                                                          >();
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          left: 16,
+                                                          right: 16,
+                                                          top: 16,
+                                                          bottom: 32,
+                                                        ),
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        const Text(
+                                                          "Filter by",
                                                           style: TextStyle(
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .underline,
+                                                            fontSize: 12,
                                                           ),
                                                         ),
-                                                      ),
-                                                      CustomButton(
-                                                        title: "Apply Filters",
-                                                        onPressed: () {
-                                                          innerCubit
-                                                              .applyFilters();
-                                                          innerContext.pop();
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
+                                                        const SizedBox(
+                                                          height: 12,
+                                                        ),
+                                                        const Text("Status"),
+                                                        Text(
+                                                          "Select all that apply",
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: AppColors
+                                                                .textGray,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 12,
+                                                        ),
+                                                        Wrap(
+                                                          spacing: 8,
+                                                          runSpacing: 8,
+                                                          children: OfferStatus.values.map((
+                                                            status,
+                                                          ) {
+                                                            final title =
+                                                                status.name
+                                                                    .substring(
+                                                                      0,
+                                                                      1,
+                                                                    )
+                                                                    .toUpperCase() +
+                                                                status.name
+                                                                    .substring(
+                                                                      1,
+                                                                    );
+                                                            return FilterButton(
+                                                              title: title,
+                                                              color:
+                                                                  AppColors.getStatusColor(
+                                                                    status,
+                                                                  ),
+                                                              isSelected: innerState
+                                                                  .pendingStatuses
+                                                                  .contains(
+                                                                    title,
+                                                                  ),
+                                                              onPressed: () =>
+                                                                  innerCubit
+                                                                      .toggleStatus(
+                                                                        title,
+                                                                      ),
+                                                            );
+                                                          }).toList(),
+                                                        ),
+                                                        const Divider(),
+                                                        Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                innerCubit
+                                                                    .clearAllFilters();
+                                                                innerContext
+                                                                    .pop();
+                                                              },
+                                                              child: const Text(
+                                                                "Reset All",
+                                                                style: TextStyle(
+                                                                  decoration:
+                                                                      TextDecoration
+                                                                          .underline,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            CustomButton(
+                                                              title:
+                                                                  "Apply Filters",
+                                                              onPressed: () {
+                                                                innerCubit
+                                                                    .applyFilters();
+                                                                innerContext
+                                                                    .pop();
+                                                              },
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          );
+                                        },
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              CustomIcons.filter,
+                                              size: 20,
+                                              color: AppColors.textBlue,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              "Filter${state.totalFilters == 0 ? "" : "(${state.totalFilters})"}",
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w400,
+                                                fontSize: 16,
+                                                color: AppColors.textBlue,
                                               ),
-                                            );
-                                          },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                    // Add spacing only if the filter button is present
+                                    if (_tabController.index == 0)
+                                      const SizedBox(width: 10),
+
+                                    // 2. DATE SORT BUTTON: Show on both tabs
+                                    TextButton(
+                                      onPressed: () {
+                                        // This logic is driven by CatchFilterCubit, which should sort both lists
+                                        // (Offers list in the Offers tab, and Messages list in the Messages tab).
+                                        cubit.setSort(
+                                          state.activeSortBy == "ascending"
+                                              ? "descending"
+                                              : "ascending",
                                         );
                                       },
-                                    );
-                                  },
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        CustomIcons.filter,
-                                        size: 20,
-                                        color: AppColors.textBlue,
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            state.activeSortBy == "ascending"
+                                                ? Icons.arrow_upward_outlined
+                                                : Icons.arrow_downward_outlined,
+                                            size: 20,
+                                            color: AppColors.textBlue,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            "Date",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 16,
+                                              color: AppColors.textBlue,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        "Filter${state.totalFilters == 0 ? "" : "(${state.totalFilters})"}",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 16,
-                                          color: AppColors.textBlue,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                TextButton(
-                                  onPressed: () {
-                                    cubit.setSort(
-                                      state.activeSortBy == "ascending"
-                                          ? "descending"
-                                          : "ascending",
-                                    );
-                                  },
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        state.activeSortBy == "ascending"
-                                            ? Icons.arrow_upward_outlined
-                                            : Icons.arrow_downward_outlined,
-                                        size: 20,
-                                        color: AppColors.textBlue,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        "Date",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 16,
-                                          color: AppColors.textBlue,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                                    ),
+                                  ],
+                                );
+                              },
                             );
                           },
                         ),
