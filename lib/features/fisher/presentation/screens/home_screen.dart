@@ -83,7 +83,7 @@ class FisherHome extends StatelessWidget {
         appBar: AppBar(
           leading: IconButton(
             onPressed: () => context.go("/fisher/market-trends"),
-            icon: Icon(Icons.bar_chart, color: AppColors.textBlue),
+            icon: Icon(CustomIcons.markettrends, color: AppColors.textBlue),
           ),
           title: Image.asset(
             "assets/icons/siren_logo.png",

@@ -17,10 +17,9 @@ class ProductsFilterCubit extends Cubit<ProductsFilterState> {
   }
 
   void setMinWeight(double? minWeight) {
-    emit(state.copyWith(minWeight: minWeight ?? 0, applyFilters: false));
+    emit(state.copyWith(minWeight: minWeight, applyFilters: false));
   }
 
-  // Independent sort setters — allow both to exist together
   void setSortPrice(SortBy sortBy) {
     emit(state.copyWith(sortByPrice: sortBy, applyFilters: false));
   }
@@ -29,22 +28,22 @@ class ProductsFilterCubit extends Cubit<ProductsFilterState> {
     emit(state.copyWith(sortByDate: sortBy, applyFilters: false));
   }
 
-  // Clear all filters and sorts
   void clear() {
-    emit(
-      state.copyWith(
-        selectedSpecies: [],
-        selectedLocations: [],
-        minWeight: null,
-        sortByDate: SortBy.none,
-        sortByPrice: SortBy.none,
-        applyFilters: false,
-      ),
-    );
+    emit(const ProductsFilterState());
   }
 
-  // Trigger actual filtering in FilteredProductsCubit
   void applyFilters() {
-    emit(state.copyWith(applyFilters: true));
+    final updatedState = _recalculateFilters(
+      state,
+    ).copyWith(applyFilters: true);
+    emit(updatedState);
+  }
+
+  ProductsFilterState _recalculateFilters(ProductsFilterState newState) {
+    int total = 0;
+    if (newState.selectedSpecies.isNotEmpty) total++;
+    if (newState.selectedLocations.isNotEmpty) total++;
+    if (newState.minWeight > 0) total++;
+    return newState.copyWith(totalFilters: total);
   }
 }

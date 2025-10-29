@@ -7,6 +7,7 @@ class ProductsFilterState extends Equatable {
   final SortBy sortByPrice;
   final SortBy sortByDate;
   final bool applyFilters;
+  final int totalFilters;
 
   const ProductsFilterState({
     this.selectedSpecies = const [],
@@ -15,6 +16,7 @@ class ProductsFilterState extends Equatable {
     this.sortByPrice = SortBy.none,
     this.sortByDate = SortBy.none,
     this.applyFilters = false,
+    this.totalFilters = 0,
   });
 
   ProductsFilterState copyWith({
@@ -24,6 +26,7 @@ class ProductsFilterState extends Equatable {
     SortBy? sortByPrice,
     SortBy? sortByDate,
     bool? applyFilters,
+    int? totalFilters,
   }) {
     return ProductsFilterState(
       selectedSpecies: selectedSpecies ?? this.selectedSpecies,
@@ -32,6 +35,7 @@ class ProductsFilterState extends Equatable {
       sortByPrice: sortByPrice ?? this.sortByPrice,
       sortByDate: sortByDate ?? this.sortByDate,
       applyFilters: applyFilters ?? this.applyFilters,
+      totalFilters: totalFilters ?? this.totalFilters,
     );
   }
 
@@ -43,5 +47,6 @@ class ProductsFilterState extends Equatable {
     sortByPrice,
     sortByDate,
     applyFilters,
+    totalFilters,
   ];
 }

@@ -4,6 +4,7 @@ import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
@@ -11,8 +12,10 @@ import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
+import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 
@@ -206,7 +209,16 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                           const SizedBox(height: 8),
                           Row(
                             mainAxisSize: MainAxisSize.min,
+                            spacing: 4,
                             children: [
+                              Text(
+                                offer.status.name.capitalize(),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.getStatusColor(offer.status),
+                                ),
+                              ),
                               Container(
                                 width: 10,
                                 height: 10,
@@ -218,15 +230,6 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                offer.status.name.capitalize(),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.getStatusColor(offer.status),
-                                ),
-                              ),
                             ],
                           ),
                         ],
@@ -236,32 +239,42 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                 ),
                 const SizedBox(height: 16),
 
-                InfoTable(
-                  rows: [
-                    // 🆕 Using catchSnapshot properties
-                    InfoRow(
-                      label: "Market",
-                      value: catchSnapshot.market.capitalize(),
-                    ),
-                    InfoRow(
-                      label: "Species",
-                      value: catchSnapshot.species.name.capitalize(),
-                    ),
-                    InfoRow(
-                      label: "Size",
-                      value: catchSnapshot.size.capitalize(),
-                    ),
+                SectionHeader("Seller"),
+                const SizedBox(height: 8),
 
-                    // From Offer
-                    InfoRow(
-                      label: "Weight",
-                      value: "${offer.weight.toStringAsFixed(1)} Kg",
-                    ),
-                    InfoRow(
-                      label: "Total Price",
-                      value: "${offer.price.toStringAsFixed(0)} CFA",
-                    ),
-                  ],
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.gray200),
+                  ),
+                  child: InfoTable(
+                    rows: [
+                      // 🆕 Using catchSnapshot properties
+                      InfoRow(
+                        label: "Market",
+                        value: catchSnapshot.market.capitalize(),
+                      ),
+                      InfoRow(
+                        label: "Species",
+                        value: catchSnapshot.species.name.capitalize(),
+                      ),
+                      InfoRow(
+                        label: "Size",
+                        value: catchSnapshot.size.capitalize(),
+                      ),
+
+                      // From Offer
+                      InfoRow(
+                        label: "Weight",
+                        value: "${offer.weight.toStringAsFixed(1)} Kg",
+                      ),
+                      InfoRow(
+                        label: "Total Price",
+                        value: "${offer.price.toStringAsFixed(0)} CFA",
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -323,120 +336,146 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                 ),
                 const SizedBox(height: 16),
 
-                // Action Buttons (status now comes from the offer)
-                offer.status == OfferStatus.completed
-                    ? Container()
-                    : Row(
-                        children: [
-                          Expanded(
-                            child: CustomButton(
-                              title: "Message",
-                              onPressed: () {},
-                              icon: Icons.chat_bubble_outline_rounded,
-                              bordered: true,
+                // --- ACTION BUTTONS SECTION ---
+                if (offer.status == OfferStatus.rejected) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      title: "Marketplace",
+                      onPressed: () {},
+                      icon: Icons.storefront,
+                      bordered: true,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      title: "Make New Offer",
+                      onPressed: () {},
+                    ),
+                  ),
+                ],
+
+                if (offer.status == OfferStatus.accepted ||
+                    offer.status == OfferStatus.pending) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      title: "Call Seller",
+                      onPressed: () {},
+                      hugeIcon: HugeIcons.strokeRoundedCall02,
+                      bordered: true,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      title: "Message Seller",
+                      onPressed: () {},
+                      icon: CustomIcons.chatbubble,
+                    ),
+                  ),
+                ],
+
+                if (offer.status == OfferStatus.completed) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      title: "Rate the fisher",
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.white,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(24),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: CustomButton(
-                              title: "Call",
-                              onPressed: () {},
-                              icon: Icons.phone_outlined,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                const SizedBox(height: 16),
-
-                // Final Action Button (status now comes from the offer)
-                offer.status == OfferStatus.completed
-                    ? CustomButton(
-                        title: "Rate the fisher",
-                        onPressed: () {
-                          // ... (Modal logic remains the same)
-                          showModalBottomSheet(
-                            context: context,
-                            builder: (context) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                  vertical: 32,
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          onPressed: context.pop,
-                                          icon: const Icon(Icons.close),
-                                        ),
-                                        const Text(
-                                          "Give a Review",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 32,
-                                            color: AppColors.textBlue,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 16),
-
-                                    Center(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: List.generate(5, (index) {
-                                          return const Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 4.0,
-                                            ),
-                                            child: Icon(
-                                              Icons.star,
-                                              size: 32,
-                                              color: AppColors.shellOrange,
-                                            ),
-                                          );
-                                        }),
+                          builder: (context) {
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                bottom: MediaQuery.of(
+                                  context,
+                                ).viewInsets.bottom,
+                                left: 16,
+                                right: 16,
+                                top: 24,
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: context.pop,
+                                        icon: const Icon(Icons.close),
                                       ),
-                                    ),
-                                    const SizedBox(height: 16),
-
-                                    const TextField(
-                                      maxLines: 5,
-                                      decoration: InputDecoration(
-                                        hintText: "Write a review",
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(16),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        "Give a Review",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 24,
+                                          color: AppColors.textBlue,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Center(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: List.generate(5, (index) {
+                                        return const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 4.0,
                                           ),
+                                          child: Icon(
+                                            Icons.star,
+                                            size: 32,
+                                            color: AppColors.shellOrange,
+                                          ),
+                                        );
+                                      }),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  const TextField(
+                                    maxLines: 4,
+                                    decoration: InputDecoration(
+                                      hintText: "Write a review...",
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(16),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 16),
-
-                                    CustomButton(
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: CustomButton(
                                       title: "Submit Review",
                                       onPressed: () {},
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      )
-                    : CustomButton(
-                        title: "Mark as Completed",
-                        onPressed: () {
-                          // ⚠️ TODO: Call a method in BuyerCubit/OrderCubit to update the order status
-                        },
-                      ),
-                const SizedBox(height: 16),
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

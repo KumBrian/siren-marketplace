@@ -1,8 +1,6 @@
-import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:siren_marketplace/bloc/cubits/bottom_nav_cubit/bottom_nav_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
@@ -14,6 +12,7 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
+import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
@@ -81,44 +80,56 @@ class _ProductDetailsState extends State<ProductDetails> {
     _priceController.clear();
     _pricePerKgController.clear();
 
-    void calculatePricePerKg() {
+    // Prefill with the catch's current price per kg
+    final initialPricePerKg = c.pricePerKg; // must exist in your Catch model
+    _pricePerKgController.text = initialPricePerKg.toStringAsFixed(2);
+
+    bool userEditingTotal = false;
+
+    void updateTotalFromWeight() {
+      if (userEditingTotal) return; // prevent loop
       final weight = double.tryParse(_weightController.text);
-      final totalPrice = double.tryParse(_priceController.text);
-      if (weight != null && weight > 0 && totalPrice != null) {
-        // FIX: Use 2 decimal places for price/currency
-        _pricePerKgController.text = (totalPrice / weight).toStringAsFixed(2);
+      final pricePerKg = double.tryParse(_pricePerKgController.text);
+      if (weight != null && pricePerKg != null) {
+        final total = weight * pricePerKg;
+        _priceController.text = total.toStringAsFixed(2);
       }
     }
 
-    void calculateWeight() {
-      final totalPrice = double.tryParse(_priceController.text);
-      final pricePerKg = double.tryParse(_pricePerKgController.text);
-      if (pricePerKg != null && pricePerKg > 0 && totalPrice != null) {
-        // Weight is typically 1 decimal place
-        _weightController.text = (totalPrice / pricePerKg).toStringAsFixed(1);
+    void updatePricePerKgFromTotal() {
+      final weight = double.tryParse(_weightController.text);
+      final total = double.tryParse(_priceController.text);
+      if (weight != null && weight > 0 && total != null) {
+        final pricePerKg = total / weight;
+        _pricePerKgController.text = pricePerKg.toStringAsFixed(2);
       }
     }
 
     _weightController.addListener(() {
-      if (_priceController.text.isNotEmpty) {
-        calculatePricePerKg();
-      }
+      updateTotalFromWeight();
     });
 
     _priceController.addListener(() {
-      if (_weightController.text.isNotEmpty) {
-        calculatePricePerKg();
-      } else if (_pricePerKgController.text.isNotEmpty) {
-        calculateWeight();
-      }
+      // mark manual edit of total
+      userEditingTotal = true;
+      updatePricePerKgFromTotal();
+      // short delay to reset flag after editing burst
+      Future.delayed(const Duration(milliseconds: 200), () {
+        userEditingTotal = false;
+      });
     });
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         contentPadding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         constraints: BoxConstraints(
-          minWidth: MediaQuery.of(context).size.width,
+          // Make it stretch proportionally on mobile and desktop
+          maxWidth: MediaQuery.of(context).size.width * 0.9,
+          minWidth: MediaQuery.of(context).size.width * 0.8,
         ),
         title: Align(
           alignment: Alignment.centerRight,
@@ -129,152 +140,149 @@ class _ProductDetailsState extends State<ProductDetails> {
         ),
         content: Form(
           key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.textBlue),
-                  borderRadius: BorderRadius.circular(16),
+          child: SingleChildScrollView(
+            // in case of small devices
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.textBlue),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      NumberInputField(
+                        controller: _weightController,
+                        label: "Weight",
+                        role: Role.buyer,
+                        suffix: "Kg",
+                        validator: (value) {
+                          final weight = double.tryParse(value ?? "");
+                          if (weight == null || weight <= 0) {
+                            return "Enter valid weight";
+                          }
+                          if (weight > c.availableWeight) {
+                            return "Cannot exceed available weight";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      NumberInputField(
+                        controller: _priceController,
+                        label: "Total Price",
+                        suffix: "CFA",
+                        validator: (value) {
+                          final price = double.tryParse(value ?? "");
+                          if (price == null || price <= 0) {
+                            return "Enter valid price";
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      NumberInputField(
+                        controller: _pricePerKgController,
+                        label: "Price/Kg",
+                        suffix: "CFA",
+                        validator: (value) {
+                          final pricePerKg = double.tryParse(value ?? "");
+                          if (pricePerKg == null || pricePerKg <= 0) {
+                            return "Enter valid price per kg";
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    NumberInputField(
-                      controller: _weightController,
-                      label: "Weight",
-                      role: Role.buyer,
-                      suffix: "Kg",
-                      validator: (value) {
-                        final weight = double.tryParse(value ?? "");
-                        if (weight == null || weight <= 0) {
-                          return "Enter valid weight";
-                        }
-                        if (weight > c.availableWeight) {
-                          return "Cannot exceed available weight";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    NumberInputField(
-                      controller: _priceController,
-                      label: "Total Price",
-                      suffix: "CFA",
-                      validator: (value) {
-                        final price = double.tryParse(value ?? "");
-                        if (price == null || price <= 0) {
-                          return "Enter valid price";
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    NumberInputField(
-                      controller: _pricePerKgController,
-                      label: "Price/Kg",
-                      suffix: "CFA",
-                      validator: (value) {
-                        final pricePerKg = double.tryParse(value ?? "");
-                        if (pricePerKg == null || pricePerKg <= 0) {
-                          return "Enter valid price per kg";
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              BlocBuilder<UserBloc, UserState>(
-                builder: (context, userState) {
-                  final user = userState is UserLoaded ? userState.user : null;
-                  return CustomButton(
-                    title: "Send Offer",
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        final weight = double.tryParse(_weightController.text);
-                        final totalPrice = double.tryParse(
-                          _priceController.text,
-                        );
-                        final pricePerKg = double.tryParse(
-                          _pricePerKgController.text,
-                        );
-
-                        if (weight != null &&
-                            totalPrice != null &&
-                            pricePerKg != null) {
-                          // Dispatch the CreateOfferEvent
-                          context.read<OffersBloc>().add(
-                            CreateOfferEvent(
-                              catchId: c.id,
-                              buyerId: user!.id,
-                              fisherId: c.fisherId,
-                              price: totalPrice,
-                              weight: weight,
-                              pricePerKg: pricePerKg,
-                            ),
+                const SizedBox(height: 16),
+                BlocBuilder<UserBloc, UserState>(
+                  builder: (context, userState) {
+                    final user = userState is UserLoaded
+                        ? userState.user
+                        : null;
+                    return CustomButton(
+                      title: "Send Offer",
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          final weight = double.tryParse(
+                            _weightController.text,
                           );
-                          context.read<CatchesBloc>().add(LoadCatches());
+                          final totalPrice = double.tryParse(
+                            _priceController.text,
+                          );
+                          final pricePerKg = double.tryParse(
+                            _pricePerKgController.text,
+                          );
 
-                          context.pop(); // Close the dialog
-                          showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.textBlue,
-                                  ),
-                                  child: const Icon(
-                                    Icons.check,
-                                    color: AppColors.textWhite,
-                                  ),
-                                ),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text(
-                                      "Offer Sent",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
+                          if (weight != null &&
+                              totalPrice != null &&
+                              pricePerKg != null) {
+                            context.read<OffersBloc>().add(
+                              CreateOfferEvent(
+                                catchId: c.id,
+                                buyerId: user!.id,
+                                fisherId: c.fisherId,
+                                price: totalPrice,
+                                weight: weight,
+                                pricePerKg: pricePerKg,
+                              ),
+                            );
+                            context.read<CatchesBloc>().add(LoadCatches());
+                            context.pop();
+                            showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (ctx) {
+                                Future.delayed(Duration(seconds: 2), () {
+                                  if (ctx.mounted) Navigator.of(ctx).pop();
+                                });
+
+                                return AlertDialog(
+                                  title: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.textBlue,
+                                      border: Border.all(
                                         color: AppColors.textBlue,
+                                        width: 2,
                                       ),
                                     ),
-                                    const SizedBox(height: 16),
-                                    BlocBuilder<BottomNavCubit, int>(
-                                      builder: (context, state) {
-                                        return CustomButton(
-                                          title: "OK",
-                                          onPressed: () {
-                                            Navigator.of(
-                                              context,
-                                              rootNavigator: true,
-                                            ).popUntil(
-                                              (route) => route.isFirst,
-                                            );
-                                            context
-                                                .read<BottomNavCubit>()
-                                                .changeIndex(2);
-                                          },
-                                        );
-                                      },
+                                    child: const Icon(
+                                      Icons.check,
+                                      color: AppColors.textWhite,
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
+                                  ),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        "Offer sent successfully!",
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: AppColors.textBlue,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          }
                         }
-                      }
-                    },
-                  );
-                },
-              ),
-            ],
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -321,7 +329,18 @@ class _ProductDetailsState extends State<ProductDetails> {
         final c = catchItem;
 
         return Scaffold(
-          appBar: AppBar(leading: const BackButton()),
+          appBar: AppBar(
+            leading: const BackButton(),
+            title: const Text(
+              "Product Details",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textBlue,
+                fontSize: 24,
+              ),
+            ),
+            centerTitle: true,
+          ),
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -330,39 +349,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                 spacing: 8,
                 children: [
                   // Images
-                  SizedBox(
-                    height: 250,
-                    child: CarouselView.weighted(
-                      controller: _controller,
-                      flexWeights: const <int>[5, 1],
-                      enableSplash: true,
-                      children: c.images.map((img) {
-                        return img.contains("http")
-                            ? Image.network(img, fit: BoxFit.cover)
-                            : Image.asset(img, fit: BoxFit.cover);
-                      }).toList(),
-                      onTap: (index) {
-                        final providers = c.images.map<ImageProvider>((img) {
-                          return img.contains("http")
-                              ? NetworkImage(img)
-                              : AssetImage(img);
-                        }).toList();
-                        final multiImageProvider = MultiImageProvider(
-                          providers,
-                        );
-                        // Show image viewer
-                        showImageViewerPager(
-                          context,
-                          multiImageProvider,
-                          swipeDismissible: true,
-                          immersive: true,
-                          useSafeArea: true,
-                          doubleTapZoomable: true,
-                          backgroundColor: Colors.black.withValues(alpha: .4),
-                        );
-                      },
-                    ),
-                  ),
+                  ProductImagesCarousel(images: c.images),
 
                   SectionHeader(c.name),
                   Row(
@@ -375,7 +362,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         decoration: BoxDecoration(
                           color: AppColors.gray100,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.gray500),
+                          border: Border.all(color: AppColors.gray200),
                         ),
                         child: Center(
                           child: Text(

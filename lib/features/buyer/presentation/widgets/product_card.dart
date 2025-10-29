@@ -18,18 +18,16 @@ class ProductCard extends StatelessWidget {
         : 'https://via.placeholder.com/170/88AAFF/FFFFFF?text=Fish';
 
     return Material(
-      borderRadius: BorderRadius.circular(16),
-      color: AppColors.white100, // Explicit background color helps
+      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         splashColor: AppColors.blue700.withValues(alpha: .1),
-        // FIX: Removed the redundant inner Container that previously wrapped the Column,
-        // simplifying the widget tree and reducing layout complexity.
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
           children: [
-            // --- Image ---
             Container(
               height: 170,
               decoration: BoxDecoration(
@@ -42,46 +40,31 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
 
-            // --- Title ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: SectionHeader(catchModel.name, maxLines: 1),
-            ),
-            const SizedBox(height: 4),
-
-            // --- Price Badge ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.gray100,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.gray500),
-                    ),
-                    child: Center(
-                      child: Text(
-                        // Using the price from the Catch model
-                        "$priceDisplay CFA",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: AppColors.textBlue,
-                        ),
-                      ),
+            SectionHeader(catchModel.name, maxLines: 1, maxWidth: 170),
+            
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.gray100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.gray200),
+                  ),
+                  child: Center(
+                    child: SectionHeader(
+                      // Using the price from the Catch model
+                      "$priceDisplay CFA",
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  const Text("/Kg"),
-                ],
-              ),
+                ),
+                const SizedBox(width: 4),
+                const SectionHeader("/kg"),
+              ],
             ),
           ],
         ),

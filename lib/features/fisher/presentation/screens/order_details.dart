@@ -5,6 +5,7 @@ import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_state.dart';
 import 'package:siren_marketplace/constants/constants.dart';
@@ -698,7 +699,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                               onPressed: () => _makePhoneCall('651204966'),
                               // Using the provided phone number
                               bordered: true,
-                              icon: CustomIcons.phone,
+                              hugeIcon: HugeIcons.strokeRoundedCall02,
                             ),
                             CustomButton(
                               title: "Message Buyer",

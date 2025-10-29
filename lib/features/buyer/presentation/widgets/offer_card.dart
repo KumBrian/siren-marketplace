@@ -67,7 +67,7 @@ class OfferCard extends StatelessWidget {
         color: AppColors.textBlue.withValues(alpha: 0.1),
       ),
       child: offer.hasUpdateForBuyer
-          ? Icon(CustomIcons.moneybag, color: AppColors.textBlue)
+          ? Icon(CustomIcons.moneybag_filled, color: AppColors.textBlue)
           : HugeIcon(
               icon: HugeIconsStrokeRounded.moneyBag01,
               color: AppColors.textBlue,

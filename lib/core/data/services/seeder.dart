@@ -135,6 +135,11 @@ class CatchSeeder {
         status = CatchStatus.available;
       }
 
+      // Generate between 1–4 random unique image URLs
+      final imageCount = _rng.nextInt(4) + 1; // gives 1 to 4
+      final shuffled = List.of(_catchImageUrls)..shuffle(_rng);
+      final randomImages = shuffled.take(imageCount).toList();
+
       final c = Catch(
         id: _uuid.v4(),
         name: '${species.name} Catch ${_rng.nextInt(100)}',
@@ -147,7 +152,7 @@ class CatchSeeder {
         market: market,
         species: species,
         fisherId: fisherId,
-        images: [_catchImageUrls[_rng.nextInt(_catchImageUrls.length)]],
+        images: randomImages,
         status: status,
       );
 

@@ -85,6 +85,8 @@ class _BuyerHomeState extends State<BuyerHome> {
                 appBar: AppBar(
                   elevation: 0,
                   centerTitle: true,
+                  scrolledUnderElevation: 0,
+                  shadowColor: Colors.transparent,
                   title: Image.asset("assets/icons/siren_logo.png", width: 100),
                   actions: [
                     IconButton(
@@ -213,15 +215,37 @@ class _BuyerHomeState extends State<BuyerHome> {
         ),
         Expanded(
           flex: 1,
-          child: Material(
-            color: AppColors.white100,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              splashColor: AppColors.blue700.withAlpha(25),
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => _showFilterModal(context, allCatches),
-              child: const Icon(CustomIcons.filter),
-            ),
+          child: BlocBuilder<ProductsFilterCubit, ProductsFilterState>(
+            builder: (context, state) {
+              final hasFilters = state.totalFilters > 0;
+
+              return Badge(
+                isLabelVisible: hasFilters,
+                label: Text("${state.totalFilters}"),
+                alignment: Alignment.topRight,
+
+                backgroundColor: AppColors.blue800,
+                child: SizedBox(
+                  width: double.infinity, // locks full width of Expanded
+                  child: Material(
+                    color: AppColors.white100,
+                    borderRadius: BorderRadius.circular(16),
+                    child: InkWell(
+                      splashColor: AppColors.blue700.withAlpha(25),
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => _showFilterModal(context, allCatches),
+                      child: const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Icon(
+                          CustomIcons.filter,
+                          color: AppColors.textBlue,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],
