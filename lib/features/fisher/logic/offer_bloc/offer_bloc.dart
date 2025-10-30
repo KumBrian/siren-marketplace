@@ -161,16 +161,23 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     CounterOfferEvent event,
     Emitter<OffersState> emit,
   ) async {
+    final offer = event.previous;
+    if (offer.waitingFor != null && offer.waitingFor != event.role) {
+      emit(
+        OfferActionFailure(
+          "counter",
+          "You cannot counter right now. Waiting for ${offer.waitingFor!.name} to respond.",
+        ),
+      );
+      return;
+    }
     try {
-      // ⚠️ FIX: Repository now updates the existing offer and returns it.
       final updatedOffer = await repository.counterOffer(
-        previous: event.previous,
+        previous: offer,
         newPrice: event.newPrice,
         newWeight: event.newWeight,
         role: event.role,
       );
-
-      // 1. Emit success state with the updated offer.
       emit(OfferActionSuccess("counter", updatedOffer, null));
     } catch (e) {
       emit(OffersError("Counter failed: $e"));

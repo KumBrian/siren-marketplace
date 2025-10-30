@@ -385,6 +385,18 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                         ],
                       ),
                     ),
+
+                    if (offer.waitingFor == Role.buyer) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          title: "Counter Offer",
+                          icon: Icons.autorenew,
+                          onPressed: () {},
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
 
                     FisherDetails(fisher: fisher),

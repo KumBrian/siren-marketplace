@@ -58,6 +58,7 @@ class OfferRepository {
       hasUpdateForFisher: true,
       hasUpdateForBuyer: false,
       dateCreated: DateTime.now().toIso8601String(),
+      waitingFor: Role.fisher,
     );
 
     await db.insert(
@@ -202,6 +203,7 @@ extension OfferRepositoryActions on OfferRepository {
     final accepted = offer.copyWith(
       status: OfferStatus.accepted,
       hasUpdateForBuyer: true,
+      waitingFor: null,
     );
     await updateOffer(accepted);
 
@@ -224,6 +226,7 @@ extension OfferRepositoryActions on OfferRepository {
     final rejected = offer.copyWith(
       status: OfferStatus.rejected,
       hasUpdateForBuyer: true,
+      waitingFor: null,
     );
     await updateOffer(rejected);
   }
@@ -251,6 +254,7 @@ extension OfferRepositoryActions on OfferRepository {
       previousPricePerKg: previous.pricePerKg,
       previousPrice: previous.price,
       previousWeight: previous.weight,
+      waitingFor: role == Role.buyer ? Role.fisher : Role.buyer,
     );
     await updateOffer(updatedOffer);
     return updatedOffer;

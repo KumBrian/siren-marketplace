@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../types/converters.dart'
     show offerStatusFromString, offerStatusToString;
-import '../types/enum.dart' show OfferStatus;
+import '../types/enum.dart' show OfferStatus, Role;
 
 class Offer extends Equatable {
   final String id;
@@ -32,6 +32,8 @@ class Offer extends Equatable {
   final double buyerRating;
   final String buyerAvatarUrl;
 
+  final Role? waitingFor;
+
   const Offer({
     // Core fields, required for any offer
     required this.id,
@@ -59,6 +61,7 @@ class Offer extends Equatable {
     this.previousPrice,
     this.previousWeight,
     this.previousPricePerKg,
+    this.waitingFor,
   });
 
   @override
@@ -86,6 +89,7 @@ class Offer extends Equatable {
     buyerName,
     buyerRating,
     buyerAvatarUrl,
+    waitingFor,
   ];
 
   // Used for transactional updates (e.g., accepting or countering)
@@ -109,6 +113,7 @@ class Offer extends Equatable {
     String? buyerName,
     double? buyerRating,
     String? buyerAvatarUrl,
+    Role? waitingFor,
   }) {
     return Offer(
       id: id,
@@ -135,6 +140,7 @@ class Offer extends Equatable {
       // 🆕 UPDATED COPYWITH LOGIC
       hasUpdateForBuyer: hasUpdateForBuyer ?? this.hasUpdateForBuyer,
       hasUpdateForFisher: hasUpdateForFisher ?? this.hasUpdateForFisher,
+      waitingFor: waitingFor ?? this.waitingFor,
     );
   }
 
@@ -169,6 +175,7 @@ class Offer extends Equatable {
     'buyer_name': buyerName,
     'buyer_rating': buyerRating,
     'buyer_avatar_url': buyerAvatarUrl,
+    'waiting_for': waitingFor?.name,
   };
 
   factory Offer.fromMap(Map<String, dynamic> m) => Offer(
@@ -196,5 +203,8 @@ class Offer extends Equatable {
     buyerName: m['buyer_name'] as String? ?? '',
     buyerRating: (m['buyer_rating'] as num? ?? 0.0).toDouble(),
     buyerAvatarUrl: m['buyer_avatar_url'] as String? ?? '',
+    waitingFor: m['waiting_for'] != null
+        ? Role.values.firstWhere((r) => r.name == m['waiting_for'])
+        : null,
   );
 }

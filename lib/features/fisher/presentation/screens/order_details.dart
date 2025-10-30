@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_cubit.dart';
@@ -761,8 +762,48 @@ class _OrderDetailsState extends State<OrderDetails> {
                                                           selectedOrder,
                                                         ),
                                                       );
-                                                  context.push(
-                                                    "/fisher/congratulations/${selectedOrder.offer.id}",
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (context) {
+                                                      return AlertDialog(
+                                                        title: Container(
+                                                          height: 100,
+                                                          width: 100,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                                color: AppColors
+                                                                    .shell300,
+                                                              ),
+                                                          child: Center(
+                                                            child: SvgPicture.asset(
+                                                              "assets/icons/confetti.svg",
+                                                              width: 50,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        content: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            SectionHeader(
+                                                              "Well done!",
+                                                            ),
+                                                            SectionHeader(
+                                                              "You've completed this order.",
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        actions: [
+                                                          CustomButton(
+                                                            title: "Thanks",
+                                                            onPressed: () =>
+                                                                context.pop(),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
                                                   );
                                                 },
                                                 icon: Icons.check,

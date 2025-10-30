@@ -81,7 +81,8 @@ class DatabaseHelper {
     fisher_avatar_url TEXT NOT NULL,
     buyer_name TEXT NOT NULL,
     buyer_rating REAL NOT NULL,
-    buyer_avatar_url TEXT NOT NULL
+    buyer_avatar_url TEXT NOT NULL,
+    waiting_for TEXT
   )
 ''');
 

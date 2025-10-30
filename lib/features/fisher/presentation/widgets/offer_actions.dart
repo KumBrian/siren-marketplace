@@ -330,57 +330,60 @@ class _OfferActionsState extends State<OfferActions> {
                       bordered: true,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: BlocBuilder<UserBloc, UserState>(
-                      builder: (context, state) {
-                        if (state is UserLoaded) {
-                          final user = state.user;
-                          return CustomButton(
-                            title: "Counter-Offer",
-                            icon: Icons.autorenew_rounded,
-                            onPressed: () {
-                              showCounterOfferDialog(
-                                context: context,
-                                role: user!.role,
-                                formKey: widget.formKey,
-                                initialWeight: widget.offer.weight,
-                                initialPrice: widget.offer.price,
-                                onSubmit: (newWeight, newPrice, dialogCtx) async {
-                                  if (Navigator.of(dialogCtx).canPop()) {
-                                    Navigator.of(dialogCtx).pop();
-                                  }
 
-                                  context.read<OffersBloc>().add(
-                                    CounterOfferEvent(
-                                      widget.offer,
-                                      newPrice,
-                                      newWeight,
-                                      user.role,
-                                    ),
-                                  );
+                  if (widget.offer.waitingFor == Role.fisher) ...[
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: BlocBuilder<UserBloc, UserState>(
+                        builder: (context, state) {
+                          if (state is UserLoaded) {
+                            final user = state.user;
+                            return CustomButton(
+                              title: "Counter-Offer",
+                              icon: Icons.autorenew_rounded,
+                              onPressed: () {
+                                showCounterOfferDialog(
+                                  context: context,
+                                  role: user!.role,
+                                  formKey: widget.formKey,
+                                  initialWeight: widget.offer.weight,
+                                  initialPrice: widget.offer.price,
+                                  onSubmit: (newWeight, newPrice, dialogCtx) async {
+                                    if (Navigator.of(dialogCtx).canPop()) {
+                                      Navigator.of(dialogCtx).pop();
+                                    }
 
-                                  await showActionSuccessDialog(
-                                    dialogCtx,
-                                    message: 'Counter-Offer Sent!',
-                                    actionTitle: 'Offer details',
-                                    onAction: () {
-                                      dialogCtx.pushReplacement(
-                                        '/fisher/order-details/${widget.offer.id}',
-                                      );
-                                    },
-                                  );
-                                },
-                              );
-                            },
+                                    context.read<OffersBloc>().add(
+                                      CounterOfferEvent(
+                                        widget.offer,
+                                        newPrice,
+                                        newWeight,
+                                        user.role,
+                                      ),
+                                    );
 
-                            bordered: true,
-                          );
-                        }
-                        return Container();
-                      },
+                                    await showActionSuccessDialog(
+                                      dialogCtx,
+                                      message: 'Counter-Offer Sent!',
+                                      actionTitle: 'Offer details',
+                                      onAction: () {
+                                        dialogCtx.pushReplacement(
+                                          '/fisher/order-details/${widget.offer.id}',
+                                        );
+                                      },
+                                    );
+                                  },
+                                );
+                              },
+
+                              bordered: true,
+                            );
+                          }
+                          return Container();
+                        },
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ],
