@@ -56,11 +56,20 @@ class GetOrderById extends OrdersEvent {
   List<Object> get props => [orderId];
 }
 
-class MarkOrderAsCompleted extends OrdersEvent {
-  final Order order;
+// class MarkOrderAsCompleted extends OrdersEvent {
+//   final Order order;
+//
+//   const MarkOrderAsCompleted(this.order);
+//
+//   @override
+//   List<Object> get props => [order];
+// }
 
-  const MarkOrderAsCompleted(this.order);
+class UpdateOrder extends OrdersEvent {
+  final Order updatedOrder;
+
+  const UpdateOrder(this.updatedOrder);
 
   @override
-  List<Object> get props => [order];
+  List<Object> get props => [updatedOrder];
 }

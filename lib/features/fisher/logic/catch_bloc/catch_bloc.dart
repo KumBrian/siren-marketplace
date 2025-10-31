@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 
 part 'catch_event.dart';
@@ -92,11 +93,27 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
     Emitter<CatchesState> emit,
   ) async {
     try {
-      await repository.deleteCatch(event.catchId);
+      // 1. Perform the soft delete (update status to 'removed')
+      await repository.removeCatchFromMarketplace(event.catchId);
       emit(CatchDeletedSuccess());
+
+      // 2. Re-fetch only the catches belonging to the fisherman whose item was removed.
+      // This assumes the BLoC instance needs to know the fisherId to reload correctly.
+      // If you don't have the fisherId here, you *must* rely on event state or context.
+
+      // Assuming you can get the fisherId or we reload all and filter.
+      // Sticking to your original pattern (reload all) but fixing the UI filter:
+
       final updatedCatchMaps = await repository.getAllCatchMaps();
       final updatedCatches = await _assembleCatches(updatedCatchMaps);
-      emit(CatchesLoaded(updatedCatches));
+      final marketCatches = updatedCatches
+          .where(
+            (c) =>
+                c.status != CatchStatus.removed &&
+                c.status != CatchStatus.expired,
+          )
+          .toList();
+      emit(CatchesLoaded(marketCatches));
     } catch (e) {
       emit(CatchesError('Failed to delete catch: $e'));
     }

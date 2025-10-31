@@ -218,25 +218,28 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getCatchMapsByFisherId(
-    String fisherId,
-  ) async {
-    final db = await database;
-    return await db.query(
-      'catches',
-      where: 'fisher_id = ?',
-      whereArgs: [fisherId],
-      orderBy: 'date_created DESC',
-    );
-  }
-
-  // --- Fetch available catches for the marketplace ---
   Future<List<Map<String, dynamic>>> getCatchMapsForMarket() async {
     final db = await database;
     return await db.query(
       'catches',
-      where: 'status = ?',
-      whereArgs: [CatchStatus.available.name],
+      where: 'status = ? OR status = ?',
+      // Only show 'available'
+      whereArgs: [CatchStatus.available.name, CatchStatus.soldOut.name],
+      // Filter out 'removed' and 'expired'
+      orderBy: 'date_created DESC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getCatchMapsByFisherId(
+    String fisherId,
+  ) async {
+    final db = await database;
+    // Fisher needs to see ALL their catches, including removed/expired/sold out.
+    // This query should remain as-is:
+    return await db.query(
+      'catches',
+      where: 'fisher_id = ?',
+      whereArgs: [fisherId],
       orderBy: 'date_created DESC',
     );
   }

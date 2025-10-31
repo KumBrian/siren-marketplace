@@ -20,7 +20,8 @@ Key changes:
       counter logic which permitted the fisher make multiple counters. So now, when an offer or
       counter is made, the `waitingFor` holds the role that has to take the next step. There is
       currently no flow to show the buyer actions for offers. i.e for accepting, rejecting and
-      countering offers. Right now, only the buyer can do those actions. I added comments for @Ganna on this.
+      countering offers. Right now, only the buyer can do those actions. I added comments for @Ganna
+      on this.
     - Refactored the action buttons on `BuyerOfferDetails` and `OrderDetails` to be context-aware,
       showing relevant actions (e.g., "Make New Offer", "Call Seller", "Rate Fisher") based on the
       offer's status.
@@ -31,3 +32,6 @@ Key changes:
 - Data Seeding:
     - Updated the seeder to assign a random number of images (1-4) to each generated `Catch`, making
       test data more realistic.
+
+Need To FIX:
+- Offers and Orders bloc inconsistencies

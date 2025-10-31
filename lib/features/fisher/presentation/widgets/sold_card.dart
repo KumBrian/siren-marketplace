@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
 
 class SoldCard extends StatelessWidget {
   const SoldCard({
@@ -128,11 +129,13 @@ class SoldCard extends StatelessWidget {
                           ],
                         ),
                         // Assuming this notification icon indicates a new/unhandled status
-                        const Icon(
-                          Icons.notifications,
-                          color: AppColors.fail500,
-                          size: 16,
-                        ),
+                        if (offer.status != OfferStatus.completed) ...[
+                          const Icon(
+                            Icons.notifications,
+                            color: AppColors.fail500,
+                            size: 16,
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 8),

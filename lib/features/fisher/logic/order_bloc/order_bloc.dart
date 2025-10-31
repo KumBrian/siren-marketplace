@@ -1,12 +1,8 @@
-import 'dart:convert';
-
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/models/order.dart';
-import 'package:siren_marketplace/core/types/enum.dart'; // Import OfferStatus enum
 import 'package:siren_marketplace/features/fisher/data/catch_repository.dart'; // Import CatchRepository
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
@@ -27,12 +23,13 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     this.userRepository,
     this.catchRepository, // Inject CatchRepository
   ) : super(OrdersInitial()) {
+    print('OrdersBloc created');
     on<LoadOrders>(_onLoadOrders);
     on<LoadAllFisherOrders>(_onLoadAllFisherOrders);
     on<AddOrder>(_onAddOrder);
     on<DeleteOrderEvent>(_onDeleteOrder);
     on<GetOrderByOfferId>(_onGetOrderByOfferId);
-    on<MarkOrderAsCompleted>(_onMarkOrderAsCompleted); // New handler
+    // on<MarkOrderAsCompleted>(_onMarkOrderAsCompleted); // New handler
 
     // Previous Fix: Removed generic OrdersLoading()
     on<GetOrderById>((event, emit) async {
@@ -46,6 +43,17 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
         }
       } catch (e) {
         emit(OrdersError('Failed to fetch order: $e'));
+      }
+    });
+
+    on<UpdateOrder>((event, emit) {
+      if (state is OrdersLoaded) {
+        final current = (state as OrdersLoaded).orders;
+        final updatedList = current.map((order) {
+          return order.id == event.updatedOrder.id ? event.updatedOrder : order;
+        }).toList();
+
+        emit(OrdersLoaded(updatedList));
       }
     });
   }
@@ -224,60 +232,60 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     }
   }
 
-  Future<void> _onMarkOrderAsCompleted(
-    MarkOrderAsCompleted event,
-    Emitter<OrdersState> emit,
-  ) async {
-    emit(OrdersLoading());
-    try {
-      final order = event.order;
-
-      // 1. Update Offer status to completed
-      final updatedOffer = order.offer.copyWith(status: OfferStatus.completed);
-      await offerRepository.updateOffer(updatedOffer);
-
-      // 2. Update Catch available weight
-      final double acceptedWeight = order.offer.weight;
-      final originalCatch = await catchRepository.getCatchById(
-        order.offer.catchId,
-      );
-
-      if (originalCatch == null) {
-        throw Exception('Original catch not found for order completion.');
-      }
-
-      final newAvailableWeight = originalCatch.availableWeight - acceptedWeight;
-      final updatedCatch = originalCatch.copyWith(
-        availableWeight: newAvailableWeight > 0 ? newAvailableWeight : 0,
-        status: newAvailableWeight <= 0
-            ? CatchStatus.sold
-            : originalCatch.status, // Mark as sold if weight is 0 or less
-      );
-      await catchRepository.updateCatch(updatedCatch);
-
-      // 3. Re-create catchSnapshotJson from the updatedCatch
-      // Ensure the snapshot includes the accepted transaction details
-      final Map<String, dynamic> updatedCatchSnapshotMap = updatedCatch.toMap()
-        ..['accepted_weight'] = acceptedWeight
-        ..['accepted_price_per_kg'] = order.offer.pricePerKg
-        ..['accepted_price'] = order.offer.price;
-
-      final updatedCatchSnapshotJson = jsonEncode(updatedCatchSnapshotMap);
-
-      // 4. Update Order with the updated Offer and new catchSnapshotJson
-      final fullyUpdatedOrder = order.copyWith(
-        offer: updatedOffer,
-        catchSnapshotJson: updatedCatchSnapshotJson,
-        catchModel: Catch.fromMap(updatedCatchSnapshotMap),
-        // Update catchModel as well
-        dateUpdated: DateTime.now().toIso8601String(), // Update dateUpdated
-      );
-      await orderRepository.updateOrder(fullyUpdatedOrder);
-
-      // After all updates, emit the single updated order to refresh the UI
-      emit(SingleOrderLoaded(fullyUpdatedOrder));
-    } catch (e) {
-      emit(OrdersError('Failed to mark order as completed: ${e.toString()}'));
-    }
-  }
+  // Future<void> _onMarkOrderAsCompleted(
+  //   MarkOrderAsCompleted event,
+  //   Emitter<OrdersState> emit,
+  // ) async {
+  //   emit(OrdersLoading());
+  //   try {
+  //     final order = event.order;
+  //
+  //     // 1. Update Offer status to completed
+  //     final updatedOffer = order.offer.copyWith(status: OfferStatus.completed);
+  //     await offerRepository.updateOffer(updatedOffer);
+  //
+  //     // 2. Update Catch available weight
+  //     final double acceptedWeight = order.offer.weight;
+  //     final originalCatch = await catchRepository.getCatchById(
+  //       order.offer.catchId,
+  //     );
+  //
+  //     if (originalCatch == null) {
+  //       throw Exception('Original catch not found for order completion.');
+  //     }
+  //
+  //     final newAvailableWeight = originalCatch.availableWeight - acceptedWeight;
+  //     final updatedCatch = originalCatch.copyWith(
+  //       availableWeight: newAvailableWeight > 0 ? newAvailableWeight : 0,
+  //       status: newAvailableWeight <= 0
+  //           ? CatchStatus.sold
+  //           : originalCatch.status, // Mark as sold if weight is 0 or less
+  //     );
+  //     await catchRepository.updateCatch(updatedCatch);
+  //
+  //     // 3. Re-create catchSnapshotJson from the updatedCatch
+  //     // Ensure the snapshot includes the accepted transaction details
+  //     final Map<String, dynamic> updatedCatchSnapshotMap = updatedCatch.toMap()
+  //       ..['accepted_weight'] = acceptedWeight
+  //       ..['accepted_price_per_kg'] = order.offer.pricePerKg
+  //       ..['accepted_price'] = order.offer.price;
+  //
+  //     final updatedCatchSnapshotJson = jsonEncode(updatedCatchSnapshotMap);
+  //
+  //     // 4. Update Order with the updated Offer and new catchSnapshotJson
+  //     final fullyUpdatedOrder = order.copyWith(
+  //       offer: updatedOffer,
+  //       catchSnapshotJson: updatedCatchSnapshotJson,
+  //       catchModel: Catch.fromMap(updatedCatchSnapshotMap),
+  //       // Update catchModel as well
+  //       dateUpdated: DateTime.now().toIso8601String(), // Update dateUpdated
+  //     );
+  //     await orderRepository.updateOrder(fullyUpdatedOrder);
+  //
+  //     // After all updates, emit the single updated order to refresh the UI
+  //     emit(SingleOrderLoaded(fullyUpdatedOrder));
+  //   } catch (e) {
+  //     emit(OrdersError('Failed to mark order as completed: ${e.toString()}'));
+  //   }
+  // }
 }

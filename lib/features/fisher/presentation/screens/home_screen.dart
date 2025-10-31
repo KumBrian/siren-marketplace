@@ -3,17 +3,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
-import 'package:siren_marketplace/core/models/offer.dart'; // Import Offer model
+import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_nav_bar.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/order_bloc/order_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/for_sale_card.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/sold_card.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
-// Create a professional data structure for the list view
+// Professional data structure for the list view
 class SoldItemData {
   final Catch parentCatch;
   final Offer acceptedOffer;
@@ -21,38 +23,38 @@ class SoldItemData {
   SoldItemData({required this.parentCatch, required this.acceptedOffer});
 }
 
-class FisherHome extends StatelessWidget {
+class FisherHome extends StatefulWidget {
   const FisherHome({super.key});
 
-  // Helper method to calculate turnover
-  double _calculateTurnover(List<SoldItemData> soldItems) {
-    // We now fold over the pre-filtered accepted offers
-    return soldItems.fold<double>(
-      0,
-      (sum, item) => sum + item.acceptedOffer.price,
-    );
-  }
+  @override
+  State<FisherHome> createState() => _FisherHomeState();
+}
 
-  // --- New Helper Method: Filter Catches into a flat list of SoldItemData ---
-  List<SoldItemData> _getSoldItemData(List<Catch> allCatches) {
-    final soldItems = <SoldItemData>[];
+class _FisherHomeState extends State<FisherHome> {
+  @override
+  void initState() {
+    super.initState();
 
-    for (final c in allCatches) {
-      // Find all offers for this catch that represent a completed sale
-      final acceptedOffers = c.offers
-          .where(
-            (o) =>
-                o.status == OfferStatus.accepted ||
-                o.status == OfferStatus.completed,
-          )
-          .toList();
+    final userState = context.read<UserBloc>().state;
+    if (userState is UserLoaded && userState.role == Role.fisher) {
+      final fisherId = userState.user!.id;
+      final ordersBloc = context.read<OrdersBloc>();
+      final catchesBloc = context.read<CatchesBloc>();
 
-      for (final offer in acceptedOffers) {
-        // Create one SoldItemData entry for each successful offer
-        soldItems.add(SoldItemData(parentCatch: c, acceptedOffer: offer));
+      // 🔒 Only fetch if not already loaded
+      if (ordersBloc.state is OrdersInitial) {
+        ordersBloc.add(LoadAllFisherOrders(userId: fisherId));
+      }
+      if (catchesBloc.state is! CatchesLoaded) {
+        catchesBloc.add(LoadCatchesByFisher(fisherId: fisherId));
       }
     }
-    return soldItems;
+  }
+
+  double _calculateTurnover(List<Order> orders) {
+    return orders
+        .where((order) => order.offer.status == OfferStatus.completed)
+        .fold<double>(0, (sum, order) => sum + order.offer.price);
   }
 
   int _totalOffersWithUpdates(List<Catch> allCatches) {
@@ -63,22 +65,29 @@ class FisherHome extends StatelessWidget {
     return total;
   }
 
-  // --------------------------------------------------------------------------
-
-  // --- Main Build Method ---
   @override
   Widget build(BuildContext context) {
-    // 1. Use BlocListener to trigger the CatchesBloc once the User is loaded.
     return BlocListener<UserBloc, UserState>(
-      // Listen only to transitions that result in a successful load of a Fisher user.
+      listenWhen: (prev, curr) => prev != curr && curr is UserLoaded,
       listener: (context, userState) {
         if (userState is UserLoaded && userState.role == Role.fisher) {
-          // Dispatch the LoadCatchesByFisher event with the Fisher's ID
-          context.read<CatchesBloc>().add(
-            LoadCatchesByFisher(fisherId: userState.user!.id),
-          );
+          final fisherId = userState.user!.id;
+
+          final ordersBloc = context.read<OrdersBloc>();
+          final catchesBloc = context.read<CatchesBloc>();
+
+          final alreadyLoadedOrders = ordersBloc.state is OrdersLoaded;
+          final alreadyLoadedCatches = catchesBloc.state is CatchesLoaded;
+
+          if (!alreadyLoadedCatches) {
+            catchesBloc.add(LoadCatchesByFisher(fisherId: fisherId));
+          }
+          if (!alreadyLoadedOrders) {
+            ordersBloc.add(LoadAllFisherOrders(userId: fisherId));
+          }
         }
       },
+
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -94,7 +103,7 @@ class FisherHome extends StatelessWidget {
             BlocBuilder<CatchesBloc, CatchesState>(
               builder: (context, cState) {
                 if (cState is! CatchesLoaded) return const SizedBox.shrink();
-                final allCatches = (cState).catches;
+                final allCatches = cState.catches;
                 return IconButton(
                   onPressed: () => context.go("/fisher/notifications"),
                   icon: Badge(
@@ -109,10 +118,8 @@ class FisherHome extends StatelessWidget {
             ),
           ],
         ),
-        // 2. Wrap the entire body content in the UserBlocBuilder
         body: BlocBuilder<UserBloc, UserState>(
           builder: (context, userState) {
-            // A. Handle User Loading/Errors (This must be done first)
             if (userState is UserLoading) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -125,7 +132,6 @@ class FisherHome extends StatelessWidget {
               return const Center(child: Text("Access Denied: Not a Fisher."));
             }
 
-            // B. Once User is loaded, build the CatchesBloc state
             return BlocBuilder<CatchesBloc, CatchesState>(
               builder: (context, catchesState) {
                 if (catchesState is CatchesLoading) {
@@ -135,8 +141,8 @@ class FisherHome extends StatelessWidget {
                 if (catchesState is CatchesLoaded) {
                   final allCatches = catchesState.catches;
 
-                  // --- Filtering Logic (Revised) ---
                   final forSaleCatches = allCatches
+                      .where((c) => c.status == CatchStatus.available)
                       .where(
                         (c) =>
                             c.availableWeight > 0 ||
@@ -146,23 +152,15 @@ class FisherHome extends StatelessWidget {
                       )
                       .toList();
 
-                  // Get the flattened list of SoldItemData
-                  final soldItems = _getSoldItemData(allCatches);
-
-                  // Calculate turnover from the consolidated list
-                  final turnover = _calculateTurnover(soldItems);
-                  // ------------------------------------------
-
                   return Stack(
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
+                          horizontal: 16,
                           vertical: 16,
                         ),
                         child: Column(
                           children: [
-                            // Turnover Box (Remains the same)
                             Expanded(
                               flex: 1,
                               child: Container(
@@ -178,20 +176,36 @@ class FisherHome extends StatelessWidget {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       const Text("Turnover"),
-                                      Text(
-                                        formatPrice(turnover),
-                                        style: const TextStyle(
-                                          fontSize: 32,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.blue700,
-                                        ),
+                                      BlocBuilder<OrdersBloc, OrdersState>(
+                                        builder: (context, orderState) {
+                                          if (orderState is OrdersLoaded) {
+                                            final total = _calculateTurnover(
+                                              orderState.orders,
+                                            );
+                                            return Text(
+                                              formatPrice(total),
+                                              style: const TextStyle(
+                                                fontSize: 32,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.blue700,
+                                              ),
+                                            );
+                                          }
+                                          return const Text(
+                                            "--",
+                                            style: TextStyle(
+                                              fontSize: 32,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.blue700,
+                                            ),
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
                             ),
-                            // Tabs and Lists (Remains the same)
                             Expanded(
                               flex: 4,
                               child: DefaultTabController(
@@ -210,7 +224,7 @@ class FisherHome extends StatelessWidget {
                                       child: TabBarView(
                                         physics: const BouncingScrollPhysics(),
                                         children: [
-                                          // For Sale List (Logic remains the same)
+                                          // For Sale
                                           forSaleCatches.isEmpty
                                               ? Column(
                                                   mainAxisAlignment:
@@ -224,9 +238,9 @@ class FisherHome extends StatelessWidget {
                                                       ),
                                                     ),
                                                     const SizedBox(height: 8),
-                                                    Text(
+                                                    const Text(
                                                       "Your shop is empty for now.",
-                                                      style: const TextStyle(
+                                                      style: TextStyle(
                                                         color:
                                                             AppColors.textBlue,
                                                         fontWeight:
@@ -234,9 +248,9 @@ class FisherHome extends StatelessWidget {
                                                         fontSize: 16,
                                                       ),
                                                     ),
-                                                    Text(
+                                                    const Text(
                                                       "Add your first item to start selling.",
-                                                      style: const TextStyle(
+                                                      style: TextStyle(
                                                         color:
                                                             AppColors.textGray,
                                                         fontWeight:
@@ -281,87 +295,122 @@ class FisherHome extends StatelessWidget {
                                                     );
                                                   },
                                                 ),
+                                          // Sold
+                                          BlocBuilder<OrdersBloc, OrdersState>(
+                                            builder: (context, orderState) {
+                                              if (orderState is OrdersLoading) {
+                                                return const Center(
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                );
+                                              }
+                                              if (orderState is OrdersError) {
+                                                return Center(
+                                                  child: Text(
+                                                    "Error loading sales data: ${orderState.message}",
+                                                  ),
+                                                );
+                                              }
+                                              if (orderState is OrdersLoaded) {
+                                                final completedOrders = orderState
+                                                    .orders
+                                                    .where(
+                                                      (o) =>
+                                                          o.offer.status ==
+                                                              OfferStatus
+                                                                  .accepted ||
+                                                          o.offer.status ==
+                                                              OfferStatus
+                                                                  .completed,
+                                                    )
+                                                    .toList();
 
-                                          // Sold List (Revised to use soldItems)
-                                          soldItems.isEmpty
-                                              ? Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    SizedBox(
-                                                      height: 120,
-                                                      width: 120,
-                                                      child: Image.asset(
-                                                        "assets/images/no-offers.png",
+                                                if (completedOrders.isEmpty) {
+                                                  return Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      SizedBox(
+                                                        height: 120,
+                                                        width: 120,
+                                                        child: Image.asset(
+                                                          "assets/images/no-offers.png",
+                                                        ),
                                                       ),
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    Text(
-                                                      "No sales recorded yet.",
-                                                      style: const TextStyle(
-                                                        color:
-                                                            AppColors.textBlue,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 16,
+                                                      const SizedBox(height: 8),
+                                                      const Text(
+                                                        "No sales recorded yet.",
+                                                        style: TextStyle(
+                                                          color: AppColors
+                                                              .textBlue,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 16,
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Text(
-                                                      "Complete an accepted offer to see your turnover.",
-                                                      style: const TextStyle(
-                                                        color:
-                                                            AppColors.textGray,
-                                                        fontWeight:
-                                                            FontWeight.w300,
-                                                        fontSize: 12,
+                                                      const Text(
+                                                        "Complete an accepted offer to see your turnover.",
+                                                        style: TextStyle(
+                                                          color: AppColors
+                                                              .textGray,
+                                                          fontWeight:
+                                                              FontWeight.w300,
+                                                          fontSize: 12,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
-                                                )
-                                              : ListView.separated(
+                                                    ],
+                                                  );
+                                                }
+
+                                                return ListView.separated(
                                                   padding:
                                                       const EdgeInsets.only(
                                                         bottom: 80,
                                                         top: 16,
                                                       ),
-                                                  itemCount: soldItems.length,
+                                                  itemCount:
+                                                      completedOrders.length,
                                                   separatorBuilder:
                                                       (context, index) =>
                                                           const SizedBox(
                                                             height: 8,
                                                           ),
                                                   itemBuilder: (context, index) {
-                                                    final soldData =
-                                                        soldItems[index];
-
+                                                    final order =
+                                                        completedOrders[index];
                                                     final catchImageUrl =
-                                                        soldData
-                                                            .parentCatch
+                                                        order
+                                                            .catchModel
                                                             .images
                                                             .isNotEmpty
-                                                        ? soldData
-                                                              .parentCatch
+                                                        ? order
+                                                              .catchModel
                                                               .images
                                                               .first
                                                         : "";
-                                                    final catchTitle = soldData
-                                                        .parentCatch
-                                                        .name;
+                                                    final catchTitle =
+                                                        order.catchModel.name;
 
                                                     return SoldCard(
-                                                      offer: soldData
-                                                          .acceptedOffer,
-                                                      // Directly pass the accepted offer
+                                                      offer: order.offer,
                                                       catchImageUrl:
                                                           catchImageUrl,
                                                       catchTitle: catchTitle,
-                                                      onPressed: () => context.go(
-                                                        // Navigate using the accepted offer's ID, which maps to the Order ID.
-                                                        "/fisher/order-details/${soldData.acceptedOffer.id}",
+                                                      onPressed: () => context.push(
+                                                        "/fisher/order-details/${order.id}",
                                                       ),
                                                     );
                                                   },
+                                                );
+                                              }
+                                              return const Center(
+                                                child: Text(
+                                                  "Awaiting sales data...",
                                                 ),
+                                              );
+                                            },
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -372,7 +421,6 @@ class FisherHome extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Navigation Bar (Remains the same)
                       Positioned(
                         bottom: 24,
                         right: 0,
@@ -383,7 +431,6 @@ class FisherHome extends StatelessWidget {
                   );
                 }
 
-                // Default state (e.g., CatchesInitial or CatchesError)
                 return const Center(
                   child: Text(
                     "Loading catches data or initialization pending...",
@@ -393,12 +440,11 @@ class FisherHome extends StatelessWidget {
             );
           },
         ),
-        // Floating Action Button (Remains the same)
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(bottom: 50.0),
           child: FloatingActionButton(
             onPressed: () {
-              /* Navigate to Catch Creation Screen */
+              // Navigate to Catch Creation Screen
             },
             backgroundColor: AppColors.blue850,
             shape: const CircleBorder(),

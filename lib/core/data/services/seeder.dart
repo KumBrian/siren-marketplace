@@ -184,6 +184,7 @@ class CatchSeeder {
     final fisher1 = AppUser.fromMap(
       _userMaps.firstWhere((m) => m['id'] == 'fisher_id_1'),
     );
+    final Random random = Random();
     final List<Offer> allOffers = [];
     final buyers = [buyer1, buyer2];
 
@@ -222,6 +223,7 @@ class CatchSeeder {
           buyerName: buyer.name,
           buyerRating: buyer.rating,
           buyerAvatarUrl: buyer.avatarUrl,
+          waitingFor: Role.values[random.nextInt(2)],
         );
         await offerRepository.insertOffer(pendingOffer);
         allOffers.add(pendingOffer);

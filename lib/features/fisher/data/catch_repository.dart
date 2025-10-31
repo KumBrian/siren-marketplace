@@ -24,6 +24,20 @@ class CatchRepository {
     );
   }
 
+  Future<void> removeCatchFromMarketplace(String id) async {
+    final db = await dbHelper.database;
+
+    await db.update(
+      'catches',
+      {'status': CatchStatus.removed.name}, // Use the new status field
+      where: 'catch_id = ?',
+      whereArgs: [id],
+    );
+
+    // Important: We DO NOT delete related Offers or Orders here.
+    // The Catch record itself remains in the DB, just hidden from the market.
+  }
+
   Future<void> cleanUpExpiredCatches() async {
     final db = await dbHelper.database;
     final now = DateTime.now();

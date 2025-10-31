@@ -1,4 +1,4 @@
-import 'dart:async'; // Import for TimeoutException and Timer
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:easy_image_viewer/easy_image_viewer.dart';
@@ -12,8 +12,7 @@ import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_tr
 import 'package:siren_marketplace/constants/constants.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
-// Import the service locator for accessing singletons
-import 'package:siren_marketplace/core/di/injector.dart'; // Import sl
+import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/order.dart';
@@ -24,8 +23,10 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
+import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/order_bloc/order_bloc.dart';
-import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
+import 'package:siren_marketplace/features/fisher/logic/order_detail_bloc/order_detail_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderDependencies {
   final Catch catchSnapshot;
@@ -45,56 +46,40 @@ class OrderDetails extends StatefulWidget {
 
 class _OrderDetailsState extends State<OrderDetails> {
   final FocusNode _buttonFocusNode = FocusNode(debugLabel: 'Repost Menu');
-  OrdersState? _lastOrdersState;
+  OrderDetailState? _lastOrderDetailsState;
   final UserRepository _userRepository = sl<UserRepository>();
 
-  // Local future to load dependencies, which must be reset on orderId change.
   Future<OrderDependencies>? _orderDependenciesFuture;
-
-  // Retry mechanism variables: REMOVED the periodic timer as the BLoC check
-  // is now sufficient to prevent repeated data fetching from the repository.
-  // Timer? _initialLoadRetryTimer;
-  // static const int maxRetries = 5;
-  // int currentRetries = 0;
 
   @override
   void initState() {
     super.initState();
-    // Initial load
-    _startLoadProcess();
+    _dispatchGetOrder();
   }
 
-  // --- NEW: Handle orderId change when navigating from one order to another ---
   @override
   void didUpdateWidget(covariant OrderDetails oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.orderId != widget.orderId) {
-      // 1. Reset everything for the new order
       _orderDependenciesFuture = null;
-      // Removed timer cancellation and retry counter reset
-
-      // 2. Start the load process for the new ID
-      _startLoadProcess();
+      _dispatchGetOrder();
     }
-  }
-
-  // --------------------------------------------------------------------------
-
-  void _startLoadProcess() {
-    // Dispatch the initial request immediately.
-    _dispatchGetOrder();
   }
 
   void _dispatchGetOrder() {
-    // Dispatches the GetOrderById event for the current widget.orderId
-    if (widget.orderId.isNotEmpty) {
-      // 🎯 CRITICAL FIX: Use the correct event (GetOrderById) for the order's primary ID.
-      context.read<OrdersBloc>().add(GetOrderById(widget.orderId));
-      // OLD CODE: context.read<OrdersBloc>().add(GetOrderByOfferId(widget.orderId));
+    if (widget.orderId.isEmpty) return;
+
+    final bloc = context.read<OrderDetailBloc>();
+    final currentState = bloc.state;
+
+    if (currentState is OrderDetailLoaded &&
+        currentState.order.id == widget.orderId) {
+      return;
     }
+
+    bloc.add(LoadOrderDetails(widget.orderId));
   }
 
-  // New method to make a phone call
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(launchUri)) {
@@ -111,53 +96,61 @@ class _OrderDetailsState extends State<OrderDetails> {
 
   @override
   void dispose() {
-    // Removed timer cancellation
     _buttonFocusNode.dispose();
     super.dispose();
   }
 
-  // Method to fetch dependent data (Catch Snapshot and Buyer)
   Future<OrderDependencies> _loadDependencies(Order order) async {
     try {
-      // 1. Decode the Catch Snapshot JSON
       final Map<String, dynamic> catchMap = jsonDecode(order.catchSnapshotJson);
       final catchSnapshot = Catch.fromMap(catchMap);
 
-      // Added a timeout to prevent indefinite loading if the network/database call hangs
       final Map<String, dynamic>? buyerMap = await _userRepository
           .getUserMapById(order.buyerId)
-          .timeout(const Duration(seconds: 10)); // 10 second timeout
+          .timeout(const Duration(seconds: 10));
 
       Buyer? buyer;
       if (buyerMap != null) {
         buyer = Buyer.fromMap(buyerMap);
-      } else {}
+      }
 
       return OrderDependencies(catchSnapshot: catchSnapshot, buyer: buyer);
     } on TimeoutException {
-      // Catch specific timeout error and throw a clearer message
       throw Exception(
         "Dependency loading timed out after 10 seconds. Check network or repository.",
       );
     } catch (e) {
-      // Catch any other error (e.g., JSON parsing error, network failure)
       throw Exception("Failed to load order dependencies: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<OrdersBloc, OrdersState>(
-      // Listen for all state changes and log them immediately
-      listener: (context, state) {
-        if (state != _lastOrdersState) {
-          _lastOrdersState = state;
-        }
-      },
-      child: BlocBuilder<OrdersBloc, OrdersState>(
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<OrderDetailBloc, OrderDetailState>(
+          listener: (context, state) {
+            if (state is OrderMarkedCompleted) {
+              // tell OrdersBloc to update the list
+              context.read<OrdersBloc>().add(UpdateOrder(state.order));
+            }
+
+            if (state != _lastOrderDetailsState) {
+              _lastOrderDetailsState = state;
+            }
+          },
+        ),
+        BlocListener<OffersBloc, OffersState>(
+          listener: (context, offerState) {
+            if (offerState is OfferActionSuccess) {
+              context.read<OrdersBloc>().add(LoadOrders());
+            }
+          },
+        ),
+      ],
+      child: BlocBuilder<OrderDetailBloc, OrderDetailState>(
         builder: (context, state) {
-          // 1. BLoC error handling
-          if (state is OrdersError) {
+          if (state is OrderDetailError) {
             return Scaffold(
               appBar: AppBar(
                 leading: BackButton(onPressed: () => context.pop()),
@@ -175,8 +168,7 @@ class _OrderDetailsState extends State<OrderDetails> {
             );
           }
 
-          // 2. BLoC Loading/Initial State Handling
-          if (state is! SingleOrderLoaded) {
+          if (state is! OrderDetailLoaded) {
             return Scaffold(
               key: ValueKey(widget.orderId),
               appBar: AppBar(
@@ -187,10 +179,8 @@ class _OrderDetailsState extends State<OrderDetails> {
             );
           }
 
-          // 3. CRITICAL FIX: Check if the loaded order matches the current ID
           final selectedOrder = state.order;
           if (selectedOrder.id != widget.orderId) {
-            // The BLoC is holding old data. Wait for the correct data to load.
             return Scaffold(
               key: ValueKey(widget.orderId),
               appBar: AppBar(
@@ -201,15 +191,11 @@ class _OrderDetailsState extends State<OrderDetails> {
             );
           }
 
-          // 4. If ID matches, proceed to load dependencies (or use existing future)
-          // The future is already reset in didUpdateWidget when the ID changes.
           _orderDependenciesFuture ??= _loadDependencies(selectedOrder);
 
-          // 5. Use FutureBuilder for the dependent data
           return FutureBuilder<OrderDependencies>(
             future: _orderDependenciesFuture,
             builder: (context, snapshot) {
-              // --- DEPENDENCY LOADING ERROR HANDLING ---
               if (snapshot.hasError) {
                 return Scaffold(
                   appBar: AppBar(
@@ -250,11 +236,10 @@ class _OrderDetailsState extends State<OrderDetails> {
                           CustomButton(
                             title: "Retry Loading",
                             onPressed: () {
-                              // Reset the future and restart the BLoC load process
                               setState(() {
                                 _orderDependenciesFuture = null;
                               });
-                              _startLoadProcess();
+                              _dispatchGetOrder();
                             },
                             icon: Icons.refresh,
                             bordered: true,
@@ -266,18 +251,17 @@ class _OrderDetailsState extends State<OrderDetails> {
                 );
               }
 
-              // --- DEPENDENCY LOADING/WAITING STATE ---
               if (snapshot.connectionState != ConnectionState.done ||
                   snapshot.data == null) {
                 return const Scaffold(
                   body: Center(child: CircularProgressIndicator()),
                 );
               }
+
               final dependencies = snapshot.data!;
               final catchSnapshot = dependencies.catchSnapshot;
               final buyer = dependencies.buyer;
 
-              // Extract accepted details from the JSON snapshot
               final Map<String, dynamic> catchMap = jsonDecode(
                 selectedOrder.catchSnapshotJson,
               );
@@ -285,11 +269,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                   (catchMap['accepted_weight'] as num?)?.toDouble() ?? 0.0;
               final double acceptedPrice =
                   (catchMap['accepted_price'] as num?)?.toDouble() ?? 0.0;
-
-              // Assuming the Order status reflects the completion status
               final OfferStatus orderStatus = selectedOrder.offer.status;
 
-              // Placeholder/Fallback values for Buyer
               final buyerName =
                   buyer?.name ?? 'Buyer ID: ${selectedOrder.buyerId}';
               final buyerAvatar =
@@ -297,12 +278,13 @@ class _OrderDetailsState extends State<OrderDetails> {
               final buyerRating = buyer?.rating ?? 0.0;
               final buyerReviewCount = buyer?.reviewCount ?? 0;
 
-              // Safely access the first image, or use the fallback asset
               final String imageUrl = catchSnapshot.images.isNotEmpty
                   ? catchSnapshot.images.first
                   : "assets/images/prawns.jpg";
 
-              // --- UI Structure (Unchanged content) ---
+              // ---------------------------------------------------------------
+              // UI SECTION - UNCHANGED
+              // ---------------------------------------------------------------
               return Scaffold(
                 appBar: AppBar(
                   leading: BackButton(onPressed: () => context.pop()),
@@ -317,7 +299,6 @@ class _OrderDetailsState extends State<OrderDetails> {
                   actions: [
                     IconButton(
                       onPressed: () {
-                        // ... [Modal Logic for Failed Transaction Cubit - unchanged] ...
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -756,7 +737,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                                                   context
                                                       .pop(); // Dismiss modal
                                                   context
-                                                      .read<OrdersBloc>()
+                                                      .read<OrderDetailBloc>()
                                                       .add(
                                                         MarkOrderAsCompleted(
                                                           selectedOrder,

@@ -6,6 +6,14 @@ enum ChartRange { day, week, month, year }
 
 enum SortBy { newOld, oldNew, highLow, lowHigh, none }
 
-enum CatchStatus { available, sold, draft, processing, expired }
+enum CatchStatus {
+  available,
+  sold,
+  soldOut,
+  draft,
+  processing,
+  expired,
+  removed,
+}
 
 enum Sender { me, other }

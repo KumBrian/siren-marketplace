@@ -25,6 +25,7 @@ import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.da
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/order_bloc/order_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/order_detail_bloc/order_detail_bloc.dart'; // 👈 NEW
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
 final sl = GetIt.instance;
@@ -38,22 +39,20 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => dbHelper);
 
   // ----------------------------
-  // Repositories (MUST take dbHelper in constructor)
+  // Repositories
   // ----------------------------
-  // Registering repositories with the injected DatabaseHelper
   sl.registerLazySingleton<UserRepository>(
     () => UserRepository(dbHelper: sl()),
   );
   sl.registerLazySingleton<FisherRepository>(
     () => FisherRepository(dbHelper: sl()),
   );
-  sl.registerLazySingleton<CatchRepository>(
-    () => CatchRepository(dbHelper: sl(), offerRepository: sl()),
-  );
   sl.registerLazySingleton<OfferRepository>(
     () => OfferRepository(dbHelper: sl()),
   );
-  // OrderRepository takes other repositories as dependencies
+  sl.registerLazySingleton<CatchRepository>(
+    () => CatchRepository(dbHelper: sl(), offerRepository: sl()),
+  );
   sl.registerLazySingleton<OrderRepository>(
     () => OrderRepository(
       dbHelper: sl(),
@@ -98,11 +97,7 @@ Future<void> initDependencies() async {
   // ----------------------------
   // Blocs
   // ----------------------------
-  // FIX 1: Change UserBloc to LazySingleton if its state needs to persist across the app's lifetime.
-  // Assuming User state should persist:
   sl.registerLazySingleton(() => UserBloc(userRepository: sl()));
-
-  // FIX 2: Change OrdersBloc to LazySingleton so its state (OrdersLoaded) persists on navigation.
   sl.registerLazySingleton(
     () => OrdersBloc(
       sl<OrderRepository>(),
@@ -112,12 +107,6 @@ Future<void> initDependencies() async {
     ),
   );
 
-  // Consider changing these too if their state needs to persist across navigation/screens:
-  // sl.registerLazySingleton(() => CatchesBloc(sl<CatchRepository>()));
-  // sl.registerLazySingleton(() => OffersBloc(sl<OfferRepository>()));
-
-  // Keeping these as Factory as they might be scoped per screen or flow, but
-  // typically if a bloc is used in MultiBlocProvider at the root, LazySingleton is better.
   sl.registerFactory(() => CatchesBloc(sl<CatchRepository>()));
   sl.registerFactory(() => OffersBloc(sl<OfferRepository>()));
   sl.registerFactory(() => BuyerMarketBloc(sl<BuyerRepository>()));
@@ -131,4 +120,14 @@ Future<void> initDependencies() async {
   );
   sl.registerFactory(() => BuyerOrdersBloc(sl<BuyerRepository>()));
   sl.registerFactory(() => ConversationsBloc(sl<ConversationRepository>()));
+
+  // ✅ NEW: OrderDetailBloc Registration
+  sl.registerFactory(
+    () => OrderDetailBloc(
+      sl<OrderRepository>(),
+      sl<CatchRepository>(),
+      sl<UserRepository>(),
+      sl<OfferRepository>(),
+    ),
+  );
 }

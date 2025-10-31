@@ -11,22 +11,14 @@ import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_fil
 import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filter_cubit.dart';
 // Core
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/data/services/seeder.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/features/buyer/data/buyer_repository.dart';
 // Features
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/offer_details_bloc.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_orders_bloc/buyer_orders_bloc.dart';
-import 'package:siren_marketplace/features/chat/data/conversation_repository.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-// Repositories
-import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
-import 'package:siren_marketplace/features/fisher/data/fisher_repository.dart';
-import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
-import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
@@ -34,6 +26,8 @@ import 'package:siren_marketplace/features/fisher/logic/order_bloc/order_bloc.da
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 // Router
 import 'package:siren_marketplace/router.dart';
+
+import 'features/fisher/logic/order_detail_bloc/order_detail_bloc.dart';
 
 const String CURRENT_FISHER_ID = 'fisher_id_1';
 const String CURRENT_BUYER_ID = 'buyer_id_1';
@@ -58,75 +52,33 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // General Cubits
-        BlocProvider(create: (_) => CatchFilterCubit()),
-        BlocProvider(create: (_) => SpeciesFilterCubit()),
-        BlocProvider(create: (_) => BottomNavCubit()),
-        BlocProvider(create: (_) => OrdersFilterCubit()),
-        BlocProvider(create: (_) => FailedTransactionCubit()),
-        BlocProvider(create: (_) => ProductsFilterCubit()),
+        BlocProvider.value(value: sl<UserBloc>()..add(const LoadPrimaryUser())),
+        BlocProvider.value(value: sl<OrdersBloc>()),
+        BlocProvider.value(value: sl<FisherCubit>()),
+        BlocProvider.value(value: sl<ConversationsBloc>()),
+        BlocProvider(create: (_) => sl<CatchesBloc>()..add(LoadCatches())),
+        BlocProvider(create: (_) => sl<OffersBloc>()),
+        BlocProvider(create: (_) => sl<CatchFilterCubit>()),
+        BlocProvider(create: (_) => sl<SpeciesFilterCubit>()),
+        BlocProvider(create: (_) => sl<BottomNavCubit>()),
+        BlocProvider(create: (_) => sl<OrdersFilterCubit>()),
+        BlocProvider(create: (_) => sl<FailedTransactionCubit>()),
+        BlocProvider(create: (_) => sl<ProductsFilterCubit>()),
+        BlocProvider(create: (_) => sl<ProductsCubit>()),
+        BlocProvider(create: (context) => sl<FilteredProductsCubit>()),
 
-        // Core DI-provided Blocs
+        BlocProvider(create: (_) => sl<OfferDetailsBloc>()),
+        BlocProvider(create: (_) => sl<OrderDetailBloc>()),
         BlocProvider(
-          create: (_) => sl<UserBloc>()..add(const LoadPrimaryUser()),
-        ),
-        BlocProvider(
-          create: (_) => FisherCubit(repository: sl<FisherRepository>()),
-        ),
-        BlocProvider(create: (_) => ProductsCubit(sl<CatchRepository>())),
-        BlocProvider(
-          create: (context) => FilteredProductsCubit(
-            catchRepository: sl<CatchRepository>(),
-            filterCubit: context.read<ProductsFilterCubit>(),
-          ),
-        ),
-
-        // Fisher Feature
-        BlocProvider(
-          create: (_) => CatchesBloc(sl<CatchRepository>())..add(LoadCatches()),
-        ),
-        BlocProvider(create: (_) => OffersBloc(sl<OfferRepository>())),
-        BlocProvider(
-          create: (_) => OrdersBloc(
-            sl<OrderRepository>(),
-            sl<OfferRepository>(),
-            sl<UserRepository>(),
-            sl<CatchRepository>(),
-          )..add(const LoadAllFisherOrders(userId: CURRENT_FISHER_ID)),
-        ),
-
-        BlocProvider(
-          create: (_) => OfferDetailsBloc(
-            sl<OfferRepository>(),
-            sl<CatchRepository>(),
-            sl<UserRepository>(),
-            sl<OrderRepository>(),
-          ),
-        ),
-
-        // Buyer Feature
-        BlocProvider(
-          create: (_) =>
-              BuyerMarketBloc(sl<BuyerRepository>())..add(LoadMarketCatches()),
+          create: (_) => sl<BuyerMarketBloc>()..add(LoadMarketCatches()),
         ),
         BlocProvider(
           create: (_) =>
-              BuyerOrdersBloc(sl<BuyerRepository>())
-                ..add(LoadBuyerOrders(CURRENT_BUYER_ID)),
+              sl<BuyerOrdersBloc>()..add(LoadBuyerOrders(CURRENT_BUYER_ID)),
         ),
-        BlocProvider(
-          create: (_) => BuyerCubit(
-            sl<UserRepository>(),
-            sl<OrderRepository>(),
-            sl<OfferRepository>(),
-          )..loadBuyerData(buyerId: CURRENT_BUYER_ID),
-        ),
-
-        // Chat Feature
         BlocProvider(
           create: (_) =>
-              ConversationsBloc(sl<ConversationRepository>())
-                ..add(const LoadConversations(buyerId: CURRENT_BUYER_ID)),
+              sl<BuyerCubit>()..loadBuyerData(buyerId: CURRENT_BUYER_ID),
         ),
       ],
       child: Builder(
@@ -135,6 +87,7 @@ class MyApp extends StatelessWidget {
             listener: (context, state) {
               if (state is CatchesLoaded) {
                 final catchIds = state.catches.map((c) => c.id).toList();
+                // We retrieve the singleton OffersBloc here.
                 context.read<OffersBloc>().add(LoadAllFisherOffers(catchIds));
               }
             },
@@ -143,6 +96,7 @@ class MyApp extends StatelessWidget {
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(seedColor: AppColors.blue500),
               ),
+              // Passing the singleton UserBloc instance to the router
               routerConfig: createRouter(context.read<UserBloc>()),
             ),
           );
