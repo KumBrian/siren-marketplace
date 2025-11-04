@@ -1,6 +1,6 @@
 enum Role { fisher, buyer, unknown }
 
-enum OfferStatus { pending, accepted, rejected, completed }
+enum OfferStatus { pending, accepted, rejected, completed, unknown }
 
 enum ChartRange { day, week, month, year }
 
