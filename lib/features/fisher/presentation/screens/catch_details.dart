@@ -7,7 +7,6 @@ import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_st
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
@@ -19,6 +18,7 @@ import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/chat/data/models/message.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
 
 List<Message> PLACEHOLDER_MESSAGES = [
@@ -131,15 +131,14 @@ class _CatchDetailsState extends State<CatchDetails>
 
   @override
   Widget build(BuildContext context) {
-    final _weightFormKey = GlobalKey<FormState>();
-    final _priceFormKey = GlobalKey<FormState>();
+    final weightFormKey = GlobalKey<FormState>();
+    final priceFormKey = GlobalKey<FormState>();
     final TextEditingController weightController = TextEditingController();
     final TextEditingController pricePerKgController = TextEditingController();
 
     return Scaffold(
       body: BlocListener<CatchesBloc, CatchesState>(
         bloc: context.read<CatchesBloc>(),
-
         listenWhen: (previous, current) {
           return current is CatchDeletedSuccess;
         },
@@ -211,11 +210,10 @@ class _CatchDetailsState extends State<CatchDetails>
 
             if (catchesState is CatchesLoaded) {
               final catches = catchesState.catches;
-              Catch selectedCatch;
+              final selectedCatch = catches.firstWhere(
+                (c) => c.id == widget.catchId,
+              );
               try {
-                selectedCatch = catches.firstWhere(
-                  (c) => c.id == widget.catchId,
-                );
                 final messagesForCatch = PLACEHOLDER_MESSAGES;
                 return Scaffold(
                   appBar: AppBar(
@@ -239,7 +237,6 @@ class _CatchDetailsState extends State<CatchDetails>
                       ),
                     ],
                   ),
-
                   body: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -395,7 +392,7 @@ class _CatchDetailsState extends State<CatchDetails>
                                                 selectedCatch.availableWeight;
 
                                             return Form(
-                                              key: _weightFormKey,
+                                              key: weightFormKey,
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.min,
                                                 crossAxisAlignment:
@@ -443,7 +440,7 @@ class _CatchDetailsState extends State<CatchDetails>
                                                   CustomButton(
                                                     title: "Update Weight",
                                                     onPressed: () async {
-                                                      if (_weightFormKey
+                                                      if (weightFormKey
                                                           .currentState!
                                                           .validate()) {
                                                         final newWeight =
@@ -529,7 +526,7 @@ class _CatchDetailsState extends State<CatchDetails>
                                                 selectedCatch.pricePerKg;
 
                                             return Form(
-                                              key: _priceFormKey,
+                                              key: priceFormKey,
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.min,
                                                 crossAxisAlignment:
@@ -576,7 +573,7 @@ class _CatchDetailsState extends State<CatchDetails>
                                                   CustomButton(
                                                     title: "Update Price/Kg",
                                                     onPressed: () async {
-                                                      if (_priceFormKey
+                                                      if (priceFormKey
                                                           .currentState!
                                                           .validate()) {
                                                         final newPrice =
@@ -633,11 +630,6 @@ class _CatchDetailsState extends State<CatchDetails>
                           ),
                         ),
 
-                        // --- Filters ---
-                        // Locate the section labeled: // --- Filters ---
-
-                        // --- Filters ---
-                        // --- Filters ---
                         AnimatedBuilder(
                           animation: _tabController,
                           builder: (context, child) {
@@ -945,10 +937,36 @@ class _CatchDetailsState extends State<CatchDetails>
                                   physics: const BouncingScrollPhysics(),
                                   children: [
                                     // Offers Tab
-                                    _buildOffersList(
-                                      context,
-                                      selectedCatch,
-                                      context.watch<CatchFilterCubit>().state,
+                                    BlocConsumer<OffersBloc, OffersState>(
+                                      listener: (context, offerState) {
+                                        if (offerState is OfferActionSuccess) {
+                                          context.read<CatchesBloc>().add(
+                                            LoadCatches(),
+                                          );
+                                        }
+                                      },
+                                      builder: (context, offerState) {
+                                        final catchesState = context
+                                            .watch<CatchesBloc>()
+                                            .state;
+                                        Catch refreshedCatch = selectedCatch;
+
+                                        if (catchesState is CatchesLoaded) {
+                                          refreshedCatch = catchesState.catches
+                                              .firstWhere(
+                                                (c) => c.id == selectedCatch.id,
+                                                orElse: () => selectedCatch,
+                                              );
+                                        }
+
+                                        return _buildOffersList(
+                                          context,
+                                          refreshedCatch,
+                                          context
+                                              .watch<CatchFilterCubit>()
+                                              .state,
+                                        );
+                                      },
                                     ),
 
                                     // Messages Tab
@@ -989,53 +1007,35 @@ class _CatchDetailsState extends State<CatchDetails>
     Catch selectedCatch,
     CatchFilterState filters,
   ) {
-    Iterable<Offer> filteredOffers = selectedCatch.offers;
+    // Apply filters directly
+    final filteredOffers = selectedCatch.offers.where((offer) {
+      if (filters.activeStatuses.isEmpty) return true;
+      final statusName = offer.status.name.capitalize();
+      return filters.activeStatuses.contains(statusName);
+    }).toList();
 
-    // Filter by Status
-    if (filters.activeStatuses.isNotEmpty) {
-      filteredOffers = filteredOffers.where((offer) {
-        final statusName = offer.status.name;
-        return filters.activeStatuses.contains(
-          statusName.substring(0, 1).toUpperCase() + statusName.substring(1),
-        );
-      });
-    }
+    filteredOffers.sort((a, b) {
+      final dateA = DateTime.parse(a.dateCreated);
+      final dateB = DateTime.parse(b.dateCreated);
+      return filters.activeSortBy == "ascending"
+          ? dateA.compareTo(dateB)
+          : dateB.compareTo(dateA);
+    });
 
-    // Sort by Date
-    final sortedOffers = filteredOffers.toList()
-      ..sort((a, b) {
-        final dateA = DateTime.parse(a.dateCreated);
-        final dateB = DateTime.parse(b.dateCreated);
-
-        if (filters.activeSortBy == "ascending") {
-          return dateA.compareTo(dateB);
-        } else {
-          return dateB.compareTo(dateA);
-        }
-      });
-
-    if (sortedOffers.isEmpty) {
-      return _buildEmptyState(
-        "No offers received yet.",
-        "Buyers are reviewing your captures.",
-      );
+    if (filteredOffers.isEmpty) {
+      return _buildEmptyState("No matching offers.", "Try adjusting filters.");
     }
 
     return ListView.builder(
-      padding: EdgeInsets.only(bottom: 80, top: sortedOffers.isEmpty ? 16 : 0),
-      itemCount: sortedOffers.length,
-
+      padding: const EdgeInsets.only(bottom: 80, top: 16),
+      itemCount: filteredOffers.length,
       itemBuilder: (context, index) {
-        final offer = sortedOffers[index];
-
+        final offer = filteredOffers[index];
         return OfferCard(
           offer: offer,
           clientName: offer.buyerName,
           clientRating: offer.buyerRating,
-
-          onPressed: () {
-            context.push("/fisher/offer-details/${offer.id}");
-          },
+          onPressed: () => context.push("/fisher/offer-details/${offer.id}"),
         );
       },
     );

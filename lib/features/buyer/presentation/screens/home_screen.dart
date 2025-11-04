@@ -14,7 +14,8 @@ import 'package:siren_marketplace/core/widgets/multi_select_dropdown.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_card.dart';
-import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
 class BuyerHome extends StatefulWidget {
   const BuyerHome({super.key});
@@ -26,6 +27,7 @@ class BuyerHome extends StatefulWidget {
 class _BuyerHomeState extends State<BuyerHome> {
   final TextEditingController _weightController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _hasLoadedOffers = false;
 
   @override
   void initState() {
@@ -46,127 +48,156 @@ class _BuyerHomeState extends State<BuyerHome> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<OffersBloc, OffersState>(
-      builder: (context, offersState) {
-        final notificationCount = _calculateNotificationCount(offersState);
-        return BlocListener<BuyerMarketBloc, BuyerMarketState>(
-          listener: (context, marketState) {
-            if (marketState is BuyerMarketLoaded) {
-              context.read<FilteredProductsCubit>().setAllCatches(
-                marketState.catches,
-              );
-            }
-          },
-          child: BlocBuilder<BuyerMarketBloc, BuyerMarketState>(
-            builder: (context, marketState) {
-              if (marketState is BuyerMarketLoading) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
+    if (!_hasLoadedOffers) {
+      final userState = context.read<UserBloc>().state;
+      if (userState is UserLoaded) {
+        context.read<OffersBloc>().add(
+          LoadOffersForUser(userId: userState.user!.id, role: userState.role),
+        );
+        _hasLoadedOffers = true; // Mark as done immediately if already loaded
+      }
+    }
+    return BlocListener<UserBloc, UserState>(
+      listenWhen: (prev, current) => !_hasLoadedOffers && current is UserLoaded,
+      listener: (context, userState) {
+        if (userState is UserLoaded) {
+          // This fires if UserBloc loads *after* BuyerHome mounts.
+          context.read<OffersBloc>().add(
+            LoadOffersForUser(userId: userState.user!.id, role: userState.role),
+          );
+          _hasLoadedOffers = true; // Mark as done when the listener fires
+        }
+      },
+      child: BlocBuilder<OffersBloc, OffersState>(
+        builder: (context, offersState) {
+          final notificationCount = _calculateNotificationCount(offersState);
+          return BlocListener<BuyerMarketBloc, BuyerMarketState>(
+            listener: (context, marketState) {
+              if (marketState is BuyerMarketLoaded) {
+                context.read<FilteredProductsCubit>().setAllCatches(
+                  marketState.catches,
                 );
               }
+            },
+            child: BlocBuilder<BuyerMarketBloc, BuyerMarketState>(
+              builder: (context, marketState) {
+                if (marketState is BuyerMarketLoading) {
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
 
-              if (marketState is BuyerMarketError) {
-                return Scaffold(
-                  body: Center(
-                    child: Text(
-                      'Error loading products: ${marketState.message}',
-                      style: const TextStyle(color: AppColors.fail500),
-                    ),
-                  ),
-                );
-              }
-
-              final allCatches = marketState is BuyerMarketLoaded
-                  ? marketState.catches
-                  : <Catch>[];
-
-              return Scaffold(
-                backgroundColor: AppColors.gray50,
-                appBar: AppBar(
-                  elevation: 0,
-                  centerTitle: true,
-                  scrolledUnderElevation: 0,
-                  shadowColor: Colors.transparent,
-                  title: Image.asset("assets/icons/siren_logo.png", width: 100),
-                  actions: [
-                    IconButton(
-                      onPressed: () => context.go("/buyer/notifications"),
-                      icon: Badge(
-                        label: Text("$notificationCount"),
-                        child: Icon(
-                          CustomIcons.notificationbell,
-                          color: AppColors.textBlue,
-                        ),
+                if (marketState is BuyerMarketError) {
+                  return Scaffold(
+                    body: Center(
+                      child: Text(
+                        'Error loading products: ${marketState.message}',
+                        style: const TextStyle(color: AppColors.fail500),
                       ),
                     ),
-                  ],
-                ),
-                body: RefreshIndicator(
-                  onRefresh: () async {
-                    context.read<BuyerMarketBloc>().add(LoadMarketCatches());
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: 56,
-                          child: _buildSearchAndFilterRow(context, allCatches),
-                        ),
-                        const SizedBox(height: 8),
-                        Expanded(
-                          child:
-                              BlocBuilder<
-                                FilteredProductsCubit,
-                                FilteredProductsState
-                              >(
-                                builder: (context, filteredState) {
-                                  final filteredCatches =
-                                      filteredState.displayedCatches;
-                                  if (filteredCatches.isEmpty &&
-                                      allCatches.isNotEmpty) {
-                                    return const Center(
-                                      child: Text(
-                                        "No products match your filters.",
-                                      ),
-                                    );
-                                  }
+                  );
+                }
 
-                                  return GridView.builder(
-                                    padding: const EdgeInsets.only(bottom: 100),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: 2,
-                                          crossAxisSpacing: 8,
-                                          mainAxisSpacing: 8,
-                                          mainAxisExtent: 250,
-                                        ),
-                                    itemCount: filteredCatches.length,
-                                    itemBuilder: (context, index) {
-                                      final c = filteredCatches[index];
-                                      return ProductCard(
-                                        onTap: () => context.go(
-                                          "/buyer/product-details/${c.id}",
-                                        ),
-                                        catchModel: c,
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
+                final allCatches = marketState is BuyerMarketLoaded
+                    ? marketState.catches
+                    : <Catch>[];
+
+                return Scaffold(
+                  backgroundColor: AppColors.gray50,
+                  appBar: AppBar(
+                    elevation: 0,
+                    centerTitle: true,
+                    scrolledUnderElevation: 0,
+                    shadowColor: Colors.transparent,
+                    title: Image.asset(
+                      "assets/icons/siren_logo.png",
+                      width: 100,
+                    ),
+                    actions: [
+                      IconButton(
+                        onPressed: () => context.go("/buyer/notifications"),
+                        icon: Badge(
+                          label: Text("$notificationCount"),
+                          child: Icon(
+                            CustomIcons.notificationbell,
+                            color: AppColors.textBlue,
+                          ),
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  body: RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<BuyerMarketBloc>().add(LoadMarketCatches());
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: 56,
+                            child: _buildSearchAndFilterRow(
+                              context,
+                              allCatches,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child:
+                                BlocBuilder<
+                                  FilteredProductsCubit,
+                                  FilteredProductsState
+                                >(
+                                  builder: (context, filteredState) {
+                                    final filteredCatches =
+                                        filteredState.displayedCatches;
+                                    if (filteredCatches.isEmpty &&
+                                        allCatches.isNotEmpty) {
+                                      return const Center(
+                                        child: Text(
+                                          "No products match your filters.",
+                                        ),
+                                      );
+                                    }
+
+                                    return GridView.builder(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 100,
+                                      ),
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            crossAxisSpacing: 8,
+                                            mainAxisSpacing: 8,
+                                            mainAxisExtent: 250,
+                                          ),
+                                      itemCount: filteredCatches.length,
+                                      itemBuilder: (context, index) {
+                                        final c = filteredCatches[index];
+                                        return ProductCard(
+                                          onTap: () => context.go(
+                                            "/buyer/product-details/${c.id}",
+                                          ),
+                                          catchModel: c,
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-        );
-      },
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 

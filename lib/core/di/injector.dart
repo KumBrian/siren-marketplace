@@ -10,6 +10,7 @@ import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_fil
 import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filter_cubit.dart';
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
+import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
 import 'package:siren_marketplace/features/buyer/data/buyer_repository.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
@@ -23,9 +24,8 @@ import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
 import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/order_bloc/order_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/order_detail_bloc/order_detail_bloc.dart'; // 👈 NEW
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
 final sl = GetIt.instance;
@@ -35,6 +35,8 @@ Future<void> initDependencies() async {
   // Database
   // ----------------------------
   final dbHelper = DatabaseHelper();
+  final transactionNotifier = TransactionNotifier();
+  sl.registerLazySingleton(() => transactionNotifier);
   await dbHelper.database;
   sl.registerLazySingleton(() => dbHelper);
 
@@ -48,10 +50,14 @@ Future<void> initDependencies() async {
     () => FisherRepository(dbHelper: sl()),
   );
   sl.registerLazySingleton<OfferRepository>(
-    () => OfferRepository(dbHelper: sl()),
+    () => OfferRepository(dbHelper: sl(), notifier: sl<TransactionNotifier>()),
   );
   sl.registerLazySingleton<CatchRepository>(
-    () => CatchRepository(dbHelper: sl(), offerRepository: sl()),
+    () => CatchRepository(
+      dbHelper: sl(),
+      offerRepository: sl(),
+      notifier: sl<TransactionNotifier>(),
+    ),
   );
   sl.registerLazySingleton<OrderRepository>(
     () => OrderRepository(
@@ -98,17 +104,23 @@ Future<void> initDependencies() async {
   // Blocs
   // ----------------------------
   sl.registerLazySingleton(() => UserBloc(userRepository: sl()));
-  sl.registerLazySingleton(
+  sl.registerFactory(
     () => OrdersBloc(
-      sl<OrderRepository>(),
-      sl<OfferRepository>(),
-      sl<UserRepository>(),
-      sl<CatchRepository>(),
+      orderRepository: sl<OrderRepository>(),
+      offerRepository: sl<OfferRepository>(),
+      notifier: sl<TransactionNotifier>(),
     ),
   );
 
   sl.registerFactory(() => CatchesBloc(sl<CatchRepository>()));
-  sl.registerFactory(() => OffersBloc(sl<OfferRepository>()));
+  sl.registerFactory(
+    () => OffersBloc(
+      offerRepository: sl<OfferRepository>(),
+      notifier: sl<TransactionNotifier>(),
+      catchRepository: sl<CatchRepository>(), // NEW
+      userRepository: sl<UserRepository>(), // NEW
+    ),
+  );
   sl.registerFactory(() => BuyerMarketBloc(sl<BuyerRepository>()));
   sl.registerFactory(
     () => OfferDetailsBloc(
@@ -120,14 +132,4 @@ Future<void> initDependencies() async {
   );
   sl.registerFactory(() => BuyerOrdersBloc(sl<BuyerRepository>()));
   sl.registerFactory(() => ConversationsBloc(sl<ConversationRepository>()));
-
-  // ✅ NEW: OrderDetailBloc Registration
-  sl.registerFactory(
-    () => OrderDetailBloc(
-      sl<OrderRepository>(),
-      sl<CatchRepository>(),
-      sl<UserRepository>(),
-      sl<OfferRepository>(),
-    ),
-  );
 }

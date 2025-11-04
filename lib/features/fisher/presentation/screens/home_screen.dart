@@ -10,7 +10,7 @@ import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_nav_bar.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/order_bloc/order_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/for_sale_card.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/sold_card.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
@@ -32,6 +32,7 @@ class FisherHome extends StatefulWidget {
 
 class _FisherHomeState extends State<FisherHome> {
   @override
+  @override
   void initState() {
     super.initState();
 
@@ -40,11 +41,11 @@ class _FisherHomeState extends State<FisherHome> {
       final fisherId = userState.user!.id;
       final ordersBloc = context.read<OrdersBloc>();
       final catchesBloc = context.read<CatchesBloc>();
-
-      // 🔒 Only fetch if not already loaded
       if (ordersBloc.state is OrdersInitial) {
-        ordersBloc.add(LoadAllFisherOrders(userId: fisherId));
+        ordersBloc.add(LoadOrdersForUser(userId: fisherId));
       }
+
+      // Note: CatchesBloc assumes similar logic, though its events aren't fully confirmed.
       if (catchesBloc.state is! CatchesLoaded) {
         catchesBloc.add(LoadCatchesByFisher(fisherId: fisherId));
       }
@@ -75,15 +76,12 @@ class _FisherHomeState extends State<FisherHome> {
 
           final ordersBloc = context.read<OrdersBloc>();
           final catchesBloc = context.read<CatchesBloc>();
-
-          final alreadyLoadedOrders = ordersBloc.state is OrdersLoaded;
-          final alreadyLoadedCatches = catchesBloc.state is CatchesLoaded;
-
-          if (!alreadyLoadedCatches) {
-            catchesBloc.add(LoadCatchesByFisher(fisherId: fisherId));
+          if (ordersBloc.state is OrdersInitial) {
+            ordersBloc.add(LoadOrdersForUser(userId: fisherId));
           }
-          if (!alreadyLoadedOrders) {
-            ordersBloc.add(LoadAllFisherOrders(userId: fisherId));
+
+          if (catchesBloc.state is! CatchesLoaded) {
+            catchesBloc.add(LoadCatchesByFisher(fisherId: fisherId));
           }
         }
       },
@@ -176,8 +174,10 @@ class _FisherHomeState extends State<FisherHome> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       const Text("Turnover"),
+
                                       BlocBuilder<OrdersBloc, OrdersState>(
                                         builder: (context, orderState) {
+                                          // --- ✅ CORRECTED IMPLEMENTATION ---
                                           if (orderState is OrdersLoaded) {
                                             final total = _calculateTurnover(
                                               orderState.orders,
@@ -191,6 +191,7 @@ class _FisherHomeState extends State<FisherHome> {
                                               ),
                                             );
                                           }
+                                          // Handle Loading, Initial, or Error states
                                           return const Text(
                                             "--",
                                             style: TextStyle(
@@ -199,6 +200,7 @@ class _FisherHomeState extends State<FisherHome> {
                                               color: AppColors.blue700,
                                             ),
                                           );
+                                          // --- END CORRECTED IMPLEMENTATION ---
                                         },
                                       ),
                                     ],

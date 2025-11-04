@@ -13,8 +13,7 @@ import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
 
 const String CURRENT_FISHER_ID = 'fisher_id_1';
@@ -248,179 +247,176 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // ✅ NEW: Load offers specifically for the current Fisher user
+    context.read<OffersBloc>().add(
+      LoadOffersForUser(userId: CURRENT_FISHER_ID, role: Role.fisher),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocListener<CatchesBloc, CatchesState>(
-      listener: (context, state) {
-        if (state is CatchesLoaded) {
-          final catchIds = state.catches.map((c) => c.id).toList();
-          context.read<OffersBloc>().add(LoadAllFisherOffers(catchIds));
-        }
-      },
-      child: BlocBuilder<CatchFilterCubit, CatchFilterState>(
-        builder: (context, filterState) {
-          return Scaffold(
-            appBar: AppBar(
-              leading: const BackButton(),
-              actions: [
-                BlocBuilder<CatchFilterCubit, CatchFilterState>(
-                  builder: (context, state) {
-                    final cubit = context.read<CatchFilterCubit>();
+    return BlocBuilder<CatchFilterCubit, CatchFilterState>(
+      builder: (context, filterState) {
+        return Scaffold(
+          appBar: AppBar(
+            leading: const BackButton(),
+            actions: [
+              BlocBuilder<CatchFilterCubit, CatchFilterState>(
+                builder: (context, state) {
+                  final cubit = context.read<CatchFilterCubit>();
 
-                    return IconButton(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          showDragHandle: true,
-                          builder: (context) {
-                            return BlocBuilder<
-                              CatchFilterCubit,
-                              CatchFilterState
-                            >(
-                              builder: (innerContext, innerState) {
-                                final innerCubit = innerContext
-                                    .read<CatchFilterCubit>();
-                                return Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        "Filter by",
-                                        style: TextStyle(fontSize: 12),
+                  return IconButton(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        showDragHandle: true,
+                        builder: (context) {
+                          return BlocBuilder<
+                            CatchFilterCubit,
+                            CatchFilterState
+                          >(
+                            builder: (innerContext, innerState) {
+                              final innerCubit = innerContext
+                                  .read<CatchFilterCubit>();
+                              return Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "Filter by",
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const Text("Status"),
+                                    Text(
+                                      "Select all that apply",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textGray,
                                       ),
-                                      const SizedBox(height: 12),
-                                      const Text("Status"),
-                                      Text(
-                                        "Select all that apply",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.textGray,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: OfferStatus.values.map((
+                                        status,
+                                      ) {
+                                        final title =
+                                            status.name
+                                                .substring(0, 1)
+                                                .toUpperCase() +
+                                            status.name.substring(1);
+
+                                        return FilterButton(
+                                          title: title,
+                                          color: AppColors.getStatusColor(
+                                            status,
+                                          ),
+                                          isSelected: innerState.pendingStatuses
+                                              .contains(title),
+                                          onPressed: () =>
+                                              innerCubit.toggleStatus(title),
+                                        );
+                                      }).toList(),
+                                    ),
+                                    const Divider(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () {
+                                            innerCubit.clearAllFilters();
+                                            innerContext.pop();
+                                          },
+                                          child: const Text(
+                                            "Reset All",
+                                            style: TextStyle(
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 8,
-                                        children: OfferStatus.values.map((
-                                          status,
-                                        ) {
-                                          final title =
-                                              status.name
-                                                  .substring(0, 1)
-                                                  .toUpperCase() +
-                                              status.name.substring(1);
-
-                                          return FilterButton(
-                                            title: title,
-                                            color: AppColors.getStatusColor(
-                                              status,
-                                            ),
-                                            isSelected: innerState
-                                                .pendingStatuses
-                                                .contains(title),
-                                            onPressed: () =>
-                                                innerCubit.toggleStatus(title),
-                                          );
-                                        }).toList(),
-                                      ),
-                                      const Divider(),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          TextButton(
-                                            onPressed: () {
-                                              innerCubit.clearAllFilters();
-                                              innerContext.pop();
-                                            },
-                                            child: const Text(
-                                              "Reset All",
-                                              style: TextStyle(
-                                                decoration:
-                                                    TextDecoration.underline,
-                                              ),
-                                            ),
-                                          ),
-                                          CustomButton(
-                                            title: "Apply Filters",
-                                            onPressed: () {
-                                              innerCubit.applyFilters();
-                                              innerContext.pop();
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                      icon: state.activeStatuses.isEmpty
-                          ? const Icon(CustomIcons.filter)
-                          : Badge(
-                              label: Text(
-                                state.activeStatuses.length.toString(),
-                              ),
-                              child: const Icon(CustomIcons.filter),
-                            ),
-                    );
-                  },
-                ),
-              ],
-              title: const Text(
-                "Notifications",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textBlue,
-                  fontSize: 24,
-                ),
+                                        CustomButton(
+                                          title: "Apply Filters",
+                                          onPressed: () {
+                                            innerCubit.applyFilters();
+                                            innerContext.pop();
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                    icon: state.activeStatuses.isEmpty
+                        ? const Icon(CustomIcons.filter)
+                        : Badge(
+                            label: Text(state.activeStatuses.length.toString()),
+                            child: const Icon(CustomIcons.filter),
+                          ),
+                  );
+                },
+              ),
+            ],
+            title: const Text(
+              "Notifications",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textBlue,
+                fontSize: 24,
               ),
             ),
-            body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: DefaultTabController(
-                      length: 2,
-                      child: Column(
-                        children: [
-                          const TabBar(
-                            dividerHeight: 0,
-                            indicatorSize: TabBarIndicatorSize.tab,
-                            tabs: [
-                              Tab(text: "Offers"),
-                              Tab(text: "Messages"),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: DefaultTabController(
+                    length: 2,
+                    child: Column(
+                      children: [
+                        const TabBar(
+                          dividerHeight: 0,
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          tabs: [
+                            Tab(text: "Offers"),
+                            Tab(text: "Messages"),
+                          ],
+                        ),
+                        Expanded(
+                          child: TabBarView(
+                            physics: const BouncingScrollPhysics(),
+                            children: [
+                              // Uses the OffersBloc for aggregated offers
+                              _buildOffersTab(context, filterState),
+                              // Uses the ConversationsBloc for messages
+                              _buildMessagesTab(context),
                             ],
                           ),
-                          Expanded(
-                            child: TabBarView(
-                              physics: const BouncingScrollPhysics(),
-                              children: [
-                                // Uses the OffersBloc for aggregated offers
-                                _buildOffersTab(context, filterState),
-                                // Uses the ConversationsBloc for messages
-                                _buildMessagesTab(context),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

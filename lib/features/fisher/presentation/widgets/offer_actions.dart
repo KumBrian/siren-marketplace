@@ -13,8 +13,9 @@ import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/counter_offer_dialog.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
+import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
 void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
@@ -142,8 +143,20 @@ class _OfferActionsState extends State<OfferActions> {
       return;
     }
 
+    // ✅ KEEP THIS ONE (Sets up the loading screen)
     showLoadingDialog(outerContext, message: 'Creating order...');
+    final completer = Completer<String>();
 
+    final listenerSubscription = context.read<OffersBloc>().stream.listen((
+      state,
+    ) {
+      if (state is OfferActionSuccess && state.action == 'Accept') {
+        completer.complete(state.orderId!);
+      } else if (state is OfferActionFailure && state.action == 'Accept') {
+        // NOTE: The OfferActionFailure state should expose 'message' or 'error' property
+        completer.completeError(Exception(state.error));
+      }
+    });
     try {
       final fisherMap = await _userRepository.getUserMapById(
         widget.offer.fisherId,
@@ -164,7 +177,12 @@ class _OfferActionsState extends State<OfferActions> {
 
       if (context.mounted) {
         context.read<OffersBloc>().add(
-          AcceptOfferEvent(widget.offer, catchItem, fisher),
+          AcceptOffer(
+            offer: widget.offer,
+            catchItem: catchItem,
+            fisher: fisher,
+            orderRepository: sl<OrderRepository>(),
+          ),
         );
       }
     } catch (e) {
@@ -182,7 +200,7 @@ class _OfferActionsState extends State<OfferActions> {
   Future<void> _handleReject(BuildContext outerContext) async {
     if (Navigator.of(outerContext).canPop()) Navigator.of(outerContext).pop();
     try {
-      context.read<OffersBloc>().add(RejectOfferEvent(widget.offer));
+      context.read<OffersBloc>().add(RejectOffer(offer: widget.offer));
       await showActionSuccessDialog(
         // Using top-level function
         outerContext,
@@ -354,11 +372,11 @@ class _OfferActionsState extends State<OfferActions> {
                                     }
 
                                     context.read<OffersBloc>().add(
-                                      CounterOfferEvent(
-                                        widget.offer,
-                                        newPrice,
-                                        newWeight,
-                                        user.role,
+                                      CounterOffer(
+                                        previousOffer: widget.offer,
+                                        newPrice: newPrice,
+                                        newWeight: newWeight,
+                                        counteringRole: user.role,
                                       ),
                                     );
 

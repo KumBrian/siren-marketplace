@@ -45,11 +45,11 @@ class _BuyerState extends State<Buyer> with SingleTickerProviderStateMixin {
             TabBarView(
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
-              children: const [
-                Center(child: Text("Placeholder 0")),
+              children: [
+                const Center(child: Text("Placeholder 0")),
                 BuyerHome(),
-                BuyerOrders(),
-                Center(child: Text("Placeholder 3")),
+                const BuyerOrders(),
+                const Center(child: Text("Placeholder 3")),
               ],
             ),
             Positioned(

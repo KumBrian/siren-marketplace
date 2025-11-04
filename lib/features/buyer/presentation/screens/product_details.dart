@@ -15,7 +15,7 @@ import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
 // Helper extension
@@ -223,7 +223,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                               totalPrice != null &&
                               pricePerKg != null) {
                             context.read<OffersBloc>().add(
-                              CreateOfferEvent(
+                              CreateOffer(
                                 catchId: c.id,
                                 buyerId: user!.id,
                                 fisherId: c.fisherId,

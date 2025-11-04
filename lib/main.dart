@@ -21,13 +21,10 @@ import 'package:siren_marketplace/features/buyer/logic/buyer_orders_bloc/buyer_o
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/order_bloc/order_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 // Router
 import 'package:siren_marketplace/router.dart';
-
-import 'features/fisher/logic/order_detail_bloc/order_detail_bloc.dart';
 
 const String CURRENT_FISHER_ID = 'fisher_id_1';
 const String CURRENT_BUYER_ID = 'buyer_id_1';
@@ -53,11 +50,10 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: sl<UserBloc>()..add(const LoadPrimaryUser())),
-        BlocProvider.value(value: sl<OrdersBloc>()),
         BlocProvider.value(value: sl<FisherCubit>()),
         BlocProvider.value(value: sl<ConversationsBloc>()),
-        BlocProvider(create: (_) => sl<CatchesBloc>()..add(LoadCatches())),
         BlocProvider(create: (_) => sl<OffersBloc>()),
+        BlocProvider(create: (_) => sl<CatchesBloc>()..add(LoadCatches())),
         BlocProvider(create: (_) => sl<CatchFilterCubit>()),
         BlocProvider(create: (_) => sl<SpeciesFilterCubit>()),
         BlocProvider(create: (_) => sl<BottomNavCubit>()),
@@ -68,7 +64,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => sl<FilteredProductsCubit>()),
 
         BlocProvider(create: (_) => sl<OfferDetailsBloc>()),
-        BlocProvider(create: (_) => sl<OrderDetailBloc>()),
         BlocProvider(
           create: (_) => sl<BuyerMarketBloc>()..add(LoadMarketCatches()),
         ),
@@ -83,22 +78,13 @@ class MyApp extends StatelessWidget {
       ],
       child: Builder(
         builder: (context) {
-          return BlocListener<CatchesBloc, CatchesState>(
-            listener: (context, state) {
-              if (state is CatchesLoaded) {
-                final catchIds = state.catches.map((c) => c.id).toList();
-                // We retrieve the singleton OffersBloc here.
-                context.read<OffersBloc>().add(LoadAllFisherOffers(catchIds));
-              }
-            },
-            child: MaterialApp.router(
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: AppColors.blue500),
-              ),
-              // Passing the singleton UserBloc instance to the router
-              routerConfig: createRouter(context.read<UserBloc>()),
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: AppColors.blue500),
             ),
+            // Passing the singleton UserBloc instance to the router
+            routerConfig: createRouter(context.read<UserBloc>()),
           );
         },
       ),

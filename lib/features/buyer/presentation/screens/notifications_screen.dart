@@ -14,7 +14,7 @@ import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.d
 import 'package:siren_marketplace/features/buyer/presentation/widgets/offer_card.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 
 class BuyerNotificationsScreen extends StatefulWidget {
   const BuyerNotificationsScreen({super.key});
@@ -51,25 +51,6 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
     super.dispose();
   }
 
-  // 🔑 The critical method: runs when the app comes to the foreground
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-
-    // When the app resumes (e.g., coming back from the detail screen)
-    if (state == AppLifecycleState.resumed) {
-      final buyerCubit = context.read<BuyerCubit>();
-
-      if (buyerCubit.state is BuyerLoaded) {
-        final buyerId = (buyerCubit.state as BuyerLoaded).buyer.id;
-
-        // 🔄 Force a reload of the Buyer data, which includes the Offers list,
-        // picking up the update made by the OfferDetailsBloc.
-        buyerCubit.loadBuyerData(buyerId: buyerId);
-      }
-    }
-  }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -83,7 +64,9 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
       final offersBloc = context.read<OffersBloc>();
       if (offersBloc.state is OffersInitial ||
           offersBloc.state is OffersError) {
-        offersBloc.add(LoadBuyerOffersEvent(buyerId));
+        offersBloc.add(
+          LoadOffersForUser(userId: buyerId, role: buyerLoadedState.buyer.role),
+        );
       }
 
       // Existing logic for loading conversations remains:
@@ -226,7 +209,12 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
             if (offersState is OffersLoading || offersState is OffersInitial) {
               // ⚠️ Ensure the offers load starts if it's initial
               if (offersState is OffersInitial) {
-                context.read<OffersBloc>().add(LoadBuyerOffersEvent(buyerId));
+                context.read<OffersBloc>().add(
+                  LoadOffersForUser(
+                    userId: buyerId,
+                    role: buyerState.buyer.role,
+                  ),
+                );
               }
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),

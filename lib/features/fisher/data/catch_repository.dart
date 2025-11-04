@@ -3,6 +3,7 @@ import 'package:siren_marketplace/core/data/database/database_helper.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'offer_repositories.dart';
@@ -10,8 +11,13 @@ import 'offer_repositories.dart';
 class CatchRepository {
   final DatabaseHelper dbHelper;
   final OfferRepository offerRepository;
+  final TransactionNotifier notifier;
 
-  CatchRepository({required this.dbHelper, required this.offerRepository});
+  CatchRepository({
+    required this.dbHelper,
+    required this.offerRepository,
+    required this.notifier,
+  });
 
   // --- STANDARD CRUD OPERATIONS ---
 
@@ -22,6 +28,7 @@ class CatchRepository {
       catchModel.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    notifier.notify();
   }
 
   Future<void> removeCatchFromMarketplace(String id) async {
@@ -33,6 +40,7 @@ class CatchRepository {
       where: 'catch_id = ?',
       whereArgs: [id],
     );
+    notifier.notify();
 
     // Important: We DO NOT delete related Offers or Orders here.
     // The Catch record itself remains in the DB, just hidden from the market.
@@ -80,6 +88,7 @@ class CatchRepository {
       );
       debugPrint('Cleanup: Deleted ${catchesToDelete.length} expired catches.');
     }
+    notifier.notify();
   }
 
   Future<void> updateExpiredStatuses() async {
@@ -103,6 +112,7 @@ class CatchRepository {
     if (result > 0) {
       debugPrint('Expiry Check: Updated $result catches to EXPIRED status.');
     }
+    notifier.notify();
   }
 
   Future<List<Map<String, dynamic>>> getCatchMapsByFisherId(
@@ -149,11 +159,13 @@ class CatchRepository {
       where: 'catch_id = ?',
       whereArgs: [catchModel.id],
     );
+    notifier.notify();
   }
 
   Future<void> deleteCatch(String id) async {
     final db = await dbHelper.database;
     await db.delete('catches', where: 'catch_id = ?', whereArgs: [id]);
+    notifier.notify();
   }
 
   // --- FETCH BY FISHER ID ---

@@ -3,6 +3,7 @@ import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
@@ -11,8 +12,9 @@ import 'order_repository.dart';
 
 class OfferRepository {
   final DatabaseHelper dbHelper;
+  final TransactionNotifier notifier;
 
-  OfferRepository({required this.dbHelper});
+  OfferRepository({required this.dbHelper, required this.notifier});
 
   // 1. INSERT: Inserts a full Offer object map into the 'offers' table
   Future<void> insertOffer(Offer offer) async {
@@ -66,6 +68,8 @@ class OfferRepository {
       newOffer.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+
+    notifier.notify();
     return newOffer;
   }
 
@@ -177,6 +181,7 @@ class OfferRepository {
       where: 'offer_id = ?',
       whereArgs: [offer.id],
     );
+    notifier.notify();
   }
 
   Future<List<Offer>> getOffersByCatchId(String catchId) async {
@@ -193,7 +198,7 @@ class OfferRepository {
 
 extension OfferRepositoryActions on OfferRepository {
   /// Marks an offer as accepted and generates an Order
-  Future<String> acceptOffer({
+  Future<(Offer, String)> acceptOffer({
     required Offer offer,
     required Catch catchItem,
     required Fisher fisher,
@@ -218,17 +223,19 @@ extension OfferRepositoryActions on OfferRepository {
     await orderRepo.insertOrder(newOrder);
 
     // CRITICAL CHANGE: Return the ID of the newly created order
-    return newOrder.id;
+    return (accepted, newOrder.id);
   }
 
   /// Marks an offer as rejected (no further side effects)
-  Future<void> rejectOffer(Offer offer) async {
+  Future<Offer> rejectOffer(Offer offer) async {
     final rejected = offer.copyWith(
       status: OfferStatus.rejected,
       hasUpdateForBuyer: true,
+      hasUpdateForFisher: false,
       waitingFor: null,
     );
     await updateOffer(rejected);
+    return rejected;
   }
 
   /// Creates a new counter-offer linked to a previous one

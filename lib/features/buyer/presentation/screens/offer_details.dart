@@ -15,10 +15,9 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/offer_details_bloc.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offer_bloc/offer_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
 class BuyerOfferDetails extends StatefulWidget {
@@ -39,8 +38,8 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
   @override
   void initState() {
     super.initState();
-    // Dispatch the LoadOfferDetails event to the BLoC on initialization
-    context.read<OfferDetailsBloc>().add(LoadOfferDetails(widget.offerId));
+    // 🎯 Dispatch event to the unified OffersBloc
+    context.read<OffersBloc>().add(LoadOfferDetails(widget.offerId));
   }
 
   // 🗑️ REMOVED: The local _hasMarkedAsViewed flag is no longer strictly needed,
@@ -55,7 +54,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
       // Dispatch the MarkOfferAsViewed event.
       // The BLoC's internal logic will prevent unnecessary repository calls
       // if the flag is already cleared.
-      context.read<OffersBloc>().add(MarkOfferAsViewedEvent(offer, role));
+      context.read<OffersBloc>().add(MarkOfferAsViewed(offer, role));
     }
   }
 
@@ -207,7 +206,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                               totalPrice != null &&
                               pricePerKg != null) {
                             context.read<OffersBloc>().add(
-                              CreateOfferEvent(
+                              CreateOffer(
                                 catchId: c.id,
                                 buyerId: user!.id,
                                 fisherId: c.fisherId,
@@ -284,274 +283,84 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        return BlocConsumer<OfferDetailsBloc, OfferDetailsState>(
-          listener: (context, state) {
-            if (state is OfferDetailsLoaded) {
-              _markOfferAsViewed(state.offer, role, context);
+        return BlocConsumer<OffersBloc, OffersState>(
+          listenWhen: (prev, curr) => curr is OffersLoaded,
+          // Listen when list/detail updates
+          listener: (context, offersState) {
+            if (offersState is OffersLoaded &&
+                offersState.selectedOffer != null) {
+              _markOfferAsViewed(offersState.selectedOffer!, role, context);
             }
           },
-          builder: (context, state) {
-            if (state is OfferDetailsLoading) {
+          builder: (context, offersState) {
+            final isDetailsLoading =
+                offersState is OffersLoading ||
+                (offersState is OffersLoaded &&
+                    offersState.selectedOffer == null);
+
+            if (isDetailsLoading) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
 
-            if (state is OfferDetailsError) {
+            if (offersState is OffersError) {
               return Scaffold(
                 appBar: AppBar(leading: const BackButton()),
                 body: Center(
                   child: Text(
-                    'Error: ${state.message}',
+                    'Error: ${offersState.message}',
                     style: const TextStyle(color: AppColors.fail500),
                   ),
                 ),
               );
             }
 
-            if (state is! OfferDetailsLoaded) {
+            if (offersState is OffersLoaded) {
+              final offer = offersState.selectedOffer;
+              final catchSnapshot = offersState.selectedCatch;
+              final fisher = offersState.selectedFisher;
+
+              if (offer == null || catchSnapshot == null || fisher == null) {
+                return Scaffold(
+                  appBar: AppBar(leading: const BackButton()),
+                  body: const Center(child: Text("Offer details missing.")),
+                );
+              }
+
+              // 🗑️ REMOVED: Calling _markOfferAsViewed here, as it's now in the listener.
+
               return Scaffold(
                 appBar: AppBar(
-                  leading: const BackButton(),
-                  title: const Text("Offer Details"),
-                ),
-                body: const Center(
-                  child: Text(
-                    "Offer not found or data missing.",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              );
-            }
-
-            // 4. Extract required objects from the loaded state
-            final offer = state.offer;
-            final catchSnapshot = state.catchItem;
-            final fisher = state.fisher;
-
-            // 🗑️ REMOVED: Calling _markOfferAsViewed here, as it's now in the listener.
-
-            return Scaffold(
-              appBar: AppBar(
-                leading: BackButton(onPressed: () => context.pop()),
-                title: const Text(
-                  "Offer Details",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textBlue,
-                    fontSize: 24,
-                  ),
-                ),
-                actions: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.more_vert),
-                  ),
-                ],
-              ),
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BuyerOfferHeader(
-                      offer: offer,
-                      catchSnapshot: catchSnapshot,
+                  leading: BackButton(onPressed: () => context.pop()),
+                  title: const Text(
+                    "Offer Details",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textBlue,
+                      fontSize: 24,
                     ),
-                    const SizedBox(height: 16),
-
-                    const SectionHeader("Current Offer"),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.gray200),
-                      ),
-                      child: InfoTable(
-                        rows: [
-                          InfoRow(
-                            label: "Weight",
-                            value: "${offer.weight.toStringAsFixed(1)} Kg",
-                          ),
-                          InfoRow(
-                            label: "Price Per Kg",
-                            value: "${offer.pricePerKg.toStringAsFixed(0)} CFA",
-                          ),
-                          InfoRow(
-                            label: "Total",
-                            value: "${offer.price.toStringAsFixed(0)} CFA",
-                          ),
-                        ],
-                      ),
+                  ),
+                  actions: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.more_vert),
                     ),
-
-                    if (offer.waitingFor == Role.buyer) ...[
+                  ],
+                ),
+                body: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      BuyerOfferHeader(
+                        offer: offer,
+                        catchSnapshot: catchSnapshot,
+                      ),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomButton(
-                          title: "Counter Offer",
-                          icon: Icons.autorenew,
-                          onPressed: () {},
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
 
-                    FisherDetails(fisher: fisher),
-                    const SizedBox(height: 16),
-
-                    // --- ACTION BUTTONS SECTION ---
-                    if (offer.status == OfferStatus.rejected) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomButton(
-                          title: "Marketplace",
-                          onPressed: () {},
-                          icon: Icons.storefront,
-                          bordered: true,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomButton(
-                          title: "Make New Offer",
-                          onPressed: () =>
-                              _showMakeOfferDialog(context, catchSnapshot),
-                        ),
-                      ),
-                    ],
-
-                    if (offer.status == OfferStatus.accepted ||
-                        offer.status == OfferStatus.pending) ...[
+                      const SectionHeader("Current Offer"),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomButton(
-                          title: "Call Seller",
-                          onPressed: () {},
-                          hugeIcon: HugeIcons.strokeRoundedCall02,
-                          bordered: true,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomButton(
-                          title: "Message Seller",
-                          onPressed: () {},
-                          icon: CustomIcons.chatbubble,
-                        ),
-                      ),
-                    ],
-
-                    if (offer.status == OfferStatus.completed) ...[
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomButton(
-                          title: "Rate the fisher",
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.white,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(24),
-                                ),
-                              ),
-                              builder: (context) {
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: MediaQuery.of(
-                                      context,
-                                    ).viewInsets.bottom,
-                                    left: 16,
-                                    right: 16,
-                                    top: 24,
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          IconButton(
-                                            onPressed: context.pop,
-                                            icon: const Icon(Icons.close),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            "Give a Review",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 24,
-                                              color: AppColors.textBlue,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 24),
-                                      Center(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: List.generate(5, (index) {
-                                            return const Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 4.0,
-                                              ),
-                                              child: Icon(
-                                                Icons.star,
-                                                size: 32,
-                                                color: AppColors.shellOrange,
-                                              ),
-                                            );
-                                          }),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      const TextField(
-                                        maxLines: 4,
-                                        decoration: InputDecoration(
-                                          hintText: "Write a review...",
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.all(
-                                              Radius.circular(16),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: CustomButton(
-                                          title: "Submit Review",
-                                          onPressed: () {},
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-
-                    // OfferActions(offer: offer, formKey: _formKey, role: role),
-                    const SizedBox(height: 16),
-
-                    if (offer.previousPrice != null &&
-                        offer.previousWeight != null) ...[
-                      const SectionHeader("Last Counter-Offer"),
-                      const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -562,25 +371,218 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                           rows: [
                             InfoRow(
                               label: "Weight",
-                              value: "${offer.previousWeight} Kg",
-                            ),
-                            InfoRow(
-                              label: "Price",
-                              value: formatPrice(offer.previousPrice!),
+                              value: "${offer.weight.toStringAsFixed(1)} Kg",
                             ),
                             InfoRow(
                               label: "Price Per Kg",
-                              value: formatPrice(offer.previousPricePerKg!),
+                              value:
+                                  "${offer.pricePerKg.toStringAsFixed(0)} CFA",
+                            ),
+                            InfoRow(
+                              label: "Total",
+                              value: "${offer.price.toStringAsFixed(0)} CFA",
                             ),
                           ],
                         ),
                       ),
+
+                      if (offer.waitingFor == Role.buyer) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButton(
+                            title: "Counter Offer",
+                            icon: Icons.autorenew,
+                            onPressed: () {},
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 16),
+
+                      FisherDetails(fisher: fisher),
+                      const SizedBox(height: 16),
+
+                      // --- ACTION BUTTONS SECTION ---
+                      if (offer.status == OfferStatus.rejected) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButton(
+                            title: "Marketplace",
+                            onPressed: () {},
+                            icon: Icons.storefront,
+                            bordered: true,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButton(
+                            title: "Make New Offer",
+                            onPressed: () =>
+                                _showMakeOfferDialog(context, catchSnapshot),
+                          ),
+                        ),
+                      ],
+
+                      if (offer.status == OfferStatus.accepted ||
+                          offer.status == OfferStatus.pending) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButton(
+                            title: "Call Seller",
+                            onPressed: () {},
+                            hugeIcon: HugeIcons.strokeRoundedCall02,
+                            bordered: true,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButton(
+                            title: "Message Seller",
+                            onPressed: () {},
+                            icon: CustomIcons.chatbubble,
+                          ),
+                        ),
+                      ],
+
+                      if (offer.status == OfferStatus.completed) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButton(
+                            title: "Rate the fisher",
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.white,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(24),
+                                  ),
+                                ),
+                                builder: (context) {
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                      bottom: MediaQuery.of(
+                                        context,
+                                      ).viewInsets.bottom,
+                                      left: 16,
+                                      right: 16,
+                                      top: 24,
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              onPressed: context.pop,
+                                              icon: const Icon(Icons.close),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Text(
+                                              "Give a Review",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 24,
+                                                color: AppColors.textBlue,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 24),
+                                        Center(
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: List.generate(5, (index) {
+                                              return const Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 4.0,
+                                                ),
+                                                child: Icon(
+                                                  Icons.star,
+                                                  size: 32,
+                                                  color: AppColors.shellOrange,
+                                                ),
+                                              );
+                                            }),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 24),
+                                        const TextField(
+                                          maxLines: 4,
+                                          decoration: InputDecoration(
+                                            hintText: "Write a review...",
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.all(
+                                                Radius.circular(16),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: CustomButton(
+                                            title: "Submit Review",
+                                            onPressed: () {},
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+
+                      // OfferActions(offer: offer, formKey: _formKey, role: role),
+                      const SizedBox(height: 16),
+
+                      if (offer.previousPrice != null &&
+                          offer.previousWeight != null) ...[
+                        const SectionHeader("Last Counter-Offer"),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.gray200),
+                          ),
+                          child: InfoTable(
+                            rows: [
+                              InfoRow(
+                                label: "Weight",
+                                value: "${offer.previousWeight} Kg",
+                              ),
+                              InfoRow(
+                                label: "Price",
+                                value: formatPrice(offer.previousPrice!),
+                              ),
+                              InfoRow(
+                                label: "Price Per Kg",
+                                value: formatPrice(offer.previousPricePerKg!),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            );
+              );
+            }
+            return const SizedBox.shrink();
           },
         );
       },

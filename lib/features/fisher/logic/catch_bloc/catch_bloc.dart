@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
@@ -10,6 +12,7 @@ part 'catch_state.dart';
 
 class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
   final CatchRepository repository;
+  late final StreamSubscription _notifierSub;
 
   CatchesBloc(this.repository) : super(CatchesInitial()) {
     on<LoadCatches>(_onLoadCatches);
@@ -17,6 +20,9 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
     on<AddCatch>(_onAddCatch);
     on<UpdateCatchEvent>(_onUpdateCatch);
     on<DeleteCatchEvent>(_onDeleteCatch);
+    _notifierSub = repository.notifier.updates.listen((_) {
+      add(LoadCatches()); // ✅ automatically refresh all catches
+    });
   }
 
   Future<List<Catch>> _assembleCatches(
@@ -42,7 +48,7 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
     try {
       final catchMaps = await repository.getAllCatchMaps();
       final catches = await _assembleCatches(catchMaps);
-      emit(CatchesLoaded(catches));
+      emit(CatchesLoaded(List.from(catches))); // ✅ new list instance
     } catch (e) {
       emit(CatchesError('Failed to load catches: $e'));
     }
@@ -56,7 +62,7 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
     try {
       final catchMaps = await repository.getCatchMapsByFisherId(event.fisherId);
       final catches = await _assembleCatches(catchMaps);
-      emit(CatchesLoaded(catches));
+      emit(CatchesLoaded(List.from(catches))); // ✅
     } catch (e) {
       emit(CatchesError('Failed to load catches for fisher: $e'));
     }
@@ -67,7 +73,7 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
       await repository.insertCatch(event.catchModel);
       final updatedCatchMaps = await repository.getAllCatchMaps();
       final updatedCatches = await _assembleCatches(updatedCatchMaps);
-      emit(CatchesLoaded(updatedCatches));
+      emit(CatchesLoaded(List.from(updatedCatches))); // ✅
     } catch (e) {
       emit(CatchesError('Failed to add catch: $e'));
     }
@@ -81,28 +87,19 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
       await repository.updateCatch(event.catchModel);
       final updatedCatchMaps = await repository.getAllCatchMaps();
       final updatedCatches = await _assembleCatches(updatedCatchMaps);
-      emit(CatchesLoaded(updatedCatches));
+      emit(CatchesLoaded(List.from(updatedCatches))); // ✅
     } catch (e) {
       emit(CatchesError('Failed to update catch: $e'));
     }
   }
 
-  // 🔹 Delete catch
   Future<void> _onDeleteCatch(
     DeleteCatchEvent event,
     Emitter<CatchesState> emit,
   ) async {
     try {
-      // 1. Perform the soft delete (update status to 'removed')
       await repository.removeCatchFromMarketplace(event.catchId);
       emit(CatchDeletedSuccess());
-
-      // 2. Re-fetch only the catches belonging to the fisherman whose item was removed.
-      // This assumes the BLoC instance needs to know the fisherId to reload correctly.
-      // If you don't have the fisherId here, you *must* rely on event state or context.
-
-      // Assuming you can get the fisherId or we reload all and filter.
-      // Sticking to your original pattern (reload all) but fixing the UI filter:
 
       final updatedCatchMaps = await repository.getAllCatchMaps();
       final updatedCatches = await _assembleCatches(updatedCatchMaps);
@@ -113,9 +110,16 @@ class CatchesBloc extends Bloc<CatchesEvent, CatchesState> {
                 c.status != CatchStatus.expired,
           )
           .toList();
-      emit(CatchesLoaded(marketCatches));
+
+      emit(CatchesLoaded(List.from(marketCatches))); // ✅
     } catch (e) {
       emit(CatchesError('Failed to delete catch: $e'));
     }
+  }
+
+  @override
+  Future<void> close() {
+    _notifierSub.cancel();
+    return super.close();
   }
 }
