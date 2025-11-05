@@ -151,13 +151,13 @@ class ForSaleCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        hasPendingOffers
-                            ? Icon(
-                                Icons.notifications,
-                                color: AppColors.fail500,
-                                size: 16,
-                              )
-                            : Container(),
+                        if (hasPendingOffers) ...[
+                          Icon(
+                            Icons.notifications,
+                            color: AppColors.fail500,
+                            size: 16,
+                          ),
+                        ],
                       ],
                     ),
                   ],

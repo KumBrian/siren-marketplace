@@ -34,4 +34,5 @@ Key changes:
       test data more realistic.
 
 Need To FIX:
-- Offers and Orders bloc inconsistencies
+
+- Update Buyer Offers to use filters and sorting
