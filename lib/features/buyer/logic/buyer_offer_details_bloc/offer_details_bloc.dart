@@ -79,30 +79,6 @@ class OfferDetailsBloc extends Bloc<OfferDetailsEvent, OfferDetailsState> {
     }
   }
 
-  List<Offer> _assembleOffers(List<Map<String, dynamic>> maps) {
-    return maps.map((m) => Offer.fromMap(m)).toList();
-  }
-
-  Future<void> _onLoadOffers(
-    LoadOffers event,
-    Emitter<OfferDetailsState> emit,
-  ) async {
-    emit(OfferDetailsLoading());
-    try {
-      // 1. Fetch raw offer maps for a specific catch
-      final offerMaps = await offerRepository.getOfferMapsByCatch(
-        event.catchId,
-      );
-
-      // 2. Assemble Offer objects
-      final offers = _assembleOffers(offerMaps);
-
-      emit(OffersLoaded(offers));
-    } catch (e) {
-      emit(OfferDetailsError(e.toString()));
-    }
-  }
-
   Future<void> _onLoadOfferDetails(
     LoadOfferDetails event,
     Emitter<OfferDetailsState> emit,
@@ -148,7 +124,7 @@ class OfferDetailsBloc extends Bloc<OfferDetailsEvent, OfferDetailsState> {
 
     try {
       // 1. Perform the repository action
-      final updatedOffer = await offerRepository.acceptOffer(
+      final _ = await offerRepository.acceptOffer(
         offer: event.offer,
         catchItem: event.catchItem,
         fisher: event.fisher,

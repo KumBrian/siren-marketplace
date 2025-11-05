@@ -40,8 +40,6 @@ class ProductDetails extends StatefulWidget {
 class _ProductDetailsState extends State<ProductDetails> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  // Re-instantiating the CarouselController as requested
-  final CarouselController _controller = CarouselController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _pricePerKgController = TextEditingController();

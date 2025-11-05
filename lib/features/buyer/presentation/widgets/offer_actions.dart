@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/offer_details_bloc.dart';
-import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 
 Future<void> showActionSuccessDialog(
   BuildContext context, {
@@ -142,17 +140,6 @@ class _OfferActionsState extends State<OfferActions> {
         ),
       );
     }
-  }
-
-  // Helper to dispatch the AcceptOffer event
-  void _acceptOffer(Catch catchItem, Fisher fisher) {
-    // Close the dialog
-    context.pop();
-
-    // Dispatch the BLoC event
-    context.read<OfferDetailsBloc>().add(
-      AcceptOffer(offer: widget.offer, catchItem: catchItem, fisher: fisher),
-    );
   }
 
   @override
@@ -374,79 +361,6 @@ class _OfferActionsState extends State<OfferActions> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  // Dialog for accepting a Fisher's counter-offer
-  void _showAcceptDialog(
-    BuildContext context,
-    Offer offerToAccept,
-    Fisher fisher,
-    Catch catchItem,
-  ) {
-    // Use the details of the offer passed from the BLoC state
-    final weight = offerToAccept.weight.toStringAsFixed(1);
-    final price = offerToAccept.price.toStringAsFixed(0);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.textBlue, width: 2),
-          ),
-          child: const Icon(Icons.question_mark_outlined),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textBlue,
-                  ),
-                  children: [
-                    const TextSpan(text: "Accept the Fisher's offer of "),
-                    TextSpan(
-                      text: "$weight Kg ",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textBlue,
-                      ),
-                    ),
-                    const TextSpan(text: "at "),
-                    TextSpan(
-                      text: "$price CFA ? ",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textBlue,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            CustomButton(
-              title: "Yes",
-              // 🆕 Call the helper function that dispatches the event and handles navigation
-              onPressed: () => _acceptOffer(catchItem, fisher),
-            ),
-            const SizedBox(height: 16),
-            CustomButton(
-              title: "No",
-              cancel: true,
-              onPressed: () => context.pop(),
-            ),
-          ],
         ),
       ),
     );

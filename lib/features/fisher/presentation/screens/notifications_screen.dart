@@ -265,8 +265,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             actions: [
               BlocBuilder<CatchFilterCubit, CatchFilterState>(
                 builder: (context, state) {
-                  final cubit = context.read<CatchFilterCubit>();
-
                   return IconButton(
                     onPressed: () {
                       showModalBottomSheet(
