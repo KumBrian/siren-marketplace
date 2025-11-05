@@ -18,7 +18,7 @@ import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 class BuyerOfferDetails extends StatefulWidget {
   const BuyerOfferDetails({super.key, required this.offerId});

@@ -15,7 +15,7 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_card.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 class BuyerHome extends StatefulWidget {
   const BuyerHome({super.key});

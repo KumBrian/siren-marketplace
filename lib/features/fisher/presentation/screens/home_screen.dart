@@ -8,12 +8,11 @@ import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
-import 'package:siren_marketplace/core/widgets/custom_nav_bar.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/for_sale_card.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/sold_card.dart';
-import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 // Professional data structure for the list view
 class SoldItemData {
@@ -423,12 +422,12 @@ class _FisherHomeState extends State<FisherHome> {
                           ],
                         ),
                       ),
-                      Positioned(
-                        bottom: 24,
-                        right: 0,
-                        left: 0,
-                        child: CustomNavBar(role: Role.fisher),
-                      ),
+                      // Positioned(
+                      //   bottom: 24,
+                      //   right: 0,
+                      //   left: 0,
+                      //   child: CustomNavBar(role: Role.fisher),
+                      // ),
                     ],
                   );
                 }
