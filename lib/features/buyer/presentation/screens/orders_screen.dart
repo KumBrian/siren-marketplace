@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/bloc/cubits/offers_filter_cubit/offers_filter_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/orders_filter_cubit/orders_filter_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
@@ -24,17 +23,47 @@ class BuyerOrders extends StatefulWidget {
 }
 
 class _BuyerOrdersState extends State<BuyerOrders> {
-  // Function to apply filtering logic (No change, as it's correct for Order/Offer status)
-  List<Offer> _applyFilters(List<Offer> offers, OrdersFilterState state) {
-    if (state.selectedStatuses.isEmpty) {
-      return offers;
+  List<Offer> _applyOffersFilteringAndSorting(
+    List<Offer> offers,
+    OffersFilterState state,
+  ) {
+    List<Offer> filteredList = offers;
+
+    final selectedStatuses = state.activeStatuses
+        .map((statusName) {
+          try {
+            return OfferStatus.values.firstWhere(
+              (s) => s.name == statusName.toLowerCase(),
+            );
+          } catch (e) {
+            return OfferStatus.unknown;
+          }
+        })
+        .where((s) => s != OfferStatus.unknown)
+        .toSet();
+
+    if (selectedStatuses.isNotEmpty) {
+      filteredList = filteredList.where((offer) {
+        return selectedStatuses.contains(offer.status);
+      }).toList();
     }
 
-    // Filter by Status
-    return offers.where((offer) {
-      final status = offer.status;
-      return state.selectedStatuses.contains(status);
-    }).toList();
+    // --- Sorting by Date (createdAt) ---
+    filteredList.sort((a, b) {
+      if (state.activeSortBy == SortBy.newOld) {
+        // Newest to Oldest (Descending)
+        return b.dateCreated.compareTo(a.dateCreated);
+      } else if (state.activeSortBy == SortBy.oldNew) {
+        // Oldest to Newest (Ascending)
+        return a.dateCreated.compareTo(b.dateCreated);
+      }
+      // No sorting/default order
+      return 0;
+    });
+
+    // 💡 NOTE: Implement search/searchQuery logic here if you add it to the cubit state.
+
+    return filteredList;
   }
 
   void _showFilterModal(BuildContext context, List<Offer> allOffers) {
@@ -90,8 +119,10 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                     TextButton(
                       onPressed: () {
                         filterCubit.clearAllFilters();
-                        filterCubit.applyFilters();
-                        Navigator.pop(context);
+                        context.read<BuyerCubit>().loadBuyerData(
+                          buyerId: CURRENT_BUYER_ID,
+                        );
+                        context.pop();
                       },
                       child: const Text(
                         "Reset All",
@@ -144,8 +175,10 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                     TextButton(
                       onPressed: () {
                         filterCubit.clearAllFilters();
-                        filterCubit.applyFilters();
-                        Navigator.pop(context);
+                        context.read<BuyerCubit>().loadBuyerData(
+                          buyerId: CURRENT_BUYER_ID,
+                        );
+                        context.pop();
                       },
                       child: const Text(
                         "Reset All",
@@ -224,25 +257,44 @@ class _BuyerOrdersState extends State<BuyerOrders> {
         ),
         Expanded(
           flex: 1,
-          child: Material(
-            color: AppColors.white100,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              splashColor: AppColors.blue700.withAlpha(25),
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => _showSortModal(context, allOffers),
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Icon(CustomIcons.sort, color: AppColors.textBlue),
-              ),
-            ),
+          child: BlocBuilder<OffersFilterCubit, OffersFilterState>(
+            builder: (context, state) {
+              final hasFilters = state.activeSortBy != SortBy.none;
+              return Badge(
+                isLabelVisible: hasFilters,
+                alignment: Alignment.topRight,
+                largeSize: 3,
+                smallSize: 8,
+
+                backgroundColor: AppColors.blue800,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Material(
+                    color: AppColors.white100,
+                    borderRadius: BorderRadius.circular(16),
+                    child: InkWell(
+                      splashColor: AppColors.blue700.withAlpha(25),
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => _showSortModal(context, allOffers),
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Icon(
+                          CustomIcons.sort,
+                          color: AppColors.textBlue,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
         Expanded(
           flex: 1,
           child: BlocBuilder<OffersFilterCubit, OffersFilterState>(
             builder: (context, state) {
-              final hasFilters = state.totalFilters > 0;
+              final hasFilters = state.activeStatuses.isNotEmpty;
 
               return Badge(
                 isLabelVisible: hasFilters,
@@ -326,9 +378,12 @@ class _BuyerOrdersState extends State<BuyerOrders> {
           final allOffers = loadedState.madeOffers;
 
           // 2. Nested BlocBuilder for applying filters
-          return BlocBuilder<OrdersFilterCubit, OrdersFilterState>(
+          return BlocBuilder<OffersFilterCubit, OffersFilterState>(
             builder: (context, filterState) {
-              final filteredOffers = _applyFilters(allOffers, filterState);
+              final filteredOffers = _applyOffersFilteringAndSorting(
+                allOffers,
+                filterState,
+              );
 
               return RefreshIndicator(
                 // 💡 FIX: Pass the required buyerId to the loadBuyerData call
@@ -371,10 +426,15 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                                     child: OrderCard(
                                       offer: order,
                                       onPressed: () {
-                                        // ⚠️ Assuming Order model has an `id` or `orderId` property
-                                        context.go(
-                                          "/buyer/order-details/${order.id}",
-                                        );
+                                        order.status == OfferStatus.pending ||
+                                                order.status ==
+                                                    OfferStatus.rejected
+                                            ? context.go(
+                                                "/buyer/offer-details/${order.id}",
+                                              )
+                                            : context.go(
+                                                "/buyer/order-details/${order.id}",
+                                              );
                                       },
                                     ),
                                   );
@@ -389,173 +449,6 @@ class _BuyerOrdersState extends State<BuyerOrders> {
           );
         },
       ),
-    );
-  }
-}
-
-class OrdersFilter extends StatelessWidget {
-  const OrdersFilter({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<OrdersFilterCubit, OrdersFilterState>(
-      builder: (context, state) {
-        final cubit = context.read<OrdersFilterCubit>();
-
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              flex: 5,
-              child: SearchBar(
-                hintText: "Search...",
-                scrollPadding: const EdgeInsets.symmetric(vertical: 4),
-                textStyle: WidgetStateProperty.all(
-                  const TextStyle(fontSize: 16, color: AppColors.textBlue),
-                ),
-                backgroundColor: WidgetStateProperty.all(AppColors.white100),
-                shape: WidgetStateProperty.all(
-                  const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(16)),
-                  ),
-                ),
-                trailing: const [Icon(Icons.search, color: AppColors.textBlue)],
-                elevation: WidgetStateProperty.all(0),
-              ),
-            ),
-            const SizedBox(width: 16), // Added standard spacing
-            Expanded(
-              flex: 1,
-              child: Material(
-                color: AppColors.white100,
-                borderRadius: BorderRadius.circular(16),
-                child: InkWell(
-                  splashColor: AppColors.blue700.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      showDragHandle: true,
-                      builder: (context) {
-                        return Container(
-                          padding: const EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            bottom: 32,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Filter by:",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              const Text("Status"),
-                              const SizedBox(height: 12),
-                              const Text(
-                                "Select all that apply",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textGray,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  FilterButton(
-                                    title: "Pending",
-                                    color: AppColors.getStatusColor(
-                                      OfferStatus.pending,
-                                    ),
-                                    isSelected: state.selectedStatuses.contains(
-                                      OfferStatus.pending,
-                                    ),
-                                    onPressed: () =>
-                                        cubit.toggleStatus(OfferStatus.pending),
-                                  ),
-                                  FilterButton(
-                                    title: "Accepted",
-                                    color: AppColors.getStatusColor(
-                                      OfferStatus.accepted,
-                                    ),
-                                    isSelected: state.selectedStatuses.contains(
-                                      OfferStatus.accepted,
-                                    ),
-                                    onPressed: () => cubit.toggleStatus(
-                                      OfferStatus.accepted,
-                                    ),
-                                  ),
-                                  FilterButton(
-                                    title: "Completed",
-                                    color: AppColors.getStatusColor(
-                                      OfferStatus.completed,
-                                    ),
-                                    isSelected: state.selectedStatuses.contains(
-                                      OfferStatus.completed,
-                                    ),
-                                    onPressed: () => cubit.toggleStatus(
-                                      OfferStatus.completed,
-                                    ),
-                                  ),
-                                  FilterButton(
-                                    title: "Rejected",
-                                    color: AppColors.getStatusColor(
-                                      OfferStatus.rejected,
-                                    ),
-                                    isSelected: state.selectedStatuses.contains(
-                                      OfferStatus.rejected,
-                                    ),
-                                    onPressed: () => cubit.toggleStatus(
-                                      OfferStatus.rejected,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Divider(),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  TextButton(
-                                    onPressed: () {
-                                      cubit.clear();
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text(
-                                      "Reset All",
-                                      style: TextStyle(
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ),
-                                  CustomButton(
-                                    title: "Apply Filters",
-                                    onPressed: () => Navigator.pop(context),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  child: const Icon(Icons.filter_alt_outlined),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }

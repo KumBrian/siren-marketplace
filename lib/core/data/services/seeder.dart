@@ -117,8 +117,10 @@ class CatchSeeder {
 
     for (int i = 0; i < 15; i++) {
       final species = _speciesList[i % _speciesList.length];
-      final weight = 50 + _rng.nextDouble() * 50;
-      final pricePerKg = 4 + _rng.nextDouble() * 2;
+      final weight =
+          50 + double.parse(_rng.nextDouble().toStringAsFixed(2)) * 50;
+      final pricePerKg =
+          4 + double.parse(_rng.nextDouble().toStringAsFixed(2)) * 2;
       final market = _markets[i % _markets.length];
 
       CatchStatus status;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 
@@ -27,59 +28,54 @@ class OrderCard extends StatelessWidget {
               : 'https://via.placeholder.com/140';
           return Material(
             color: AppColors.white100,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8),
             child: InkWell(
               onTap: onPressed,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(8),
               splashColor: AppColors.blue700.withValues(alpha: 0.1),
               child: Row(
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
+                      topLeft: Radius.circular(8),
+                      bottomLeft: Radius.circular(8),
                     ),
                     child: imageUrl.contains("http")
                         ? Image.network(
                             imageUrl,
-                            width: 140,
-                            height: 140,
+                            width: 120,
+                            height: 120,
                             fit: BoxFit.cover,
                           )
                         : Image.asset(
                             imageUrl,
-                            width: 140,
-                            height: 140,
+                            width: 120,
+                            height: 120,
                             fit: BoxFit.cover,
                           ),
                   ),
                   // --- Content ---
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: 8.0,
-                        right: 16,
-                        top: 8,
-                        bottom: 8,
-                      ),
+                      padding: const EdgeInsets.only(left: 8.0, right: 16),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 16,
                         children: [
-                          // Removed non-standard 'spacing: 16'
                           // Title and Status Row
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               SizedBox(
-                                width: 130,
+                                width: 140,
                                 child: Text(
                                   catchModel.name,
                                   // 🆕 Use name from catchModel
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.textBlue,
                                   ),
@@ -88,122 +84,121 @@ class OrderCard extends StatelessWidget {
                               // Status Badge
                               Row(
                                 mainAxisSize: MainAxisSize.min,
+                                spacing: 4,
                                 children: [
+                                  Text(
+                                    offer.status.name.capitalize(),
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textGray,
+                                    ),
+                                  ),
                                   Container(
-                                    width: 10,
-                                    height: 10,
-                                    margin: const EdgeInsets.only(right: 4),
-                                    // Replaced spacing: 4
+                                    width: 8,
+                                    height: 8,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      // Assuming AppColors.getStatusColor is defined
                                       color: AppColors.getStatusColor(
                                         offer.status,
                                       ),
                                       border: Border.all(color: Colors.white),
                                     ),
                                   ),
-                                  Text(
-                                    offer.status.name.capitalize(),
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.gray300,
-                                    ),
-                                  ),
                                 ],
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16), // Replaced Column spacing
-                          // Weight and Market Info
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Removed non-standard 'spacing: 8'
-                              RichText(
-                                text: TextSpan(
-                                  text: "Weight: ",
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.gray650,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          "${offer.weight.toStringAsFixed(1)} Kg",
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textBlue,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 4), // Explicit spacing
 
-                              SizedBox(
-                                width: 200,
-                                child: RichText(
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  text: TextSpan(
-                                    text: "Market: ",
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      overflow: TextOverflow.ellipsis,
-                                      color: AppColors.gray650,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                        text: catchModel.market,
-                                        // 🆕 Use market from catchModel
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          overflow: TextOverflow.ellipsis,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textBlue,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16), // Final spacing
-                          // Price and Notification Row
+                          // Weight and Market Info
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.gray100,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: AppColors.gray500),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "${offer.price.toStringAsFixed(0)} CFA",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                      color: AppColors.textBlue,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                spacing: 4,
+                                children: [
+                                  // Removed non-standard 'spacing: 8'
+                                  RichText(
+                                    text: TextSpan(
+                                      text: "Weight: ",
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.textGray,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text:
+                                              "${offer.weight.toStringAsFixed(1)} Kg",
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.textBlue,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
+
+                                  SizedBox(
+                                    width: 160,
+                                    child: RichText(
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      text: TextSpan(
+                                        text: "Market: ",
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: AppColors.textGray,
+                                          fontWeight: FontWeight.w600,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        children: [
+                                          TextSpan(
+                                            text: catchModel.market,
+                                            // 🆕 Use market from catchModel
+                                            style: const TextStyle(
+                                              overflow: TextOverflow.ellipsis,
+                                              fontSize: 10,
+                                              color: AppColors.textBlue,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  RichText(
+                                    text: TextSpan(
+                                      text: "Price: ",
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.textGray,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: formatPrice(offer.price),
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: AppColors.textBlue,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (offer.hasUpdateForBuyer) ...[
+                                const Icon(
+                                  Icons.notifications,
+                                  color: AppColors.fail500,
+                                  size: 16,
                                 ),
-                              ),
-                              const Spacer(),
-                              const Icon(
-                                Icons.notifications,
-                                color: AppColors.fail500,
-                                size: 16,
-                              ),
+                              ],
                             ],
                           ),
                         ],

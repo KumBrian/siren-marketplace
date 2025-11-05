@@ -24,26 +24,34 @@ class OffersFilterCubit extends Cubit<OffersFilterState> {
   }
 
   void setSort(SortBy sortBy) {
-    final newPendingSortBy = state.pendingSortBy == sortBy ? null : sortBy;
-
+    final newPendingSortBy = state.pendingSortBy == sortBy
+        ? SortBy.none
+        : sortBy;
     emit(state.copyWith(pendingSortBy: newPendingSortBy));
   }
 
   void applyFilters() {
-    final newActiveStatuses = Set<String>.from(state.pendingStatuses);
-    final newActiveSortBy = state.pendingSortBy;
-    final totalFilters = newActiveStatuses.length;
+    final newTotalStatuses = state.pendingStatuses.length;
+    final newTotalFilters = newTotalStatuses;
 
     emit(
       state.copyWith(
-        activeStatuses: newActiveStatuses,
-        totalFilters: totalFilters,
-        activeSortBy: newActiveSortBy,
+        activeStatuses: state.pendingStatuses,
+        activeSortBy: state.pendingSortBy,
+        totalFilters: newTotalFilters,
       ),
     );
   }
 
   void clearAllFilters() {
-    emit(const OffersFilterState());
+    emit(
+      state.copyWith(
+        activeStatuses: const {},
+        totalFilters: 0,
+        activeSortBy: SortBy.none,
+        pendingStatuses: const {},
+        pendingSortBy: SortBy.none,
+      ),
+    );
   }
 }

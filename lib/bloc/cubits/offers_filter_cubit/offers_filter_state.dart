@@ -11,9 +11,9 @@ class OffersFilterState extends Equatable {
 
   const OffersFilterState({
     this.activeStatuses = const {},
-    this.activeSortBy,
+    this.activeSortBy = SortBy.none,
     this.pendingStatuses = const {},
-    this.pendingSortBy,
+    this.pendingSortBy = SortBy.none,
     this.totalFilters = 0,
   });
 
