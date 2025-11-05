@@ -278,10 +278,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
         orderRepo: event.orderRepository,
       ); // 💡 Ensure acceptOffer RETURNS the updated Offer AND the NEW Order ID.
 
-      // 2. 🎯 CRITICAL FIX: Signal success with the new order ID and updated offer.
       emit(OfferActionSuccess('Accept', updatedOffer, newOrderId));
-
-      // The TransactionNotifier should fire within acceptOffer, updating the list.
     } catch (e) {
       // Emit failure state to dismiss the loading dialog
       emit(OfferActionFailure('Accept', 'Failed to accept offer.'));
@@ -295,9 +292,6 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
   ) async {
     try {
       final updatedOffer = await _offerRepository.rejectOffer(event.offer);
-
-      // 🎯 FIX 1: Emit a rich success state that includes the updated offer.
-      // This allows the UI builder to update directly from this state.
       emit(OfferActionSuccess('Reject', updatedOffer, null));
     } catch (e) {
       print('Error rejecting offer: $e');
@@ -311,12 +305,13 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
   ) async {
     try {
       // This is perfect.
-      await _offerRepository.counterOffer(
+      final updatedOffer = await _offerRepository.counterOffer(
         previous: event.previousOffer,
         newPrice: event.newPrice,
         newWeight: event.newWeight,
         role: event.counteringRole,
       );
+      emit(OfferActionSuccess('Counter', updatedOffer, null));
     } catch (e) {
       print('Error countering offer: $e');
     }

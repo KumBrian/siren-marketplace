@@ -14,9 +14,9 @@ import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_actions.dart';
-import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart'; // Import for dialog helpers
+import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
 
-// --- Helper Extension for finding element in Iterable ---
+/// Helper extension to find the first element matching a test, or return null.
 extension IterableExtensions<T> on Iterable<T> {
   T? firstWhereOrNull(bool Function(T element) test) {
     for (final element in this) {
@@ -27,8 +27,6 @@ extension IterableExtensions<T> on Iterable<T> {
     return null;
   }
 }
-
-// Assumed file: transaction_models.dart or similar
 
 /// Holds the necessary historical negotiation details for display.
 class PreviousOfferDetails {
@@ -43,10 +41,10 @@ class PreviousOfferDetails {
   });
 }
 
-/// Update the main transaction data wrapper to use the new simple class
+/// Wrapper for transaction-related data fetched for the offer details view.
 class OfferTransactionData {
   final Buyer? buyer;
-  final PreviousOfferDetails? previousDetails; // ⬅️ NEW FIELD TYPE
+  final PreviousOfferDetails? previousDetails;
 
   const OfferTransactionData({this.buyer, this.previousDetails});
 }
@@ -64,6 +62,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final UserRepository _userRepository = sl<UserRepository>();
   Future<OfferTransactionData>? _transactionDataFuture;
+  bool _hasMarkedAsViewed = false;
 
   @override
   void dispose() {
@@ -81,7 +80,6 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
     }
 
     PreviousOfferDetails? previousDetails;
-
     final hasPreviousNegotiation =
         offer.previousPrice != null &&
         offer.previousWeight != null &&
@@ -97,16 +95,6 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
 
     return OfferTransactionData(buyer: buyer, previousDetails: previousDetails);
   }
-
-  void _handleOfferAcceptSuccess(String orderId) {
-    showActionSuccessDialog(
-      context,
-      message: 'Offer successfully accepted!',
-      autoCloseSeconds: 2,
-    );
-  }
-
-  bool _hasMarkedAsViewed = false;
 
   void _markOfferAsViewed(Offer offer, Role role) {
     if (role == Role.fisher &&
@@ -132,7 +120,8 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
   void didUpdateWidget(covariant FisherOfferDetails oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.offerId != widget.offerId) {
-      _transactionDataFuture = null; // 🎯 Reset Future on ID change
+      // Reset Future and fetch data on ID change
+      _transactionDataFuture = null;
       _dispatchGetOffer();
     }
   }
@@ -153,21 +142,45 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
           listenWhen: (prev, curr) =>
               curr is OfferActionSuccess || curr is OfferActionFailure,
           listener: (context, offerState) {
-            // Pop the loading dialog/modal for ANY action completion (Success or Failure)
+            // Dismiss the loading dialog for ANY action completion (Success or Failure)
             if (offerState is OfferActionSuccess ||
                 offerState is OfferActionFailure) {
               if (Navigator.of(context).canPop()) {
-                // This pop should dismiss the loading dialog shown by _handleAccept
                 Navigator.of(context).pop();
               }
             }
 
+            // Handle Accept success: Show final dialog and prepare navigation
             if (offerState is OfferActionSuccess) {
               if (offerState.action == 'Accept' &&
                   offerState.orderId != null &&
                   offerState.orderId!.isNotEmpty) {
-                // ✅ This should run AFTER the loading dialog is popped
-                _handleOfferAcceptSuccess(offerState.orderId!);
+                final orderId = offerState.orderId!;
+
+                showActionSuccessDialog(
+                  context,
+                  message: "Offer Successfully Accepted.",
+                  actionTitle: "View Details",
+                  onAction: () {
+                    context.pushReplacement("/fisher/order-details/$orderId");
+                  },
+                );
+              }
+
+              // Handle Reject/Counter success: Show dialog without navigation
+              String message = '';
+              if (offerState.action == 'Reject') {
+                message = 'Offer Rejected!';
+              } else if (offerState.action == 'Counter') {
+                message = 'Counter-Offer Sent!';
+              }
+
+              if (message.isNotEmpty && offerState.action != 'Accept') {
+                showActionSuccessDialog(
+                  context,
+                  message: message,
+                  autoCloseSeconds: 3,
+                );
               }
             }
           },
@@ -177,20 +190,16 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                 body: Center(child: CircularProgressIndicator()),
               );
             }
-
-            // 🎯 FIX 2: Determine the selected offer based on current state
             final Offer? selectedOffer;
 
             if (offersState is OfferDetailsLoaded) {
               selectedOffer = offersState.offer;
             } else if (offersState is OfferActionSuccess) {
-              // Get the offer from the success state after an action
               selectedOffer = offersState.updatedOffer;
             } else {
               selectedOffer = null;
             }
 
-            // 2. Check for the specific details loaded state
             if (selectedOffer == null || selectedOffer.id != widget.offerId) {
               final errorMessage = offersState is OffersError
                   ? "Error loading offers: ${offersState.message}"
@@ -205,11 +214,10 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
               );
             }
 
-            // ✅ We have the selected offer
-            final Offer currentOffer =
-                selectedOffer; // Use the determined offer
+            final Offer currentOffer = selectedOffer;
             _markOfferAsViewed(currentOffer, role);
 
+            // Re-fetch transaction data if the underlying offer changed
             if (_transactionDataFuture == null ||
                 _transactionDataFuture!.hashCode != currentOffer.hashCode) {
               _transactionDataFuture = _loadTransactionData(currentOffer);
@@ -219,7 +227,6 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
               key: ValueKey('${selectedOffer.id}-${selectedOffer.dateCreated}'),
               future: _loadTransactionData(selectedOffer),
               builder: (context, snapshot) {
-                // Handle loading of dependent data
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Scaffold(
                     body: Center(child: CircularProgressIndicator()),
@@ -227,12 +234,10 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                 }
 
                 final transactionData = snapshot.data;
-
                 final Buyer? buyer = transactionData?.buyer;
                 final PreviousOfferDetails? previous =
                     transactionData?.previousDetails;
 
-                // The Offer is found, proceed with the UI
                 return Scaffold(
                   appBar: AppBar(
                     leading: BackButton(onPressed: () => context.pop()),
@@ -260,7 +265,6 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                               children: [
                                 Text(
                                   selectedOffer!.status.name.capitalize(),
-                                  // Use actual status
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -273,7 +277,6 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                                   width: 10,
                                   height: 10,
                                   margin: const EdgeInsets.only(left: 4),
-                                  // Added margin
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(color: Colors.white),
@@ -313,37 +316,37 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                         ),
                         const SizedBox(height: 8),
 
-                        // Action buttons (Accept, Reject, Counter)
                         OfferActions(offer: selectedOffer, formKey: _formKey),
-                        selectedOffer.status == OfferStatus.rejected
-                            ? Row(
-                                spacing: 8,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    Icons.info_outline,
-                                    color: AppColors.fail500,
-                                    size: 16,
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      "You have declined this offer. The buyer has been informed.",
-                                      softWrap: true,
-                                      style: TextStyle(
-                                        color: AppColors.fail500,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : const SizedBox.shrink(),
 
-                        // Buyer Details,
+                        if (selectedOffer.status == OfferStatus.rejected)
+                          Row(
+                            spacing: 8,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: AppColors.fail500,
+                                size: 16,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  "You have declined this offer. The buyer has been informed.",
+                                  softWrap: true,
+                                  style: TextStyle(
+                                    color: AppColors.fail500,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        else
+                          const SizedBox.shrink(),
+
                         const SizedBox(height: 8),
 
-                        // Conditional rendering for the Previous Counter-Offer
+                        // Display previous counter-offer details if available
                         if (previous != null) ...[
                           const SectionHeader("Last Counter-Offer"),
                           const SizedBox(height: 8),
@@ -355,21 +358,17 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                             ),
                             child: InfoTable(
                               rows: [
-                                // Use the found previousCounterOffer data
                                 InfoRow(
                                   label: "Weight",
-                                  // ⚠️ FIX: Use toStringAsFixed for weights
                                   value:
                                       "${previous.weight.toStringAsFixed(1)} Kg",
                                 ),
                                 InfoRow(
                                   label: "Price",
-                                  // ⚠️ FIX: Use formatPrice for currency
                                   value: formatPrice(previous.price),
                                 ),
                                 InfoRow(
                                   label: "Price Per Kg",
-                                  // ⚠️ FIX: Use formatPrice for currency
                                   value: formatPrice(previous.pricePerKg),
                                 ),
                               ],
@@ -392,17 +391,16 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
   }
 }
 
-// --- OfferHeader (Updated to use the fetched Buyer data) ---
+/// Displays the buyer's name, rating, and avatar.
 class OfferHeader extends StatelessWidget {
   final Offer offer;
-  final Buyer? buyer; // NEW: The fetched buyer details
+  final Buyer? buyer;
 
   const OfferHeader({super.key, required this.offer, this.buyer});
 
   @override
   Widget build(BuildContext context) {
-    // Safely access data from the fetched Buyer, falling back to basic Offer fields
-    // if the Buyer data could not be found (e.g., deleted account, DB error)
+    // Safely access buyer data with fallbacks
     final clientName = buyer?.name ?? 'Buyer (ID: ${offer.buyerId})';
     final clientAvatar = buyer?.avatarUrl ?? "assets/images/user-profile.png";
     final clientRating = buyer?.rating ?? 0.0;
@@ -413,7 +411,6 @@ class OfferHeader extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 30,
-          // Use AssetImage if the avatar is a local path, NetworkImage otherwise
           backgroundImage: clientAvatar.startsWith('http')
               ? NetworkImage(clientAvatar) as ImageProvider
               : AssetImage(clientAvatar),

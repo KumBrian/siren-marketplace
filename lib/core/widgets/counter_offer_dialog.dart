@@ -106,7 +106,11 @@ Future<void> showCounterOfferDialog({
                       if (formKey.currentState!.validate() &&
                           newWeight > 0 &&
                           newPrice > 0) {
-                        await onSubmit(newWeight, newPrice, ctx);
+                        await onSubmit(
+                          newWeight,
+                          newPrice,
+                          dialogCtx,
+                        ); // ✅ pass the outer context
                       }
                     },
                   ),

@@ -264,6 +264,7 @@ extension OfferRepositoryActions on OfferRepository {
       waitingFor: role == Role.buyer ? Role.fisher : Role.buyer,
     );
     await updateOffer(updatedOffer);
+    notifier.notify();
     return updatedOffer;
   }
 }

@@ -45,7 +45,7 @@ Future<void> showActionSuccessDialog(
   if (!context.mounted) return;
   showDialog(
     context: context,
-    barrierDismissible: actionTitle == null,
+    barrierDismissible: true,
     builder: (ctx) {
       if (autoCloseSeconds > 0 && actionTitle == null) {
         Future.delayed(Duration(seconds: autoCloseSeconds), () {
@@ -129,88 +129,68 @@ class _OfferActionsState extends State<OfferActions> {
     }
   }
 
-  Future<void> _handleAccept(BuildContext outerContext) async {
-    if (Navigator.of(outerContext).canPop()) Navigator.of(outerContext).pop();
+  Future<void> _handleAccept(BuildContext confirmDialogContext) async {
+    if (Navigator.of(confirmDialogContext).canPop()) {
+      Navigator.of(confirmDialogContext).pop();
+    }
 
     final catchItem = _findCatchFromBloc(widget.offer.catchId);
     if (catchItem == null) {
-      if (!outerContext.mounted) return;
-      await showActionSuccessDialog(
-        outerContext,
-        message: 'Related catch not found',
-        autoCloseSeconds: 2,
-      );
+      if (context.mounted) {
+        await showActionSuccessDialog(
+          context,
+          message: 'Related catch not found',
+          autoCloseSeconds: 2,
+        );
+      }
       return;
     }
 
-    // ✅ KEEP THIS ONE (Sets up the loading screen)
-    showLoadingDialog(outerContext, message: 'Creating order...');
-    final completer = Completer<String>();
+    if (!context.mounted) return;
+    showLoadingDialog(context, message: 'Creating order...');
 
-    final listenerSubscription = context.read<OffersBloc>().stream.listen((
-      state,
-    ) {
-      if (state is OfferActionSuccess && state.action == 'Accept') {
-        completer.complete(state.orderId!);
-      } else if (state is OfferActionFailure && state.action == 'Accept') {
-        // NOTE: The OfferActionFailure state should expose 'message' or 'error' property
-        completer.completeError(Exception(state.error));
-      }
-    });
     try {
       final fisherMap = await _userRepository.getUserMapById(
         widget.offer.fisherId,
       );
+
+      if (!context.mounted) return;
+
       if (fisherMap == null) {
-        if (outerContext.mounted) {
-          Navigator.of(outerContext).pop();
-          await showActionSuccessDialog(
-            outerContext,
-            message: 'Fisher not found',
-            autoCloseSeconds: 2,
-          );
-        }
-        return;
+        Navigator.of(context).pop();
+        throw Exception('Fisher data not found.');
       }
 
       final fisher = Fisher.fromMap(fisherMap);
 
-      if (context.mounted) {
-        context.read<OffersBloc>().add(
-          AcceptOffer(
-            offer: widget.offer,
-            catchItem: catchItem,
-            fisher: fisher,
-            orderRepository: sl<OrderRepository>(),
-          ),
-        );
-      }
+      context.read<OffersBloc>().add(
+        AcceptOffer(
+          offer: widget.offer,
+          catchItem: catchItem,
+          fisher: fisher,
+          orderRepository: sl<OrderRepository>(),
+        ),
+      );
     } catch (e) {
-      if (outerContext.mounted) {
-        Navigator.of(outerContext).pop();
-        await showActionSuccessDialog(
-          outerContext,
-          message: 'Accept failed: $e',
-          autoCloseSeconds: 3,
-        );
-      }
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      await showActionSuccessDialog(
+        context,
+        message: 'Accept failed: ${e.toString()}',
+        autoCloseSeconds: 3,
+      );
     }
   }
 
   Future<void> _handleReject(BuildContext outerContext) async {
     if (Navigator.of(outerContext).canPop()) Navigator.of(outerContext).pop();
+    if (!context.mounted) return;
+    showLoadingDialog(context, message: 'Creating order...');
     try {
       context.read<OffersBloc>().add(RejectOffer(offer: widget.offer));
-      await showActionSuccessDialog(
-        // Using top-level function
-        outerContext,
-        message: 'Offer Rejected!',
-        autoCloseSeconds: 3,
-      );
     } catch (e) {
       if (outerContext.mounted) {
         await showActionSuccessDialog(
-          // Using top-level function
           outerContext,
           message: 'Reject failed: $e',
           autoCloseSeconds: 3,
@@ -366,31 +346,35 @@ class _OfferActionsState extends State<OfferActions> {
                                   formKey: widget.formKey,
                                   initialWeight: widget.offer.weight,
                                   initialPrice: widget.offer.price,
-                                  onSubmit: (newWeight, newPrice, dialogCtx) async {
-                                    if (Navigator.of(dialogCtx).canPop()) {
-                                      Navigator.of(dialogCtx).pop();
-                                    }
-
-                                    context.read<OffersBloc>().add(
-                                      CounterOffer(
-                                        previousOffer: widget.offer,
-                                        newPrice: newPrice,
-                                        newWeight: newWeight,
-                                        counteringRole: user.role,
-                                      ),
-                                    );
-
-                                    await showActionSuccessDialog(
-                                      dialogCtx,
-                                      message: 'Counter-Offer Sent!',
-                                      actionTitle: 'Offer details',
-                                      onAction: () {
-                                        dialogCtx.pushReplacement(
-                                          '/fisher/order-details/${widget.offer.id}',
+                                  onSubmit:
+                                      (newWeight, newPrice, dialogCtx) async {
+                                        if (Navigator.of(context).canPop()) {
+                                          Navigator.of(context).pop();
+                                        }
+                                        if (!context.mounted) return;
+                                        showLoadingDialog(
+                                          context,
+                                          message: 'Creating order...',
                                         );
+                                        try {
+                                          context.read<OffersBloc>().add(
+                                            CounterOffer(
+                                              previousOffer: widget.offer,
+                                              newPrice: newPrice,
+                                              newWeight: newWeight,
+                                              counteringRole: user.role,
+                                            ),
+                                          );
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            await showActionSuccessDialog(
+                                              context,
+                                              message: 'Counter failed: $e',
+                                              autoCloseSeconds: 3,
+                                            );
+                                          }
+                                        }
                                       },
-                                    );
-                                  },
                                 );
                               },
 
