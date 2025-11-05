@@ -701,38 +701,45 @@ class _CatchDetailsState extends State<CatchDetails>
                                                         Wrap(
                                                           spacing: 8,
                                                           runSpacing: 8,
-                                                          children: OfferStatus.values.map((
-                                                            status,
-                                                          ) {
-                                                            final title =
-                                                                status.name
-                                                                    .substring(
-                                                                      0,
-                                                                      1,
-                                                                    )
-                                                                    .toUpperCase() +
-                                                                status.name
-                                                                    .substring(
-                                                                      1,
-                                                                    );
-                                                            return FilterButton(
-                                                              title: title,
-                                                              color:
-                                                                  AppColors.getStatusColor(
-                                                                    status,
-                                                                  ),
-                                                              isSelected: innerState
-                                                                  .pendingStatuses
-                                                                  .contains(
-                                                                    title,
-                                                                  ),
-                                                              onPressed: () =>
-                                                                  innerCubit
-                                                                      .toggleStatus(
+                                                          children: OfferStatus
+                                                              .values
+                                                              .where(
+                                                                (s) =>
+                                                                    s !=
+                                                                    OfferStatus
+                                                                        .unknown,
+                                                              )
+                                                              .map((status) {
+                                                                final title =
+                                                                    status.name
+                                                                        .substring(
+                                                                          0,
+                                                                          1,
+                                                                        )
+                                                                        .toUpperCase() +
+                                                                    status.name
+                                                                        .substring(
+                                                                          1,
+                                                                        );
+                                                                return FilterButton(
+                                                                  title: title,
+                                                                  color:
+                                                                      AppColors.getStatusColor(
+                                                                        status,
+                                                                      ),
+                                                                  isSelected: innerState
+                                                                      .pendingStatuses
+                                                                      .contains(
                                                                         title,
                                                                       ),
-                                                            );
-                                                          }).toList(),
+                                                                  onPressed: () =>
+                                                                      innerCubit
+                                                                          .toggleStatus(
+                                                                            title,
+                                                                          ),
+                                                                );
+                                                              })
+                                                              .toList(),
                                                         ),
                                                         const Divider(),
                                                         Row(

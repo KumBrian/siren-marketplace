@@ -4,6 +4,7 @@ import 'package:siren_marketplace/bloc/cubits/bottom_nav_cubit/bottom_nav_cubit.
 import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/filtered_products_cubit/filtered_products_cubit.dart';
+import 'package:siren_marketplace/bloc/cubits/offers_filter_cubit/offers_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/orders_filter_cubit/orders_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_filter_cubit.dart';
@@ -83,6 +84,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => FailedTransactionCubit());
   sl.registerLazySingleton(() => ProductsCubit(sl<CatchRepository>()));
   sl.registerLazySingleton(() => ProductsFilterCubit());
+  sl.registerLazySingleton(() => OffersFilterCubit());
   sl.registerLazySingleton(
     () => FilteredProductsCubit(
       catchRepository: sl<CatchRepository>(),
