@@ -12,14 +12,14 @@ class Catch extends Equatable {
   final String name;
   final String datePosted;
   final double initialWeight;
-  final double availableWeight; // CRITICAL: Mutable field
+  final double availableWeight;
   final double pricePerKg;
   final double total;
   final String size;
   final String market;
   final List<String> images;
   final Species species;
-  final String fisherId; // For DB linkage
+  final String fisherId;
   final List<Offer> offers;
   final CatchStatus status;
 
