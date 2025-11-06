@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 
 class CustomNavBarWithTabs extends StatelessWidget {
   const CustomNavBarWithTabs({
@@ -47,7 +48,7 @@ class CustomNavBarWithTabs extends StatelessWidget {
           if (role == Role.fisher) ...[
             _buildNavItem(
               selectedIndex == 2
-                  ? Icons.content_paste_search
+                  ? CustomIcons.observation
                   : Icons.content_paste_search_rounded,
               2,
             ),
@@ -55,8 +56,8 @@ class CustomNavBarWithTabs extends StatelessWidget {
 
           _buildNavItem(
             selectedIndex == 3
-                ? Icons.person_pin_circle_rounded
-                : Icons.person_pin_circle_outlined,
+                ? CustomIcons.profile_filled
+                : CustomIcons.profile,
             3,
           ),
         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
@@ -89,13 +90,27 @@ class AccountInfo extends StatelessWidget {
                       ),
 
                       SectionHeader(user.name.capitalize(), fontSize: 22),
-                      Text(
-                        roleToString(user.role).capitalize(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.textGray,
-                        ),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            roleToString(user.role).capitalize(),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.textGray,
+                            ),
+                          ),
+                          SvgPicture.asset(
+                            "assets/svgs/medallion.svg",
+                            height: 24,
+                            width: 24,
+                            fit: BoxFit.cover,
+                          ),
+                        ],
                       ),
                     ],
                   ),

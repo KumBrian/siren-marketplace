@@ -23,12 +23,19 @@ class CustomIcons {
 
   static const IconData markettrends = IconData(0xe800, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData trash = IconData(0xe801, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData star = IconData(0xe802, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData edit = IconData(0xe803, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData moneybag_filled = IconData(0xe804, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData chatbubble = IconData(0xe805, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData profile = IconData(0xe806, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData relist = IconData(0xe807, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData sort = IconData(0xe808, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData notificationbell = IconData(0xe809, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData search = IconData(0xe80a, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData filter = IconData(0xe80b, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData observation = IconData(0xe80c, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData project = IconData(0xe80d, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData beach = IconData(0xe80e, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData logout = IconData(0xe80f, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData profile_filled = IconData(0xe810, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 }
