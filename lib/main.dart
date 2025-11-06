@@ -25,7 +25,6 @@ import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubi
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
-// Router
 import 'package:siren_marketplace/router.dart';
 
 const String CURRENT_FISHER_ID = 'fisher_id_1';
@@ -85,6 +84,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
+              fontFamily: 'Poppins',
               colorScheme: ColorScheme.fromSeed(seedColor: AppColors.blue500),
             ),
             // Passing the singleton UserBloc instance to the router
