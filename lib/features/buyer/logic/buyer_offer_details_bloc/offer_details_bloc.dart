@@ -109,7 +109,7 @@ class OfferDetailsBloc extends Bloc<OfferDetailsEvent, OfferDetailsState> {
       }
       final Fisher fisher = Fisher.fromMap(fisherMap);
 
-      emit(OfferDetailsLoaded(offer, catchItem, fisher));
+      emit(OfferDetailsLoaded(offer, catchItem, null, fisher));
     } catch (e) {
       emit(OfferDetailsError('Failed to load offer details: ${e.toString()}'));
     }
@@ -122,9 +122,13 @@ class OfferDetailsBloc extends Bloc<OfferDetailsEvent, OfferDetailsState> {
     final currentState = state;
     if (currentState is! OfferDetailsLoaded) return;
 
+    // 🔑 Optional: Emit a temporary loading state to show progress
+    // emit(OfferDetailsLoading());
+
     try {
-      // 1. Perform the repository action
-      final _ = await offerRepository.acceptOffer(
+      // 1. Perform the repository action.
+      //    We assume it returns the newly updated Offer (status=accepted).
+      final (updatedOffer, newOrderId) = await offerRepository.acceptOffer(
         offer: event.offer,
         catchItem: event.catchItem,
         fisher: event.fisher,
@@ -134,12 +138,16 @@ class OfferDetailsBloc extends Bloc<OfferDetailsEvent, OfferDetailsState> {
       // 2. Emit the new state with the accepted offer and the success ID
       emit(
         currentState.copyWith(
+          offer: updatedOffer,
+          newOrderId: newOrderId,
           successMessageId: _uuid.v4(), // 🔑 Unique ID for one-time success
         ),
       );
     } catch (e) {
-      emit(OfferDetailsError('Failed to accept offer: ${e.toString()}'));
+      // 3. Handle failure
       // Reload the previous state to maintain UI continuity
+      emit(OfferDetailsError('Failed to accept offer: ${e.toString()}'));
+      // Emit the previous loaded state to ensure the UI is not stuck on error
       emit(currentState);
     }
   }

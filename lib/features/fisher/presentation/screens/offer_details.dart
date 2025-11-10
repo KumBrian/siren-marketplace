@@ -11,10 +11,10 @@ import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
+import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_actions.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 /// Helper extension to find the first element matching a test, or return null.
@@ -397,7 +397,16 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                         ),
                         const SizedBox(height: 8),
 
-                        OfferActions(offer: selectedOffer, formKey: _formKey),
+                        OfferActions(
+                          offer: selectedOffer,
+                          formKey: _formKey,
+                          currentUserRole: Role.fisher,
+                          onNavigateToOrder: (offerId) {
+                            context.pushReplacement(
+                              "/fisher/order-details/$offerId",
+                            );
+                          },
+                        ),
 
                         if (selectedOffer.status == OfferStatus.rejected)
                           Row(
