@@ -295,13 +295,20 @@ class _OfferActionsState extends State<OfferActions> {
                             ),
                             content: Column(
                               mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 const Text(
-                                  // Removed const from Text because it was causing problems
                                   "Reject the offer?",
                                   style: TextStyle(
                                     fontSize: 16,
+                                    color: AppColors.textBlue,
+                                  ),
+                                ),
+                                Text(
+                                  "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price)}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 18,
                                     color: AppColors.textBlue,
                                   ),
                                 ),

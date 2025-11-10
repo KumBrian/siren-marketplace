@@ -83,7 +83,6 @@ class _RoleScreenState extends State<RoleScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    //Intro
                     Column(
                       spacing: 40,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -106,8 +105,6 @@ class _RoleScreenState extends State<RoleScreen> {
                         ),
                       ],
                     ),
-
-                    // Role Selection / Switch
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

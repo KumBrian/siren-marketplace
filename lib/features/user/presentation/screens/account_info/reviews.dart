@@ -109,7 +109,10 @@ class Reviews extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reviews'),
+        title: Text(
+          'Reviews',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
         centerTitle: true,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         scrolledUnderElevation: 0,

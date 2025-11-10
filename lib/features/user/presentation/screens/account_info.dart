@@ -54,11 +54,7 @@ class AccountInfo extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           "Account Info",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textBlue,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         centerTitle: true,
       ),
