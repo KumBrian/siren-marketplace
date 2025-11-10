@@ -61,20 +61,23 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     Emitter<OffersState> emit,
   ) async {
     final currentState = state;
+    List<Offer> currentOffers = [];
     bool wasLoaded = currentState is OffersLoaded;
-
-    // 1. 💡 CRITICAL: Signal Loading/Clearing Details IMMEDIATELY.
     if (wasLoaded) {
-      // Preserve the list, but explicitly clear the detail fields for immediate UI response
+      currentOffers = (currentState).offers;
+    }
+
+    // 1. Set temporary loading state for details view
+    if (wasLoaded) {
+      // Clear the details immediately while preserving the main offer list
       emit(
-        currentState.copyWith(
+        (currentState).copyWith(
           selectedOffer: null,
           selectedCatch: null,
           selectedFisher: null,
         ),
       );
-    } else if (currentState is! OffersLoading) {
-      // If it's Initial/Error and not already loading, emit generic OffersLoading
+    } else {
       emit(OffersLoading());
     }
 
@@ -87,7 +90,6 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       }
 
       // Fetch related entities
-      // ... (catchItem and fisher fetching logic is fine) ...
       final Catch? catchItem = await _catchRepository.getCatchById(
         offer.catchId,
       );
@@ -96,28 +98,98 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
           ? Fisher.fromMap(fisherMap)
           : null;
 
-      if (wasLoaded) {
-        // If we started from OffersLoaded, emit the new state with details
-        emit(
-          (currentState).copyWith(
-            selectedOffer: offer,
-            selectedCatch: catchItem,
-            selectedFisher: fisher,
-          ),
-        );
-      } else {
-        // If we started from OffersLoading/Initial, emit a new OffersLoaded state
-        emit(
-          OffersLoaded(
-            [], // List remains empty if we haven't loaded the list yet
-            selectedOffer: offer,
-            selectedCatch: catchItem,
-            selectedFisher: fisher,
-          ),
-        );
-      }
+      // 2. Emit the final OffersLoaded state with the details populated
+      emit(
+        OffersLoaded(
+          currentOffers, // Pass the existing list of offers
+          selectedOffer: offer,
+          selectedCatch: catchItem,
+          selectedFisher: fisher,
+        ),
+      );
     } catch (e) {
       emit(OffersError("Failed to load offer details: ${e.toString()}"));
+    }
+  }
+
+  // 🔑 FIX: Update the details *before* emitting OfferActionSuccess
+  Future<void> _onAcceptOffer(
+    AcceptOffer event,
+    Emitter<OffersState> emit,
+  ) async {
+    final currentState = state;
+    try {
+      // 1. Perform complex transaction (updates offer, creates order)
+      final (updatedOffer, newOrderId) = await _offerRepository.acceptOffer(
+        offer: event.offer,
+        catchItem: event.catchItem,
+        fisher: event.fisher,
+        orderRepo: event.orderRepository,
+      );
+
+      // 2. CRITICAL FIX: If we are on the details screen (OffersLoaded),
+      //    update the selectedOffer in the state.
+      if (currentState is OffersLoaded) {
+        emit(currentState.copyWith(selectedOffer: updatedOffer));
+      }
+
+      // 3. Emit success state for the listener/dialog
+      emit(OfferActionSuccess('Accept', updatedOffer, newOrderId));
+    } catch (e) {
+      // Emit failure state to dismiss the loading dialog
+      emit(OfferActionFailure('Accept', 'Failed to accept offer.'));
+      print('Error accepting offer: $e');
+    }
+  }
+
+  // 🔑 FIX: Update the details *before* emitting OfferActionSuccess
+  Future<void> _onRejectOffer(
+    RejectOffer event,
+    Emitter<OffersState> emit,
+  ) async {
+    final currentState = state;
+    try {
+      final updatedOffer = await _offerRepository.rejectOffer(event.offer);
+
+      // 2. CRITICAL FIX: If we are on the details screen (OffersLoaded),
+      //    update the selectedOffer in the state.
+      if (currentState is OffersLoaded) {
+        emit(currentState.copyWith(selectedOffer: updatedOffer));
+      }
+
+      // 3. Emit success state for the listener/dialog
+      emit(OfferActionSuccess('Reject', updatedOffer, null));
+    } catch (e) {
+      print('Error rejecting offer: $e');
+      emit(OfferActionFailure('Reject', 'Failed to reject offer.'));
+    }
+  }
+
+  // 🔑 FIX: Update the details *before* emitting OfferActionSuccess
+  Future<void> _onCounterOffer(
+    CounterOffer event,
+    Emitter<OffersState> emit,
+  ) async {
+    final currentState = state;
+    try {
+      final updatedOffer = await _offerRepository.counterOffer(
+        previous: event.previousOffer,
+        newPrice: event.newPrice,
+        newWeight: event.newWeight,
+        role: event.counteringRole,
+      );
+
+      // 2. CRITICAL FIX: If we are on the details screen (OffersLoaded),
+      //    update the selectedOffer in the state.
+      if (currentState is OffersLoaded) {
+        emit(currentState.copyWith(selectedOffer: updatedOffer));
+      }
+
+      // 3. Emit success state for the listener/dialog
+      emit(OfferActionSuccess('Counter', updatedOffer, null));
+    } catch (e) {
+      print('Error countering offer: $e');
+      emit(OfferActionFailure('Counter', 'Failed to send counter offer.'));
     }
   }
 
@@ -262,58 +334,6 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       emit(OffersLoaded(offers));
     } catch (e) {
       emit(OffersError(e.toString()));
-    }
-  }
-
-  Future<void> _onAcceptOffer(
-    AcceptOffer event,
-    Emitter<OffersState> emit,
-  ) async {
-    try {
-      // 1. Perform complex transaction (updates offer, creates order)
-      final (updatedOffer, newOrderId) = await _offerRepository.acceptOffer(
-        offer: event.offer,
-        catchItem: event.catchItem,
-        fisher: event.fisher,
-        orderRepo: event.orderRepository,
-      ); // 💡 Ensure acceptOffer RETURNS the updated Offer AND the NEW Order ID.
-
-      emit(OfferActionSuccess('Accept', updatedOffer, newOrderId));
-    } catch (e) {
-      // Emit failure state to dismiss the loading dialog
-      emit(OfferActionFailure('Accept', 'Failed to accept offer.'));
-      print('Error accepting offer: $e');
-    }
-  }
-
-  Future<void> _onRejectOffer(
-    RejectOffer event,
-    Emitter<OffersState> emit,
-  ) async {
-    try {
-      final updatedOffer = await _offerRepository.rejectOffer(event.offer);
-      emit(OfferActionSuccess('Reject', updatedOffer, null));
-    } catch (e) {
-      print('Error rejecting offer: $e');
-      emit(OfferActionFailure('Reject', 'Failed to reject offer.'));
-    }
-  }
-
-  Future<void> _onCounterOffer(
-    CounterOffer event,
-    Emitter<OffersState> emit,
-  ) async {
-    try {
-      // This is perfect.
-      final updatedOffer = await _offerRepository.counterOffer(
-        previous: event.previousOffer,
-        newPrice: event.newPrice,
-        newWeight: event.newWeight,
-        role: event.counteringRole,
-      );
-      emit(OfferActionSuccess('Counter', updatedOffer, null));
-    } catch (e) {
-      print('Error countering offer: $e');
     }
   }
 
