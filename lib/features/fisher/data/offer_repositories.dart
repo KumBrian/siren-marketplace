@@ -40,6 +40,8 @@ class OfferRepository {
     final fisherData = Fisher.fromMap(fisher!);
     final buyer = await dbHelper.getUserMapById(buyerId);
     final buyerData = Fisher.fromMap(buyer!);
+    final catchItem = await dbHelper.getCatchMapById(catchId);
+    final catchData = Catch.fromMap(catchItem!);
 
     final newOffer = Offer(
       id: const Uuid().v4(),
@@ -53,6 +55,8 @@ class OfferRepository {
       buyerName: buyerData.name,
       buyerRating: buyerData.rating,
       buyerAvatarUrl: buyerData.avatarUrl,
+      catchName: catchData.name,
+      catchImageUrl: catchData.images.first,
       price: price,
       weight: weight,
       pricePerKg: pricePerKg,
