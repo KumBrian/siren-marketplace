@@ -1,46 +1,64 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-/// Simple model class for chart data
 class ChartData {
   ChartData(this.x, this.y);
-
   final String x;
   final double y;
 }
 
 class PriceLineChart extends StatelessWidget {
-  const PriceLineChart({super.key, required this.chartDataSources});
+  const PriceLineChart({
+    super.key,
+    required this.chartDataSources,
+    required this.activeSpecies,
+  });
 
-  // A list of data sources, where each inner List<ChartData> is one series/line.
   final Map<String, List<ChartData>> chartDataSources;
+  final Set<String> activeSpecies;
 
-  // Define colors for consistency
   static const Map<String, Color> speciesColors = {
-    'pink-shrimp': Color(0xFF42A5F5), // blue400
-    'tiger-shrimp': Color(0xFFFF9800), // shellOrange
-    'gray-shrimp': Color(0xFF4CAF50), // success500
+    'pink-shrimp': Color(0xFF188D8D),
+    'tiger-shrimp': Color(0xFFE00E8C),
+    'gray-shrimp': Color(0xFF9BD267),
+    'small-prawn': Color(0xFFFFC42C),
+    'large-prawn': Color(0xFF5563DE),
   };
 
   @override
   Widget build(BuildContext context) {
-    // Generate the LineSeries dynamically from the provided data Map
-    final List<LineSeries<ChartData, String>> seriesList = chartDataSources
-        .entries
-        .map((entry) {
-          final speciesKey = entry.key;
-          final data = entry.value;
+    final visibleData = chartDataSources.entries
+        .where((entry) => activeSpecies.contains(entry.key))
+        .expand((entry) => entry.value)
+        .toList();
 
+    double? minY, maxY;
+    if (visibleData.isNotEmpty) {
+      minY = visibleData.map((e) => e.y).reduce(min);
+      maxY = visibleData.map((e) => e.y).reduce(max);
+      if (minY == maxY) {
+        minY = minY * 0.9;
+        maxY = maxY * 1.1;
+      } else {
+        minY = minY > 0 ? minY * 0.9 : 0;
+        maxY = maxY * 1.05;
+      }
+    }
+
+    final activeSeriesList = chartDataSources.entries
+        .where((entry) => activeSpecies.contains(entry.key))
+        .map((entry) {
+          final color = speciesColors[entry.key];
           return LineSeries<ChartData, String>(
-            dataSource: data,
+            dataSource: entry.value,
             xValueMapper: (ChartData data, _) => data.x,
             yValueMapper: (ChartData data, _) => data.y,
-            // Name and Color are set based on the species key
-            name: _getSpeciesDisplayName(speciesKey),
-            color: speciesColors[speciesKey],
-            width: 4,
+            color: color,
+            name: _getSpeciesDisplayName(entry.key),
+            width: 3,
             markerSettings: const MarkerSettings(isVisible: false),
           );
         })
@@ -49,28 +67,22 @@ class PriceLineChart extends StatelessWidget {
     return SfCartesianChart(
       zoomPanBehavior: ZoomPanBehavior(
         enablePinching: true,
-        enableDoubleTapZooming: true,
         enablePanning: true,
-      ),
-      // Set the primaryYAxis to display a currency (CFA) if needed
-      primaryYAxis: NumericAxis(
-        labelFormat: '{value}', // Format labels as needed
-        numberFormat: NumberFormat.compact(),
-      ),
-      legend: const Legend(
-        isVisible: true,
-        position: LegendPosition.top,
-        textStyle: TextStyle(fontSize: 10, color: AppColors.textGray),
+        enableDoubleTapZooming: true,
       ),
       primaryXAxis: const CategoryAxis(isVisible: false),
+      primaryYAxis: NumericAxis(
+        labelFormat: '{value}',
+        numberFormat: NumberFormat.compact(),
+        rangePadding: ChartRangePadding.none,
+        minimum: minY,
+        maximum: maxY,
+      ),
       tooltipBehavior: TooltipBehavior(enable: true),
-
-      // Use the dynamically generated series list
-      series: seriesList,
+      series: activeSeriesList,
     );
   }
 
-  // Helper to map keys to display names for the legend
   String _getSpeciesDisplayName(String key) {
     switch (key) {
       case 'pink-shrimp':
@@ -79,6 +91,10 @@ class PriceLineChart extends StatelessWidget {
         return 'Tiger Shrimp';
       case 'gray-shrimp':
         return 'Grey Shrimp';
+      case 'small-prawn':
+        return 'Small Prawn';
+      case 'large-prawn':
+        return 'Large Prawn';
       default:
         return key;
     }

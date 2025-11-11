@@ -52,8 +52,10 @@ class OfferActionFailure extends OffersState {
 
 class OfferDetailsLoaded extends OffersState {
   final Offer offer;
+  final Catch catchSnapshot;
+  final Fisher fisher;
 
-  const OfferDetailsLoaded(this.offer);
+  const OfferDetailsLoaded(this.offer, this.catchSnapshot, this.fisher);
 
   @override
   List<Object> get props => [offer];

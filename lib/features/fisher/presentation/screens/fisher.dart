@@ -7,16 +7,15 @@ import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/user_profile.dart';
 
 import 'home_screen.dart';
-import 'orders_screen.dart';
 
-class Buyer extends StatefulWidget {
-  const Buyer({super.key});
+class Fisher extends StatefulWidget {
+  const Fisher({super.key});
 
   @override
-  State<Buyer> createState() => _BuyerState();
+  State<Fisher> createState() => _FisherState();
 }
 
-class _BuyerState extends State<Buyer> with SingleTickerProviderStateMixin {
+class _FisherState extends State<Fisher> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -49,8 +48,8 @@ class _BuyerState extends State<Buyer> with SingleTickerProviderStateMixin {
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 const Center(child: Text("Placeholder 0")),
-                BuyerHome(),
-                const BuyerOrders(),
+                FisherHome(),
+                const Center(child: Text("Placeholder 2")),
                 BlocBuilder<UserBloc, UserState>(
                   builder: (context, state) {
                     if (state is UserLoaded) {

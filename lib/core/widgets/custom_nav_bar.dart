@@ -64,7 +64,9 @@ class CustomNavBar extends StatelessWidget {
             ),
             Flexible(
               child: IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  context.replace("/user-profile/${role.name}");
+                },
                 icon: Icon(
                   Icons.person_pin_circle_outlined,
                   color: AppColors.textBlue,

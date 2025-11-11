@@ -60,7 +60,6 @@ class OrderRepository {
   }
 
   Future<List<Order>> getOrdersByUserId(String userId) async {
-    final db = await dbHelper.database;
     final rawOrders = await dbHelper.getOrdersByUserId(userId);
 
     final List<Order> orders = [];

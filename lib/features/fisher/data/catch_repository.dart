@@ -49,9 +49,6 @@ class CatchRepository {
   Future<void> cleanUpExpiredCatches() async {
     final db = await dbHelper.database;
     final now = DateTime.now();
-    final oneDayInSeconds = 24 * 60 * 60; // 1 day in seconds
-
-    // 1. Fetch all 'expired' catches
     final expiredCatchMaps = await db.query(
       'catches',
       where: 'status = ?',

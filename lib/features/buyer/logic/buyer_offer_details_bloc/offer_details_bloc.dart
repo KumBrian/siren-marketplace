@@ -79,30 +79,6 @@ class OfferDetailsBloc extends Bloc<OfferDetailsEvent, OfferDetailsState> {
     }
   }
 
-  List<Offer> _assembleOffers(List<Map<String, dynamic>> maps) {
-    return maps.map((m) => Offer.fromMap(m)).toList();
-  }
-
-  Future<void> _onLoadOffers(
-    LoadOffers event,
-    Emitter<OfferDetailsState> emit,
-  ) async {
-    emit(OfferDetailsLoading());
-    try {
-      // 1. Fetch raw offer maps for a specific catch
-      final offerMaps = await offerRepository.getOfferMapsByCatch(
-        event.catchId,
-      );
-
-      // 2. Assemble Offer objects
-      final offers = _assembleOffers(offerMaps);
-
-      emit(OffersLoaded(offers));
-    } catch (e) {
-      emit(OfferDetailsError(e.toString()));
-    }
-  }
-
   Future<void> _onLoadOfferDetails(
     LoadOfferDetails event,
     Emitter<OfferDetailsState> emit,
@@ -133,7 +109,7 @@ class OfferDetailsBloc extends Bloc<OfferDetailsEvent, OfferDetailsState> {
       }
       final Fisher fisher = Fisher.fromMap(fisherMap);
 
-      emit(OfferDetailsLoaded(offer, catchItem, fisher));
+      emit(OfferDetailsLoaded(offer, catchItem, null, fisher));
     } catch (e) {
       emit(OfferDetailsError('Failed to load offer details: ${e.toString()}'));
     }
@@ -146,9 +122,13 @@ class OfferDetailsBloc extends Bloc<OfferDetailsEvent, OfferDetailsState> {
     final currentState = state;
     if (currentState is! OfferDetailsLoaded) return;
 
+    // 🔑 Optional: Emit a temporary loading state to show progress
+    // emit(OfferDetailsLoading());
+
     try {
-      // 1. Perform the repository action
-      final updatedOffer = await offerRepository.acceptOffer(
+      // 1. Perform the repository action.
+      //    We assume it returns the newly updated Offer (status=accepted).
+      final (updatedOffer, newOrderId) = await offerRepository.acceptOffer(
         offer: event.offer,
         catchItem: event.catchItem,
         fisher: event.fisher,
@@ -158,12 +138,16 @@ class OfferDetailsBloc extends Bloc<OfferDetailsEvent, OfferDetailsState> {
       // 2. Emit the new state with the accepted offer and the success ID
       emit(
         currentState.copyWith(
+          offer: updatedOffer,
+          newOrderId: newOrderId,
           successMessageId: _uuid.v4(), // 🔑 Unique ID for one-time success
         ),
       );
     } catch (e) {
-      emit(OfferDetailsError('Failed to accept offer: ${e.toString()}'));
+      // 3. Handle failure
       // Reload the previous state to maintain UI continuity
+      emit(OfferDetailsError('Failed to accept offer: ${e.toString()}'));
+      // Emit the previous loaded state to ensure the UI is not stuck on error
       emit(currentState);
     }
   }

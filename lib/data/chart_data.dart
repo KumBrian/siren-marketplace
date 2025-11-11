@@ -91,6 +91,9 @@ final List<HistoricalPriceData> mockHistoricalPrices = [
 
   // Grey Shrimp (Initial Base Price around 950)
   ..._generateSpeciesData('gray-shrimp', 950.0),
+
+  ..._generateSpeciesData('small-prawn', 350.0),
+  ..._generateSpeciesData('large-prawn', 750.0),
 ];
 
 // --- DATA FILTERING LOGIC ---
