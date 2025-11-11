@@ -53,64 +53,64 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     on<CreateOffer>(_onCreateOffer);
     on<LoadAllFisherOffers>(_onLoadAllFisherOffers);
     on<GetOfferById>(_onGetOfferById);
-    on<LoadOfferDetails>(_onLoadOfferDetails);
+    // on<LoadOfferDetails>(_onLoadOfferDetails);
   }
 
-  Future<void> _onLoadOfferDetails(
-    LoadOfferDetails event,
-    Emitter<OffersState> emit,
-  ) async {
-    final currentState = state;
-    List<Offer> currentOffers = [];
-    bool wasLoaded = currentState is OffersLoaded;
-    if (wasLoaded) {
-      currentOffers = (currentState).offers;
-    }
-
-    // 1. Set temporary loading state for details view
-    if (wasLoaded) {
-      // Clear the details immediately while preserving the main offer list
-      emit(
-        (currentState).copyWith(
-          selectedOffer: null,
-          selectedCatch: null,
-          selectedFisher: null,
-        ),
-      );
-    } else {
-      emit(OffersLoading());
-    }
-
-    try {
-      final Offer? offer = await _offerRepository.getOfferById(event.offerId);
-
-      if (offer == null) {
-        emit(OffersError("Offer with ID ${event.offerId} not found."));
-        return;
-      }
-
-      // Fetch related entities
-      final Catch? catchItem = await _catchRepository.getCatchById(
-        offer.catchId,
-      );
-      final fisherMap = await _userRepository.getUserMapById(offer.fisherId);
-      final Fisher? fisher = fisherMap != null
-          ? Fisher.fromMap(fisherMap)
-          : null;
-
-      // 2. Emit the final OffersLoaded state with the details populated
-      emit(
-        OffersLoaded(
-          currentOffers, // Pass the existing list of offers
-          selectedOffer: offer,
-          selectedCatch: catchItem,
-          selectedFisher: fisher,
-        ),
-      );
-    } catch (e) {
-      emit(OffersError("Failed to load offer details: ${e.toString()}"));
-    }
-  }
+  // Future<void> _onLoadOfferDetails(
+  //   LoadOfferDetails event,
+  //   Emitter<OffersState> emit,
+  // ) async {
+  //   final currentState = state;
+  //   List<Offer> currentOffers = [];
+  //   bool wasLoaded = currentState is OffersLoaded;
+  //   if (wasLoaded) {
+  //     currentOffers = (currentState).offers;
+  //   }
+  //
+  //   // 1. Set temporary loading state for details view
+  //   if (wasLoaded) {
+  //     // Clear the details immediately while preserving the main offer list
+  //     emit(
+  //       (currentState).copyWith(
+  //         selectedOffer: null,
+  //         selectedCatch: null,
+  //         selectedFisher: null,
+  //       ),
+  //     );
+  //   } else {
+  //     emit(OffersLoading());
+  //   }
+  //
+  //   try {
+  //     final Offer? offer = await _offerRepository.getOfferById(event.offerId);
+  //
+  //     if (offer == null) {
+  //       emit(OffersError("Offer with ID ${event.offerId} not found."));
+  //       return;
+  //     }
+  //
+  //     // Fetch related entities
+  //     final Catch? catchItem = await _catchRepository.getCatchById(
+  //       offer.catchId,
+  //     );
+  //     final fisherMap = await _userRepository.getUserMapById(offer.fisherId);
+  //     final Fisher? fisher = fisherMap != null
+  //         ? Fisher.fromMap(fisherMap)
+  //         : null;
+  //
+  //     // 2. Emit the final OffersLoaded state with the details populated
+  //     emit(
+  //       OffersLoaded(
+  //         currentOffers, // Pass the existing list of offers
+  //         selectedOffer: offer,
+  //         selectedCatch: catchItem,
+  //         selectedFisher: fisher,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     emit(OffersError("Failed to load offer details: ${e.toString()}"));
+  //   }
+  // }
 
   // 🔑 FIX: Update the details *before* emitting OfferActionSuccess
   Future<void> _onAcceptOffer(
@@ -205,12 +205,11 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
 
     try {
       final Offer? offer = await _offerRepository.getOfferById(event.offerId);
+      final catchSnapShot = await _catchRepository.getCatchById(offer!.catchId);
+      final fisherMap = await _userRepository.getUserMapById(offer.fisherId);
+      final fisher = fisherMap != null ? Fisher.fromMap(fisherMap) : null;
 
-      if (offer != null) {
-        emit(OfferDetailsLoaded(offer));
-      } else {
-        emit(OffersError("Offer with ID ${event.offerId} not found."));
-      }
+      emit(OfferDetailsLoaded(offer, catchSnapShot!, fisher!));
     } catch (e) {
       emit(OffersError("Failed to load offer details: $e"));
     }

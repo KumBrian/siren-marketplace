@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
+import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
@@ -14,6 +15,7 @@ import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
+import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
@@ -42,12 +44,16 @@ class PreviousOfferDetails {
   });
 }
 
-/// Wrapper for transaction-related data fetched for the offer details view.
 class OfferTransactionData {
   final Buyer? buyer;
+  final Catch? catchSnapshot;
   final PreviousOfferDetails? previousDetails;
 
-  const OfferTransactionData({this.buyer, this.previousDetails});
+  const OfferTransactionData({
+    this.buyer,
+    this.previousDetails,
+    this.catchSnapshot,
+  });
 }
 
 class FisherOfferDetails extends StatefulWidget {
@@ -80,6 +86,10 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
       buyer = Buyer.fromMap(buyerMap);
     }
 
+    final Catch? catchSnapshot = await sl<CatchRepository>().getCatchById(
+      offer.catchId,
+    );
+
     PreviousOfferDetails? previousDetails;
     final hasPreviousNegotiation =
         offer.previousPrice != null &&
@@ -94,7 +104,11 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
       );
     }
 
-    return OfferTransactionData(buyer: buyer, previousDetails: previousDetails);
+    return OfferTransactionData(
+      buyer: buyer,
+      catchSnapshot: catchSnapshot,
+      previousDetails: previousDetails,
+    );
   }
 
   void _markOfferAsViewed(Offer offer, Role role) {
@@ -236,6 +250,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
 
                 final transactionData = snapshot.data;
                 final Buyer? buyer = transactionData?.buyer;
+                final Catch? catchSnapshot = transactionData?.catchSnapshot;
                 final PreviousOfferDetails? previous =
                     transactionData?.previousDetails;
 
@@ -401,6 +416,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                           offer: selectedOffer,
                           formKey: _formKey,
                           currentUserRole: Role.fisher,
+                          catchItem: catchSnapshot!,
                           onNavigateToOrder: (offerId) {
                             context.pushReplacement(
                               "/fisher/order-details/$offerId",

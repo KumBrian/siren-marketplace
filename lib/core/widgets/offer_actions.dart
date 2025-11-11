@@ -99,12 +99,14 @@ class OfferActions extends StatefulWidget {
     required this.formKey,
     required this.currentUserRole,
     required this.onNavigateToOrder,
+    required this.catchItem,
   });
 
   final Offer offer;
   final GlobalKey<FormState> formKey;
   final Role currentUserRole;
   final void Function(String offerId) onNavigateToOrder;
+  final CatchModel.Catch catchItem;
 
   @override
   State<OfferActions> createState() => _OfferActionsState();
@@ -141,20 +143,10 @@ class _OfferActionsState extends State<OfferActions> {
       Navigator.of(confirmDialogContext).pop();
     }
 
-    final catchItem = _findCatchFromBloc(widget.offer.catchId);
-    if (catchItem == null) {
-      if (context.mounted) {
-        await showActionSuccessDialog(
-          context,
-          message: 'Related catch not found',
-          autoCloseSeconds: 2,
-        );
-      }
-      return;
-    }
+    final catchItem = widget.catchItem; // SUCCESS: Use the passed item directly
 
     if (!context.mounted) return;
-    showLoadingDialog(context, message: 'Creating order...');
+    showLoadingDialog(context, message: 'Loading...');
 
     try {
       final fisherMap = await _userRepository.getUserMapById(
