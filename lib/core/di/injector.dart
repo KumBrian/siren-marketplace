@@ -27,7 +27,8 @@ import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.da
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -85,6 +86,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => ProductsCubit(sl<CatchRepository>()));
   sl.registerLazySingleton(() => ProductsFilterCubit());
   sl.registerLazySingleton(() => OffersFilterCubit());
+  sl.registerLazySingleton(() => NotificationsCubit());
   sl.registerLazySingleton(
     () => FilteredProductsCubit(
       catchRepository: sl<CatchRepository>(),

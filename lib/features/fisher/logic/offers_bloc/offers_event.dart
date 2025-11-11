@@ -130,14 +130,5 @@ class CreateOffer extends OffersEvent {
   List<Object?> get props => [catchId, buyerId, price, weight, pricePerKg];
 }
 
-class LoadOfferDetails extends OffersEvent {
-  final String offerId;
-
-  const LoadOfferDetails(this.offerId);
-
-  @override
-  List<Object> get props => [offerId];
-}
-
 /// An internal event used by the notifier to trigger a refresh.
 class _RefreshOffers extends OffersEvent {}

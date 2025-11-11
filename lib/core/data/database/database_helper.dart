@@ -206,6 +206,18 @@ class DatabaseHelper {
     );
   }
 
+  Future<Map<String, dynamic>?> getCatchMapById(String catchId) async {
+    final db = await database;
+    final maps = await db.query(
+      'catches',
+      where: 'catch_id = ?',
+      whereArgs: [catchId],
+      limit: 1,
+    );
+    if (maps.isNotEmpty) return maps.first;
+    return null;
+  }
+
   Future<List<Map<String, dynamic>>> getConversationsByUserId(
     String userId,
   ) async {

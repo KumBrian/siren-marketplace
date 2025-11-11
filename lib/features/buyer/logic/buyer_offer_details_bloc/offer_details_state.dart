@@ -42,6 +42,7 @@ class OfferDetailsLoaded extends OfferDetailsState with EquatableMixin {
   final Offer offer;
   final Catch catchItem;
   final Fisher fisher;
+  final String? newOrderId;
 
   // 🆕 ADDED: Transient identifier for one-time success messages
   final String? successMessageId;
@@ -49,24 +50,33 @@ class OfferDetailsLoaded extends OfferDetailsState with EquatableMixin {
   const OfferDetailsLoaded(
     this.offer,
     this.catchItem,
+    this.newOrderId,
     this.fisher, {
     this.successMessageId, // 🔑 Include in constructor
   });
 
   // 🔑 Updated to include the new field
   @override
-  List<Object?> get props => [offer, catchItem, fisher, successMessageId];
+  List<Object?> get props => [
+    offer,
+    catchItem,
+    fisher,
+    successMessageId,
+    newOrderId,
+  ];
 
   // 🆕 ADDED: copyWith for easily generating new states
   OfferDetailsLoaded copyWith({
     Offer? offer,
     Catch? catchItem,
+    String? newOrderId,
     Fisher? fisher,
     String? successMessageId,
   }) {
     return OfferDetailsLoaded(
       offer ?? this.offer,
       catchItem ?? this.catchItem,
+      newOrderId ?? this.newOrderId,
       fisher ?? this.fisher,
       successMessageId: successMessageId,
     );

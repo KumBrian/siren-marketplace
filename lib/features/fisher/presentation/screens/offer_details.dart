@@ -1,20 +1,23 @@
+import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
+import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
+import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
+import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_actions.dart';
-import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 /// Helper extension to find the first element matching a test, or return null.
 extension IterableExtensions<T> on Iterable<T> {
@@ -41,12 +44,16 @@ class PreviousOfferDetails {
   });
 }
 
-/// Wrapper for transaction-related data fetched for the offer details view.
 class OfferTransactionData {
   final Buyer? buyer;
+  final Catch? catchSnapshot;
   final PreviousOfferDetails? previousDetails;
 
-  const OfferTransactionData({this.buyer, this.previousDetails});
+  const OfferTransactionData({
+    this.buyer,
+    this.previousDetails,
+    this.catchSnapshot,
+  });
 }
 
 class FisherOfferDetails extends StatefulWidget {
@@ -79,6 +86,10 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
       buyer = Buyer.fromMap(buyerMap);
     }
 
+    final Catch? catchSnapshot = await sl<CatchRepository>().getCatchById(
+      offer.catchId,
+    );
+
     PreviousOfferDetails? previousDetails;
     final hasPreviousNegotiation =
         offer.previousPrice != null &&
@@ -93,7 +104,11 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
       );
     }
 
-    return OfferTransactionData(buyer: buyer, previousDetails: previousDetails);
+    return OfferTransactionData(
+      buyer: buyer,
+      catchSnapshot: catchSnapshot,
+      previousDetails: previousDetails,
+    );
   }
 
   void _markOfferAsViewed(Offer offer, Role role) {
@@ -235,6 +250,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
 
                 final transactionData = snapshot.data;
                 final Buyer? buyer = transactionData?.buyer;
+                final Catch? catchSnapshot = transactionData?.catchSnapshot;
                 final PreviousOfferDetails? previous =
                     transactionData?.previousDetails;
 
@@ -257,6 +273,86 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                final ImageProvider imageProvider =
+                                    selectedOffer!.catchImageUrl.startsWith(
+                                      'http',
+                                    )
+                                    ? NetworkImage(selectedOffer.catchImageUrl)
+                                          as ImageProvider
+                                    : AssetImage(selectedOffer.catchImageUrl);
+
+                                showImageViewer(
+                                  context,
+                                  imageProvider,
+                                  swipeDismissible: true,
+                                  immersive: true,
+                                  useSafeArea: true,
+                                  doubleTapZoomable: true,
+                                  backgroundColor: Colors.black.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  selectedOffer!.catchImageUrl,
+                                  // Use the safely determined URL
+                                  // Use Catch image URL
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Image.asset(
+                                        "assets/images/prawns.jpg",
+                                        width: 60,
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                      ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    selectedOffer.catchName, // Use Catch name
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      color: AppColors.textBlue,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        selectedOffer.dateCreated
+                                            .toFormattedDate(),
+                                        // Use actual status
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.gray650,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const SectionHeader("Current Offer"),
@@ -264,7 +360,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  selectedOffer!.status.name.capitalize(),
+                                  selectedOffer.status.name.capitalize(),
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -316,7 +412,17 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                         ),
                         const SizedBox(height: 8),
 
-                        OfferActions(offer: selectedOffer, formKey: _formKey),
+                        OfferActions(
+                          offer: selectedOffer,
+                          formKey: _formKey,
+                          currentUserRole: Role.fisher,
+                          catchItem: catchSnapshot!,
+                          onNavigateToOrder: (offerId) {
+                            context.pushReplacement(
+                              "/fisher/order-details/$offerId",
+                            );
+                          },
+                        ),
 
                         if (selectedOffer.status == OfferStatus.rejected)
                           Row(

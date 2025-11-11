@@ -131,10 +131,93 @@ class _CatchDetailsState extends State<CatchDetails>
 
   @override
   Widget build(BuildContext context) {
-    final weightFormKey = GlobalKey<FormState>();
-    final priceFormKey = GlobalKey<FormState>();
+    final editCatchFormKey = GlobalKey<FormState>();
     final TextEditingController weightController = TextEditingController();
     final TextEditingController pricePerKgController = TextEditingController();
+
+    void showEditCatchDialog(BuildContext context, Catch selectedCatch) {
+      weightController.text = selectedCatch.availableWeight.toString();
+      pricePerKgController.text = selectedCatch.pricePerKg.toString();
+
+      showDialog(
+        context: context,
+        builder: (dialogCtx) {
+          return AlertDialog(
+            contentPadding: const EdgeInsets.only(
+              left: 24,
+              right: 24,
+              bottom: 24,
+            ),
+            constraints: const BoxConstraints(maxWidth: 500, minWidth: 450),
+            title: Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(dialogCtx).pop(),
+              ),
+            ),
+            content: Form(
+              key: editCatchFormKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.textBlue),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: NumberInputField(
+                      controller: weightController,
+                      label: "Available Weight",
+                      role: Role.fisher,
+                      suffix: "Kg",
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.textBlue),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: NumberInputField(
+                      controller: pricePerKgController,
+                      label: "Price per Kg",
+                      role: Role.fisher,
+                      suffix: "CFA",
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  CustomButton(
+                    title: "Update Catch",
+                    onPressed: () async {
+                      if (editCatchFormKey.currentState!.validate()) {
+                        final newWeight =
+                            double.tryParse(weightController.text) ?? 0.0;
+                        final newPrice =
+                            double.tryParse(pricePerKgController.text) ?? 0.0;
+                        final newTotal = newWeight * newPrice;
+                        final updatedCatch = selectedCatch.copyWith(
+                          availableWeight: newWeight,
+                          pricePerKg: newPrice,
+                          total: newTotal,
+                        );
+                        context.read<CatchesBloc>().add(
+                          UpdateCatchEvent(updatedCatch),
+                        );
+                        Navigator.of(dialogCtx).pop();
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
 
     return Scaffold(
       body: BlocListener<CatchesBloc, CatchesState>(
@@ -187,21 +270,16 @@ class _CatchDetailsState extends State<CatchDetails>
         },
         child: BlocBuilder<CatchesBloc, CatchesState>(
           builder: (context, catchesState) {
-            // 1. Handle Transient Success State (Show nothing, let Listener handle dialog/nav)
             if (catchesState is CatchDeletedSuccess) {
               return const Scaffold(
                 backgroundColor: Colors.white,
                 body: SizedBox.shrink(),
               );
             }
-
-            // 2. Handle Loading/Initial States
             if (catchesState is CatchesLoading ||
                 catchesState is CatchesInitial) {
               return const Center(child: CircularProgressIndicator());
             }
-
-            // 3. Handle Errors
             if (catchesState is CatchesError) {
               return Center(
                 child: Text('Error loading catches: ${catchesState.message}'),
@@ -245,7 +323,6 @@ class _CatchDetailsState extends State<CatchDetails>
                     child: Column(
                       spacing: 8,
                       children: [
-                        // --- Header Row ---
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -329,12 +406,24 @@ class _CatchDetailsState extends State<CatchDetails>
                                 ],
                               ),
                             ),
+                            Spacer(),
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              splashRadius: 5,
+                              icon: Icon(
+                                CustomIcons.edit,
+                                size: 14,
+                                color: Color(0xFF0A2A45),
+                              ),
+                              onPressed: () {
+                                showEditCatchDialog(context, selectedCatch);
+                              },
+                            ),
                           ],
                         ),
 
                         const SizedBox(height: 8),
-
-                        // --- Info Table ---
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -358,273 +447,14 @@ class _CatchDetailsState extends State<CatchDetails>
                                 label: "Available weight",
                                 suffix: "Kg",
                                 value: selectedCatch.availableWeight.toInt(),
-                                editable: true,
-                                onEdit: () {
-                                  weightController.text = selectedCatch
-                                      .availableWeight
-                                      .toString();
-                                  pricePerKgController.clear();
-
-                                  showDialog(
-                                    context: context,
-                                    builder: (dialogCtx) {
-                                      return AlertDialog(
-                                        contentPadding: const EdgeInsets.only(
-                                          left: 24,
-                                          right: 24,
-                                          bottom: 24,
-                                        ),
-                                        constraints: const BoxConstraints(
-                                          maxWidth: 500,
-                                          minWidth: 450,
-                                        ),
-                                        title: Align(
-                                          alignment: Alignment.centerRight,
-                                          child: IconButton(
-                                            icon: const Icon(Icons.close),
-                                            onPressed: () =>
-                                                Navigator.of(dialogCtx).pop(),
-                                          ),
-                                        ),
-                                        content: StatefulBuilder(
-                                          builder: (ctx, setLocalState) {
-                                            double currentWeight =
-                                                selectedCatch.availableWeight;
-
-                                            return Form(
-                                              key: weightFormKey,
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.stretch,
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          16,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      border: Border.all(
-                                                        color:
-                                                            AppColors.textBlue,
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            16,
-                                                          ),
-                                                    ),
-                                                    child: Column(
-                                                      children: [
-                                                        NumberInputField(
-                                                          controller:
-                                                              weightController,
-                                                          label:
-                                                              "Available Weight",
-                                                          role: Role.fisher,
-                                                          suffix: "Kg",
-                                                          onChanged: (value) {
-                                                            setLocalState(() {
-                                                              currentWeight =
-                                                                  double.parse(
-                                                                    value.isEmpty
-                                                                        ? "0"
-                                                                        : value,
-                                                                  );
-                                                            });
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 16),
-                                                  CustomButton(
-                                                    title: "Update Weight",
-                                                    onPressed: () async {
-                                                      if (weightFormKey
-                                                          .currentState!
-                                                          .validate()) {
-                                                        final newWeight =
-                                                            double.tryParse(
-                                                              weightController
-                                                                  .text,
-                                                            ) ??
-                                                            0.0;
-
-                                                        final newTotal =
-                                                            newWeight *
-                                                            selectedCatch
-                                                                .pricePerKg;
-
-                                                        final updatedCatch =
-                                                            selectedCatch
-                                                                .copyWith(
-                                                                  availableWeight:
-                                                                      newWeight,
-                                                                  total:
-                                                                      newTotal,
-                                                                );
-
-                                                        // 4. Dispatch the event
-                                                        context
-                                                            .read<CatchesBloc>()
-                                                            .add(
-                                                              UpdateCatchEvent(
-                                                                updatedCatch,
-                                                              ),
-                                                            );
-
-                                                        Navigator.of(
-                                                          dialogCtx,
-                                                        ).pop();
-                                                      }
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
                               ),
                               InfoRow(
                                 label: "Price/Kg",
                                 value: formatPrice(selectedCatch.pricePerKg),
-                                editable: true,
-                                onEdit: () {
-                                  pricePerKgController.text = selectedCatch
-                                      .pricePerKg
-                                      .toString();
-                                  weightController.clear();
-
-                                  showDialog(
-                                    context: context,
-                                    builder: (dialogCtx) {
-                                      return AlertDialog(
-                                        contentPadding: const EdgeInsets.only(
-                                          left: 24,
-                                          right: 24,
-                                          bottom: 24,
-                                        ),
-                                        constraints: const BoxConstraints(
-                                          maxWidth: 500,
-                                          minWidth: 450,
-                                        ),
-                                        title: Align(
-                                          alignment: Alignment.centerRight,
-                                          child: IconButton(
-                                            icon: const Icon(Icons.close),
-                                            onPressed: () =>
-                                                Navigator.of(dialogCtx).pop(),
-                                          ),
-                                        ),
-                                        content: StatefulBuilder(
-                                          builder: (ctx, setLocalState) {
-                                            double currentPrice =
-                                                selectedCatch.pricePerKg;
-
-                                            return Form(
-                                              key: priceFormKey,
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.stretch,
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          16,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      border: Border.all(
-                                                        color:
-                                                            AppColors.textBlue,
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            16,
-                                                          ),
-                                                    ),
-                                                    child: Column(
-                                                      children: [
-                                                        NumberInputField(
-                                                          controller:
-                                                              pricePerKgController,
-                                                          label: "Price per Kg",
-                                                          role: Role.fisher,
-                                                          suffix: "CFA",
-                                                          onChanged: (value) {
-                                                            setLocalState(() {
-                                                              currentPrice =
-                                                                  double.parse(
-                                                                    value.isEmpty
-                                                                        ? "0"
-                                                                        : value,
-                                                                  );
-                                                            });
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 16),
-                                                  CustomButton(
-                                                    title: "Update Price/Kg",
-                                                    onPressed: () async {
-                                                      if (priceFormKey
-                                                          .currentState!
-                                                          .validate()) {
-                                                        final newPrice =
-                                                            double.tryParse(
-                                                              pricePerKgController
-                                                                  .text,
-                                                            ) ??
-                                                            0.0;
-
-                                                        final newTotal =
-                                                            newPrice *
-                                                            selectedCatch
-                                                                .availableWeight;
-
-                                                        final updatedCatch =
-                                                            selectedCatch
-                                                                .copyWith(
-                                                                  pricePerKg:
-                                                                      newPrice,
-                                                                  total:
-                                                                      newTotal,
-                                                                );
-
-                                                        context
-                                                            .read<CatchesBloc>()
-                                                            .add(
-                                                              UpdateCatchEvent(
-                                                                updatedCatch,
-                                                              ),
-                                                            );
-
-                                                        Navigator.of(
-                                                          dialogCtx,
-                                                        ).pop();
-                                                      }
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
                               ),
                               InfoRow(
                                 label: "Total",
                                 value: formatPrice(selectedCatch.total),
-                                onEdit: () {},
                               ),
                             ],
                           ),
@@ -633,7 +463,6 @@ class _CatchDetailsState extends State<CatchDetails>
                         AnimatedBuilder(
                           animation: _tabController,
                           builder: (context, child) {
-                            // 🔑 The Row will now always return, but its contents are conditional.
                             return BlocBuilder<
                               CatchFilterCubit,
                               CatchFilterState
@@ -643,11 +472,9 @@ class _CatchDetailsState extends State<CatchDetails>
                                 return Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    // 1. FILTER BUTTON: Only show on the Offers tab (index 0)
                                     if (_tabController.index == 0)
                                       TextButton(
                                         onPressed: () {
-                                          // Filter Modal logic
                                           showModalBottomSheet(
                                             context: context,
                                             showDragHandle: true,
@@ -805,16 +632,10 @@ class _CatchDetailsState extends State<CatchDetails>
                                           ],
                                         ),
                                       ),
-
-                                    // Add spacing only if the filter button is present
                                     if (_tabController.index == 0)
                                       const SizedBox(width: 10),
-
-                                    // 2. DATE SORT BUTTON: Show on both tabs
                                     TextButton(
                                       onPressed: () {
-                                        // This logic is driven by CatchFilterCubit, which should sort both lists
-                                        // (Offers list in the Offers tab, and Messages list in the Messages tab).
                                         cubit.setSort(
                                           state.activeSortBy == "ascending"
                                               ? "descending"
@@ -848,8 +669,6 @@ class _CatchDetailsState extends State<CatchDetails>
                             );
                           },
                         ),
-
-                        // --- Tabs (Offers / Messages) ---
                         Expanded(
                           child: Column(
                             children: [
@@ -943,7 +762,6 @@ class _CatchDetailsState extends State<CatchDetails>
                                   controller: _tabController,
                                   physics: const BouncingScrollPhysics(),
                                   children: [
-                                    // Offers Tab
                                     BlocConsumer<OffersBloc, OffersState>(
                                       listener: (context, offerState) {
                                         if (offerState is OfferActionSuccess) {
@@ -975,8 +793,6 @@ class _CatchDetailsState extends State<CatchDetails>
                                         );
                                       },
                                     ),
-
-                                    // Messages Tab
                                     _buildMessagesList(
                                       context,
                                       messagesForCatch,
@@ -998,8 +814,6 @@ class _CatchDetailsState extends State<CatchDetails>
                   body: SizedBox.shrink(),
                 );
               }
-
-              // Use the placeholder for messages
             }
             return const Scaffold(backgroundColor: AppColors.white100);
           },
@@ -1008,13 +822,11 @@ class _CatchDetailsState extends State<CatchDetails>
     );
   }
 
-  // --- Helper to build the Offers List with Filters ---
   Widget _buildOffersList(
     BuildContext context,
     Catch selectedCatch,
     CatchFilterState filters,
   ) {
-    // Apply filters directly
     final filteredOffers = selectedCatch.offers.where((offer) {
       if (filters.activeStatuses.isEmpty) return true;
       final statusName = offer.status.name.capitalize();
@@ -1048,7 +860,6 @@ class _CatchDetailsState extends State<CatchDetails>
     );
   }
 
-  // --- Helper to build the Messages List ---
   Widget _buildMessagesList(
     BuildContext context,
     List<Message> messages,
@@ -1091,7 +902,6 @@ class _CatchDetailsState extends State<CatchDetails>
     );
   }
 
-  // --- Generic Empty State Builder ---
   Widget _buildEmptyState(String title, String subtitle) {
     return Center(
       child: Column(

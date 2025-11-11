@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
@@ -16,7 +15,7 @@ import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
   showDialog(
@@ -94,10 +93,20 @@ Future<void> showActionSuccessDialog(
 }
 
 class OfferActions extends StatefulWidget {
-  const OfferActions({super.key, required this.offer, required this.formKey});
+  const OfferActions({
+    super.key,
+    required this.offer,
+    required this.formKey,
+    required this.currentUserRole,
+    required this.onNavigateToOrder,
+    required this.catchItem,
+  });
 
   final Offer offer;
   final GlobalKey<FormState> formKey;
+  final Role currentUserRole;
+  final void Function(String offerId) onNavigateToOrder;
+  final CatchModel.Catch catchItem;
 
   @override
   State<OfferActions> createState() => _OfferActionsState();
@@ -134,20 +143,10 @@ class _OfferActionsState extends State<OfferActions> {
       Navigator.of(confirmDialogContext).pop();
     }
 
-    final catchItem = _findCatchFromBloc(widget.offer.catchId);
-    if (catchItem == null) {
-      if (context.mounted) {
-        await showActionSuccessDialog(
-          context,
-          message: 'Related catch not found',
-          autoCloseSeconds: 2,
-        );
-      }
-      return;
-    }
+    final catchItem = widget.catchItem; // SUCCESS: Use the passed item directly
 
     if (!context.mounted) return;
-    showLoadingDialog(context, message: 'Creating order...');
+    showLoadingDialog(context, message: 'Loading...');
 
     try {
       final fisherMap = await _userRepository.getUserMapById(
@@ -295,13 +294,20 @@ class _OfferActionsState extends State<OfferActions> {
                             ),
                             content: Column(
                               mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 const Text(
-                                  // Removed const from Text because it was causing problems
                                   "Reject the offer?",
                                   style: TextStyle(
                                     fontSize: 16,
+                                    color: AppColors.textBlue,
+                                  ),
+                                ),
+                                Text(
+                                  "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price)}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 18,
                                     color: AppColors.textBlue,
                                   ),
                                 ),
@@ -329,7 +335,7 @@ class _OfferActionsState extends State<OfferActions> {
                     ),
                   ),
 
-                  if (widget.offer.waitingFor == Role.fisher) ...[
+                  if (widget.offer.waitingFor == widget.currentUserRole) ...[
                     const SizedBox(width: 16),
                     Expanded(
                       child: BlocBuilder<UserBloc, UserState>(
@@ -395,9 +401,7 @@ class _OfferActionsState extends State<OfferActions> {
         ? CustomButton(
             title: "Order Details",
             onPressed: () {
-              context.pushReplacement(
-                "/fisher/order-details/${widget.offer.id}",
-              );
+              widget.onNavigateToOrder(widget.offer.id);
             },
           )
         : Container();

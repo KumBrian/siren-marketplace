@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
-import 'package:siren_marketplace/features/user/logic/bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/role_button.dart';
 
 class RoleScreen extends StatefulWidget {
@@ -83,7 +83,6 @@ class _RoleScreenState extends State<RoleScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    //Intro
                     Column(
                       spacing: 40,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -106,8 +105,6 @@ class _RoleScreenState extends State<RoleScreen> {
                         ),
                       ],
                     ),
-
-                    // Role Selection / Switch
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

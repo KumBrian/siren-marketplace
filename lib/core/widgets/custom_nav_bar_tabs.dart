@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/utils/custom_icons.dart';
 
 class CustomNavBarWithTabs extends StatelessWidget {
   const CustomNavBarWithTabs({
     super.key,
     required this.selectedIndex,
     required this.onTabSelected,
+    required this.role,
   });
 
   final int selectedIndex;
   final ValueChanged<int> onTabSelected;
+  final Role role;
 
   @override
   Widget build(BuildContext context) {
@@ -33,16 +37,27 @@ class CustomNavBarWithTabs extends StatelessWidget {
             selectedIndex == 1 ? Icons.storefront_rounded : Icons.storefront,
             1,
           ),
-          _buildNavItem(
-            selectedIndex == 2
-                ? Icons.shopping_bag
-                : Icons.shopping_bag_outlined,
-            2,
-          ),
+          if (role == Role.buyer) ...[
+            _buildNavItem(
+              selectedIndex == 2
+                  ? Icons.shopping_bag
+                  : Icons.shopping_bag_outlined,
+              2,
+            ),
+          ],
+          if (role == Role.fisher) ...[
+            _buildNavItem(
+              selectedIndex == 2
+                  ? CustomIcons.observation
+                  : Icons.content_paste_search_rounded,
+              2,
+            ),
+          ],
+
           _buildNavItem(
             selectedIndex == 3
-                ? Icons.person_pin_circle_rounded
-                : Icons.person_pin_circle_outlined,
+                ? CustomIcons.profile_filled
+                : CustomIcons.profile,
             3,
           ),
         ],

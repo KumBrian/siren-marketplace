@@ -4,6 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
+import 'package:siren_marketplace/features/fisher/presentation/screens/fisher.dart';
+import 'package:siren_marketplace/features/user/presentation/screens/about.dart';
+import 'package:siren_marketplace/features/user/presentation/screens/account_info.dart';
+import 'package:siren_marketplace/features/user/presentation/screens/beaches.dart';
+import 'package:siren_marketplace/features/user/presentation/screens/logout.dart';
+import 'package:siren_marketplace/features/user/presentation/screens/projects.dart';
+import 'package:siren_marketplace/features/user/presentation/screens/user_profile.dart';
 
 import 'core/di/injector.dart';
 import 'core/types/enum.dart';
@@ -18,12 +25,14 @@ import 'features/chat/presentation/screens/chat_page.dart';
 import 'features/fisher/logic/orders_bloc/orders_bloc.dart';
 import 'features/fisher/presentation/screens/catch_details.dart';
 import 'features/fisher/presentation/screens/congratulations_screen.dart';
-import 'features/fisher/presentation/screens/home_screen.dart';
 import 'features/fisher/presentation/screens/market_trends.dart';
 import 'features/fisher/presentation/screens/notifications_screen.dart';
 import 'features/fisher/presentation/screens/offer_details.dart';
 import 'features/fisher/presentation/screens/order_details.dart';
-import 'features/user/logic/bloc/user_bloc.dart';
+import 'features/user/logic/user_bloc/user_bloc.dart';
+import 'features/user/presentation/screens/account_info/personal_information.dart';
+import 'features/user/presentation/screens/account_info/reviews.dart';
+import 'features/user/presentation/screens/observation_info.dart';
 import 'features/user/presentation/screens/role_selection_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -103,7 +112,7 @@ GoRouter createRouter(UserBloc userBloc) {
         path: '/fisher',
         builder: (_, __) => BlocProvider(
           create: (context) => sl<OrdersBloc>(),
-          child: const FisherHome(),
+          child: const Fisher(),
         ),
         routes: [
           GoRoute(
@@ -193,6 +202,44 @@ GoRouter createRouter(UserBloc userBloc) {
             path: 'notifications',
             builder: (_, __) => const BuyerNotificationsScreen(),
           ),
+        ],
+      ),
+      GoRoute(
+        path: '/user-profile/:role',
+        builder: (context, state) {
+          final role = state.pathParameters['role']!;
+          return BlocProvider(
+            create: (context) => sl<UserBloc>(),
+            child: UserProfile(role: role),
+          );
+        },
+        routes: [
+          GoRoute(
+            path: 'account-info',
+            builder: (context, state) {
+              return AccountInfo(role: state.pathParameters['role']!);
+            },
+            routes: [
+              GoRoute(
+                path: "personal-information",
+                builder: (context, state) => const PersonalInformation(),
+              ),
+              GoRoute(
+                path: "reviews",
+                builder: (context, state) => const Reviews(),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: 'observation-info',
+            builder: (context, state) {
+              return const ObservationInfo();
+            },
+          ),
+          GoRoute(path: 'projects', builder: (context, state) => Projects()),
+          GoRoute(path: 'beaches', builder: (context, state) => Beaches()),
+          GoRoute(path: 'about', builder: (context, state) => About()),
+          GoRoute(path: 'logout', builder: (context, state) => Logout()),
         ],
       ),
     ],
