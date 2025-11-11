@@ -32,7 +32,3 @@ Key changes:
 - Data Seeding:
     - Updated the seeder to assign a random number of images (1-4) to each generated `Catch`, making
       test data more realistic.
-
-Need To FIX:
-
-- Update Buyer Offers to use filters and sorting
