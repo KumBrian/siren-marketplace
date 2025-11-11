@@ -13,6 +13,7 @@ import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
+import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
@@ -559,7 +560,9 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                             width: double.infinity,
                             child: CustomButton(
                               title: "Marketplace",
-                              onPressed: () {},
+                              onPressed: () {
+                                context.go("/buyer");
+                              },
                               icon: Icons.storefront,
                               bordered: true,
                             ),
@@ -569,21 +572,21 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                             width: double.infinity,
                             child: CustomButton(
                               title: "Make New Offer",
-                              onPressed: () {},
-                              // onPressed: () =>
-                              //     _showMakeOfferDialog(context, catchSnapshot),
+                              onPressed: () =>
+                                  _showMakeOfferDialog(context, catchSnapshot),
                             ),
                           ),
                         ],
 
-                        if (currentOffer.status == OfferStatus.accepted ||
-                            currentOffer.status == OfferStatus.pending) ...[
+                        if (currentOffer.status == OfferStatus.accepted) ...[
                           const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
                             child: CustomButton(
                               title: "Call Seller",
-                              onPressed: () {},
+                              onPressed: () {
+                                makePhoneCall('651204966', context);
+                              },
                               hugeIcon: HugeIcons.strokeRoundedCall02,
                               bordered: true,
                             ),
@@ -593,7 +596,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                             width: double.infinity,
                             child: CustomButton(
                               title: "Message Seller",
-                              onPressed: () {},
+                              onPressed: () => context.push("/buyer/chat"),
                               icon: CustomIcons.chatbubble,
                             ),
                           ),
@@ -816,54 +819,61 @@ class FisherDetails extends StatelessWidget {
     final double rating = fisher?.rating ?? 0.0;
     final int reviewCount = fisher?.reviewCount ?? 0;
 
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 8,
       children: [
-        CircleAvatar(
-          radius: 30,
-          backgroundImage: avatarUrl.contains("http")
-              ? NetworkImage(avatarUrl)
-              : AssetImage(avatarUrl),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: AppColors.textBlue,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
+        SectionHeader("Seller"),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 30,
+              backgroundImage: avatarUrl.contains("http")
+                  ? NetworkImage(avatarUrl)
+                  : AssetImage(avatarUrl),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.star,
-                    color: AppColors.shellOrange,
-                    size: 16,
-                  ),
                   Text(
-                    rating.toStringAsFixed(1),
+                    name,
                     style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
                       color: AppColors.textBlue,
-                      fontWeight: FontWeight.w300,
                     ),
                   ),
-                  Text(
-                    " ($reviewCount Reviews)",
-                    style: const TextStyle(
-                      color: AppColors.textBlue,
-                      fontWeight: FontWeight.w300,
-                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        color: AppColors.shellOrange,
+                        size: 16,
+                      ),
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          color: AppColors.textBlue,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                      Text(
+                        " ($reviewCount Reviews)",
+                        style: const TextStyle(
+                          color: AppColors.textBlue,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );

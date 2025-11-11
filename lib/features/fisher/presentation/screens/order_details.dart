@@ -19,12 +19,12 @@ import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
+import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
 import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class OrderDependencies {
   final Catch catchSnapshot;
@@ -83,20 +83,6 @@ class _OrderDetailsState extends State<OrderDetails> {
 
   Future<void> _markOrderAsCompleted(Order order) async {
     context.read<OrdersBloc>().add(CompleteOrder(order: order));
-  }
-
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
-    if (await canLaunchUrl(launchUri)) {
-      await launchUrl(launchUri);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not launch phone app.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   @override
@@ -674,7 +660,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                         children: [
                           CustomButton(
                             title: "Call Buyer",
-                            onPressed: () => _makePhoneCall('651204966'),
+                            onPressed: () =>
+                                makePhoneCall('651204966', context),
                             // Using the provided phone number
                             bordered: true,
                             hugeIcon: HugeIcons.strokeRoundedCall02,
