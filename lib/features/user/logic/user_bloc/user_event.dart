@@ -19,3 +19,12 @@ class FinalizeRoleSelection extends UserEvent {
   @override
   List<Object> get props => [selectedRole];
 }
+
+class LoadUserRatings extends UserEvent {
+  final String userId;
+
+  const LoadUserRatings(this.userId);
+
+  @override
+  List<Object> get props => [userId];
+}

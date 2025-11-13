@@ -24,6 +24,7 @@ import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.da
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 import 'package:siren_marketplace/router.dart';
 
@@ -63,6 +64,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => sl<ProductsFilterCubit>()),
         BlocProvider(create: (_) => sl<OffersFilterCubit>()),
         BlocProvider(create: (_) => sl<NotificationsCubit>()),
+        BlocProvider(create: (_) => sl<ReviewsCubit>()),
         BlocProvider(create: (_) => sl<ProductsCubit>()),
         BlocProvider(create: (context) => sl<FilteredProductsCubit>()),
 
