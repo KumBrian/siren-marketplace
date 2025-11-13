@@ -1,151 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/types/extensions.dart'; // Assuming you have .toFormattedDate()
+import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/rating_card.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/review_card.dart';
 
-class ReviewModel {
-  final String name;
-  final String date;
-  final int rating;
-  final String image;
-  final String message;
+// Removed hardcoded ReviewModel and review_data
 
-  ReviewModel({
-    required this.name,
-    required this.date,
-    required this.rating,
-    required this.image,
-    required this.message,
+class ReviewsScreen extends StatefulWidget {
+  // This screen now requires the ID of the user whose reviews are being viewed
+  final String userId;
+  final String userName; // For title display
+
+  const ReviewsScreen({
+    super.key,
+    required this.userId,
+    required this.userName,
   });
+
+  @override
+  State<ReviewsScreen> createState() => _ReviewsScreenState();
 }
 
-List<ReviewModel> review_data = [
-  ReviewModel(
-    name: "Sophia Turner",
-    date: "2025-10-12T10:30:00Z",
-    rating: 5,
-    image: "https://i.pravatar.cc/150?img=1",
-    message:
-        "The service was beyond expectations. Everything was smooth, and the quality was top-notch. Definitely coming back!",
-  ),
-  ReviewModel(
-    name: "Ethan Ross",
-    date: "2025-09-28T14:45:00Z",
-    rating: 4,
-    image: "https://i.pravatar.cc/150?img=2",
-    message:
-        "Good overall, but the delivery took a bit longer than expected. Still, the end result made up for it.",
-  ),
-  ReviewModel(
-    name: "Lara Kim",
-    date: "2025-09-05T09:10:00Z",
-    rating: 3,
-    image: "https://i.pravatar.cc/150?img=3",
-    message:
-        "Decent experience. Some minor issues, but customer support was responsive and resolved them quickly.",
-  ),
-  ReviewModel(
-    name: "Marcus Blake",
-    date: "2025-08-17T16:00:00Z",
-    rating: 2,
-    image: "https://i.pravatar.cc/150?img=4",
-    message:
-        "The concept is great, but execution needs polish. A few rough edges that need ironing out.",
-  ),
-  ReviewModel(
-    name: "Isabella Grant",
-    date: "2025-07-30T11:20:00Z",
-    rating: 5,
-    image: "https://i.pravatar.cc/150?img=5",
-    message:
-        "Absolutely love it. Every detail was carefully thought out, and the experience was seamless. Highly recommend!",
-  ),
-  ReviewModel(
-    name: "Daniel Cruz",
-    date: "2025-07-02T08:45:00Z",
-    rating: 4,
-    image: "https://i.pravatar.cc/150?img=6",
-    message:
-        "UI is slick and performance is solid. Just wish there were more customization options.",
-  ),
-  ReviewModel(
-    name: "Emily Zhao",
-    date: "2025-06-18T19:30:00Z",
-    rating: 2,
-    image: "https://i.pravatar.cc/150?img=7",
-    message:
-        "I had high hopes, but the support took ages to respond. Not the best experience overall.",
-  ),
-  ReviewModel(
-    name: "Noah Patel",
-    date: "2025-05-21T13:50:00Z",
-    rating: 5,
-    image: "https://i.pravatar.cc/150?img=8",
-    message:
-        "Had a minor issue but the support team fixed it within minutes. That alone earns five stars in my book.",
-  ),
-  ReviewModel(
-    name: "Ava Rodriguez",
-    date: "2025-04-12T17:05:00Z",
-    rating: 5,
-    image: "https://i.pravatar.cc/150?img=9",
-    message:
-        "From start to finish, everything just worked beautifully. You can tell real thought went into the design.",
-  ),
-  ReviewModel(
-    name: "Liam O'Connor",
-    date: "2025-03-03T12:15:00Z",
-    rating: 4,
-    image: "https://i.pravatar.cc/150?img=10",
-    message:
-        "Few bugs here and there, but overall this is a really polished experience. I’ll be sticking around.",
-  ),
-];
-
-class Reviews extends StatelessWidget {
-  const Reviews({super.key});
+class _ReviewsScreenState extends State<ReviewsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Start loading reviews when the screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load data based on the provided userId
+      context.read<ReviewsCubit>().loadReviews(userId: widget.userId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Reviews',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          'Reviews for ${widget.userName}',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         centerTitle: true,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         scrolledUnderElevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-        child: Column(
-          spacing: 24,
-          children: [
-            RatingCard(),
-            Expanded(
-              child: ListView.separated(
-                itemCount: 5,
-                scrollDirection: Axis.vertical,
-                separatorBuilder: (context, index) => const SizedBox(
-                  height: 4,
-                  child: Divider(color: AppColors.gray200),
-                ),
+      body: BlocBuilder<ReviewsCubit, ReviewsState>(
+        builder: (context, state) {
+          if (state is ReviewsLoading || state is ReviewsInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ReviewCard(
-                    rating: review_data[index].rating,
-                    name: review_data[index].name,
-                    date: review_data[index].date,
-                    image: review_data[index].image,
-                    message: review_data[index].message,
-                  ),
-                ),
+          if (state is ReviewsError) {
+            return Center(
+              child: Text('Failed to load reviews: ${state.message}'),
+            );
+          }
+
+          if (state is ReviewsLoaded) {
+            final data = state;
+
+            if (data.totalReviews == 0) {
+              return Center(
+                child: Text('No reviews yet for ${widget.userName}.'),
+              );
+            }
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 16,
               ),
-            ),
-          ],
-        ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Pass dynamic data to the RatingCard
+                  RatingCard(
+                    averageRating: data.averageRating,
+                    totalReviews: data.totalReviews,
+                    ratingDistribution: data.ratingDistribution,
+                  ),
+                  const SizedBox(height: 24),
+                  // Display the list of individual reviews
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: data.reviews.length,
+                      scrollDirection: Axis.vertical,
+                      separatorBuilder: (context, index) => const SizedBox(
+                        height: 4,
+                        child: Divider(color: AppColors.gray200),
+                      ),
+                      itemBuilder: (context, index) {
+                        final review = data.reviews[index];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ReviewCard(
+                            // Round the rating value for the star display
+                            rating: review.ratingValue.round(),
+                            name: review.raterName,
+                            date: review.dateCreated.toFormattedDate(),
+                            image: review.raterAvatarUrl,
+                            message: review.message ?? 'No comment provided.',
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }

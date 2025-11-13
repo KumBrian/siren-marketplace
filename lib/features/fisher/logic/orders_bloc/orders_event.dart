@@ -39,3 +39,28 @@ class CompleteOrder extends OrdersEvent {
 
 /// An internal event used by the notifier to trigger a refresh.
 class _RefreshOrders extends OrdersEvent {}
+
+class SubmitRating extends OrdersEvent {
+  final String orderId;
+  final String raterId;
+  final String ratedUserId;
+  final double ratingValue;
+  final String? message;
+
+  const SubmitRating({
+    required this.orderId,
+    required this.raterId,
+    required this.ratedUserId,
+    required this.ratingValue,
+    this.message,
+  });
+
+  @override
+  List<Object> get props => [
+    orderId,
+    raterId,
+    ratedUserId,
+    ratingValue,
+    ?message,
+  ];
+}

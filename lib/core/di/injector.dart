@@ -1,5 +1,4 @@
-import 'package:get_it/get_it.dart';
-// Blocs/Cubits
+import 'package:get_it/get_it.dart'; // Blocs/Cubits
 import 'package:siren_marketplace/bloc/cubits/bottom_nav_cubit/bottom_nav_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_cubit.dart';
@@ -27,7 +26,9 @@ import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.da
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
+import 'package:siren_marketplace/features/user/data/review_repository.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 final sl = GetIt.instance;
@@ -75,6 +76,8 @@ Future<void> initDependencies() async {
     () => BuyerRepository(dbHelper: sl()),
   );
 
+  sl.registerLazySingleton<ReviewRepository>(() => ReviewRepository(sl()));
+
   // ----------------------------
   // Cubits
   // ----------------------------
@@ -87,6 +90,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => ProductsFilterCubit());
   sl.registerLazySingleton(() => OffersFilterCubit());
   sl.registerLazySingleton(() => NotificationsCubit());
+  sl.registerLazySingleton(
+    () => ReviewsCubit(sl<ReviewRepository>(), sl<UserRepository>()),
+  );
   sl.registerLazySingleton(
     () => FilteredProductsCubit(
       catchRepository: sl<CatchRepository>(),

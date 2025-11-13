@@ -22,9 +22,11 @@ import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
+import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
 import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 class OrderDependencies {
   final Catch catchSnapshot;
@@ -272,620 +274,619 @@ class _OrderDetailsState extends State<OrderDetails> {
             // ---------------------------------------------------------------
             // UI SECTION - UNCHANGED
             // ---------------------------------------------------------------
-            return Scaffold(
-              appBar: AppBar(
-                leading: BackButton(onPressed: () => context.pop()),
-                title: const Text(
-                  "Order Details",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textBlue,
-                    fontSize: 24,
-                  ),
-                ),
-                actions: [
-                  IconButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.white,
-                        useSafeArea: true,
-                        showDragHandle: true,
-                        builder: (context) {
-                          return DraggableScrollableSheet(
-                            expand: false,
-                            initialChildSize: 0.6,
-                            minChildSize: 0.6,
-                            maxChildSize: 0.95,
-                            builder: (context, scrollController) {
-                              return Padding(
-                                padding: EdgeInsets.only(
-                                  left: 32,
-                                  right: 32,
-                                  bottom: MediaQuery.of(
-                                    context,
-                                  ).viewInsets.bottom,
+            return BlocBuilder<UserBloc, UserState>(
+              builder: (context, userState) {
+                if (userState is UserLoaded) {
+                  final user = userState.user;
+                  final buyerId = selectedOrder.buyerId;
+                  final String ratedUserName = buyerName;
+                  final bool hasRatedBuyer = selectedOrder.hasRatedBuyer;
+                  return Scaffold(
+                    appBar: AppBar(
+                      leading: BackButton(onPressed: () => context.pop()),
+                      title: const Text(
+                        "Order Details",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textBlue,
+                          fontSize: 24,
+                        ),
+                      ),
+                      actions: [
+                        IconButton(
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.white,
+                              useSafeArea: true,
+                              showDragHandle: true,
+                              builder: (context) {
+                                return DraggableScrollableSheet(
+                                  expand: false,
+                                  initialChildSize: 0.6,
+                                  minChildSize: 0.6,
+                                  maxChildSize: 0.95,
+                                  builder: (context, scrollController) {
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 32,
+                                        right: 32,
+                                        bottom: MediaQuery.of(
+                                          context,
+                                        ).viewInsets.bottom,
+                                      ),
+                                      child: ListView(
+                                        controller: scrollController,
+                                        children: [
+                                          const Text(
+                                            "Why did this transaction not go through?",
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textBlue,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          BlocBuilder<
+                                            FailedTransactionCubit,
+                                            FailedTransactionState
+                                          >(
+                                            builder: (context, state) {
+                                              final cubit = context
+                                                  .read<
+                                                    FailedTransactionCubit
+                                                  >();
+                                              return ListView.builder(
+                                                itemCount:
+                                                    kFailedTransactionReasons
+                                                        .length,
+                                                shrinkWrap: true,
+                                                physics:
+                                                    const NeverScrollableScrollPhysics(),
+                                                padding: EdgeInsets.zero,
+                                                itemBuilder: (context, index) {
+                                                  final reason =
+                                                      kFailedTransactionReasons[index];
+                                                  final isSelected =
+                                                      state.selectedReason ==
+                                                      reason;
+                                                  return InkWell(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    onTap: () => cubit
+                                                        .toggleReason(reason),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            vertical: 4,
+                                                          ),
+                                                      child: Row(
+                                                        children: [
+                                                          Checkbox(
+                                                            value: isSelected,
+                                                            onChanged: (_) =>
+                                                                cubit
+                                                                    .toggleReason(
+                                                                      reason,
+                                                                    ),
+                                                            shape: RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    6,
+                                                                  ),
+                                                            ),
+                                                            visualDensity:
+                                                                VisualDensity
+                                                                    .compact,
+                                                            splashRadius: 5,
+                                                          ),
+                                                          Expanded(
+                                                            child: Text(
+                                                              reason,
+                                                              style:
+                                                                  const TextStyle(
+                                                                    fontSize:
+                                                                        14,
+                                                                  ),
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          ),
+                                          const SizedBox(height: 16),
+                                          const Text(
+                                            "Other reason? Specify",
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: AppColors.textBlue,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          TextField(
+                                            maxLines: 3,
+                                            decoration: InputDecoration(
+                                              hintText:
+                                                  "Enter the reason here...",
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 24),
+                                          CustomButton(
+                                            title: "Confirm",
+                                            onPressed: () {},
+                                          ),
+                                          const SizedBox(height: 16),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            );
+                          },
+                          icon: const Icon(Icons.autorenew),
+                        ),
+                      ],
+                    ),
+                    body: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // --- Order ID and Date ---
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Order #${selectedOrder.id}",
+                                // Use actual Order ID
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: AppColors.textBlue,
                                 ),
-                                child: ListView(
-                                  controller: scrollController,
+                              ),
+                              Text(
+                                selectedOrder.dateUpdated.toFormattedDate(),
+                                // Use Order date
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.gray650,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // --- Product/Catch Details ---
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  final ImageProvider imageProvider =
+                                      imageUrl.startsWith('http')
+                                      ? NetworkImage(imageUrl) as ImageProvider
+                                      : AssetImage(imageUrl);
+
+                                  showImageViewer(
+                                    context,
+                                    imageProvider,
+                                    swipeDismissible: true,
+                                    immersive: true,
+                                    useSafeArea: true,
+                                    doubleTapZoomable: true,
+                                    backgroundColor: Colors.black.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                  );
+                                },
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.network(
+                                    imageUrl, // Use the safely determined URL
+                                    // Use Catch image URL
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Image.asset(
+                                              "assets/images/prawns.jpg",
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                            ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Text(
-                                      "Why did this transaction not go through?",
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
+                                    Text(
+                                      catchSnapshot.name, // Use Catch name
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
                                         color: AppColors.textBlue,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    BlocBuilder<
-                                      FailedTransactionCubit,
-                                      FailedTransactionState
-                                    >(
-                                      builder: (context, state) {
-                                        final cubit = context
-                                            .read<FailedTransactionCubit>();
-                                        return ListView.builder(
-                                          itemCount:
-                                              kFailedTransactionReasons.length,
-                                          shrinkWrap: true,
-                                          physics:
-                                              const NeverScrollableScrollPhysics(),
-                                          padding: EdgeInsets.zero,
-                                          itemBuilder: (context, index) {
-                                            final reason =
-                                                kFailedTransactionReasons[index];
-                                            final isSelected =
-                                                state.selectedReason == reason;
-                                            return InkWell(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              onTap: () =>
-                                                  cubit.toggleReason(reason),
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 4,
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          orderStatus.name.capitalize(),
+                                          // Use actual status
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.getStatusColor(
+                                              orderStatus,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 10,
+                                          height: 10,
+                                          margin: const EdgeInsets.only(
+                                            left: 4,
+                                          ),
+                                          // Added margin
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white,
+                                            ),
+                                            color: AppColors.getStatusColor(
+                                              orderStatus,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // --- Info Table ---
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.gray200),
+                            ),
+                            child: InfoTable(
+                              rows:
+                                  [
+                                        InfoRow(
+                                          label: "Market",
+                                          value: catchSnapshot.market,
+                                        ),
+                                        InfoRow(
+                                          label: "Species",
+                                          value: catchSnapshot.species.name,
+                                        ),
+                                        catchSnapshot.species.id == "prawns"
+                                            ? InfoRow(
+                                                label: "Size",
+                                                value: catchSnapshot.size,
+                                              )
+                                            : null,
+                                        InfoRow(
+                                          label:
+                                              "Weight", // Updated label for clarity
+                                          value: acceptedWeight.toInt(),
+                                          suffix: "Kg",
+                                        ),
+                                        InfoRow(
+                                          label: "Total Price",
+                                          value: acceptedPrice.toStringAsFixed(
+                                            0,
+                                          ),
+                                          suffix: "CFA",
+                                        ),
+                                      ]
+                                      .whereType<InfoRow>()
+                                      .toList(), // Filter out null for non-prawns size
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          const SectionHeader("Buyer"),
+
+                          const SizedBox(height: 16),
+
+                          // --- Buyer Details ---
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                // Updated to handle local assets vs network image
+                                backgroundImage: buyerAvatar.startsWith('http')
+                                    ? NetworkImage(buyerAvatar) as ImageProvider
+                                    : AssetImage(buyerAvatar),
+                                onBackgroundImageError:
+                                    (exception, stackTrace) => const AssetImage(
+                                      "assets/images/user-profile.png",
+                                    ), // Fallback
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      buyerName, // Use buyer name
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                        color: AppColors.textBlue,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.star,
+                                          color: AppColors.shellOrange,
+                                          size: 16,
+                                        ),
+                                        Text(
+                                          buyerRating.toStringAsFixed(1),
+                                          // Use buyer rating
+                                          style: const TextStyle(
+                                            color: AppColors.textBlue,
+                                            fontWeight: FontWeight.w300,
+                                          ),
+                                        ),
+                                        Text(
+                                          " ($buyerReviewCount Reviews)",
+                                          // Use buyer review count
+                                          style: const TextStyle(
+                                            color: AppColors.textBlue,
+                                            fontWeight: FontWeight.w300,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // --- Action Buttons ---
+                          if (orderStatus != OfferStatus.completed)
+                            Column(
+                              spacing: 8,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CustomButton(
+                                  title: "Call Buyer",
+                                  onPressed: () =>
+                                      makePhoneCall('651204966', context),
+                                  // Using the provided phone number
+                                  bordered: true,
+                                  hugeIcon: HugeIcons.strokeRoundedCall02,
+                                ),
+                                CustomButton(
+                                  title: "Message Buyer",
+                                  onPressed: () => context.push("/fisher/chat"),
+                                  // Using the provided phone number
+                                  bordered: true,
+                                  icon: CustomIcons.chatbubble,
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                CustomButton(
+                                  title: "Mark as Completed",
+                                  onPressed: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.white,
+                                      useSafeArea: true,
+                                      showDragHandle: true,
+                                      builder: (context) {
+                                        return DraggableScrollableSheet(
+                                          expand: false,
+                                          builder: (context, scrollController) {
+                                            return Padding(
+                                              padding: const EdgeInsets.all(
+                                                16.0,
+                                              ),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  const Text(
+                                                    "Confirm Order Completion",
+                                                    style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: AppColors.textBlue,
                                                     ),
-                                                child: Row(
-                                                  children: [
-                                                    Checkbox(
-                                                      value: isSelected,
-                                                      onChanged: (_) => cubit
-                                                          .toggleReason(reason),
-                                                      shape: RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              6,
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                  const SizedBox(height: 16),
+                                                  const Text(
+                                                    "Are you sure you want to mark this order as completed? This action cannot be undone.",
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: AppColors.gray650,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                  const SizedBox(height: 24),
+                                                  CustomButton(
+                                                    title: "Confirm",
+                                                    onPressed: () {
+                                                      context
+                                                          .pop(); // Dismiss modal
+                                                      _markOrderAsCompleted(
+                                                        selectedOrder,
+                                                      );
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (context) {
+                                                          return AlertDialog(
+                                                            title: Container(
+                                                              height: 100,
+                                                              width: 100,
+                                                              decoration: BoxDecoration(
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                                color: AppColors
+                                                                    .shell300,
+                                                              ),
+                                                              child: Center(
+                                                                child: SvgPicture.asset(
+                                                                  "assets/icons/confetti.svg",
+                                                                  width: 50,
+                                                                ),
+                                                              ),
                                                             ),
-                                                      ),
-                                                      visualDensity:
-                                                          VisualDensity.compact,
-                                                      splashRadius: 5,
-                                                    ),
-                                                    Expanded(
-                                                      child: Text(
-                                                        reason,
-                                                        style: const TextStyle(
-                                                          fontSize: 14,
-                                                        ),
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                            content: Column(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                SectionHeader(
+                                                                  "Well done!",
+                                                                ),
+                                                                SectionHeader(
+                                                                  "You've completed this order.",
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            actions: [
+                                                              CustomButton(
+                                                                title: "Thanks",
+                                                                onPressed: () =>
+                                                                    context
+                                                                        .pop(),
+                                                              ),
+                                                            ],
+                                                          );
+                                                        },
+                                                      );
+                                                    },
+                                                    icon: Icons.check,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  CustomButton(
+                                                    title: "Cancel",
+                                                    onPressed: () {
+                                                      context
+                                                          .pop(); // Dismiss modal
+                                                    },
+                                                    bordered: true,
+                                                    icon: Icons.cancel_outlined,
+                                                  ),
+                                                ],
                                               ),
                                             );
                                           },
                                         );
                                       },
-                                    ),
-                                    const SizedBox(height: 16),
-                                    const Text(
-                                      "Other reason? Specify",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: AppColors.textBlue,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    TextField(
-                                      maxLines: 3,
-                                      decoration: InputDecoration(
-                                        hintText: "Enter the reason here...",
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    CustomButton(
-                                      title: "Confirm",
-                                      onPressed: () {},
-                                    ),
-                                    const SizedBox(height: 16),
-                                  ],
+                                    );
+                                  },
+                                  icon: Icons.check,
                                 ),
-                              );
-                            },
-                          );
-                        },
-                      );
-                    },
-                    icon: const Icon(Icons.autorenew),
-                  ),
-                ],
-              ),
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // --- Order ID and Date ---
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "Order #${selectedOrder.id}", // Use actual Order ID
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                            color: AppColors.textBlue,
-                          ),
-                        ),
-                        Text(
-                          selectedOrder.dateUpdated.toFormattedDate(),
-                          // Use Order date
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.gray650,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // --- Product/Catch Details ---
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            final ImageProvider imageProvider =
-                                imageUrl.startsWith('http')
-                                ? NetworkImage(imageUrl) as ImageProvider
-                                : AssetImage(imageUrl);
-
-                            showImageViewer(
-                              context,
-                              imageProvider,
-                              swipeDismissible: true,
-                              immersive: true,
-                              useSafeArea: true,
-                              doubleTapZoomable: true,
-                              backgroundColor: Colors.black.withValues(
-                                alpha: 0.4,
-                              ),
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              imageUrl, // Use the safely determined URL
-                              // Use Catch image URL
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Image.asset(
-                                    "assets/images/prawns.jpg",
-                                    width: 60,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                  ),
+                              ],
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                catchSnapshot.name, // Use Catch name
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                  color: AppColors.textBlue,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    orderStatus.name.capitalize(),
-                                    // Use actual status
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColors.getStatusColor(
-                                        orderStatus,
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    margin: const EdgeInsets.only(left: 4),
-                                    // Added margin
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white),
-                                      color: AppColors.getStatusColor(
-                                        orderStatus,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
 
-                    // --- Info Table ---
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.gray200),
-                      ),
-                      child: InfoTable(
-                        rows:
-                            [
-                                  InfoRow(
-                                    label: "Market",
-                                    value: catchSnapshot.market,
-                                  ),
-                                  InfoRow(
-                                    label: "Species",
-                                    value: catchSnapshot.species.name,
-                                  ),
-                                  catchSnapshot.species.id == "prawns"
-                                      ? InfoRow(
-                                          label: "Size",
-                                          value: catchSnapshot.size,
-                                        )
-                                      : null,
-                                  InfoRow(
-                                    label:
-                                        "Weight", // Updated label for clarity
-                                    value: acceptedWeight.toInt(),
-                                    suffix: "Kg",
-                                  ),
-                                  InfoRow(
-                                    label: "Total Price",
-                                    value: acceptedPrice.toStringAsFixed(0),
-                                    suffix: "CFA",
-                                  ),
-                                ]
-                                .whereType<InfoRow>()
-                                .toList(), // Filter out null for non-prawns size
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    const SectionHeader("Buyer"),
-
-                    const SizedBox(height: 16),
-
-                    // --- Buyer Details ---
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          // Updated to handle local assets vs network image
-                          backgroundImage: buyerAvatar.startsWith('http')
-                              ? NetworkImage(buyerAvatar) as ImageProvider
-                              : AssetImage(buyerAvatar),
-                          onBackgroundImageError: (exception, stackTrace) =>
-                              const AssetImage(
-                                "assets/images/user-profile.png",
-                              ), // Fallback
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                buyerName, // Use buyer name
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                  color: AppColors.textBlue,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: AppColors.shellOrange,
-                                    size: 16,
-                                  ),
-                                  Text(
-                                    buyerRating.toStringAsFixed(1),
-                                    // Use buyer rating
-                                    style: const TextStyle(
-                                      color: AppColors.textBlue,
-                                      fontWeight: FontWeight.w300,
-                                    ),
-                                  ),
-                                  Text(
-                                    " ($buyerReviewCount Reviews)",
-                                    // Use buyer review count
-                                    style: const TextStyle(
-                                      color: AppColors.textBlue,
-                                      fontWeight: FontWeight.w300,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // --- Action Buttons ---
-                    if (orderStatus != OfferStatus.completed)
-                      Column(
-                        spacing: 8,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CustomButton(
-                            title: "Call Buyer",
-                            onPressed: () =>
-                                makePhoneCall('651204966', context),
-                            // Using the provided phone number
-                            bordered: true,
-                            hugeIcon: HugeIcons.strokeRoundedCall02,
-                          ),
-                          CustomButton(
-                            title: "Message Buyer",
-                            onPressed: () => context.push("/fisher/chat"),
-                            // Using the provided phone number
-                            bordered: true,
-                            icon: CustomIcons.chatbubble,
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          CustomButton(
-                            title: "Mark as Completed",
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.white,
-                                useSafeArea: true,
-                                showDragHandle: true,
-                                builder: (context) {
-                                  return DraggableScrollableSheet(
-                                    expand: false,
-                                    builder: (context, scrollController) {
-                                      return Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Text(
-                                              "Confirm Order Completion",
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.textBlue,
+                          if (orderStatus == OfferStatus.completed &&
+                              !selectedOrder.hasRatedBuyer) ...[
+                            CustomButton(
+                              title: "Rate the buyer",
+                              onPressed: () {
+                                final ordersBloc = context.read<OrdersBloc>();
+                                // --- Rate Buyer Modal Logic (Unchanged) ---
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.white,
+                                  useSafeArea: true,
+                                  showDragHandle: true,
+                                  builder: (context) {
+                                    return RatingModalContent(
+                                      orderId: selectedOrder.id,
+                                      raterId: user!.id,
+                                      // The Fisher is the Rater
+                                      ratedUserId: buyerId,
+                                      ratedUserName: ratedUserName,
+                                      // 🌟 PASS THE WRAPPER FUNCTION 🌟
+                                      onSubmitRating:
+                                          ({
+                                            required String orderId,
+                                            required String raterId,
+                                            required String ratedUserId,
+                                            required double ratingValue,
+                                            String? message,
+                                          }) async {
+                                            // Convert the function call into an OrdersBloc event
+                                            ordersBloc.add(
+                                              SubmitRating(
+                                                orderId: orderId,
+                                                raterId: raterId,
+                                                ratedUserId: ratedUserId,
+                                                ratingValue: ratingValue,
+                                                message: message,
                                               ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            const SizedBox(height: 16),
-                                            const Text(
-                                              "Are you sure you want to mark this order as completed? This action cannot be undone.",
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: AppColors.gray650,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            const SizedBox(height: 24),
-                                            CustomButton(
-                                              title: "Confirm",
-                                              onPressed: () {
-                                                context.pop(); // Dismiss modal
-                                                _markOrderAsCompleted(
-                                                  selectedOrder,
-                                                );
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return AlertDialog(
-                                                      title: Container(
-                                                        height: 100,
-                                                        width: 100,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                              shape: BoxShape
-                                                                  .circle,
-                                                              color: AppColors
-                                                                  .shell300,
-                                                            ),
-                                                        child: Center(
-                                                          child: SvgPicture.asset(
-                                                            "assets/icons/confetti.svg",
-                                                            width: 50,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      content: Column(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          SectionHeader(
-                                                            "Well done!",
-                                                          ),
-                                                          SectionHeader(
-                                                            "You've completed this order.",
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      actions: [
-                                                        CustomButton(
-                                                          title: "Thanks",
-                                                          onPressed: () =>
-                                                              context.pop(),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                              icon: Icons.check,
-                                            ),
-                                            const SizedBox(height: 8),
-                                            CustomButton(
-                                              title: "Cancel",
-                                              onPressed: () {
-                                                context.pop(); // Dismiss modal
-                                              },
-                                              bordered: true,
-                                              icon: Icons.cancel_outlined,
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                            icon: Icons.check,
-                          ),
+                                            );
+                                            // We return a completed Future as dispatching an event is async
+                                          },
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                          if (user?.id == selectedOrder.fisherId &&
+                              hasRatedBuyer)
+                            CustomButton(
+                              title: "Buyer Rated (Thank You)",
+                              disabled: true,
+                              onPressed: () {},
+                              bordered: true,
+                            ),
                         ],
                       ),
-                    if (orderStatus == OfferStatus.completed)
-                      CustomButton(
-                        title: "Rate the buyer",
-                        onPressed: () {
-                          // --- Rate Buyer Modal Logic (Unchanged) ---
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.white,
-                            useSafeArea: true,
-                            showDragHandle: true,
-                            builder: (context) {
-                              return DraggableScrollableSheet(
-                                expand: false,
-                                initialChildSize: 0.55,
-                                minChildSize: 0.5,
-                                maxChildSize: 0.95,
-                                builder: (context, scrollController) {
-                                  return Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 16,
-                                      right: 16,
-                                      bottom: MediaQuery.of(
-                                        context,
-                                      ).viewInsets.bottom,
-                                    ),
-                                    child: ListView(
-                                      controller: scrollController,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            IconButton(
-                                              onPressed: context.pop,
-                                              icon: const Icon(Icons.close),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            const Text(
-                                              "Give a Review",
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 32,
-                                                color: AppColors.textBlue,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Center(
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: List.generate(5, (index) {
-                                              return const Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 2,
-                                                ),
-                                                child: Icon(
-                                                  Icons.star,
-                                                  size: 32,
-                                                  color: AppColors.shellOrange,
-                                                ),
-                                              );
-                                            }),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        TextField(
-                                          maxLines: 5,
-                                          onTapOutside: (e) {
-                                            FocusScope.of(context).unfocus();
-                                          },
-
-                                          decoration: InputDecoration(
-                                            hintText: "Write a review",
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        CustomButton(
-                                          title: "Submit Review",
-                                          onPressed: () {},
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          );
-                        },
-                      ),
-                  ],
-                ),
-              ),
+                    ),
+                  );
+                }
+                return Container();
+              },
             );
           },
         );

@@ -15,6 +15,7 @@ import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
+import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
@@ -41,12 +42,9 @@ class BuyerOrderDetails extends StatefulWidget {
 }
 
 class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
-  // ⚠️ Assuming Order's ID property is 'id' not 'orderId' based on typical Flutter models
-  // The old code used `order.orderId`, which I will keep for consistency.
-
   @override
   Widget build(BuildContext context) {
-    // 🆕 Listen to BuyerCubit state for proper loading/error handling
+    // Listen to BuyerCubit state for proper loading/error handling
     return BlocBuilder<BuyerCubit, BuyerState>(
       builder: (context, buyerState) {
         // 1. Handle Loading/Error States
@@ -74,7 +72,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
 
         // 2. Find the specific order from the buyer's list
         final Order? selectedOrder = loadedState.orders.firstWhereOrNull(
-          (order) => order.id == widget.orderId, // ⚠️ Changed to order.id
+          (order) => order.id == widget.orderId,
         );
 
         // 3. Handle Order Not Found
@@ -95,13 +93,11 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
 
         // 4. Extract required objects
         final order = selectedOrder;
-        // 🆕 Decode the Catch/Product details from the JSON snapshot
-        // We assume the BLoC hasn't done this yet, so we do it locally for the view.
+        // Decode the Catch/Product details from the JSON snapshot
         final Catch catchSnapshot = Catch.fromMap(
           jsonDecode(order.catchSnapshotJson),
         );
-        final Fisher fisher =
-            order.fisher; // 🆕 Assume Fisher is assembled by BLoC
+        final Fisher fisher = order.fisher;
         final Offer offer = order.offer;
 
         return Scaffold(
@@ -127,7 +123,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      "Order #${order.id}", // ⚠️ Changed to order.id
+                      "Order #${order.id}",
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -148,7 +144,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        // 🆕 Use catchSnapshot.images
+                        // Use catchSnapshot.images
                         final providers = catchSnapshot.images
                             .map<ImageProvider>((img) {
                               return img.contains("http")
@@ -169,7 +165,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                           immersive: true,
                           useSafeArea: true,
                           doubleTapZoomable: true,
-                          backgroundColor: Colors.black.withValues(alpha: .4),
+                          backgroundColor: Colors.black.withOpacity(0.4),
                         );
                       },
                       child: ClipRRect(
@@ -177,14 +173,14 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                         child: catchSnapshot.images.first.contains("http")
                             ? Image.network(
                                 catchSnapshot.images.first,
-                                // 🆕 Use catchSnapshot.images
+                                // Use catchSnapshot.images
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
                               )
                             : Image.asset(
                                 catchSnapshot.images.first,
-                                // 🆕 Use catchSnapshot.images
+                                // Use catchSnapshot.images
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
@@ -199,7 +195,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            catchSnapshot.name, // 🆕 Use catchSnapshot.name
+                            catchSnapshot.name, // Use catchSnapshot.name
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
@@ -209,7 +205,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                           const SizedBox(height: 8),
                           Row(
                             mainAxisSize: MainAxisSize.min,
-                            spacing: 4,
+                            // Added spacing property for Row
                             children: [
                               Text(
                                 offer.status.name.capitalize(),
@@ -222,6 +218,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                               Container(
                                 width: 10,
                                 height: 10,
+                                margin: const EdgeInsets.only(left: 4),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(color: Colors.white),
@@ -239,7 +236,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                 ),
                 const SizedBox(height: 16),
 
-                SectionHeader("Seller"),
+                const SectionHeader("Seller"),
                 const SizedBox(height: 8),
 
                 Container(
@@ -250,7 +247,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                   ),
                   child: InfoTable(
                     rows: [
-                      // 🆕 Using catchSnapshot properties
+                      // Using catchSnapshot properties
                       InfoRow(
                         label: "Market",
                         value: catchSnapshot.market.capitalize(),
@@ -286,9 +283,10 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                       radius: 30,
                       backgroundImage: fisher.avatarUrl.contains("http")
                           ? NetworkImage(fisher.avatarUrl)
-                          : AssetImage(
-                              fisher.avatarUrl,
-                            ), // 🆕 Use local fisher object
+                          : AssetImage(fisher.avatarUrl)
+                                as ImageProvider<
+                                  Object
+                                >, // Explicit cast for local asset
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -296,7 +294,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            fisher.name, // 🆕 Use local fisher object
+                            fisher.name, // Use local fisher object
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
@@ -313,7 +311,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                               ),
                               Text(
                                 fisher.rating.toStringAsFixed(1),
-                                // 🆕 Use local fisher object
+                                // Use local fisher object
                                 style: const TextStyle(
                                   color: AppColors.textBlue,
                                   fontWeight: FontWeight.w300,
@@ -321,7 +319,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                               ),
                               Text(
                                 " (${fisher.reviewCount} Reviews)",
-                                // 🆕 Use local fisher object
+                                // Use local fisher object
                                 style: const TextStyle(
                                   color: AppColors.textBlue,
                                   fontWeight: FontWeight.w300,
@@ -342,7 +340,9 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                     width: double.infinity,
                     child: CustomButton(
                       title: "Marketplace",
-                      onPressed: () {},
+                      onPressed: () {
+                        // Implement navigation to marketplace
+                      },
                       icon: Icons.storefront,
                       bordered: true,
                     ),
@@ -352,7 +352,9 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                     width: double.infinity,
                     child: CustomButton(
                       title: "Make New Offer",
-                      onPressed: () {},
+                      onPressed: () {
+                        // Implement navigation to make a new offer
+                      },
                     ),
                   ),
                 ],
@@ -364,7 +366,9 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                     width: double.infinity,
                     child: CustomButton(
                       title: "Call Seller",
-                      onPressed: () {},
+                      onPressed: () {
+                        // Implement call functionality
+                      },
                       hugeIcon: HugeIcons.strokeRoundedCall02,
                       bordered: true,
                     ),
@@ -374,105 +378,101 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                     width: double.infinity,
                     child: CustomButton(
                       title: "Message Seller",
-                      onPressed: () {},
+                      onPressed: () {
+                        // Implement chat functionality
+                      },
                       icon: CustomIcons.chatbubble,
                     ),
                   ),
                 ],
 
+                // 🌟 RATING LOGIC FOR COMPLETED ORDERS 🌟
                 if (offer.status == OfferStatus.completed) ...[
                   const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: CustomButton(
-                      title: "Rate the fisher",
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.white,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24),
+
+                  // 1. BUYER RATING STATUS (Has the Buyer rated the Fisher?)
+                  if (order.hasRatedFisher == false)
+                    SizedBox(
+                      width: double.infinity,
+                      child: CustomButton(
+                        title: "Rate the Fisher",
+                        onPressed: () {
+                          // FIX: Get the existing BuyerCubit instance
+                          final buyerCubit = context.read<BuyerCubit>();
+
+                          // Show modal to rate the Fisher
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.white,
+                            useSafeArea: true,
+                            showDragHandle: true,
+                            builder: (context) {
+                              // FIX: Provide the BuyerCubit to the modal's new context
+                              return BlocProvider.value(
+                                value: buyerCubit,
+                                child: RatingModalContent(
+                                  orderId: selectedOrder.id,
+                                  raterId: loadedState.buyer.id,
+                                  ratedUserId: fisher.id,
+                                  ratedUserName: fisher.name,
+                                  onSubmitRating: buyerCubit.submitRating,
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          const HugeIcon(
+                            icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+                            color: AppColors.success500,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "You rated the Fisher ${order.fisherRatingValue!.toStringAsFixed(1)} stars.",
+                            style: const TextStyle(
+                              color: AppColors.textBlue,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          builder: (context) {
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                bottom: MediaQuery.of(
-                                  context,
-                                ).viewInsets.bottom,
-                                left: 16,
-                                right: 16,
-                                top: 24,
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: context.pop,
-                                        icon: const Icon(Icons.close),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        "Give a Review",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 24,
-                                          color: AppColors.textBlue,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 24),
-                                  Center(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: List.generate(5, (index) {
-                                        return const Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 4.0,
-                                          ),
-                                          child: Icon(
-                                            Icons.star,
-                                            size: 32,
-                                            color: AppColors.shellOrange,
-                                          ),
-                                        );
-                                      }),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  const TextField(
-                                    maxLines: 4,
-                                    decoration: InputDecoration(
-                                      hintText: "Write a review...",
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(16),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: CustomButton(
-                                      title: "Submit Review",
-                                      onPressed: () {},
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
+                        ],
+                      ),
+                    ),
+
+                  const SizedBox(height: 16),
+
+                  // 2. FISHER RATING STATUS (Has the Fisher rated the Buyer?)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        HugeIcon(
+                          icon: order.hasRatedBuyer
+                              ? HugeIcons.strokeRoundedCheckmarkBadge01
+                              : HugeIcons.strokeRoundedClock01,
+                          color: order.hasRatedBuyer
+                              ? AppColors.success500
+                              : AppColors.shellOrange,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          order.hasRatedBuyer
+                              ? "The Fisher has rated you."
+                              : "Waiting for Fisher to rate you.",
+                          style: const TextStyle(
+                            color: AppColors.textBlue,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

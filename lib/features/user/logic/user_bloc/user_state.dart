@@ -29,3 +29,13 @@ class UserError extends UserState {
   @override
   List<Object> get props => [message];
 }
+
+class UserRatingsLoaded extends UserState {
+  final String userId;
+  final List<Map<String, dynamic>> ratings;
+
+  const UserRatingsLoaded(this.userId, this.ratings);
+
+  @override
+  List<Object> get props => [userId, ratings];
+}

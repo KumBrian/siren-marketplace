@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 // Import your models, repos, and the notifier
@@ -50,6 +51,7 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
 
     // --- 💡 NEW HANDLER ---
     on<GetOrderById>(_onGetOrderById);
+    on<SubmitRating>(_onSubmitRating);
   }
 
   Future<void> _onLoadOrdersForUser(
@@ -122,6 +124,52 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
       await _offerRepository.updateOffer(completedOffer);
     } catch (e) {
       print('Error completing order: $e');
+    }
+  }
+
+  Future<void> _onSubmitRating(
+    SubmitRating event,
+    Emitter<OrdersState> emit,
+  ) async {
+    // Optional: Emit a loading state if needed for UX (e.g., RatingSubmitting)
+    // For now, we'll try to keep the current state unless it was an error.
+
+    // Remember the current state to return to it if the submission fails
+    final previousState = state;
+
+    try {
+      // 1. Call the OrderRepository's method to handle the complex transaction
+      final success = await _orderRepository.submitUserRating(
+        orderId: event.orderId,
+        raterId: event.raterId,
+        ratedUserId: event.ratedUserId,
+        ratingValue: event.ratingValue,
+        message: event.message,
+      );
+
+      if (success) {
+        // 2. Emit success state
+        emit(RatingSubmissionSuccess(event.ratedUserId));
+
+        // 3. Trigger a refresh to get the latest Order details (with new rating flags)
+        // This ensures the UI updates to hide the rating button, etc.
+        add(GetOrderById(event.orderId));
+      } else {
+        // 4. Handle failure (e.g., if user already rated)
+        emit(
+          OrdersError(
+            'Failed to submit rating. User may have already been rated.',
+          ),
+        );
+        // Optionally return to the previous state here if the error is temporary
+      }
+    } catch (e) {
+      debugPrint('Rating submission BLoC error: $e');
+      emit(
+        OrdersError('An unexpected error occurred during rating submission.'),
+      );
+      // Return to the previous state on hard failure
+      // emit(previousState);
     }
   }
 
