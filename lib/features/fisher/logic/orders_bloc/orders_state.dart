@@ -41,3 +41,12 @@ class OrdersError extends OrdersState {
   @override
   List<Object> get props => [message];
 }
+
+class RatingSubmissionSuccess extends OrdersState {
+  final String ratedUserId;
+
+  const RatingSubmissionSuccess(this.ratedUserId);
+
+  @override
+  List<Object> get props => [ratedUserId];
+}

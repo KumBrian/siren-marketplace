@@ -10,22 +10,24 @@ import 'offer.dart';
 class Order extends Equatable {
   final String id;
 
-  // Store the full Offer object for direct access to status/price/weight
+  // Transaction details
   final Offer offer;
-
-  // Store the full Fisher object for direct access to profile details
   final Fisher fisher;
-
-  // These IDs are primarily for DB/Repository access but kept for context
   final String fisherId;
   final String buyerId;
-
-  // JSON snapshot of the Catch at the time of order (for DB)
   final String catchSnapshotJson;
   final String dateUpdated;
-
-  // 💡 FIX: This must be a final field. We compute it during construction.
   final Catch catchModel;
+
+  // 🌟 NEW RATING FIELDS 🌟
+  final bool hasRatedBuyer;
+  final bool hasRatedFisher;
+  final double? buyerRatingValue;
+  final String? buyerRatingMessage;
+  final double? fisherRatingValue;
+  final String? fisherRatingMessage;
+
+  // 🌟 END NEW FIELDS 🌟
 
   Order({
     required this.id,
@@ -35,22 +37,39 @@ class Order extends Equatable {
     required this.buyerId,
     required this.catchSnapshotJson,
     required this.dateUpdated,
-    // 💡 FIX: Now required in the constructor
     required this.catchModel,
+    // 🌟 NEW REQUIRED RATING FIELDS (defaulted for existing orders) 🌟
+    this.hasRatedBuyer = false,
+    this.hasRatedFisher = false,
+    this.buyerRatingValue,
+    this.buyerRatingMessage,
+    this.fisherRatingValue,
+    this.fisherRatingMessage,
+    // 🌟 END NEW REQUIRED FIELDS 🌟
   }) : assert(fisher.id == fisherId, 'Fisher ID mismatch in Order constructor');
 
   // --- Equatable Properties ---
-  // 💡 FIX: Include catchModel in props list
   @override
-  List<Object?> get props => [id, offer, fisher, dateUpdated, catchModel];
-
-  // 💡 FIX: Removed the lazy-loading getter `catchModel` and the private field `_catchSnapshot`.
+  List<Object?> get props => [
+    id,
+    offer,
+    fisher,
+    dateUpdated,
+    catchModel,
+    // 🌟 Add new rating fields to props
+    hasRatedBuyer,
+    hasRatedFisher,
+    buyerRatingValue,
+    buyerRatingMessage,
+    fisherRatingValue,
+    fisherRatingMessage,
+  ];
 
   // Factory used by TransactionService to create an Order from an accepted Offer/Catch
   factory Order.fromOfferAndCatch({
     required Offer offer,
     required Catch catchItem,
-    required Fisher fisher, // Requires the Fisher model to be passed
+    required Fisher fisher,
   }) {
     // 1. Ensure the snapshot includes the accepted transaction details
     final snapshotMap = catchItem.toMap()
@@ -67,13 +86,18 @@ class Order extends Equatable {
       id: offer.id,
       offer: offer,
       fisher: fisher,
-      // Pass the assembled Fisher object
       fisherId: offer.fisherId,
       buyerId: offer.buyerId,
       catchSnapshotJson: catchSnapshotJson,
       dateUpdated: DateTime.now().toIso8601String(),
-      // 💡 FIX: Pass the computed Catch model
       catchModel: computedCatchModel,
+      // NOTE: New orders start with rating flags set to default (false/null)
+      hasRatedBuyer: false,
+      hasRatedFisher: false,
+      buyerRatingValue: null,
+      buyerRatingMessage: null,
+      fisherRatingValue: null,
+      fisherRatingMessage: null,
     );
   }
 
@@ -86,6 +110,13 @@ class Order extends Equatable {
     'buyer_id': buyerId,
     'catch_snapshot': catchSnapshotJson,
     'date_updated': dateUpdated,
+    // 🌟 Map new rating fields for DB insertion/update
+    'hasRatedBuyer': hasRatedBuyer ? 1 : 0,
+    'hasRatedFisher': hasRatedFisher ? 1 : 0,
+    'buyer_rating_value': buyerRatingValue,
+    'buyer_rating_message': buyerRatingMessage,
+    'fisher_rating_value': fisherRatingValue,
+    'fisher_rating_message': fisherRatingMessage,
   };
 
   // Factory used by the Repository/Cubit to assemble a full Order from DB data
@@ -107,6 +138,14 @@ class Order extends Equatable {
       computedCatchModel = Catch.empty();
     }
 
+    // Helper function to safely read a double or null
+    double? safeParseDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      return double.tryParse(value.toString());
+    }
+
     return Order(
       id: m['order_id'] as String,
       offer: linkedOffer,
@@ -116,6 +155,13 @@ class Order extends Equatable {
       catchSnapshotJson: catchSnapshotJson,
       dateUpdated: m['date_updated'] as String,
       catchModel: computedCatchModel,
+      // 🌟 Map new rating fields from DB (INTEGER 0/1 to bool, REAL to double?) 🌟
+      hasRatedBuyer: (m['hasRatedBuyer'] as int?) == 1,
+      hasRatedFisher: (m['hasRatedFisher'] as int?) == 1,
+      buyerRatingValue: safeParseDouble(m['buyer_rating_value']),
+      buyerRatingMessage: m['buyer_rating_message'] as String?,
+      fisherRatingValue: safeParseDouble(m['fisher_rating_value']),
+      fisherRatingMessage: m['fisher_rating_message'] as String?,
     );
   }
 
@@ -128,6 +174,13 @@ class Order extends Equatable {
     String? catchSnapshotJson,
     String? dateUpdated,
     Catch? catchModel,
+    // 🌟 Update copyWith 🌟
+    bool? hasRatedBuyer,
+    bool? hasRatedFisher,
+    double? buyerRatingValue,
+    String? buyerRatingMessage,
+    double? fisherRatingValue,
+    String? fisherRatingMessage,
   }) {
     return Order(
       id: id ?? this.id,
@@ -138,6 +191,13 @@ class Order extends Equatable {
       catchSnapshotJson: catchSnapshotJson ?? this.catchSnapshotJson,
       dateUpdated: dateUpdated ?? this.dateUpdated,
       catchModel: catchModel ?? this.catchModel,
+      // 🌟 Copy new rating fields 🌟
+      hasRatedBuyer: hasRatedBuyer ?? this.hasRatedBuyer,
+      hasRatedFisher: hasRatedFisher ?? this.hasRatedFisher,
+      buyerRatingValue: buyerRatingValue ?? this.buyerRatingValue,
+      buyerRatingMessage: buyerRatingMessage ?? this.buyerRatingMessage,
+      fisherRatingValue: fisherRatingValue ?? this.fisherRatingValue,
+      fisherRatingMessage: fisherRatingMessage ?? this.fisherRatingMessage,
     );
   }
 }

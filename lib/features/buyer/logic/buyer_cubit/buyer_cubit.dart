@@ -75,4 +75,44 @@ class BuyerCubit extends Cubit<BuyerState> {
       emit(BuyerError('Failed to load buyer data or lists: ${e.toString()}'));
     }
   }
+
+  /// ----------------------------------------------------------------------
+  /// NEW: RATING SUBMISSION LOGIC
+  /// ----------------------------------------------------------------------
+
+  Future<void> submitRating({
+    required String orderId,
+    required String raterId,
+    required String ratedUserId, // ID of the user being rated (Fisher)
+    required double ratingValue,
+    String? message,
+  }) async {
+    if (state is! BuyerLoaded) return;
+    final currentState = state as BuyerLoaded;
+
+    try {
+      // The OrderRepository will handle the transactional logic:
+      // 1. Insert the rating record into the ratings table.
+      // 2. Update the Order (setting hasRatedFisher=true, etc.).
+      // 3. Recalculate and update the Fisher's aggregate rating in the users table.
+      await _orderRepository.submitUserRating(
+        orderId: orderId,
+        raterId: raterId,
+        ratedUserId: ratedUserId,
+        ratingValue: ratingValue,
+        message: message,
+      );
+
+      // Reload all data to ensure the Order object and the Fisher object
+      // in the local state are updated, triggering a UI refresh.
+      // This is the safest way to ensure data consistency after a transaction.
+      await loadBuyerData(buyerId: currentState.buyer.id);
+    } catch (e) {
+      // If an error occurred during submission or reload.
+      // If loadBuyerData failed, it already emitted BuyerError.
+      if (state is BuyerLoaded) {
+        emit(BuyerError('Failed to submit rating: ${e.toString()}'));
+      }
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
@@ -226,7 +226,19 @@ GoRouter createRouter(UserBloc userBloc) {
               ),
               GoRoute(
                 path: "reviews",
-                builder: (context, state) => const Reviews(),
+                builder: (context, state) => BlocBuilder<UserBloc, UserState>(
+                  builder: (context, state) {
+                    if (state is UserLoaded) {
+                      final userId = state.user?.id;
+                      final userName = state.user?.name;
+                      return ReviewsScreen(
+                        userId: userId!,
+                        userName: userName!,
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
               ),
             ],
           ),

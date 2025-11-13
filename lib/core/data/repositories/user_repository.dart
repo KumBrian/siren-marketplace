@@ -66,6 +66,13 @@ class UserRepository {
     return data.first;
   }
 
+  // 🌟 NEW METHOD: Fetch all ratings received by a specific user 🌟
+  Future<List<Map<String, dynamic>>> getRatingsReceivedByUserId(
+    String userId,
+  ) async {
+    return await dbHelper.getRatingsByUserId(userId);
+  }
+
   // 6. UPDATE/DELETE methods (Placeholder for completeness, not used by Seeder)
   Future<void> updateUser(AppUser user) async {
     final db = await dbHelper.database;
