@@ -1,81 +1,90 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 
 class ReviewCard extends StatelessWidget {
+  final String name;
+  final String date;
+  final int rating;
+  final String image;
+  final String message;
+
   const ReviewCard({
     super.key,
-    required this.rating,
     required this.name,
     required this.date,
+    required this.rating,
     required this.image,
     required this.message,
   });
 
-  final int rating;
-  final String name;
-  final String date;
-  final String image;
-  final String message;
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 12,
-        children: [
-          Row(
-            spacing: 8,
-            children: [
-              CircleAvatar(radius: 30, backgroundImage: NetworkImage(image)),
-              Column(
-                spacing: 8,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: image.contains("http")
+                  ? NetworkImage(image)
+                  : AssetImage(image) as ImageProvider<Object>,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     name,
-                    style: TextStyle(
-                      fontSize: 16,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       color: AppColors.textBlue,
+                      fontSize: 16,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Row(
-                    spacing: 8,
                     children: [
-                      Row(
-                        spacing: 4,
-                        children: List.generate(
-                          5,
-                          (index) => Icon(
-                            size: 16,
-                            CustomIcons.star,
-                            color: index < rating
-                                ? AppColors.warning500
-                                : AppColors.gray200,
-                          ),
+                      // Star Icons
+                      ...List.generate(
+                        5,
+                        (index) => Icon(
+                          CustomIcons.star,
+                          size: 14,
+                          color: index < rating
+                              ? AppColors.warning500
+                              : AppColors.gray200,
                         ),
                       ),
-                      Text(DateFormat.yMMMd().format(DateTime.parse(date))),
+                      const SizedBox(width: 8),
+                      // Date
+                      Text(
+                        date,
+                        style: const TextStyle(
+                          color: AppColors.gray650,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
-            ],
-          ),
-          Text(
-            message,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w400,
-              color: AppColors.textBlue,
             ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Review Message
+        Text(
+          message,
+          style: const TextStyle(
+            color: AppColors.textBlue,
+            fontSize: 14,
+            height: 1.4,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
