@@ -112,6 +112,9 @@ class _BuyerHomeState extends State<BuyerHome> {
                     title: Image.asset(
                       "assets/icons/siren_logo.png",
                       width: 100,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Text("SIREN");
+                      },
                     ),
                     actions: [
                       IconButton(

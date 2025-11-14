@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/features/chat/data/models/message_card_prop.dart';
 
 class ChatPage extends StatefulWidget {
@@ -33,10 +34,9 @@ class _ChatPageState extends State<ChatPage> {
           // 🔹 Profile Image with Status Indicator
           Stack(
             children: [
-              const CircleAvatar(
-                radius: 20,
+              const ErrorHandlingCircleAvatar(
                 // Replace with actual image asset
-                backgroundImage: AssetImage('assets/images/user-profile.png'),
+                avatarUrl: 'assets/images/user-profile.png',
               ),
               Positioned(
                 bottom: 0,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 
+import 'error_handling_circle_avatar.dart';
+
 class MessageCard extends StatelessWidget {
   final String messageId;
   final String name;
@@ -40,12 +42,7 @@ class MessageCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundImage: avatarPath.contains("http")
-                    ? NetworkImage(avatarPath)
-                    : AssetImage(avatarPath),
-              ),
+              ErrorHandlingCircleAvatar(avatarUrl: avatarPath),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(

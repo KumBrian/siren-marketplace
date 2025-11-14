@@ -46,6 +46,11 @@ class SoldCard extends StatelessWidget {
                       width: 120,
                       height: 120,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        "assets/images/shrimp.jpg",
+                        height: 120,
+                        width: 120,
+                      ),
                     )
                   : Image.asset(
                       // Assuming Image.network is correct for the URL
@@ -53,6 +58,11 @@ class SoldCard extends StatelessWidget {
                       width: 120,
                       height: 120,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        "assets/images/shrimp.jpg",
+                        height: 120,
+                        width: 120,
+                      ),
                     ),
             ),
             Expanded(

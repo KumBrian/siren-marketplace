@@ -11,6 +11,7 @@ import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
@@ -515,14 +516,7 @@ class OfferHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 30,
-          backgroundImage: clientAvatar.startsWith('http')
-              ? NetworkImage(clientAvatar) as ImageProvider
-              : AssetImage(clientAvatar),
-          onBackgroundImageError: (exception, stackTrace) =>
-              const AssetImage("assets/images/user-profile.png"), // Fallback
-        ),
+        ErrorHandlingCircleAvatar(avatarUrl: clientAvatar),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
