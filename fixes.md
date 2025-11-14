@@ -1,4 +1,4 @@
 - Updates
     - Implement marketplace relisting for orders.
     - Update app root and role selection only when then marketplace tab is selected
-    - Fix error builders for all images
+    - fix constraints on chart

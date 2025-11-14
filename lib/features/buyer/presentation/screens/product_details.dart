@@ -9,6 +9,7 @@ import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
+import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
@@ -437,12 +438,8 @@ class _ProductDetailsState extends State<ProductDetails> {
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
-                              radius: 30,
-                              backgroundImage: fisher.avatarUrl.contains("http")
-                                  ? NetworkImage(fisher.avatarUrl)
-                                        as ImageProvider
-                                  : AssetImage(fisher.avatarUrl),
+                            ErrorHandlingCircleAvatar(
+                              avatarUrl: fisher.avatarUrl,
                             ),
                             const SizedBox(width: 10),
                             Expanded(

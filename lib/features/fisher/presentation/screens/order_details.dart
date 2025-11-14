@@ -21,6 +21,7 @@ import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
+import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
@@ -581,38 +582,32 @@ class _OrderDetailsState extends State<OrderDetails> {
                               border: Border.all(color: AppColors.gray200),
                             ),
                             child: InfoTable(
-                              rows:
-                                  [
-                                        InfoRow(
-                                          label: "Market",
-                                          value: catchSnapshot.market,
-                                        ),
-                                        InfoRow(
-                                          label: "Species",
-                                          value: catchSnapshot.species.name,
-                                        ),
-                                        catchSnapshot.species.id == "prawns"
-                                            ? InfoRow(
-                                                label: "Size",
-                                                value: catchSnapshot.size,
-                                              )
-                                            : null,
-                                        InfoRow(
-                                          label:
-                                              "Weight", // Updated label for clarity
-                                          value: acceptedWeight.toInt(),
-                                          suffix: "Kg",
-                                        ),
-                                        InfoRow(
-                                          label: "Total Price",
-                                          value: acceptedPrice.toStringAsFixed(
-                                            0,
-                                          ),
-                                          suffix: "CFA",
-                                        ),
-                                      ]
-                                      .whereType<InfoRow>()
-                                      .toList(), // Filter out null for non-prawns size
+                              rows: [
+                                InfoRow(
+                                  label: "Market",
+                                  value: catchSnapshot.market,
+                                ),
+                                InfoRow(
+                                  label: "Species",
+                                  value: catchSnapshot.species.name,
+                                ),
+                                catchSnapshot.species.id == "prawns"
+                                    ? InfoRow(
+                                        label: "Size",
+                                        value: catchSnapshot.size,
+                                      )
+                                    : null,
+                                InfoRow(
+                                  label: "Weight", // Updated label for clarity
+                                  value: acceptedWeight.toInt(),
+                                  suffix: "Kg",
+                                ),
+                                InfoRow(
+                                  label: "Total Price",
+                                  value: acceptedPrice.toStringAsFixed(0),
+                                  suffix: "CFA",
+                                ),
+                              ].whereType<InfoRow>().toList(),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -625,17 +620,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CircleAvatar(
-                                radius: 30,
-                                // Updated to handle local assets vs network image
-                                backgroundImage: buyerAvatar.startsWith('http')
-                                    ? NetworkImage(buyerAvatar) as ImageProvider
-                                    : AssetImage(buyerAvatar),
-                                onBackgroundImageError:
-                                    (exception, stackTrace) => const AssetImage(
-                                      "assets/images/user-profile.png",
-                                    ), // Fallback
-                              ),
+                              ErrorHandlingCircleAvatar(avatarUrl: buyerAvatar),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
@@ -825,6 +810,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                               ],
                             ),
 
+                          const SizedBox(height: 16),
                           if (orderStatus == OfferStatus.completed &&
                               !selectedOrder.hasRatedBuyer) ...[
                             CustomButton(
@@ -871,15 +857,63 @@ class _OrderDetailsState extends State<OrderDetails> {
                                 );
                               },
                             ),
-                          ],
-                          if (user?.id == selectedOrder.fisherId &&
-                              hasRatedBuyer)
-                            CustomButton(
-                              title: "Buyer Rated (Thank You)",
-                              disabled: true,
-                              onPressed: () {},
-                              bordered: true,
+                          ] else if (orderStatus == OfferStatus.completed &&
+                              selectedOrder.hasRatedBuyer) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  const HugeIcon(
+                                    icon:
+                                        HugeIcons.strokeRoundedCheckmarkBadge01,
+                                    color: AppColors.success500,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "You rated the Buyer ${selectedOrder.buyerRatingValue!.toStringAsFixed(1)} stars.",
+                                    style: const TextStyle(
+                                      color: AppColors.textBlue,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(height: 16),
+                          ],
+
+                          if (orderStatus == OfferStatus.completed) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Row(
+                                children: [
+                                  HugeIcon(
+                                    icon: selectedOrder.hasRatedFisher
+                                        ? HugeIcons
+                                              .strokeRoundedCheckmarkBadge01
+                                        : HugeIcons.strokeRoundedClock01,
+                                    color: selectedOrder.hasRatedFisher
+                                        ? AppColors.success500
+                                        : AppColors.shellOrange,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    selectedOrder.hasRatedFisher
+                                        ? "The Buyer has rated you."
+                                        : "Waiting for Buyer to rate you.",
+                                    style: const TextStyle(
+                                      color: AppColors.textBlue,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
