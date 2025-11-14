@@ -1,4 +1,5 @@
-import 'package:get_it/get_it.dart'; // Blocs/Cubits
+import 'package:get_it/get_it.dart';
+// Cubits & Blocs
 import 'package:siren_marketplace/bloc/cubits/bottom_nav_cubit/bottom_nav_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_cubit.dart';
@@ -26,83 +27,91 @@ import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.da
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
-import 'package:siren_marketplace/features/user/data/review_repository.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
+/// [sl] is the dependency injection container.
 final sl = GetIt.instance;
 
+/// Initializes all app-wide dependencies with a lifecycle-aware strategy.
+///
+/// Singleton:
+/// - Database, repositories, and globally shared UI state
+///
+/// Factory:
+/// - All user/session/view-based cubits and blocs
+///
+/// This prevents stale state bleed-through during role changes, hot reloads,
+/// or navigation resets.
 Future<void> initDependencies() async {
-  // ----------------------------
-  // Database
-  // ----------------------------
+  // --------------------------------------------------
+  // Core Infrastructure (Singletons)
+  // --------------------------------------------------
   final dbHelper = DatabaseHelper();
-  final transactionNotifier = TransactionNotifier();
-  sl.registerLazySingleton(() => transactionNotifier);
+  final txnNotifier = TransactionNotifier();
+
+  sl.registerLazySingleton(() => txnNotifier);
+
   await dbHelper.database;
   sl.registerLazySingleton(() => dbHelper);
 
-  // ----------------------------
-  // Repositories
-  // ----------------------------
-  sl.registerLazySingleton<UserRepository>(
-    () => UserRepository(dbHelper: sl()),
-  );
-  sl.registerLazySingleton<FisherRepository>(
-    () => FisherRepository(dbHelper: sl()),
-  );
-  sl.registerLazySingleton<OfferRepository>(
+  // --------------------------------------------------
+  // Repository Layer (Singletons)
+  // --------------------------------------------------
+  sl.registerLazySingleton(() => UserRepository(dbHelper: sl()));
+  sl.registerLazySingleton(() => FisherRepository(dbHelper: sl()));
+  sl.registerLazySingleton(
     () => OfferRepository(dbHelper: sl(), notifier: sl<TransactionNotifier>()),
   );
-  sl.registerLazySingleton<CatchRepository>(
+  sl.registerLazySingleton(
     () => CatchRepository(
       dbHelper: sl(),
       offerRepository: sl(),
       notifier: sl<TransactionNotifier>(),
     ),
   );
-  sl.registerLazySingleton<OrderRepository>(
+  sl.registerLazySingleton(
     () => OrderRepository(
       dbHelper: sl(),
       offerRepository: sl(),
       fisherRepository: sl(),
     ),
   );
-  sl.registerLazySingleton<ConversationRepository>(
-    () => ConversationRepository(dbHelper: sl()),
-  );
-  sl.registerLazySingleton<BuyerRepository>(
-    () => BuyerRepository(dbHelper: sl()),
-  );
+  sl.registerLazySingleton(() => ConversationRepository(dbHelper: sl()));
+  sl.registerLazySingleton(() => BuyerRepository(dbHelper: sl()));
 
-  sl.registerLazySingleton<ReviewRepository>(() => ReviewRepository(sl()));
-
-  // ----------------------------
-  // Cubits
-  // ----------------------------
+  // --------------------------------------------------
+  // Cubits — Global Singleton State
+  // --------------------------------------------------
   sl.registerLazySingleton(() => BottomNavCubit());
   sl.registerLazySingleton(() => CatchFilterCubit());
   sl.registerLazySingleton(() => SpeciesFilterCubit());
   sl.registerLazySingleton(() => OrdersFilterCubit());
-  sl.registerLazySingleton(() => FailedTransactionCubit());
-  sl.registerLazySingleton(() => ProductsCubit(sl<CatchRepository>()));
   sl.registerLazySingleton(() => ProductsFilterCubit());
   sl.registerLazySingleton(() => OffersFilterCubit());
+  sl.registerLazySingleton(() => FailedTransactionCubit());
   sl.registerLazySingleton(() => NotificationsCubit());
-  sl.registerLazySingleton(
-    () => ReviewsCubit(sl<ReviewRepository>(), sl<UserRepository>()),
-  );
-  sl.registerLazySingleton(
+
+  // --------------------------------------------------
+  // Cubits — User/View Scoped (Factories)
+  // --------------------------------------------------
+  sl.registerFactory(() => ProductsCubit(sl<CatchRepository>()));
+
+  sl.registerFactory(
     () => FilteredProductsCubit(
       catchRepository: sl<CatchRepository>(),
       filterCubit: sl<ProductsFilterCubit>(),
     ),
   );
-  sl.registerLazySingleton(
-    () => FisherCubit(repository: sl<FisherRepository>()),
+
+  sl.registerFactory(() => FisherCubit(repository: sl<FisherRepository>()));
+
+  sl.registerFactory(
+    () => ReviewsCubit(sl<DatabaseHelper>(), sl<UserRepository>()),
   );
-  sl.registerLazySingleton(
+
+  sl.registerFactory(
     () => BuyerCubit(
       sl<UserRepository>(),
       sl<OrderRepository>(),
@@ -110,10 +119,11 @@ Future<void> initDependencies() async {
     ),
   );
 
-  // ----------------------------
-  // Blocs
-  // ----------------------------
-  sl.registerLazySingleton(() => UserBloc(userRepository: sl()));
+  // --------------------------------------------------
+  // Blocs — Always Factory Scoped
+  // --------------------------------------------------
+  sl.registerFactory(() => UserBloc(userRepository: sl()));
+
   sl.registerFactory(
     () => OrdersBloc(
       orderRepository: sl<OrderRepository>(),
@@ -123,15 +133,18 @@ Future<void> initDependencies() async {
   );
 
   sl.registerFactory(() => CatchesBloc(sl<CatchRepository>()));
+
   sl.registerFactory(
     () => OffersBloc(
       offerRepository: sl<OfferRepository>(),
       notifier: sl<TransactionNotifier>(),
-      catchRepository: sl<CatchRepository>(), // NEW
-      userRepository: sl<UserRepository>(), // NEW
+      catchRepository: sl<CatchRepository>(),
+      userRepository: sl<UserRepository>(),
     ),
   );
+
   sl.registerFactory(() => BuyerMarketBloc(sl<BuyerRepository>()));
+
   sl.registerFactory(
     () => OfferDetailsBloc(
       sl<OfferRepository>(),
@@ -140,6 +153,8 @@ Future<void> initDependencies() async {
       sl<OrderRepository>(),
     ),
   );
+
   sl.registerFactory(() => BuyerOrdersBloc(sl<BuyerRepository>()));
+
   sl.registerFactory(() => ConversationsBloc(sl<ConversationRepository>()));
 }

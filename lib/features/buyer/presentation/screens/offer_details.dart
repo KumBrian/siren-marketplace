@@ -15,10 +15,12 @@ import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
+import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
+import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
@@ -346,6 +348,8 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
           );
         }
 
+        final buyerCubit = context.read<BuyerCubit>();
+
         return BlocConsumer<OffersBloc, OffersState>(
           listenWhen: (prev, curr) =>
               curr is OfferActionSuccess || curr is OfferActionFailure,
@@ -369,8 +373,14 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                   context,
                   message: "Offer Successfully Accepted.",
                   actionTitle: "View Details",
-                  onAction: () {
-                    context.pushReplacement("/fisher/order-details/$orderId");
+                  onAction: () async {
+                    buyerCubit.loadBuyerData(
+                      buyerId: offerState.updatedOffer.buyerId,
+                    );
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (context.mounted) {
+                      context.pushReplacement("/buyer/order-details/$orderId");
+                    }
                   },
                 );
               }
@@ -759,6 +769,11 @@ class BuyerOfferHeader extends StatelessWidget {
               width: 60,
               height: 60,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Image.asset(
+                "assets/images/shrimp.jpg",
+                height: 60,
+                width: 60,
+              ),
             ),
           ),
         ),
@@ -827,12 +842,7 @@ class FisherDetails extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundImage: avatarUrl.contains("http")
-                  ? NetworkImage(avatarUrl)
-                  : AssetImage(avatarUrl),
-            ),
+            ErrorHandlingCircleAvatar(avatarUrl: avatarUrl),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

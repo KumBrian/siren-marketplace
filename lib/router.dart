@@ -202,6 +202,7 @@ GoRouter createRouter(UserBloc userBloc) {
             path: 'notifications',
             builder: (_, __) => const BuyerNotificationsScreen(),
           ),
+          GoRoute(path: 'chat', builder: (_, __) => const ChatPage()),
         ],
       ),
       GoRoute(

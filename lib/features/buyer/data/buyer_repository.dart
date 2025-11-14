@@ -4,31 +4,55 @@ import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 
+/// Repository responsible for fetching buyer-related data from the local
+/// persistence layer.
+///
+/// This class currently relies on a local SQLite database provided by
+/// [DatabaseHelper]. It is structured so that migrating to a remote API
+/// (REST or GraphQL) will require internal refactoring only, without
+/// breaking the method signatures used by the rest of the app.
+///
+/// When transitioning to network-backed operations, each method will map
+/// naturally to future endpoints such as:
+/// - `GET /buyers/{id}/orders`
+/// - `GET /market/catches`
+/// - `GET /orders/{id}`
+///
+/// The models returned (`Order`, `Catch`, `Offer`, `Fisher`) are fully
+/// assembled objects with their related entities joined and hydrated.
 class BuyerRepository {
-  final DatabaseHelper dbHelper;
-
+  /// Creates a new buyer repository using the injected database helper.
   BuyerRepository({required this.dbHelper});
 
-  // --- FETCH ORDERS FOR A BUYER ---
+  /// Provides access to the SQLite helper used for data operations.
+  final DatabaseHelper dbHelper;
+
+  /// Retrieves all orders associated with a specific buyer.
+  ///
+  /// This method performs several lookups:
+  /// - Fetches all order maps through the database helper.
+  /// - Loads the linked `Offer` for each order.
+  /// - Loads the linked `Fisher` representing the seller.
+  /// - Constructs a fully hydrated [Order] instance.
+  ///
+  /// When migrated to an API layer, this will likely collapse into a single
+  /// endpoint returning joined order, offer, and fisher data.
   Future<List<Order>> getOrdersByBuyerId(String buyerId) async {
     final orderMaps = await dbHelper.getOrdersByBuyerId(buyerId);
 
     final List<Order> orders = [];
 
     for (final oMap in orderMaps) {
-      // 1️⃣ Fetch linked offer
       final offerId = oMap['offer_id'] as String;
       final offerMaps = await dbHelper.getOfferMapsByCatchId(offerId);
       if (offerMaps.isEmpty) continue;
       final offer = Offer.fromMap(offerMaps.first);
 
-      // 2️⃣ Fetch linked fisher
       final fisherId = oMap['fisher_id'] as String;
       final userMap = await dbHelper.getUserMapById(fisherId);
       if (userMap == null) continue;
       final fisher = Fisher.fromMap(userMap);
 
-      // 3️⃣ Assemble Order from map + linked objects
       final order = Order.fromMap(
         m: oMap,
         linkedOffer: offer,
@@ -41,7 +65,18 @@ class BuyerRepository {
     return orders;
   }
 
-  // --- FETCH MARKET CATCHES ---
+  /// Retrieves the list of all available catches currently on the market.
+  ///
+  /// The method:
+  /// - Fetches raw catch maps from the database layer.
+  /// - Converts them to [Catch] models.
+  /// - Fetches all offers associated with the retrieved catches.
+  /// - Groups offers by `catchId`.
+  /// - Returns a list of catches where each one is enriched with its related
+  ///   offers.
+  ///
+  /// A future API implementation may map to something like:
+  /// `GET /market/catches?include=offers`.
   Future<List<Catch>> getMarketCatches() async {
     final catchMaps = await dbHelper.getCatchMapsForMarket();
 
@@ -49,7 +84,6 @@ class BuyerRepository {
 
     final catches = catchMaps.map((m) => Catch.fromMap(m)).toList();
 
-    // Fetch all offers for these catches
     final catchIds = catches.map((c) => c.id).toList();
     final offerMaps = await dbHelper.getOfferMapsByCatchIds(catchIds);
 
@@ -59,13 +93,19 @@ class BuyerRepository {
       offersByCatch.putIfAbsent(offer.catchId, () => []).add(offer);
     }
 
-    // Attach offers to their respective Catch objects
     return catches
         .map((c) => c.copyWith(offers: offersByCatch[c.id] ?? []))
         .toList();
   }
 
-  // --- FETCH SINGLE ORDER BY ID ---
+  /// Retrieves a single order by its unique identifier.
+  ///
+  /// This includes loading the linked [Offer] and [Fisher] so that the
+  /// returned [Order] is fully assembled. If any of the required components
+  /// are missing, the method returns `null`.
+  ///
+  /// API-based version would typically hit:
+  /// `GET /orders/{orderId}?include=offer,fisher`.
   Future<Order?> getOrderById(String orderId) async {
     final db = await dbHelper.database;
     final maps = await db.query(

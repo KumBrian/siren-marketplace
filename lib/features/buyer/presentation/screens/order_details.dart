@@ -13,12 +13,15 @@ import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
+import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
+import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 
 extension IterableExtensions<T> on Iterable<T> {
   T? firstWhereOrNull(bool Function(T element) test) {
@@ -42,6 +45,15 @@ class BuyerOrderDetails extends StatefulWidget {
 }
 
 class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
+  bool _hasMarkedAsViewed = false;
+
+  void _markOfferAsViewed(Offer offer, Role role) {
+    if (role == Role.buyer && offer.hasUpdateForBuyer && !_hasMarkedAsViewed) {
+      context.read<OffersBloc>().add(MarkOfferAsViewed(offer, role));
+      _hasMarkedAsViewed = true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Listen to BuyerCubit state for proper loading/error handling
@@ -99,6 +111,8 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
         );
         final Fisher fisher = order.fisher;
         final Offer offer = order.offer;
+
+        _markOfferAsViewed(offer, Role.buyer);
 
         return Scaffold(
           appBar: AppBar(
@@ -177,6 +191,12 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                      "assets/images/shrimp.jpg",
+                                      height: 60,
+                                      width: 60,
+                                    ),
                               )
                             : Image.asset(
                                 catchSnapshot.images.first,
@@ -184,6 +204,12 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                      "assets/images/shrimp.jpg",
+                                      height: 120,
+                                      width: 120,
+                                    ),
                               ),
                       ),
                     ),
@@ -236,9 +262,6 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                 ),
                 const SizedBox(height: 16),
 
-                const SectionHeader("Seller"),
-                const SizedBox(height: 8),
-
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -274,20 +297,14 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                const SectionHeader("Seller"),
+                const SizedBox(height: 8),
 
                 // Fisher Details
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundImage: fisher.avatarUrl.contains("http")
-                          ? NetworkImage(fisher.avatarUrl)
-                          : AssetImage(fisher.avatarUrl)
-                                as ImageProvider<
-                                  Object
-                                >, // Explicit cast for local asset
-                    ),
+                    ErrorHandlingCircleAvatar(avatarUrl: fisher.avatarUrl),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -367,7 +384,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                     child: CustomButton(
                       title: "Call Seller",
                       onPressed: () {
-                        // Implement call functionality
+                        makePhoneCall("651204966", context);
                       },
                       hugeIcon: HugeIcons.strokeRoundedCall02,
                       bordered: true,
@@ -379,7 +396,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                     child: CustomButton(
                       title: "Message Seller",
                       onPressed: () {
-                        // Implement chat functionality
+                        context.push("/buyer/chat");
                       },
                       icon: CustomIcons.chatbubble,
                     ),

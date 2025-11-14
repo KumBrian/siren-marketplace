@@ -82,6 +82,7 @@ class _NumberInputFieldState extends State<NumberInputField> {
     // Check is updated to include 'Weight' as read-only.
     final isReadOnly =
         widget.label == "Price/Kg" ||
+        widget.label == "Total" ||
         (widget.label == "Weight" && widget.role == Role.fisher);
 
     return TextFormField(

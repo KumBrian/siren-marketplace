@@ -69,7 +69,14 @@ class _ProductImagesCarouselState extends State<ProductImagesCarousel> {
             itemSnapping: true,
             children: images.map((img) {
               return img.contains("http")
-                  ? Image.network(img, fit: BoxFit.cover)
+                  ? Image.network(
+                      img,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        "assets/images/shrimp.jpg",
+                        fit: BoxFit.cover,
+                      ),
+                    )
                   : Image.asset(img, fit: BoxFit.cover);
             }).toList(),
             onTap: (index) {

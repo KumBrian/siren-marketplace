@@ -10,23 +10,55 @@ import 'package:uuid/uuid.dart';
 
 import 'order_repository.dart';
 
+/// Repository responsible for CRUD operations and domain logic
+/// related to [`Offer`] entities.
+///
+/// This layer currently operates on top of the local SQLite database
+/// via [`DatabaseHelper`]. The abstractions are intentionally structured
+/// so that transitioning to remote API calls requires minimal upstream
+/// changes.
+///
+/// **Future API Migration Path**
+/// - Replace direct DB access with HTTP calls or a network service layer.
+/// - Maintain public method signatures for backward compatibility.
+/// - The service/assembly logic should remain in this repository.
 class OfferRepository {
+  /// Underlying local database service.
   final DatabaseHelper dbHelper;
+
+  /// Global notifier used to signal offer-related state or activity changes.
   final TransactionNotifier notifier;
 
+  /// Creates a new [OfferRepository] bound to the given
+  /// database and notification service.
   OfferRepository({required this.dbHelper, required this.notifier});
 
-  // 1. INSERT: Inserts a full Offer object map into the 'offers' table
+  /// Inserts a full [`Offer`] into the database.
+  ///
+  /// This is a low-level write operation that places the complete
+  /// offer map into the `offers` table. Existing entries with the same
+  /// ID will be overwritten.
   Future<void> insertOffer(Offer offer) async {
     final db = await dbHelper.database;
     await db.insert(
       'offers',
-      offer.toMap(), // Assumes Offer.toMap() is up-to-date and correct
+      offer.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  // 🆕 NEW: Creates a new offer
+  /// Creates and persists a new offer using referenced domain entities.
+  ///
+  /// This method resolves:
+  /// - the Fisher who owns the catch
+  /// - the Buyer initiating the offer
+  /// - the Catch being negotiated
+  ///
+  /// It produces a complete [`Offer`] that is immediately written to the DB.
+  ///
+  /// **API Forward Compatibility**
+  /// - Resolve user and catch data via remote endpoints instead of DB.
+  /// - Maintain the creation semantics for upstream service layers.
   Future<Offer> createOffer({
     required String catchId,
     required String buyerId,
@@ -36,10 +68,13 @@ class OfferRepository {
     required double pricePerKg,
   }) async {
     final db = await dbHelper.database;
+
     final fisher = await dbHelper.getUserMapById(fisherId);
     final fisherData = Fisher.fromMap(fisher!);
+
     final buyer = await dbHelper.getUserMapById(buyerId);
     final buyerData = Fisher.fromMap(buyer!);
+
     final catchItem = await dbHelper.getCatchMapById(catchId);
     final catchData = Catch.fromMap(catchItem!);
 
@@ -50,7 +85,6 @@ class OfferRepository {
       fisherName: fisherData.name,
       fisherRating: fisherData.rating,
       fisherAvatarUrl: fisherData.avatarUrl,
-      // This will be populated by the service layer or when fetching the catch
       buyerId: buyerData.id,
       buyerName: buyerData.name,
       buyerRating: buyerData.rating,
@@ -77,6 +111,10 @@ class OfferRepository {
     return newOffer;
   }
 
+  /// Retrieves raw offer maps for a given buyer, ordered by most recent.
+  ///
+  /// These raw maps are intended for consumption by the service layer,
+  /// which assembles full [`Offer`] models with related entities.
   Future<List<Map<String, dynamic>>> getOfferMapsByBuyerId(
     String buyerId,
   ) async {
@@ -89,20 +127,22 @@ class OfferRepository {
     );
   }
 
-  // --- Retrieval Methods (Returning Raw Maps for Service Layer Assembly) ---
-
-  // 2. QUERY BY CATCH ID (RAW MAPS): Retrieves all offer maps for a single Catch
+  /// Retrieves all raw offer maps associated with a single Catch.
+  ///
+  /// Does not assemble domain objects. Intended for service layer use.
   Future<List<Map<String, dynamic>>> getOfferMapsByCatch(String catchId) async {
     final db = await dbHelper.database;
     return await db.query(
       'offers',
       where: 'catch_id = ?',
       whereArgs: [catchId],
-      orderBy: 'date_created DESC', // Assuming a date field for sorting
+      orderBy: 'date_created DESC',
     );
   }
 
-  // 3. QUERY BY CATCH IDS (RAW MAPS): Retrieves offer maps for a list of Catch IDs
+  /// Retrieves raw offer maps for a list of Catch IDs.
+  ///
+  /// Useful for bulk queries when populating marketplace data.
   Future<List<Map<String, dynamic>>> getOfferMapsByCatchIds(
     List<String> catchIds,
   ) async {
@@ -119,7 +159,7 @@ class OfferRepository {
     );
   }
 
-  // 4. QUERY BY ID (RAW MAP): Retrieves a single offer map by its ID
+  /// Retrieves a raw offer map using the offer’s unique identifier.
   Future<Map<String, dynamic>?> getOfferMapById(String id) async {
     final db = await dbHelper.database;
 
@@ -134,7 +174,9 @@ class OfferRepository {
     return data.first;
   }
 
-  // 🆕 NEW: For Fisher side (Received Offers)
+  /// Retrieves raw offer maps belonging to a specific Fisher.
+  ///
+  /// Used for the Fisher-facing offers dashboard.
   Future<List<Map<String, dynamic>>> getOfferMapsByFisherId(
     String fisherId,
   ) async {
@@ -147,13 +189,15 @@ class OfferRepository {
     );
   }
 
-  // Retrieves all offer maps. Required by the seeder to filter for accepted offers.
+  /// Retrieves every offer map in the database.
+  ///
+  /// Primarily used by the seeder or batch processors.
   Future<List<Map<String, dynamic>>> getAllOfferMaps() async {
     final db = await dbHelper.database;
     return await db.query('offers', orderBy: 'date_created DESC');
   }
 
-  // Retrieves all offer maps filtered by status.
+  /// Retrieves offer maps filtered by their current status.
   Future<List<Map<String, dynamic>>> getOfferMapsByStatus(
     OfferStatus status,
   ) async {
@@ -166,7 +210,9 @@ class OfferRepository {
     );
   }
 
-  // Retrieves a single Offer model by ID. Useful for the service layer.
+  /// Retrieves a fully assembled [`Offer`] model by ID.
+  ///
+  /// This is a domain-level return, not just a raw map.
   Future<Offer?> getOfferById(String id) async {
     final map = await getOfferMapById(id);
     if (map == null) return null;
@@ -174,63 +220,76 @@ class OfferRepository {
     return Offer.fromMap(map);
   }
 
-  // --- Update/Delete Methods ---
-
-  // 5. UPDATE: Updates an offer using its map representation
+  /// Updates an existing offer by writing its full map back to the DB.
+  ///
+  /// Notifies listeners through the shared [TransactionNotifier].
   Future<void> updateOffer(Offer offer) async {
     final db = await dbHelper.database;
     await db.update(
       'offers',
-      offer.toMap(), // Assumes the entire map is written, including updates
+      offer.toMap(),
       where: 'offer_id = ?',
       whereArgs: [offer.id],
     );
     notifier.notify();
   }
 
+  /// Retrieves all domain-level offers linked to a particular Catch.
   Future<List<Offer>> getOffersByCatchId(String catchId) async {
     final maps = await dbHelper.getOfferMapsByCatchId(catchId);
     return maps.map((m) => Offer.fromMap(m)).toList();
   }
 
-  // 6. DELETE: Deletes an offer by ID
+  /// Deletes an offer from the database using its unique ID.
   Future<void> deleteOffer(String id) async {
     final db = await dbHelper.database;
     await db.delete('offers', where: 'offer_id = ?', whereArgs: [id]);
   }
 }
 
+/// Extended domain actions for negotiation and offer lifecycle management.
+///
+/// These workflows combine multiple repository operations and
+/// interact with related domain entities such as [`Catch`],
+/// [`Fisher`], and [`Order`].
 extension OfferRepositoryActions on OfferRepository {
-  /// Marks an offer as accepted and generates an Order
+  /// Accepts an offer and generates a corresponding [`Order`].
+  ///
+  /// Returns a tuple containing:
+  /// - the updated accepted [`Offer`]
+  /// - the ID of the newly created [`Order`]
+  ///
+  /// This operation performs:
+  /// 1. Status mutation → `accepted`
+  /// 2. Offer update
+  /// 3. Order creation via [`OrderRepository`]
   Future<(Offer, String)> acceptOffer({
     required Offer offer,
     required Catch catchItem,
     required Fisher fisher,
     required OrderRepository orderRepo,
   }) async {
-    // Update the offer’s status to accepted
     final accepted = offer.copyWith(
       status: OfferStatus.accepted,
       hasUpdateForBuyer: true,
+      hasUpdateForFisher: true,
       waitingFor: null,
     );
+
     await updateOffer(accepted);
 
-    // Create a new Order instance from the accepted Offer and Catch
     final newOrder = Order.fromOfferAndCatch(
       offer: accepted,
       catchItem: catchItem,
       fisher: fisher,
     );
 
-    // Insert the order through repository
     await orderRepo.insertOrder(newOrder);
 
-    // CRITICAL CHANGE: Return the ID of the newly created order
     return (accepted, newOrder.id);
   }
 
-  /// Marks an offer as rejected (no further side effects)
+  /// Rejects an offer with no additional side effects.
   Future<Offer> rejectOffer(Offer offer) async {
     final rejected = offer.copyWith(
       status: OfferStatus.rejected,
@@ -242,18 +301,24 @@ extension OfferRepositoryActions on OfferRepository {
     return rejected;
   }
 
-  /// Creates a new counter-offer linked to a previous one
+  /// Generates a counter-offer based on a previous offer.
+  ///
+  /// Mutates:
+  /// - price
+  /// - weight
+  /// - price-per-kg
+  /// - negotiation metadata
+  ///
+  /// Used when either party proposes new terms.
   Future<Offer> counterOffer({
     required Offer previous,
     required double newPrice,
     required double newWeight,
     required Role role,
   }) async {
-    // 1. Calculate new values
     final newPricePerKg = newPrice / newWeight;
     final now = DateTime.now().toIso8601String();
 
-    // 2. Create the updated Offer object
     final updatedOffer = previous.copyWith(
       pricePerKg: newPricePerKg,
       price: newPrice,
@@ -267,8 +332,10 @@ extension OfferRepositoryActions on OfferRepository {
       previousWeight: previous.weight,
       waitingFor: role == Role.buyer ? Role.fisher : Role.buyer,
     );
+
     await updateOffer(updatedOffer);
     notifier.notify();
+
     return updatedOffer;
   }
 }

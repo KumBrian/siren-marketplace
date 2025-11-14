@@ -8,19 +8,40 @@ import 'package:sqflite/sqflite.dart';
 
 import 'offer_repositories.dart';
 
+/// Repository responsible for managing catch records and related market
+/// operations.
+///
+/// This class sits above the local SQLite database layer but is structured
+/// so that future migration to a remote API will not break callers.
+/// The repository also performs automatic maintenance tasks such as:
+/// - Updating expired catch statuses.
+/// - Cleaning up catches that have exceeded their retention window.
+/// - Notifying listeners of state changes through [TransactionNotifier].
 class CatchRepository {
-  final DatabaseHelper dbHelper;
-  final OfferRepository offerRepository;
-  final TransactionNotifier notifier;
-
+  /// Creates a new [CatchRepository] with the required dependencies.
   CatchRepository({
     required this.dbHelper,
     required this.offerRepository,
     required this.notifier,
   });
 
-  // --- STANDARD CRUD OPERATIONS ---
+  /// Provides access to the underlying SQLite persistence layer.
+  final DatabaseHelper dbHelper;
 
+  /// Repository for fetching associated offer data.
+  final OfferRepository offerRepository;
+
+  /// Notifies listeners whenever catch-related operations mutate state.
+  final TransactionNotifier notifier;
+
+  // ---------------------------------------------------------------------------
+  // CRUD OPERATIONS
+  // ---------------------------------------------------------------------------
+
+  /// Inserts or replaces a catch record in the database.
+  ///
+  /// When this call is migrated to a backend API, it will likely map to a
+  /// `POST /catches` or `PUT /catches/{id}` operation.
   Future<void> insertCatch(Catch catchModel) async {
     final db = await dbHelper.database;
     await db.insert(
@@ -31,21 +52,32 @@ class CatchRepository {
     notifier.notify();
   }
 
+  /// Marks a catch as removed from the marketplace without deleting it.
+  ///
+  /// The catch remains stored in the database with its status set to
+  /// [CatchStatus.removed]. Associated offers or orders are intentionally
+  /// not deleted, preserving historical and relational integrity.
   Future<void> removeCatchFromMarketplace(String id) async {
     final db = await dbHelper.database;
 
     await db.update(
       'catches',
-      {'status': CatchStatus.removed.name}, // Use the new status field
+      {'status': CatchStatus.removed.name},
       where: 'catch_id = ?',
       whereArgs: [id],
     );
     notifier.notify();
-
-    // Important: We DO NOT delete related Offers or Orders here.
-    // The Catch record itself remains in the DB, just hidden from the market.
   }
 
+  /// Cleans up catches that have expired and exceeded the deletion grace period.
+  ///
+  /// A catch transitions to the "expired" state after 7 days.
+  /// After an additional 1-day grace period, the catch is permanently removed.
+  ///
+  /// This method:
+  /// - Finds all catches flagged as expired.
+  /// - Parses their creation timestamps.
+  /// - Deletes those older than 8 total days.
   Future<void> cleanUpExpiredCatches() async {
     final db = await dbHelper.database;
     final now = DateTime.now();
@@ -55,27 +87,22 @@ class CatchRepository {
       whereArgs: [CatchStatus.expired.name],
     );
 
-    // 2. Determine which ones are older than 8 days (i.e., expired for > 1 day)
     final catchesToDelete = <String>[];
 
     for (final catchMap in expiredCatchMaps) {
       try {
         final dateCreatedString = catchMap['date_created'] as String;
         final dateCreated = DateTime.parse(dateCreatedString);
-
-        // 7 days (the expiry period) + 1 day (the grace period before deletion) = 8 days
         final deletionDate = dateCreated.add(const Duration(days: 8));
 
         if (now.isAfter(deletionDate)) {
           catchesToDelete.add(catchMap['catch_id'] as String);
         }
       } catch (e) {
-        // Handle cases where date_created is invalid
         debugPrint('Error parsing date for catch deletion: $e');
       }
     }
 
-    // 3. Execute deletion for the identified catches
     if (catchesToDelete.isNotEmpty) {
       final placeholders = List.filled(catchesToDelete.length, '?').join(',');
       await db.delete(
@@ -88,11 +115,18 @@ class CatchRepository {
     notifier.notify();
   }
 
+  /// Updates the status of catches that should be marked as expired.
+  ///
+  /// A catch becomes expired when:
+  /// - Its current status is `available`.
+  /// - It was created more than 7 days ago.
+  ///
+  /// This ensures that market listings automatically cycle out after their
+  /// defined lifetime without requiring manual cleanup.
   Future<void> updateExpiredStatuses() async {
     final db = await dbHelper.database;
     final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
 
-    // Find catches that are 'available' but are older than 7 days
     final result = await db.rawUpdate(
       '''
       UPDATE catches
@@ -112,21 +146,29 @@ class CatchRepository {
     notifier.notify();
   }
 
+  /// Retrieves raw catch maps belonging to a specific fisher.
+  ///
+  /// Prior to fetching, this method performs automatic maintenance:
+  /// - Updates expired statuses.
+  /// - Cleans up catches that are beyond their retention period.
+  ///
+  /// API equivalent could be:
+  /// `GET /fisher/{id}/catches?include=offers`.
   Future<List<Map<String, dynamic>>> getCatchMapsByFisherId(
     String fisherId,
   ) async {
-    // 1. 🔑 Run the cleanup and status update *before* fetching data
     await updateExpiredStatuses();
     await cleanUpExpiredCatches();
-
     return await dbHelper.getCatchMapsByFisherId(fisherId);
   }
 
+  /// Retrieves all catch maps from the database, ordered by creation date.
   Future<List<Map<String, dynamic>>> getAllCatchMaps() async {
     final db = await dbHelper.database;
     return await db.query('catches', orderBy: 'date_created DESC');
   }
 
+  /// Retrieves a single catch record by its unique identifier.
   Future<Map<String, dynamic>?> getCatchMapById(String id) async {
     final db = await dbHelper.database;
     final maps = await db.query(
@@ -138,6 +180,7 @@ class CatchRepository {
     return maps.isNotEmpty ? maps.first : null;
   }
 
+  /// Retrieves a fully hydrated [Catch] by its identifier, including offers.
   Future<Catch?> getCatchById(String id) async {
     final catchMap = await getCatchMapById(id);
     if (catchMap == null) return null;
@@ -148,6 +191,9 @@ class CatchRepository {
     return Catch.fromMap(catchMap).copyWith(offers: offers);
   }
 
+  /// Updates an existing catch record.
+  ///
+  /// API version will map to `PATCH /catches/{id}`.
   Future<void> updateCatch(Catch catchModel) async {
     final db = await dbHelper.database;
     await db.update(
@@ -159,22 +205,28 @@ class CatchRepository {
     notifier.notify();
   }
 
+  /// Permanently deletes a catch record by its identifier.
+  ///
+  /// Unlike [removeCatchFromMarketplace], this operation is destructive.
   Future<void> deleteCatch(String id) async {
     final db = await dbHelper.database;
     await db.delete('catches', where: 'catch_id = ?', whereArgs: [id]);
     notifier.notify();
   }
 
-  // --- FETCH BY FISHER ID ---
+  // ---------------------------------------------------------------------------
+  // FETCHES WITH HYDRATION
+  // ---------------------------------------------------------------------------
 
+  /// Retrieves all catches that belong to a specific fisher, including offers.
+  ///
+  /// This hydrates each returned [Catch] with its associated list of offers.
   Future<List<Catch>> getCatchesByFisherId(String fisherId) async {
-    // Fetch raw catch maps from DB
     final catchMaps = await dbHelper.getCatchMapsByFisherId(fisherId);
 
-    // Ensure we're working with Map<String, dynamic> here
     final catchesWithOffers = await Future.wait(
       catchMaps.map((cMap) async {
-        final catchId = cMap['catch_id'] as String; // ✅ safe cast
+        final catchId = cMap['catch_id'] as String;
         final offerMaps = await dbHelper.getOfferMapsByCatchId(catchId);
         final offers = offerMaps.map((m) => Offer.fromMap(m)).toList();
         return Catch.fromMap(cMap).copyWith(offers: offers);
@@ -184,7 +236,14 @@ class CatchRepository {
     return catchesWithOffers;
   }
 
-  /// Fetches all catches currently available on the market with their offers
+  /// Retrieves all catches currently available on the marketplace, with offers.
+  ///
+  /// Includes:
+  /// - Expiration updates.
+  /// - Expired catch cleanup.
+  /// - Full hydration with offers.
+  ///
+  /// API version will map to `GET /market/catches?include=offers`.
   Future<List<Catch>> fetchMarketCatches() async {
     await updateExpiredStatuses();
     await cleanUpExpiredCatches();
@@ -203,6 +262,7 @@ class CatchRepository {
     final catchIds = catches.map((c) => c.id).toList();
 
     final offerMaps = await offerRepository.getOfferMapsByCatchIds(catchIds);
+
     final Map<String, List<Offer>> offersByCatch = {};
     for (final map in offerMaps) {
       final offer = Offer.fromMap(map);

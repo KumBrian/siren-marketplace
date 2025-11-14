@@ -133,6 +133,24 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
         emit(currentState.copyWith(selectedOffer: updatedOffer));
       }
 
+      if (currentState is OfferDetailsLoaded &&
+          currentState.offer.id == updatedOffer.id) {
+        // Re-fetch related entities to maintain consistency, or just use the updated ones
+        final Catch? catchItem = await _catchRepository.getCatchById(
+          updatedOffer.catchId,
+        );
+        final fisherMap = await _userRepository.getUserMapById(
+          updatedOffer.fisherId,
+        );
+        final Fisher? fisher = fisherMap != null
+            ? Fisher.fromMap(fisherMap)
+            : null;
+
+        if (catchItem != null && fisher != null) {
+          emit(OfferDetailsLoaded(updatedOffer, catchItem, fisher));
+        }
+      }
+
       // 3. Emit success state for the listener/dialog
       emit(OfferActionSuccess('Accept', updatedOffer, newOrderId));
     } catch (e) {
