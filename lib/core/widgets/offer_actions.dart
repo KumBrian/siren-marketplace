@@ -205,71 +205,75 @@ class _OfferActionsState extends State<OfferActions> {
                 widget.offer.status == OfferStatus.pending)
         ? Column(
             children: [
-              CustomButton(
-                title: "Accept",
-                icon: Icons.check,
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (confirmCtx) => AlertDialog(
-                      title: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.textBlue,
-                            width: 3,
-                          ),
-                        ),
-                        child: const Icon(Icons.question_mark_outlined),
-                      ),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Center(
-                            child: Column(
-                              children: [
-                                const Text(
-                                  "Accept the offer?",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: AppColors.textBlue,
-                                  ),
-                                ),
-                                Text(
-                                  "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price)}",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 18,
-                                    color: AppColors.textBlue,
-                                  ),
-                                ),
-                              ],
+              if (widget.offer.status == OfferStatus.pending &&
+                  widget.offer.waitingFor == widget.currentUserRole) ...[
+                CustomButton(
+                  title: "Accept",
+                  icon: Icons.check,
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (confirmCtx) => AlertDialog(
+                        title: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.textBlue,
+                              width: 3,
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          CustomButton(
-                            title: "Accept",
-                            onPressed: () => _handleAccept(confirmCtx),
-                          ),
-                          const SizedBox(height: 16),
-                          CustomButton(
-                            title: "Cancel",
-                            cancel: true,
-                            onPressed: () {
-                              if (Navigator.of(confirmCtx).canPop()) {
-                                Navigator.of(confirmCtx).pop();
-                              }
-                            },
-                          ),
-                        ],
+                          child: const Icon(Icons.question_mark_outlined),
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Center(
+                              child: Column(
+                                children: [
+                                  const Text(
+                                    "Accept the offer?",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: AppColors.textBlue,
+                                    ),
+                                  ),
+                                  Text(
+                                    "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price)}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 18,
+                                      color: AppColors.textBlue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            CustomButton(
+                              title: "Accept",
+                              onPressed: () => _handleAccept(confirmCtx),
+                            ),
+                            const SizedBox(height: 16),
+                            CustomButton(
+                              title: "Cancel",
+                              cancel: true,
+                              onPressed: () {
+                                if (Navigator.of(confirmCtx).canPop()) {
+                                  Navigator.of(confirmCtx).pop();
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [

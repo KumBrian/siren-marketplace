@@ -272,6 +272,7 @@ extension OfferRepositoryActions on OfferRepository {
     final accepted = offer.copyWith(
       status: OfferStatus.accepted,
       hasUpdateForBuyer: true,
+      hasUpdateForFisher: true,
       waitingFor: null,
     );
 

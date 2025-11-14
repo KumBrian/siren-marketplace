@@ -20,6 +20,7 @@ import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
+import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
@@ -347,6 +348,8 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
           );
         }
 
+        final buyerCubit = context.read<BuyerCubit>();
+
         return BlocConsumer<OffersBloc, OffersState>(
           listenWhen: (prev, curr) =>
               curr is OfferActionSuccess || curr is OfferActionFailure,
@@ -370,8 +373,14 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                   context,
                   message: "Offer Successfully Accepted.",
                   actionTitle: "View Details",
-                  onAction: () {
-                    context.pushReplacement("/fisher/order-details/$orderId");
+                  onAction: () async {
+                    buyerCubit.loadBuyerData(
+                      buyerId: offerState.updatedOffer.buyerId,
+                    );
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (context.mounted) {
+                      context.pushReplacement("/buyer/order-details/$orderId");
+                    }
                   },
                 );
               }

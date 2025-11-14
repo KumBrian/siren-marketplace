@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:siren_marketplace/core/data/database/database_helper.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/app_user.dart';
@@ -346,6 +347,120 @@ class CatchSeeder {
     print('${uniqueConversations.length} conversations seeded.');
   }
 
+  // Inside CatchSeeder class
+
+  // -------------------------------
+  // REVIEWS & RATINGS
+  // -------------------------------
+  // Inside CatchSeeder class
+
+  // -------------------------------
+  // REVIEWS & RATINGS
+  // -------------------------------
+  Future<void> seedReviews(List<Order> seededOrders) async {
+    final userRepository = sl<UserRepository>();
+    final databaseHelper = sl<DatabaseHelper>();
+
+    final List<String> reviewMessages = [
+      "Excellent quality and fast service. Highly recommended!",
+      "The catch was exactly as described. Very reliable fisher.",
+      "Fair price and great communication. Will buy again.",
+      "Smooth transaction. Professional buyer, prompt payment.",
+      "The product was fresh, but delivery was a little slow.",
+      "A pleasure to deal with this user.",
+      "Satisfied with the purchase, no issues.",
+    ];
+
+    int reviewCount = 0;
+
+    // Process every 3rd order to simulate realistic rating behavior
+    for (int i = 0; i < seededOrders.length; i++) {
+      if (i % 3 != 0) continue;
+
+      final order = seededOrders[i];
+      final raterBuyer = _userMaps.firstWhere((m) => m['id'] == order.buyerId);
+      final ratedFisher = _userMaps.firstWhere(
+        (m) => m['id'] == order.fisherId,
+      );
+
+      // --- 1. Fisher rates the Buyer ---
+      final fisherToBuyerRating = (_rng.nextInt(2) + 4)
+          .toDouble(); // 4.0 or 5.0
+      final buyerReviewMessage =
+          reviewMessages[_rng.nextInt(reviewMessages.length)];
+
+      // 1a. Insert the raw rating record
+      await databaseHelper.insertRating({
+        'rating_id': _uuid.v4(),
+        'order_id': order.id,
+        'rater_id': order.fisherId,
+        'rated_user_id': order.buyerId,
+        'rating_value': fisherToBuyerRating,
+        'message': buyerReviewMessage,
+        'timestamp': DateTime.now()
+            .subtract(Duration(hours: 10 + i * 2))
+            .toIso8601String(),
+      });
+
+      // 1b. Update Order flags (setting hasRatedBuyer=true, and the rating/message snapshot)
+      await databaseHelper.updateOrderRatingStatus(
+        orderId: order.id,
+        isRatingBuyer: true,
+        ratingValue: fisherToBuyerRating,
+        message: buyerReviewMessage,
+      );
+
+      // 1c. Update Buyer's aggregated rating metrics
+      await userRepository.updateUserRating(
+        userId: order.buyerId,
+        newRatingValue: fisherToBuyerRating,
+      );
+
+      reviewCount++;
+
+      // --- 2. Buyer rates the Fisher (Less frequently) ---
+      if (i % 6 == 0) {
+        final buyerToFisherRating = (_rng.nextInt(2) + 4)
+            .toDouble(); // 4.0 or 5.0
+        final fisherReviewMessage =
+            reviewMessages[_rng.nextInt(reviewMessages.length)];
+
+        // 2a. Insert the raw rating record
+        await databaseHelper.insertRating({
+          'rating_id': _uuid.v4(),
+          'order_id': order.id,
+          'rater_id': order.buyerId,
+          'rated_user_id': order.fisherId,
+          'rating_value': buyerToFisherRating,
+          'message': fisherReviewMessage,
+          'timestamp': DateTime.now()
+              .subtract(Duration(hours: 5 + i * 2))
+              .toIso8601String(),
+        });
+
+        // 2b. Update Order flags (setting hasRatedFisher=true, and the rating/message snapshot)
+        await databaseHelper.updateOrderRatingStatus(
+          orderId: order.id,
+          isRatingBuyer: false, // Target is the Fisher
+          ratingValue: buyerToFisherRating,
+          message: fisherReviewMessage,
+        );
+
+        // 2c. Update Fisher's aggregated rating metrics
+        await userRepository.updateUserRating(
+          userId: order.fisherId,
+          newRatingValue: buyerToFisherRating,
+        );
+
+        reviewCount++;
+      }
+    }
+
+    print(
+      '$reviewCount total reviews seeded. User profiles and Orders updated.',
+    );
+  }
+
   // -------------------------------
   // RUN ALL
   // -------------------------------
@@ -353,7 +468,8 @@ class CatchSeeder {
     await seedUsers();
     final catches = await seedCatches();
     final offers = await seedOffers(catches);
-    await seedOrders();
+    final orders = await seedOrders(); // Capture the seeded orders
+    await seedReviews(orders); // 👈 Run the new seeder
     await seedConversations(offers);
     print('Database seeding complete.');
   }

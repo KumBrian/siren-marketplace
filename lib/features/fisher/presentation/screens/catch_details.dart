@@ -134,86 +134,127 @@ class _CatchDetailsState extends State<CatchDetails>
     final editCatchFormKey = GlobalKey<FormState>();
     final TextEditingController weightController = TextEditingController();
     final TextEditingController pricePerKgController = TextEditingController();
+    final TextEditingController totalController = TextEditingController();
 
     void showEditCatchDialog(BuildContext context, Catch selectedCatch) {
+      // 1. Initial setup
       weightController.text = selectedCatch.availableWeight.toString();
       pricePerKgController.text = selectedCatch.pricePerKg.toString();
+      // Set initial total as well (optional, as it's recalculated immediately)
+      // totalController.text = selectedCatch.total.toStringAsFixed(0);
 
       showDialog(
         context: context,
         builder: (dialogCtx) {
-          return AlertDialog(
-            contentPadding: const EdgeInsets.only(
-              left: 24,
-              right: 24,
-              bottom: 24,
-            ),
-            constraints: const BoxConstraints(maxWidth: 500, minWidth: 450),
-            title: Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(dialogCtx).pop(),
-              ),
-            ),
-            content: Form(
-              key: editCatchFormKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.textBlue),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: NumberInputField(
-                      controller: weightController,
-                      label: "Available Weight",
-                      role: Role.fisher,
-                      suffix: "Kg",
-                    ),
+          return StatefulBuilder(
+            builder: (stfCtx, setState) {
+              // Helper to trigger the dialog rebuild on change
+              void updateStateOnChanged(_) {
+                setState(() {});
+              }
+
+              // 2. Calculation runs on every rebuild (triggered by setState below)
+              final double currentWeight =
+                  double.tryParse(weightController.text) ?? 0.0;
+              final double currentPricePerKg =
+                  double.tryParse(pricePerKgController.text) ?? 0.0;
+              final double currentTotal = currentWeight * currentPricePerKg;
+
+              // 3. Update the read-only controller's text within the builder
+              totalController.text = currentTotal.toStringAsFixed(0);
+
+              return AlertDialog(
+                contentPadding: const EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  bottom: 24,
+                ),
+                constraints: const BoxConstraints(maxWidth: 500, minWidth: 450),
+                title: Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(dialogCtx).pop(),
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.textBlue),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: NumberInputField(
-                      controller: pricePerKgController,
-                      label: "Price per Kg",
-                      role: Role.fisher,
-                      suffix: "CFA",
-                    ),
+                ),
+                content: Form(
+                  key: editCatchFormKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.textBlue),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: NumberInputField(
+                          controller: weightController,
+                          label: "Available Weight",
+                          role: Role.fisher,
+                          suffix: "Kg",
+                          // 🌟 FIX 1: Add onChanged listener
+                          onChanged: updateStateOnChanged,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.textBlue),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: NumberInputField(
+                          controller: pricePerKgController,
+                          label: "Price per Kg",
+                          role: Role.fisher,
+                          suffix: "CFA",
+                          // 🌟 FIX 2: Add onChanged listener
+                          onChanged: updateStateOnChanged,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.textBlue),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: NumberInputField(
+                          controller: totalController,
+                          label: "Total",
+                          role: Role.fisher,
+                          suffix: "CFA",
+                          onChanged: null,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      CustomButton(
+                        title: "Update Catch",
+                        onPressed: () async {
+                          if (editCatchFormKey.currentState!.validate()) {
+                            // Use the currently calculated values
+                            final updatedCatch = selectedCatch.copyWith(
+                              availableWeight: currentWeight,
+                              // Use current calculated weight
+                              pricePerKg: currentPricePerKg,
+                              // Use current calculated price
+                              total:
+                                  currentTotal, // Use current calculated total
+                            );
+                            context.read<CatchesBloc>().add(
+                              UpdateCatchEvent(updatedCatch),
+                            );
+                            Navigator.of(dialogCtx).pop();
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  CustomButton(
-                    title: "Update Catch",
-                    onPressed: () async {
-                      if (editCatchFormKey.currentState!.validate()) {
-                        final newWeight =
-                            double.tryParse(weightController.text) ?? 0.0;
-                        final newPrice =
-                            double.tryParse(pricePerKgController.text) ?? 0.0;
-                        final newTotal = newWeight * newPrice;
-                        final updatedCatch = selectedCatch.copyWith(
-                          availableWeight: newWeight,
-                          pricePerKg: newPrice,
-                          total: newTotal,
-                        );
-                        context.read<CatchesBloc>().add(
-                          UpdateCatchEvent(updatedCatch),
-                        );
-                        Navigator.of(dialogCtx).pop();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           );
         },
       );
