@@ -810,6 +810,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                               ],
                             ),
 
+                          const SizedBox(height: 16),
                           if (orderStatus == OfferStatus.completed &&
                               !selectedOrder.hasRatedBuyer) ...[
                             CustomButton(
@@ -856,15 +857,63 @@ class _OrderDetailsState extends State<OrderDetails> {
                                 );
                               },
                             ),
-                          ],
-                          if (user?.id == selectedOrder.fisherId &&
-                              hasRatedBuyer)
-                            CustomButton(
-                              title: "Buyer Rated (Thank You)",
-                              disabled: true,
-                              onPressed: () {},
-                              bordered: true,
+                          ] else if (orderStatus == OfferStatus.completed &&
+                              selectedOrder.hasRatedBuyer) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8.0,
+                              ),
+                              child: Row(
+                                children: [
+                                  const HugeIcon(
+                                    icon:
+                                        HugeIcons.strokeRoundedCheckmarkBadge01,
+                                    color: AppColors.success500,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "You rated the Buyer ${selectedOrder.buyerRatingValue!.toStringAsFixed(1)} stars.",
+                                    style: const TextStyle(
+                                      color: AppColors.textBlue,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(height: 16),
+                          ],
+
+                          if (orderStatus == OfferStatus.completed) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Row(
+                                children: [
+                                  HugeIcon(
+                                    icon: selectedOrder.hasRatedFisher
+                                        ? HugeIcons
+                                              .strokeRoundedCheckmarkBadge01
+                                        : HugeIcons.strokeRoundedClock01,
+                                    color: selectedOrder.hasRatedFisher
+                                        ? AppColors.success500
+                                        : AppColors.shellOrange,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    selectedOrder.hasRatedFisher
+                                        ? "The Buyer has rated you."
+                                        : "Waiting for Buyer to rate you.",
+                                    style: const TextStyle(
+                                      color: AppColors.textBlue,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

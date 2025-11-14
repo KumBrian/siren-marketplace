@@ -31,6 +31,37 @@ class UserRepository {
     );
   }
 
+  /// Calculates the new average rating and updates the user record.
+  ///
+  /// This method is crucial for ensuring user profiles reflect their current
+  /// aggregated scores after a new review is submitted.
+  Future<void> updateUserRating({
+    required String userId,
+    required double newRatingValue,
+  }) async {
+    // 1. Get the current user data
+    final userMap = await getUserMapById(userId);
+    if (userMap == null) return;
+
+    final AppUser currentUser = AppUser.fromMap(userMap);
+
+    // 2. Get the existing rating metrics
+    final double currentTotalRating =
+        currentUser.rating * currentUser.reviewCount;
+    final int newReviewCount = currentUser.reviewCount + 1;
+
+    // 3. Calculate the new total and average
+    final double newTotalRating = currentTotalRating + newRatingValue;
+    final double newAverageRating = newTotalRating / newReviewCount;
+
+    // 4. Update the database using the specialized helper method
+    await dbHelper.updateUserRatingMetrics(
+      userId: userId,
+      newAverageRating: newAverageRating,
+      newReviewCount: newReviewCount,
+    );
+  }
+
   /// Retrieves all user entries as raw map objects.
   ///
   /// Used primarily during seeding operations to determine whether the local

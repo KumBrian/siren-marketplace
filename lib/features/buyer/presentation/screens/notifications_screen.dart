@@ -8,8 +8,7 @@ import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
-import 'package:siren_marketplace/core/widgets/message_card.dart';
-// 🔑 Key Import
+import 'package:siren_marketplace/core/widgets/message_card.dart'; // 🔑 Key Import
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/offer_card.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
@@ -444,9 +443,18 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
                                                       fisherName:
                                                           offer.fisherName,
                                                       onPressed: () {
-                                                        context.push(
-                                                          "/buyer/offer-details/${offer.id}",
-                                                        );
+                                                        offer.status ==
+                                                                    OfferStatus
+                                                                        .pending ||
+                                                                offer.status ==
+                                                                    OfferStatus
+                                                                        .rejected
+                                                            ? context.push(
+                                                                "/buyer/offer-details/${offer.id}",
+                                                              )
+                                                            : context.push(
+                                                                "/buyer/order-details/${offer.id}",
+                                                              );
                                                       },
                                                     );
                                                   }).toList(),
