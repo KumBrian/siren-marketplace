@@ -582,38 +582,32 @@ class _OrderDetailsState extends State<OrderDetails> {
                               border: Border.all(color: AppColors.gray200),
                             ),
                             child: InfoTable(
-                              rows:
-                                  [
-                                        InfoRow(
-                                          label: "Market",
-                                          value: catchSnapshot.market,
-                                        ),
-                                        InfoRow(
-                                          label: "Species",
-                                          value: catchSnapshot.species.name,
-                                        ),
-                                        catchSnapshot.species.id == "prawns"
-                                            ? InfoRow(
-                                                label: "Size",
-                                                value: catchSnapshot.size,
-                                              )
-                                            : null,
-                                        InfoRow(
-                                          label:
-                                              "Weight", // Updated label for clarity
-                                          value: acceptedWeight.toInt(),
-                                          suffix: "Kg",
-                                        ),
-                                        InfoRow(
-                                          label: "Total Price",
-                                          value: acceptedPrice.toStringAsFixed(
-                                            0,
-                                          ),
-                                          suffix: "CFA",
-                                        ),
-                                      ]
-                                      .whereType<InfoRow>()
-                                      .toList(), // Filter out null for non-prawns size
+                              rows: [
+                                InfoRow(
+                                  label: "Market",
+                                  value: catchSnapshot.market,
+                                ),
+                                InfoRow(
+                                  label: "Species",
+                                  value: catchSnapshot.species.name,
+                                ),
+                                catchSnapshot.species.id == "prawns"
+                                    ? InfoRow(
+                                        label: "Size",
+                                        value: catchSnapshot.size,
+                                      )
+                                    : null,
+                                InfoRow(
+                                  label: "Weight", // Updated label for clarity
+                                  value: acceptedWeight.toInt(),
+                                  suffix: "Kg",
+                                ),
+                                InfoRow(
+                                  label: "Total Price",
+                                  value: acceptedPrice.toStringAsFixed(0),
+                                  suffix: "CFA",
+                                ),
+                              ].whereType<InfoRow>().toList(),
                             ),
                           ),
                           const SizedBox(height: 16),

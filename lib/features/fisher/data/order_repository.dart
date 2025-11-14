@@ -7,21 +7,51 @@ import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
+/// Repository responsible for executing all data operations related to
+/// marketplace orders.
+///
+/// This repository currently interacts with a local SQLite database through
+/// [DatabaseHelper]. In future iterations, this class can be migrated to a
+/// remote API–driven architecture without changing upstream business logic.
+/// Local DB reads/writes can be swapped with REST/GraphQL calls while the
+/// repository methods remain stable.
+///
+/// Responsibilities:
+/// - Create, read, update, and delete orders.
+/// - Resolve linked domain objects such as offers and fishers.
+/// - Handle user ratings and update aggregate metrics.
+/// - Provide transactional safety for multi–step writes.
 class OrderRepository {
+  /// Reference to the local database.
   final DatabaseHelper dbHelper;
+
+  /// Reference to the offer repository.
   final OfferRepository offerRepository;
+
+  /// Reference to the fisher repository.
   final FisherRepository fisherRepository;
 
   final Uuid _uuid = const Uuid();
 
+  /// Create a new [OrderRepository] instance.
   OrderRepository({
     required this.dbHelper,
     required this.offerRepository,
     required this.fisherRepository,
   });
 
-  // --- CREATE ---
+  // ---------------------------------------------------------------------------
+  // CREATE
+  // ---------------------------------------------------------------------------
 
+  /// Inserts a new [Order] into the database.
+  ///
+  /// If an entry with the same ID exists, it is replaced due to
+  /// [ConflictAlgorithm.replace].
+  ///
+  /// This method is a candidate for API adoption:
+  /// replacing this write operation with a remote `POST /orders` endpoint
+  /// preserves compatibility with the rest of the feature layer.
   Future<void> insertOrder(Order order) async {
     final db = await dbHelper.database;
     await db.insert(
@@ -31,14 +61,28 @@ class OrderRepository {
     );
   }
 
-  // --------------------------------------------------------------------------
-  // 🌟 UPDATED RATING SUBMISSION METHOD 🌟
-  // --------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // RATING SUBMISSION WORKFLOW
+  // ---------------------------------------------------------------------------
 
-  /// Submits a rating for a user involved in a specific order and updates metrics.
+  /// Submits a rating for one user related to a specific order.
   ///
-  /// **FIX:** All database operations within the transaction now use the
-  /// provided `txn` object to prevent database lock warnings.
+  /// This includes:
+  /// - Validating order existence.
+  /// - Determining whether the rater is reviewing the buyer or the fisher.
+  /// - Preventing duplicate ratings.
+  /// - Writing the rating entry into the `ratings` table.
+  /// - Updating rating metadata inside the `orders` table.
+  /// - Recomputing the rated user's average rating and total review count.
+  ///
+  /// All operations occur inside a database transaction to avoid incomplete
+  /// writes or UI inconsistencies.
+  ///
+  /// Returns `true` if the operation succeeds, otherwise `false`.
+  ///
+  /// In API–based architecture, this would become:
+  /// - `POST /ratings`
+  /// - followed by remote recomputation of user metrics.
   Future<bool> submitUserRating({
     required String orderId,
     required String raterId,
@@ -47,8 +91,8 @@ class OrderRepository {
     String? message,
   }) async {
     final db = await dbHelper.database;
+
     try {
-      // 1. Determine the context (who is being rated)
       final order = await getOrderById(orderId);
       if (order == null) {
         debugPrint('Order $orderId not found for rating submission.');
@@ -67,25 +111,21 @@ class OrderRepository {
         return false;
       }
 
-      // Define the map of data to update in the 'orders' table
       final Map<String, Object?> updateOrderData = isRatingBuyer
           ? {
-              // Update Buyer status columns
               'hasRatedBuyer': 1,
               'buyer_rating_value': ratingValue,
               'buyer_rating_message': message,
             }
           : {
-              // Update Fisher status columns
               'hasRatedFisher': 1,
               'fisher_rating_value': ratingValue,
               'fisher_rating_message': message,
             };
 
-      // Start Database Transaction
       await db.transaction((txn) async {
-        // A. INSERT new rating record into 'ratings' table
-        final ratingData = {
+        // Insert rating record
+        await txn.insert('ratings', {
           'rating_id': _uuid.v4(),
           'rater_id': raterId,
           'rated_user_id': ratedUserId,
@@ -93,52 +133,41 @@ class OrderRepository {
           'rating_value': ratingValue,
           'message': message,
           'timestamp': DateTime.now().toIso8601String(),
-        };
-        // 🌟 FIX: Use txn for INSERT
-        await txn.insert(
-          'ratings',
-          ratingData,
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
 
-        // B. UPDATE the order's rating status in the 'orders' table
-        // 🌟 FIX: Use txn for UPDATE
+        // Update order metadata
         await txn.update(
           'orders',
-          updateOrderData, // Use the dynamically created map
+          updateOrderData,
           where: 'order_id = ?',
           whereArgs: [orderId],
         );
 
-        // C. UPDATE user's overall average rating in the 'users' table
-        // 1. Fetch ALL existing ratings for the rated user
-        // 🌟 FIX: Use txn for QUERY
+        // Fetch all ratings for recomputing metrics
         final allRatingsMaps = await txn.query(
           'ratings',
           where: 'rated_user_id = ?',
           whereArgs: [ratedUserId],
         );
 
-        // 2. Calculate the new average and count
         final newReviewCount = allRatingsMaps.length;
-        final totalRatingSum = allRatingsMaps.fold<double>(0.0, (sum, map) {
-          final val = map['rating_value'];
-          return sum + (val is double ? val : (val as int).toDouble());
+        final ratingSum = allRatingsMaps.fold<double>(0.0, (sum, map) {
+          final v = map['rating_value'];
+          return sum + (v is double ? v : (v as int).toDouble());
         });
 
-        final newAverageRating = newReviewCount > 0
-            ? (totalRatingSum / newReviewCount)
+        final newAverage = newReviewCount > 0
+            ? ratingSum / newReviewCount
             : 0.0;
 
-        // 3. Update user metrics in the DB
-        // 🌟 FIX: Use txn for final user UPDATE
+        // Update user metrics
         await txn.update(
           'users',
-          {'rating': newAverageRating, 'review_count': newReviewCount},
+          {'rating': newAverage, 'review_count': newReviewCount},
           where: 'id = ?',
           whereArgs: [ratedUserId],
         );
-      }); // End transaction
+      });
 
       return true;
     } catch (e) {
@@ -147,18 +176,30 @@ class OrderRepository {
     }
   }
 
-  // --------------------------------------------------------------------------
-  // EXISTING METHODS (No changes needed here unless they used dbHelper inside
-  // a transaction block, which they don't seem to)
-  // --------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // READ OPERATIONS
+  // ---------------------------------------------------------------------------
 
-  // --- READ ---
-
+  /// Returns all order rows as raw map objects.
+  ///
+  /// This is primarily used by admin views or background sync jobs.
   Future<List<Map<String, dynamic>>> getAllOrderMaps() async {
     final db = await dbHelper.database;
-    return await db.query('orders', orderBy: 'date_updated DESC');
+    return db.query('orders', orderBy: 'date_updated DESC');
   }
 
+  /// Retrieves a complete [Order] by its ID.
+  ///
+  /// Includes:
+  /// - Linked [Offer]
+  /// - Linked [Fisher]
+  ///
+  /// Returns null if:
+  /// - No order exists.
+  /// - Referenced offer or fisher entries cannot be found.
+  ///
+  /// When migrated to API architecture:
+  /// this becomes a simple `GET /orders/{id}` that returns composite data.
   Future<Order?> getOrderById(String id) async {
     final db = await dbHelper.database;
     final maps = await db.query(
@@ -170,29 +211,31 @@ class OrderRepository {
     if (maps.isEmpty) return null;
 
     final m = maps.first;
+
     final offerId = m['offer_id'] as String?;
     final fisherId = m['fisher_id'] as String?;
-
     if (offerId == null || fisherId == null) return null;
 
     final offerMap = await offerRepository.getOfferMapById(offerId);
     final fisher = await fisherRepository.getFisherById(fisherId);
-
-    if (offerMap == null) return null; // Added fisher check
+    if (offerMap == null) return null;
 
     final offer = Offer.fromMap(offerMap);
     return Order.fromMap(m: m, linkedOffer: offer, linkedFisher: fisher);
   }
 
-  // Modified to use dbHelper's dedicated method for cleaner code
+  /// Retrieves all [Order] objects where the specified user is either the
+  /// fisher or buyer.
+  ///
+  /// This is typically used by dashboards or activity screens.
   Future<List<Order>> getOrdersByUserId(String userId) async {
     final rawOrders = await dbHelper.getOrdersByUserId(userId);
-
     final List<Order> orders = [];
+
     for (final m in rawOrders) {
       final offerMap = await offerRepository.getOfferMapById(m['offer_id']);
       final fisher = await fisherRepository.getFisherById(m['fisher_id']);
-      // Ensure we have all necessary linked data
+
       if (offerMap == null) {
         debugPrint(
           'Skipping order ${m['order_id']} due to missing offer or fisher data.',
@@ -207,6 +250,9 @@ class OrderRepository {
     return orders;
   }
 
+  /// Retrieves a raw order map based on its associated offer ID.
+  ///
+  /// Returns `null` if no order is linked to the given offer.
   Future<Map<String, dynamic>?> getOrderMapByOfferId(String offerId) async {
     final db = await dbHelper.database;
     final maps = await db.query(
@@ -215,10 +261,13 @@ class OrderRepository {
       whereArgs: [offerId],
       limit: 1,
     );
-    if (maps.isNotEmpty) return maps.first;
-    return null;
+    return maps.isNotEmpty ? maps.first : null;
   }
 
+  /// Retrieves a full [Order] based on its associated offer ID.
+  ///
+  /// Useful for flows where each offer is expected to have at most
+  /// one active order.
   Future<Order?> getOrderByOfferId(String offerId) async {
     final m = await getOrderMapByOfferId(offerId);
     if (m == null) return null;
@@ -231,11 +280,12 @@ class OrderRepository {
     return Order.fromMap(m: m, linkedOffer: offer, linkedFisher: fisher);
   }
 
+  /// Retrieves raw order maps where the user is either the fisher or buyer.
+  ///
+  /// This lower–level version is useful for batch processing and sync logic.
   Future<List<Map<String, dynamic>>> getOrderMapsByUserId(String userId) async {
     final db = await dbHelper.database;
-
-    // This query gets all orders where the user is either the fisher or the buyer.
-    return await db.query(
+    return db.query(
       'orders',
       where: 'fisher_id = ? OR buyer_id = ?',
       whereArgs: [userId, userId],
@@ -243,8 +293,13 @@ class OrderRepository {
     );
   }
 
-  // --- UPDATE ---
+  // ---------------------------------------------------------------------------
+  // UPDATE
+  // ---------------------------------------------------------------------------
 
+  /// Updates an existing order record.
+  ///
+  /// All fields are replaced using data from [Order.toMap].
   Future<void> updateOrder(Order order) async {
     final db = await dbHelper.database;
     await db.update(
@@ -255,15 +310,26 @@ class OrderRepository {
     );
   }
 
-  // --- DELETE ---
+  // ---------------------------------------------------------------------------
+  // DELETE
+  // ---------------------------------------------------------------------------
 
+  /// Deletes an order by its ID.
+  ///
+  /// This does not delete linked offers, fishers, or ratings.
   Future<void> deleteOrder(String id) async {
     final db = await dbHelper.database;
     await db.delete('orders', where: 'order_id = ?', whereArgs: [id]);
   }
 
-  // --- UTILS ---
+  // ---------------------------------------------------------------------------
+  // UTILITIES
+  // ---------------------------------------------------------------------------
 
+  /// Clears all order records from the database.
+  ///
+  /// Warning: This is destructive and intended for development, testing,
+  /// or emergency reset flows.
   Future<void> clearAllOrders() async {
     final db = await dbHelper.database;
     await db.delete('orders');
