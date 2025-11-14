@@ -46,12 +46,24 @@ class OrderCard extends StatelessWidget {
                             width: 120,
                             height: 120,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Image.asset(
+                                  "assets/images/shrimp.jpg",
+                                  height: 120,
+                                  width: 120,
+                                ),
                           )
                         : Image.asset(
                             imageUrl,
                             width: 120,
                             height: 120,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Image.asset(
+                                  "assets/images/shrimp.jpg",
+                                  height: 120,
+                                  width: 120,
+                                ),
                           ),
                   ),
                   // --- Content ---

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
+import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 
 class ReviewCard extends StatelessWidget {
   final String name;
@@ -25,12 +26,7 @@ class ReviewCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundImage: image.contains("http")
-                  ? NetworkImage(image)
-                  : AssetImage(image) as ImageProvider<Object>,
-            ),
+            ErrorHandlingCircleAvatar(avatarUrl: image),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

@@ -14,6 +14,7 @@ import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
+import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
@@ -177,6 +178,12 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                      "assets/images/shrimp.jpg",
+                                      height: 60,
+                                      width: 60,
+                                    ),
                               )
                             : Image.asset(
                                 catchSnapshot.images.first,
@@ -184,6 +191,12 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                      "assets/images/shrimp.jpg",
+                                      height: 120,
+                                      width: 120,
+                                    ),
                               ),
                       ),
                     ),
@@ -279,15 +292,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundImage: fisher.avatarUrl.contains("http")
-                          ? NetworkImage(fisher.avatarUrl)
-                          : AssetImage(fisher.avatarUrl)
-                                as ImageProvider<
-                                  Object
-                                >, // Explicit cast for local asset
-                    ),
+                    ErrorHandlingCircleAvatar(avatarUrl: fisher.avatarUrl),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
