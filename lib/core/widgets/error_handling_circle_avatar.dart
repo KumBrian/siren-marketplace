@@ -22,7 +22,10 @@ class ErrorHandlingCircleAvatar extends StatelessWidget {
 
     if (!isNetworkImage) {
       // Case 1: Local Asset or placeholder (always works if asset is present)
-      return ErrorHandlingCircleAvatar(avatarUrl: avatarUrl);
+      return CircleAvatar(
+        radius: radius,
+        backgroundImage: AssetImage(_localErrorAsset),
+      );
     }
 
     // Case 2: Network Image - Use Image.network with errorBuilder
