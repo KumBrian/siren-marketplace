@@ -1,5 +1,4 @@
-import 'package:get_it/get_it.dart';
-// Cubits & Blocs
+import 'package:get_it/get_it.dart'; // Cubits & Blocs
 import 'package:siren_marketplace/bloc/cubits/bottom_nav_cubit/bottom_nav_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_cubit.dart';

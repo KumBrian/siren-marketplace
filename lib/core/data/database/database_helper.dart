@@ -11,7 +11,7 @@ class DatabaseHelper {
   static const _databaseName = "SirenMarketplaceDB.db";
 
   // Database version is 2
-  static const _databaseVersion = 2;
+  static const _databaseVersion = 3;
 
   // Table Names
   static const _usersTable = 'users';
@@ -48,7 +48,7 @@ class DatabaseHelper {
     }
 
     // Migration from V1 to V2
-    if (oldVersion < 2) {
+    if (oldVersion < 3) {
       // 1. Create the new RATINGS table.
       // FIX: Use 'CREATE TABLE IF NOT EXISTS' to prevent the "table already exists" crash.
       await db.execute('''
@@ -130,6 +130,20 @@ class DatabaseHelper {
     }
 
     // Add subsequent version checks (if (oldVersion < 3) { ... }) here
+
+    // After migrations, clear all tables to trigger reseeding.
+    if (kDebugMode) {
+      print("Clearing all tables to trigger reseeding on next launch...");
+    }
+    await db.delete(_usersTable);
+    await db.delete(_catchesTable);
+    await db.delete(_offersTable);
+    await db.delete(_ordersTable);
+    await db.delete(_conversationsTable);
+    await db.delete(_ratingsTable);
+    if (kDebugMode) {
+      print("All tables cleared for reseeding.");
+    }
   }
 
   /// ------------------------------------------------------------------
