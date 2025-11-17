@@ -9,8 +9,6 @@ extension CatchStatusExtension on CatchStatus {
 
 class DatabaseHelper {
   static const _databaseName = "SirenMarketplaceDB.db";
-
-  // Database version is 2
   static const _databaseVersion = 3;
 
   // Table Names
@@ -40,122 +38,42 @@ class DatabaseHelper {
   }
 
   /// ------------------------------------------------------------------
-  /// DATABASE MIGRATION LOGIC (FIXED: Idempotent V1 -> V2 Upgrade)
+  /// DATABASE MIGRATION LOGIC (Robust Drop & Recreate Strategy)
   /// ------------------------------------------------------------------
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (kDebugMode) {
-      print("Upgrading database from version $oldVersion to $newVersion...");
+      print(
+        "Upgrading database from version $oldVersion to $newVersion. Dropping all tables and recreating schema.",
+      );
     }
 
-    // Migration from V1 to V2
-    if (oldVersion < 3) {
-      // 1. Create the new RATINGS table.
-      // FIX: Use 'CREATE TABLE IF NOT EXISTS' to prevent the "table already exists" crash.
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS $_ratingsTable (
-          rating_id TEXT PRIMARY KEY,
-          rater_id TEXT NOT NULL,
-          rated_user_id TEXT NOT NULL,
-          order_id TEXT NOT NULL,
-          rating_value REAL NOT NULL,
-          message TEXT,
-          timestamp TEXT NOT NULL
-        )
-      ''');
-      if (kDebugMode) print("Ratings table ensured to exist.");
+    // This is a robust but destructive migration. It ensures the new schema is
+    // applied cleanly, which is acceptable since the seeder will repopulate data.
+    final batch = db.batch();
+    batch.execute('DROP TABLE IF EXISTS $_usersTable');
+    batch.execute('DROP TABLE IF EXISTS $_catchesTable');
+    batch.execute('DROP TABLE IF EXISTS $_offersTable');
+    batch.execute('DROP TABLE IF EXISTS $_ordersTable');
+    batch.execute('DROP TABLE IF EXISTS $_conversationsTable');
+    batch.execute('DROP TABLE IF EXISTS $_ratingsTable');
+    await batch.commit();
 
-      // 2. Add the new rating columns to the ORDERS table.
-      // FIX: Wrap each ALTER TABLE in a try-catch block to handle the
-      // "column already exists" error, making the column additions idempotent.
-      try {
-        await db.execute(
-          'ALTER TABLE $_ordersTable ADD COLUMN hasRatedBuyer INTEGER NOT NULL DEFAULT 0',
-        );
-        if (kDebugMode) print("Column hasRatedBuyer added.");
-      } catch (e) {
-        if (kDebugMode) print("Column hasRatedBuyer already exists, skipping.");
-      }
-
-      try {
-        await db.execute(
-          'ALTER TABLE $_ordersTable ADD COLUMN hasRatedFisher INTEGER NOT NULL DEFAULT 0',
-        );
-        if (kDebugMode) print("Column hasRatedFisher added.");
-      } catch (e) {
-        if (kDebugMode)
-          print("Column hasRatedFisher already exists, skipping.");
-      }
-
-      try {
-        await db.execute(
-          'ALTER TABLE $_ordersTable ADD COLUMN buyer_rating_value REAL',
-        );
-        if (kDebugMode) print("Column buyer_rating_value added.");
-      } catch (e) {
-        if (kDebugMode)
-          print("Column buyer_rating_value already exists, skipping.");
-      }
-
-      try {
-        await db.execute(
-          'ALTER TABLE $_ordersTable ADD COLUMN buyer_rating_message TEXT',
-        );
-        if (kDebugMode) print("Column buyer_rating_message added.");
-      } catch (e) {
-        if (kDebugMode)
-          print("Column buyer_rating_message already exists, skipping.");
-      }
-
-      try {
-        await db.execute(
-          'ALTER TABLE $_ordersTable ADD COLUMN fisher_rating_value REAL',
-        );
-        if (kDebugMode) print("Column fisher_rating_value added.");
-      } catch (e) {
-        if (kDebugMode)
-          print("Column fisher_rating_value already exists, skipping.");
-      }
-
-      try {
-        await db.execute(
-          'ALTER TABLE $_ordersTable ADD COLUMN fisher_rating_message TEXT',
-        );
-        if (kDebugMode) print("Column fisher_rating_message added.");
-      } catch (e) {
-        if (kDebugMode)
-          print("Column fisher_rating_message already exists, skipping.");
-      }
-
-      if (kDebugMode) print("V2 Migration complete.");
-    }
-
-    // Add subsequent version checks (if (oldVersion < 3) { ... }) here
-
-    // After migrations, clear all tables to trigger reseeding.
-    if (kDebugMode) {
-      print("Clearing all tables to trigger reseeding on next launch...");
-    }
-    await db.delete(_usersTable);
-    await db.delete(_catchesTable);
-    await db.delete(_offersTable);
-    await db.delete(_ordersTable);
-    await db.delete(_conversationsTable);
-    await db.delete(_ratingsTable);
-    if (kDebugMode) {
-      print("All tables cleared for reseeding.");
-    }
+    // After dropping all tables, we call onCreate to rebuild the database
+    // with the latest schema.
+    await _onCreate(db, newVersion);
   }
 
   /// ------------------------------------------------------------------
-  /// DATABASE CREATION LOGIC (Only runs for brand new installs)
+  /// DATABASE CREATION LOGIC (Runs for new installs and after upgrades)
   /// ------------------------------------------------------------------
   Future<void> _onCreate(Database db, int version) async {
     if (kDebugMode) {
       print("Creating database schema, version $version...");
     }
+    final batch = db.batch();
 
     // 1. USERS
-    await db.execute('''
+    batch.execute('''
       CREATE TABLE $_usersTable (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -167,7 +85,7 @@ class DatabaseHelper {
     ''');
 
     // 2. CATCHES
-    await db.execute('''
+    batch.execute('''
       CREATE TABLE $_catchesTable (
         catch_id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -187,7 +105,7 @@ class DatabaseHelper {
     ''');
 
     // 3. OFFERS
-    await db.execute('''
+    batch.execute('''
       CREATE TABLE $_offersTable (
         offer_id TEXT PRIMARY KEY,
         catch_id TEXT NOT NULL,
@@ -215,8 +133,8 @@ class DatabaseHelper {
       )
     ''');
 
-    // 4. ORDERS (FULL SCHEMA FOR V2 INSTALLS)
-    await db.execute('''
+    // 4. ORDERS
+    batch.execute('''
       CREATE TABLE $_ordersTable (
         order_id TEXT PRIMARY KEY,
         offer_id TEXT NOT NULL,
@@ -224,8 +142,6 @@ class DatabaseHelper {
         buyer_id TEXT NOT NULL,
         catch_snapshot TEXT NOT NULL,
         date_updated TEXT NOT NULL,
-        
-        -- Rating Tracking Columns (Included for new V2 installs)
         hasRatedBuyer INTEGER NOT NULL DEFAULT 0,
         hasRatedFisher INTEGER NOT NULL DEFAULT 0,
         buyer_rating_value REAL,
@@ -235,8 +151,8 @@ class DatabaseHelper {
       )
     ''');
 
-    // 5. RATINGS (FULL SCHEMA FOR V2 INSTALLS)
-    await db.execute('''
+    // 5. RATINGS
+    batch.execute('''
       CREATE TABLE $_ratingsTable (
         rating_id TEXT PRIMARY KEY,
         rater_id TEXT NOT NULL,
@@ -249,7 +165,7 @@ class DatabaseHelper {
     ''');
 
     // 6. CONVERSATIONS
-    await db.execute('''
+    batch.execute('''
       CREATE TABLE $_conversationsTable (
         id TEXT PRIMARY KEY,
         buyer_id TEXT NOT NULL,
@@ -261,6 +177,11 @@ class DatabaseHelper {
         unread_count INTEGER NOT NULL
       )
     ''');
+
+    await batch.commit();
+    if (kDebugMode) {
+      print("Database schema created successfully.");
+    }
   }
 
   // --------------------------------------------------------------------------
