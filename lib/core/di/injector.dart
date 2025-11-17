@@ -9,6 +9,9 @@ import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart
 import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filter_cubit.dart';
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
+import 'package:siren_marketplace/core/data/datasources/offer_local_datasource.dart';
+import 'package:siren_marketplace/core/data/datasources/user_local_datasource.dart';
+import 'package:siren_marketplace/core/data/repositories/offer_repository.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
 import 'package:siren_marketplace/features/buyer/data/buyer_repository.dart';
@@ -20,7 +23,6 @@ import 'package:siren_marketplace/features/chat/data/conversation_repository.dar
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
 import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 import 'package:siren_marketplace/features/fisher/data/fisher_repository.dart';
-import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
 import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
@@ -58,10 +60,20 @@ Future<void> initDependencies() async {
   // --------------------------------------------------
   // Repository Layer (Singletons)
   // --------------------------------------------------
-  sl.registerLazySingleton(() => UserRepository(dbHelper: sl()));
+  sl.registerLazySingleton(() => UserLocalDataSource(dbHelper: sl()));
+  sl.registerLazySingleton(() => OfferLocalDataSource(dbHelper: sl()));
+  sl.registerLazySingleton(
+    () => UserRepository(dataSource: sl<UserLocalDataSource>()),
+  );
   sl.registerLazySingleton(() => FisherRepository(dbHelper: sl()));
   sl.registerLazySingleton(
-    () => OfferRepository(dbHelper: sl(), notifier: sl<TransactionNotifier>()),
+    () => OfferRepository(
+      dataSource: sl<OfferLocalDataSource>(),
+      notifier: sl<TransactionNotifier>(),
+      userRepo: sl<UserRepository>(),
+      catchRepo: sl<CatchRepository>(),
+      orderRepo: sl<OrderRepository>(),
+    ),
   );
   sl.registerLazySingleton(
     () => CatchRepository(

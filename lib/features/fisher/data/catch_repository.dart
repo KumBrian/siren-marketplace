@@ -6,7 +6,7 @@ import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'offer_repositories.dart';
+import '../../../core/data/repositories/offer_repository.dart';
 
 /// Repository responsible for managing catch records and related market
 /// operations.

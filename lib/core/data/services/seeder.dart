@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
+import 'package:siren_marketplace/core/data/repositories/offer_repository.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/app_user.dart';
@@ -13,7 +14,6 @@ import 'package:siren_marketplace/features/chat/data/conversation_repository.dar
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
 import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
-import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
 import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
 import 'package:uuid/uuid.dart';
 

@@ -4,8 +4,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../features/fisher/data/models/fisher.dart';
+import '../domain/models/offer.dart';
 import 'catch.dart';
-import 'offer.dart';
 
 class Order extends Equatable {
   final String id;
