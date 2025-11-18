@@ -17,10 +17,10 @@ import 'package:siren_marketplace/features/chat/logic/conversations_bloc/convers
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
 
-const String CURRENT_FISHER_ID = 'fisher_id_1';
-
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
+  const NotificationsScreen({super.key, required this.fisherId});
+
+  final String fisherId;
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -37,6 +37,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
         final List<Offer> allOffers = offersState is OffersLoaded
             ? offersState.offers
+                  .where((offer) => offer.fisherId == widget.fisherId)
+                  .toList()
             : [];
 
         // 1. Apply Filtering Logic
@@ -253,7 +255,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     super.initState();
     // ✅ NEW: Load offers specifically for the current Fisher user
     context.read<OffersBloc>().add(
-      LoadOffersForUser(userId: CURRENT_FISHER_ID, role: Role.fisher),
+      LoadOffersForUser(userId: widget.fisherId, role: Role.fisher),
     );
     _tabController = TabController(length: 2, vsync: this);
   }

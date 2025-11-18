@@ -264,10 +264,12 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                   body: SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: Column(
-                      spacing: 8,
+                      spacing: 16, // Main section spacing increased for clarity
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Catch Image and Details Section
                         Row(
+                          spacing: 10, // Replaces SizedBox(width: 10)
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             GestureDetector(
@@ -311,9 +313,10 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
+                                spacing: 8,
+                                // Replaces SizedBox(height: 8)
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 mainAxisSize: MainAxisSize.min,
@@ -326,7 +329,6 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                                       color: AppColors.textBlue,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -346,7 +348,8 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+
+                        // Current Offer Header and Status
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -381,6 +384,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                           ],
                         ),
 
+                        // Current Offer Details Box
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -409,8 +413,8 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
 
+                        // Offer Actions Section
                         OfferActions(
                           offer: selectedOffer,
                           formKey: _formKey,
@@ -423,6 +427,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                           },
                         ),
 
+                        // Rejection Message
                         if (selectedOffer.status == OfferStatus.rejected)
                           Row(
                             spacing: 8,
@@ -445,16 +450,13 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                                 ),
                               ),
                             ],
-                          )
-                        else
-                          const SizedBox.shrink(),
+                          ),
+                        // Removed SizedBox(height: 8) after rejection message
 
-                        const SizedBox(height: 8),
-
-                        // Display previous counter-offer details if available
+                        // Previous Counter-Offer Details
                         if (previous != null) ...[
                           const SectionHeader("Last Counter-Offer"),
-                          const SizedBox(height: 8),
+
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
@@ -481,9 +483,10 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          // Removed SizedBox(height: 8) after counter-offer details
                         ],
-                        const SizedBox(height: 8),
+
+                        // Offer Header / Buyer Info Section
                         OfferHeader(offer: selectedOffer, buyer: buyer),
                       ],
                     ),

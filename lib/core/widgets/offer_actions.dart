@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
@@ -271,7 +272,7 @@ class _OfferActionsState extends State<OfferActions> {
                     );
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
               ],
 
               Row(
@@ -398,6 +399,22 @@ class _OfferActionsState extends State<OfferActions> {
                   ],
                 ],
               ),
+
+              if (widget.offer.waitingFor != widget.currentUserRole) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    HugeIcon(
+                      icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+                      color: AppColors.shellOrange,
+                      size: 20,
+                    ),
+                    Text(
+                      "Please wait for the ${widget.offer.waitingFor!.name} to respond.",
+                    ),
+                  ],
+                ),
+              ],
             ],
           )
         : widget.offer.status == OfferStatus.accepted ||

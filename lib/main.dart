@@ -27,7 +27,7 @@ import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubi
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 import 'package:siren_marketplace/router.dart';
 
-const String CURRENT_FISHER_ID = 'fisher_id_1';
+const String CURRENT_FISHER_ID = 'fisher_id_2';
 const String CURRENT_BUYER_ID = 'buyer_id_1';
 
 Future<void> main() async {

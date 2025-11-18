@@ -12,6 +12,7 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
+import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
@@ -292,195 +293,249 @@ class _ProductDetailsState extends State<ProductDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProductsCubit, ProductsState>(
-      builder: (context, productsState) {
-        if (productsState is ProductsLoading ||
-            productsState is ProductsInitial) {
+    return BlocBuilder<UserBloc, UserState>(
+      builder: (context, userState) {
+        if (userState is! UserLoaded) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
+        final user = userState.user;
+        return BlocBuilder<ProductsCubit, ProductsState>(
+          builder: (context, productsState) {
+            if (productsState is ProductsLoading ||
+                productsState is ProductsInitial) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
 
-        if (productsState is ProductsError) {
-          return Scaffold(
-            appBar: AppBar(leading: const BackButton()),
-            body: Center(
-              child: Text("Error loading products: ${productsState.message}"),
-            ),
-          );
-        }
+            if (productsState is ProductsError) {
+              return Scaffold(
+                appBar: AppBar(leading: const BackButton()),
+                body: Center(
+                  child: Text(
+                    "Error loading products: ${productsState.message}",
+                  ),
+                ),
+              );
+            }
 
-        final loadedProducts = productsState as ProductsLoaded;
-        final catchItem = loadedProducts.availableCatches.firstWhereOrNull(
-          (c) => c.id == widget.productId,
-        );
+            final loadedProducts = productsState as ProductsLoaded;
+            final catchItem = loadedProducts.availableCatches.firstWhereOrNull(
+              (c) => c.id == widget.productId,
+            );
 
-        if (catchItem == null) {
-          return Scaffold(
-            appBar: AppBar(
-              leading: const BackButton(),
-              title: const Text("Details"),
-            ),
-            body: const Center(
-              child: Text("Catch not found in marketplace listings."),
-            ),
-          );
-        }
+            if (catchItem == null) {
+              return Scaffold(
+                appBar: AppBar(
+                  leading: const BackButton(),
+                  title: const Text("Details"),
+                ),
+                body: const Center(
+                  child: Text("Catch not found in marketplace listings."),
+                ),
+              );
+            }
 
-        final c = catchItem;
+            final c = catchItem;
 
-        return Scaffold(
-          appBar: AppBar(
-            leading: const BackButton(),
-            title: const Text(
-              "Product Details",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.textBlue,
-                fontSize: 24,
+            // Check if the current user has any pending offers on this catch
+            final bool hasPendingOffer = c.offers.any(
+              (offer) =>
+                  offer.status == OfferStatus.pending &&
+                  offer.buyerId == user!.id,
+            );
+
+            return Scaffold(
+              appBar: AppBar(
+                leading: const BackButton(),
+                title: PageTitle(title: "Product Details"),
+                centerTitle: true,
               ),
-            ),
-            centerTitle: true,
-          ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 8,
-                children: [
-                  // Images
-                  ProductImagesCarousel(images: c.images),
-
-                  SectionHeader(c.name),
-                  Row(
+              body: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 8,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.gray100,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.gray200),
-                        ),
-                        child: Center(
-                          child: Text(
-                            // Using the price from the Catch model
-                            formatPrice(c.pricePerKg.toDouble()),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: AppColors.textBlue,
+                      // Images
+                      ProductImagesCarousel(images: c.images),
+
+                      SectionHeader(c.name),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
                             ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Text("/Kg"),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.gray200),
-                    ),
-                    child: InfoTable(
-                      rows: [
-                        InfoRow(label: "Market", value: c.market.capitalize()),
-                        c.species.id == "prawns"
-                            ? InfoRow(label: "Average Size", value: c.size)
-                            : null,
-                        InfoRow(
-                          label: "Available",
-                          value: "${c.availableWeight.toStringAsFixed(1)} Kg",
-                        ),
-                        InfoRow(
-                          label: "Date Posted",
-                          value: c.datePosted.toFormattedDate(),
-                        ),
-                      ].whereType<InfoRow>().toList(), // Filter out nulls
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomButton(
-                          title: "Message",
-                          onPressed: () {},
-                          bordered: true,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: CustomButton(
-                          title: "Make Offer",
-                          onPressed: () => _showMakeOfferDialog(context, c),
-                          disabled: c.availableWeight <= 0,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SectionHeader("Seller"),
-
-                  BlocBuilder<FisherCubit, FisherState>(
-                    builder: (context, state) {
-                      if (state is FisherLoading || state is FisherInitial) {
-                        return const CircularProgressIndicator();
-                      } else if (state is FisherError) {
-                        return Text("Error loading seller: ${state.message}");
-                      } else if (state is FisherLoaded) {
-                        final fisher = state.fisher;
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ErrorHandlingCircleAvatar(
-                              avatarUrl: fisher.avatarUrl,
+                            decoration: BoxDecoration(
+                              color: AppColors.gray100,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.gray200),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    fisher.name,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                      color: AppColors.textBlue,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.star,
-                                        color: AppColors.shellOrange,
-                                        size: 16,
-                                      ),
-                                      Text(fisher.rating.toStringAsFixed(1)),
-                                      Text(" (${fisher.reviewCount} Reviews)"),
-                                    ],
-                                  ),
-                                ],
+                            child: Center(
+                              child: Text(
+                                // Using the price from the Catch model
+                                formatPrice(c.pricePerKg.toDouble()),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: AppColors.textBlue,
+                                ),
                               ),
                             ),
-                          ],
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
+                          ),
+                          const SizedBox(width: 4),
+                          const Text("/Kg"),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.gray200),
+                        ),
+                        child: InfoTable(
+                          rows: [
+                            InfoRow(
+                              label: "Market",
+                              value: c.market.capitalize(),
+                            ),
+                            c.species.id == "prawns"
+                                ? InfoRow(label: "Average Size", value: c.size)
+                                : null,
+                            InfoRow(
+                              label: "Available",
+                              value:
+                                  "${c.availableWeight.toStringAsFixed(1)} Kg",
+                            ),
+                            InfoRow(
+                              label: "Date Posted",
+                              value: c.datePosted.toFormattedDate(),
+                            ),
+                          ].whereType<InfoRow>().toList(), // Filter out nulls
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton(
+                              title: "Message",
+                              onPressed: () {},
+                              bordered: true,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: CustomButton(
+                              title: hasPendingOffer
+                                  ? "Offer Pending"
+                                  : "Make Offer",
+                              onPressed: hasPendingOffer
+                                  ? () {}
+                                  : () => _showMakeOfferDialog(context, c),
+                              // Consolidated disable logic:
+                              disabled:
+                                  c.availableWeight <= 0 || hasPendingOffer,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SectionHeader("Seller"),
+
+                      // ... (FisherCubit Builder)
+                      BlocBuilder<FisherCubit, FisherState>(
+                        builder: (context, state) {
+                          if (state is FisherLoading ||
+                              state is FisherInitial) {
+                            return const CircularProgressIndicator();
+                          } else if (state is FisherError) {
+                            return Text(
+                              "Error loading seller: ${state.message}",
+                            );
+                          } else if (state is FisherLoaded) {
+                            final fisher = state.fisher;
+                            return Material(
+                              borderRadius: BorderRadius.circular(16),
+                              child: InkWell(
+                                onTap: () {
+                                  context.push("/buyer/reviews/${fisher.id}");
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                splashColor: AppColors.blue700.withValues(
+                                  alpha: 0.1,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ErrorHandlingCircleAvatar(
+                                        avatarUrl: fisher.avatarUrl,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              fisher.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 16,
+                                                color: AppColors.textBlue,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.star,
+                                                  color: AppColors.shellOrange,
+                                                  size: 16,
+                                                ),
+                                                Text(
+                                                  fisher.rating.toStringAsFixed(
+                                                    1,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  " (${fisher.reviewCount} Reviews)",
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
