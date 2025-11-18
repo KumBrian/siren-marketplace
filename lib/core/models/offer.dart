@@ -9,14 +9,14 @@ class Offer extends Equatable {
   final String catchId;
   final String fisherId;
   final String buyerId;
-  final double pricePerKg;
-  final double price;
+  final int pricePerKg;
+  final int price;
   final double weight;
   final OfferStatus status;
   final String dateCreated;
-  final double? previousPrice;
+  final int? previousPrice;
   final double? previousWeight;
-  final double? previousPricePerKg;
+  final int? previousPricePerKg;
 
   // 🆕 ADDED FIELD
   final bool hasUpdateForFisher;
@@ -95,12 +95,12 @@ class Offer extends Equatable {
   // Used for transactional updates (e.g., accepting or countering)
   Offer copyWith({
     OfferStatus? status,
-    double? previousPrice,
+    int? previousPrice,
     double? previousWeight,
-    double? previousPricePerKg,
-    double? price,
+    int? previousPricePerKg,
+    int? price,
     double? weight,
-    double? pricePerKg,
+    int? pricePerKg,
     String? dateCreated,
     bool? hasUpdateForFisher,
     bool? hasUpdateForBuyer,
@@ -183,14 +183,14 @@ class Offer extends Equatable {
     catchId: m['catch_id'] as String,
     fisherId: m['fisher_id'] as String,
     buyerId: m['buyer_id'] as String,
-    pricePerKg: (m['price_per_kg'] as num).toDouble(),
-    price: (m['price'] as num).toDouble(),
+    pricePerKg: (m['price_per_kg'] as num).toInt(),
+    price: (m['price'] as num).toInt(),
     weight: (m['weight'] as num).toDouble(),
     status: offerStatusFromString(m['status'] as String),
     dateCreated: m['date_created'] as String,
-    previousPrice: (m['previous_price'] as num?)?.toDouble(),
+    previousPrice: (m['previous_price'] as num?)?.toInt(),
     previousWeight: (m['previous_weight'] as num?)?.toDouble(),
-    previousPricePerKg: (m['previous_price_per_kg'] as num?)?.toDouble(),
+    previousPricePerKg: (m['previous_price_per_kg'] as num?)?.toInt(),
     // 🆕 EXTRACTED FIELD
     hasUpdateForBuyer: (m['has_update_buyer'] as int) == 1,
     hasUpdateForFisher: (m['has_update_fisher'] as int) == 1,

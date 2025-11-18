@@ -79,7 +79,7 @@ class RejectOffer extends OffersEvent {
 /// Event to counter an offer.
 class CounterOffer extends OffersEvent {
   final Offer previousOffer;
-  final double newPrice;
+  final int newPrice;
   final double newWeight;
   final Role counteringRole; // The role of the person making the counter
 
@@ -113,9 +113,9 @@ class CreateOffer extends OffersEvent {
   final String catchId;
   final String buyerId;
   final String fisherId;
-  final double price;
+  final int price;
   final double weight;
-  final double pricePerKg;
+  final int pricePerKg;
 
   const CreateOffer({
     required this.catchId,

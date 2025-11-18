@@ -118,10 +118,8 @@ class CatchSeeder {
 
     for (int i = 0; i < 15; i++) {
       final species = _speciesList[i % _speciesList.length];
-      final weight =
-          50 + double.parse(_rng.nextDouble().toStringAsFixed(2)) * 50;
-      final pricePerKg =
-          4 + double.parse(_rng.nextDouble().toStringAsFixed(2)) * 2;
+      final weight = 20 + _rng.nextDouble() * 100;
+      final pricePerKg = 500 + _rng.nextInt(2000);
       final market = _markets[i % _markets.length];
 
       CatchStatus status;
@@ -145,13 +143,17 @@ class CatchSeeder {
 
       final c = Catch(
         id: _uuid.v4(),
-        name: '${species.name} Catch ${_rng.nextInt(100)}',
+        name: species.name,
         datePosted: now.subtract(Duration(hours: i * 5)).toIso8601String(),
-        initialWeight: weight,
-        availableWeight: availableWeight,
-        pricePerKg: double.parse(pricePerKg.toStringAsFixed(2)),
-        total: double.parse((weight * pricePerKg).toStringAsFixed(2)),
-        size: i < 7 ? 'Medium' : 'Large',
+        initialWeight: double.parse(weight.toStringAsFixed(1)),
+        availableWeight: double.parse(availableWeight.toStringAsFixed(1)),
+        pricePerKg: pricePerKg,
+        total: (weight * pricePerKg).toInt(),
+        size: species.id != "prawns"
+            ? _rng.nextInt(20).toStringAsFixed(0)
+            : i < 7
+            ? 'Medium'
+            : 'Large',
         market: market,
         species: species,
         fisherId: fisherId,
@@ -203,16 +205,13 @@ class CatchSeeder {
           catchId: catchItem.id,
           fisherId: catchItem.fisherId,
           buyerId: buyer.id,
-          pricePerKg: double.parse(
-            (catchItem.pricePerKg * 0.95).toStringAsFixed(2),
-          ),
+          pricePerKg: (catchItem.pricePerKg * 0.95).toInt(),
           weight: double.parse(
             (catchItem.availableWeight * 0.5).toStringAsFixed(2),
           ),
-          price: double.parse(
-            (catchItem.pricePerKg * 0.95 * catchItem.availableWeight * 0.5)
-                .toStringAsFixed(2),
-          ),
+          price: (catchItem.pricePerKg * 0.95 * catchItem.availableWeight * 0.5)
+              .toInt(),
+
           status: OfferStatus.pending,
           dateCreated: DateTime.now().toIso8601String(),
           previousPrice: null,
@@ -242,10 +241,8 @@ class CatchSeeder {
             weight: double.parse(
               (catchItem.availableWeight * 0.2).toStringAsFixed(2),
             ),
-            price: double.parse(
-              (catchItem.pricePerKg * catchItem.availableWeight * 0.2)
-                  .toStringAsFixed(2),
-            ),
+            price: (catchItem.pricePerKg * catchItem.availableWeight * 0.2)
+                .toInt(),
             status: OfferStatus.accepted,
             dateCreated: DateTime.now()
                 .subtract(Duration(days: 1))

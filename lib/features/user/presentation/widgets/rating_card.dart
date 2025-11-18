@@ -1,3 +1,4 @@
+import 'package:animated_rating_stars/animated_rating_stars.dart';
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
@@ -51,7 +52,7 @@ class RatingCard extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -64,22 +65,20 @@ class RatingCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: List.generate(5, (index) {
-                    // Display filled stars based on the average rating (rounded down)
-                    final isFilled = index < averageRating;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: Icon(
-                        CustomIcons.star,
-                        size: 16,
-                        color: isFilled
-                            ? AppColors.warning500
-                            : AppColors.gray200,
-                      ),
-                    );
-                  }),
+                AnimatedRatingStars(
+                  initialRating: averageRating,
+                  minRating: 1,
+                  maxRating: 5.0,
+
+                  filledColor: AppColors.shellOrange,
+                  emptyColor: AppColors.gray100,
+                  onChanged: (v) => null,
+                  interactiveTooltips: true,
+                  customFilledIcon: Icons.star_rounded,
+                  customHalfFilledIcon: Icons.star_half_rounded,
+                  customEmptyIcon: Icons.star_border_rounded,
+                  starSize: 16,
+                  readOnly: true,
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -120,7 +119,7 @@ class RatingValue extends StatelessWidget {
             ),
           ),
         ),
-        const Icon(CustomIcons.star, color: AppColors.warning500, size: 16),
+        const Icon(CustomIcons.star, color: AppColors.shellOrange, size: 16),
         const SizedBox(width: 4),
         Expanded(
           child: LinearProgressIndicator(

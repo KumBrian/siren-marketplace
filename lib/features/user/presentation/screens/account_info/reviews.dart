@@ -97,7 +97,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: ReviewCard(
                             // Round the rating value for the star display
-                            rating: review.ratingValue.round(),
+                            rating: review.ratingValue,
                             name: review.raterName,
                             date: review.dateCreated.toFormattedDate(),
                             image: review.raterAvatarUrl,

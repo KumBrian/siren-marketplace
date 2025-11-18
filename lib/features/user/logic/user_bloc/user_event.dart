@@ -11,6 +11,15 @@ class LoadPrimaryUser extends UserEvent {
   const LoadPrimaryUser();
 }
 
+class LoadUser extends UserEvent {
+  final String id;
+
+  const LoadUser({required this.id});
+
+  @override
+  List<Object> get props => [id];
+}
+
 class FinalizeRoleSelection extends UserEvent {
   final Role selectedRole;
 

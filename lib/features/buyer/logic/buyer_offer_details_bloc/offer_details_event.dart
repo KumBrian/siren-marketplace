@@ -49,7 +49,7 @@ class AcceptOffer extends OfferDetailsEvent {
 class SendCounterOffer extends OfferDetailsEvent {
   final Offer offer; // The ID of the offer being responded to
   final double newWeight;
-  final double newPrice;
+  final int newPrice;
   final Role role;
 
   const SendCounterOffer({

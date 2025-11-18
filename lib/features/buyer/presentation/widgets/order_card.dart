@@ -192,7 +192,9 @@ class OrderCard extends StatelessWidget {
                                       ),
                                       children: [
                                         TextSpan(
-                                          text: formatPrice(offer.price),
+                                          text: formatPrice(
+                                            offer.price.toDouble(),
+                                          ),
                                           style: const TextStyle(
                                             fontSize: 10,
                                             color: AppColors.textBlue,
