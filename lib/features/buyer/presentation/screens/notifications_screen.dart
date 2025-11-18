@@ -9,6 +9,7 @@ import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/message_card.dart'; // 🔑 Key Import
+import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/offer_card.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
@@ -230,6 +231,8 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
             // --- 3. Offers are Loaded ---
             final allOffers = offersState is OffersLoaded
                 ? offersState.offers
+                      .where((offer) => offer.buyerId == buyerId)
+                      .toList()
                 : <Offer>[];
             return Scaffold(
               appBar: AppBar(
@@ -347,14 +350,7 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
                     icon: const Icon(Icons.filter_alt_outlined),
                   ),
                 ],
-                title: const Text(
-                  "Notifications",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textBlue,
-                    fontSize: 24,
-                  ),
-                ),
+                title: PageTitle(title: "Notifications"),
               ),
               body: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),

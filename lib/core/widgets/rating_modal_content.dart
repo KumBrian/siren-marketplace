@@ -1,8 +1,8 @@
-import 'package:animated_rating_stars/animated_rating_stars.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 
+import 'animated_rating_stars.dart';
 import 'custom_button.dart';
 
 class RatingModalContent extends StatefulWidget {
@@ -147,7 +147,7 @@ class _RatingModalContentState extends State<RatingModalContent> {
                   customFilledIcon: Icons.star_rounded,
                   customHalfFilledIcon: Icons.star_half_rounded,
                   customEmptyIcon: Icons.star_border_rounded,
-                  starSize: 24.0,
+                  starSize: 32.0,
                   animationDuration: Duration(milliseconds: 300),
                   animationCurve: Curves.easeInOut,
                   readOnly: false,

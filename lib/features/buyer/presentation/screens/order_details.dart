@@ -17,6 +17,7 @@ import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
+import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
@@ -117,14 +118,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
         return Scaffold(
           appBar: AppBar(
             leading: BackButton(onPressed: () => context.pop()),
-            title: const Text(
-              "Order Details",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.textBlue,
-                fontSize: 24,
-              ),
-            ),
+            title: PageTitle(title: "Order Details"),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -301,53 +295,68 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                 const SizedBox(height: 8),
 
                 // Fisher Details
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ErrorHandlingCircleAvatar(avatarUrl: fisher.avatarUrl),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
+                Material(
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    onTap: () {
+                      context.push("/buyer/reviews/${offer.fisherId}");
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    splashColor: AppColors.blue700.withValues(alpha: 0.1),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            fisher.name, // Use local fisher object
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: AppColors.textBlue,
-                            ),
+                          ErrorHandlingCircleAvatar(
+                            avatarUrl: fisher.avatarUrl,
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.star,
-                                color: AppColors.shellOrange,
-                                size: 16,
-                              ),
-                              Text(
-                                fisher.rating.toStringAsFixed(1),
-                                // Use local fisher object
-                                style: const TextStyle(
-                                  color: AppColors.textBlue,
-                                  fontWeight: FontWeight.w300,
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  fisher.name, // Use local fisher object
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                    color: AppColors.textBlue,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                " (${fisher.reviewCount} Reviews)",
-                                // Use local fisher object
-                                style: const TextStyle(
-                                  color: AppColors.textBlue,
-                                  fontWeight: FontWeight.w300,
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      color: AppColors.shellOrange,
+                                      size: 16,
+                                    ),
+                                    Text(
+                                      fisher.rating.toStringAsFixed(1),
+                                      // Use local fisher object
+                                      style: const TextStyle(
+                                        color: AppColors.textBlue,
+                                        fontWeight: FontWeight.w300,
+                                      ),
+                                    ),
+                                    Text(
+                                      " (${fisher.reviewCount} Reviews)",
+                                      // Use local fisher object
+                                      style: const TextStyle(
+                                        color: AppColors.textBlue,
+                                        fontWeight: FontWeight.w300,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 16),
 

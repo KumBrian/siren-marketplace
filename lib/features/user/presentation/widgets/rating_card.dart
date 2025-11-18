@@ -1,7 +1,7 @@
-import 'package:animated_rating_stars/animated_rating_stars.dart';
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
+import 'package:siren_marketplace/core/widgets/animated_rating_stars.dart';
 
 class RatingCard extends StatelessWidget {
   final double averageRating;
@@ -66,10 +66,9 @@ class RatingCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 AnimatedRatingStars(
-                  initialRating: averageRating,
+                  initialRating: averageRating.toDouble(),
                   minRating: 1,
                   maxRating: 5.0,
-
                   filledColor: AppColors.shellOrange,
                   emptyColor: AppColors.gray100,
                   onChanged: (v) => null,

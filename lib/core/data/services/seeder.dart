@@ -114,13 +114,23 @@ class CatchSeeder {
 
     final List<Catch> seeded = [];
     final now = DateTime.now();
-    const fisherId = 'fisher_id_1';
+
+    // --- FIX START ---
+    final List<String> fisherIds = _userMaps
+        .where((user) => user['role'] == Role.fisher.name)
+        .map((user) => user['id'] as String)
+        .toList();
+    // --- FIX END ---
 
     for (int i = 0; i < 15; i++) {
       final species = _speciesList[i % _speciesList.length];
       final weight = 20 + _rng.nextDouble() * 100;
       final pricePerKg = 500 + _rng.nextInt(2000);
       final market = _markets[i % _markets.length];
+
+      // --- FIX START: Assign a random fisher ID ---
+      final fisherId = fisherIds[_rng.nextInt(fisherIds.length)];
+      // --- FIX END ---
 
       CatchStatus status;
       double availableWeight = weight;
@@ -157,6 +167,7 @@ class CatchSeeder {
         market: market,
         species: species,
         fisherId: fisherId,
+        // Use the dynamically selected ID
         images: randomImages,
         status: status,
       );
@@ -186,9 +197,11 @@ class CatchSeeder {
     final buyer2 = AppUser.fromMap(
       _userMaps.firstWhere((m) => m['id'] == 'buyer_id_2'),
     );
-    final fisher1 = AppUser.fromMap(
-      _userMaps.firstWhere((m) => m['id'] == 'fisher_id_1'),
-    );
+    // Get all fishers
+    final fishers = _userMaps
+        .where((m) => m['role'] == Role.fisher.name)
+        .map((m) => AppUser.fromMap(m))
+        .toList();
     final Random random = Random();
     final List<Offer> allOffers = [];
     final buyers = [buyer1, buyer2];
@@ -196,6 +209,9 @@ class CatchSeeder {
     for (int i = 0; i < seededCatches.length; i++) {
       final catchItem = seededCatches[i];
       final buyer = buyers[i % buyers.length];
+
+      // Get the fisher details for the current catch
+      final fisher = fishers.firstWhere((f) => f.id == catchItem.fisherId);
 
       if (catchItem.status == CatchStatus.available ||
           catchItem.status == CatchStatus.processing) {
@@ -219,9 +235,12 @@ class CatchSeeder {
           previousWeight: null,
           catchName: catchItem.name,
           catchImageUrl: catchItem.images.first,
-          fisherName: fisher1.name,
-          fisherRating: fisher1.rating,
-          fisherAvatarUrl: fisher1.avatarUrl,
+          fisherName: fisher.name,
+          // Use the correct fisher name
+          fisherRating: fisher.rating,
+          // Use the correct fisher rating
+          fisherAvatarUrl: fisher.avatarUrl,
+          // Use the correct fisher avatar
           buyerName: buyer.name,
           buyerRating: buyer.rating,
           buyerAvatarUrl: buyer.avatarUrl,
@@ -252,9 +271,12 @@ class CatchSeeder {
             previousWeight: null,
             catchName: catchItem.name,
             catchImageUrl: catchItem.images.first,
-            fisherName: fisher1.name,
-            fisherRating: fisher1.rating,
-            fisherAvatarUrl: fisher1.avatarUrl,
+            fisherName: fisher.name,
+            // Use the correct fisher name
+            fisherRating: fisher.rating,
+            // Use the correct fisher rating
+            fisherAvatarUrl: fisher.avatarUrl,
+            // Use the correct fisher avatar
             buyerName: buyer.name,
             buyerRating: buyer.rating,
             buyerAvatarUrl: buyer.avatarUrl,

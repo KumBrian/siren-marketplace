@@ -83,11 +83,11 @@ class UserRepository {
       'users',
       where: 'role = ?',
       whereArgs: [Role.fisher.name],
-      limit: 1,
+      limit: 2,
     );
 
     if (data.isEmpty) return null;
-    return data.first;
+    return data.last;
   }
 
   /// Fetches the first user with the role `buyer`, returning the raw map.

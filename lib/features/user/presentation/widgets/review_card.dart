@@ -1,6 +1,6 @@
-import 'package:animated_rating_stars/animated_rating_stars.dart';
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/widgets/animated_rating_stars.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 
 class ReviewCard extends StatelessWidget {
@@ -45,7 +45,7 @@ class ReviewCard extends StatelessWidget {
                     children: [
                       // Star Icons
                       AnimatedRatingStars(
-                        initialRating: rating,
+                        initialRating: rating.toDouble(),
                         minRating: 1,
                         maxRating: 5.0,
 

@@ -156,8 +156,11 @@ GoRouter createRouter(UserBloc userBloc) {
             builder: (_, __) => const MarketTrends(),
           ),
           GoRoute(
-            path: 'notifications',
-            builder: (_, __) => const NotificationsScreen(),
+            path: 'notifications/:fisherId',
+            builder: (context, state) {
+              final String? fisherId = state.pathParameters['fisherId'];
+              return NotificationsScreen(fisherId: fisherId!);
+            },
           ),
           GoRoute(path: 'chat', builder: (_, __) => const ChatPage()),
           GoRoute(
