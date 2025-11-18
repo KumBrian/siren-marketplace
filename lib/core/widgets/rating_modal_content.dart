@@ -1,7 +1,7 @@
+import 'package:animated_rating_stars/animated_rating_stars.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/utils/custom_icons.dart';
 
 import 'custom_button.dart';
 
@@ -35,7 +35,7 @@ class RatingModalContent extends StatefulWidget {
 }
 
 class _RatingModalContentState extends State<RatingModalContent> {
-  int _currentRating = 0;
+  double _currentRating = 0;
   final TextEditingController _messageController = TextEditingController();
   bool _isSubmitting = false;
 
@@ -48,7 +48,7 @@ class _RatingModalContentState extends State<RatingModalContent> {
     super.dispose();
   }
 
-  void _rate(int rating) {
+  void _rate(double rating) {
     setState(() {
       _currentRating = rating;
     });
@@ -134,23 +134,23 @@ class _RatingModalContentState extends State<RatingModalContent> {
               const SizedBox(height: 16),
               // RATING WIDGET
               Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: List.generate(5, (index) {
-                    final starValue = index + 1;
-                    final color = starValue <= _currentRating
-                        ? _activeColor
-                        : _inactiveColor;
-
-                    return GestureDetector(
-                      onTap: () => _rate(starValue),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Icon(CustomIcons.star, size: 32, color: color),
-                      ),
-                    );
-                  }),
+                child: AnimatedRatingStars(
+                  initialRating: 0.0,
+                  minRating: 1,
+                  maxRating: 5.0,
+                  filledColor: _activeColor,
+                  emptyColor: _inactiveColor,
+                  onChanged: (double rating) {
+                    _rate(rating);
+                  },
+                  interactiveTooltips: true,
+                  customFilledIcon: Icons.star_rounded,
+                  customHalfFilledIcon: Icons.star_half_rounded,
+                  customEmptyIcon: Icons.star_border_rounded,
+                  starSize: 24.0,
+                  animationDuration: Duration(milliseconds: 300),
+                  animationCurve: Curves.easeInOut,
+                  readOnly: false,
                 ),
               ),
               const SizedBox(height: 16),
@@ -174,7 +174,7 @@ class _RatingModalContentState extends State<RatingModalContent> {
               CustomButton(
                 title: _isSubmitting
                     ? "Submitting..."
-                    : "Submit Review (${_currentRating} Stars)",
+                    : "Submit Review (${_currentRating.toStringAsFixed(1)} Stars)",
                 disabled: _currentRating == 0 || _isSubmitting,
                 onPressed: () => _submitRating(context),
               ),

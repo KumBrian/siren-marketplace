@@ -141,7 +141,7 @@ class OfferCard extends StatelessWidget {
             _pill("${offer.weight.toInt()} kg"),
 
             const SizedBox(width: 8),
-            _pill(formatPrice(offer.price)),
+            _pill(formatPrice(offer.price.toDouble())),
           ],
         ),
         Row(

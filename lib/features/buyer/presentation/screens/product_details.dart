@@ -81,26 +81,26 @@ class _ProductDetailsState extends State<ProductDetails> {
 
     // Prefill with the catch's current price per kg
     final initialPricePerKg = c.pricePerKg; // must exist in your Catch model
-    _pricePerKgController.text = initialPricePerKg.toStringAsFixed(2);
+    _pricePerKgController.text = initialPricePerKg.toStringAsFixed(0);
 
     bool userEditingTotal = false;
 
     void updateTotalFromWeight() {
       if (userEditingTotal) return; // prevent loop
       final weight = double.tryParse(_weightController.text);
-      final pricePerKg = double.tryParse(_pricePerKgController.text);
+      final pricePerKg = int.tryParse(_pricePerKgController.text);
       if (weight != null && pricePerKg != null) {
         final total = weight * pricePerKg;
-        _priceController.text = total.toStringAsFixed(2);
+        _priceController.text = total.toStringAsFixed(0);
       }
     }
 
     void updatePricePerKgFromTotal() {
       final weight = double.tryParse(_weightController.text);
-      final total = double.tryParse(_priceController.text);
+      final total = int.tryParse(_priceController.text);
       if (weight != null && weight > 0 && total != null) {
         final pricePerKg = total / weight;
-        _pricePerKgController.text = pricePerKg.toStringAsFixed(2);
+        _pricePerKgController.text = pricePerKg.toStringAsFixed(0);
       }
     }
 
@@ -174,6 +174,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         controller: _priceController,
                         label: "Total Price",
                         suffix: "CFA",
+                        decimal: false,
                         validator: (value) {
                           final price = double.tryParse(value ?? "");
                           if (price == null || price <= 0) {
@@ -187,6 +188,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         controller: _pricePerKgController,
                         label: "Price/Kg",
                         suffix: "CFA",
+                        decimal: false,
                         validator: (value) {
                           final pricePerKg = double.tryParse(value ?? "");
                           if (pricePerKg == null || pricePerKg <= 0) {
@@ -211,10 +213,10 @@ class _ProductDetailsState extends State<ProductDetails> {
                           final weight = double.tryParse(
                             _weightController.text,
                           );
-                          final totalPrice = double.tryParse(
+                          final totalPrice = int.tryParse(
                             _priceController.text,
                           );
-                          final pricePerKg = double.tryParse(
+                          final pricePerKg = int.tryParse(
                             _pricePerKgController.text,
                           );
 
@@ -366,7 +368,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         child: Center(
                           child: Text(
                             // Using the price from the Catch model
-                            formatPrice(c.pricePerKg),
+                            formatPrice(c.pricePerKg.toDouble()),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,

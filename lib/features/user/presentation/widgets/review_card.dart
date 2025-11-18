@@ -1,12 +1,12 @@
+import 'package:animated_rating_stars/animated_rating_stars.dart';
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 
 class ReviewCard extends StatelessWidget {
   final String name;
   final String date;
-  final int rating;
+  final double rating;
   final String image;
   final String message;
 
@@ -44,15 +44,20 @@ class ReviewCard extends StatelessWidget {
                   Row(
                     children: [
                       // Star Icons
-                      ...List.generate(
-                        5,
-                        (index) => Icon(
-                          CustomIcons.star,
-                          size: 14,
-                          color: index < rating
-                              ? AppColors.warning500
-                              : AppColors.gray200,
-                        ),
+                      AnimatedRatingStars(
+                        initialRating: rating,
+                        minRating: 1,
+                        maxRating: 5.0,
+
+                        filledColor: AppColors.shellOrange,
+                        emptyColor: AppColors.gray100,
+                        onChanged: (v) => null,
+                        interactiveTooltips: true,
+                        customFilledIcon: Icons.star_rounded,
+                        customHalfFilledIcon: Icons.star_half_rounded,
+                        customEmptyIcon: Icons.star_rounded,
+                        starSize: 12,
+                        readOnly: true,
                       ),
                       const SizedBox(width: 8),
                       // Date

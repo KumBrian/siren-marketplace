@@ -240,7 +240,7 @@ class _OfferActionsState extends State<OfferActions> {
                                     ),
                                   ),
                                   Text(
-                                    "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price)}",
+                                    "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price.toDouble())}",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 18,
@@ -308,7 +308,7 @@ class _OfferActionsState extends State<OfferActions> {
                                   ),
                                 ),
                                 Text(
-                                  "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price)}",
+                                  "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price.toDouble())}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w800,
                                     fontSize: 18,

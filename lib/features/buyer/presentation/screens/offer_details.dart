@@ -19,6 +19,7 @@ import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
+import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
@@ -28,9 +29,9 @@ import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 class PreviousOfferDetails {
-  final double price;
+  final int price;
   final double weight;
-  final double pricePerKg;
+  final int pricePerKg;
 
   const PreviousOfferDetails({
     required this.price,
@@ -253,10 +254,10 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                           final weight = double.tryParse(
                             _weightController.text,
                           );
-                          final totalPrice = double.tryParse(
+                          final totalPrice = int.tryParse(
                             _priceController.text,
                           );
-                          final pricePerKg = double.tryParse(
+                          final pricePerKg = int.tryParse(
                             _pricePerKgController.text,
                           );
 
@@ -426,7 +427,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
               return Scaffold(
                 appBar: AppBar(
                   leading: BackButton(onPressed: () => context.pop()),
-                  title: const Text("Offer Details"),
+                  title: const PageTitle(title: "Offer Details"),
                 ),
                 body: Center(child: Text(errorMessage)),
               );
@@ -457,20 +458,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                 return Scaffold(
                   appBar: AppBar(
                     leading: BackButton(onPressed: () => context.pop()),
-                    title: const Text(
-                      "Offer Details",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textBlue,
-                        fontSize: 24,
-                      ),
-                    ),
-                    actions: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.more_vert),
-                      ),
-                    ],
+                    title: const PageTitle(title: "Offer Details"),
                   ),
                   body: SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
@@ -550,11 +538,13 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                                 ),
                                 InfoRow(
                                   label: "Price",
-                                  value: formatPrice(previous.price),
+                                  value: formatPrice(previous.price.toDouble()),
                                 ),
                                 InfoRow(
                                   label: "Price Per Kg",
-                                  value: formatPrice(previous.pricePerKg),
+                                  value: formatPrice(
+                                    previous.pricePerKg.toDouble(),
+                                  ),
                                 ),
                               ],
                             ),
@@ -839,51 +829,64 @@ class FisherDetails extends StatelessWidget {
       spacing: 8,
       children: [
         SectionHeader("Seller"),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ErrorHandlingCircleAvatar(avatarUrl: avatarUrl),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
+        Material(
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            onTap: () {
+              context.push("/buyer/reviews/${fisher?.id}");
+            },
+            borderRadius: BorderRadius.circular(16),
+            splashColor: AppColors.blue700.withValues(alpha: 0.1),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: AppColors.textBlue,
+                  ErrorHandlingCircleAvatar(avatarUrl: avatarUrl),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: AppColors.textBlue,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: AppColors.shellOrange,
+                              size: 16,
+                            ),
+                            Text(
+                              rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                color: AppColors.textBlue,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                            Text(
+                              " ($reviewCount Reviews)",
+                              style: const TextStyle(
+                                color: AppColors.textBlue,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        color: AppColors.shellOrange,
-                        size: 16,
-                      ),
-                      Text(
-                        rating.toStringAsFixed(1),
-                        style: const TextStyle(
-                          color: AppColors.textBlue,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      Text(
-                        " ($reviewCount Reviews)",
-                        style: const TextStyle(
-                          color: AppColors.textBlue,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ],
     );

@@ -16,6 +16,7 @@ import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
+import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/data/models/message.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
@@ -156,9 +157,10 @@ class _CatchDetailsState extends State<CatchDetails>
               // 2. Calculation runs on every rebuild (triggered by setState below)
               final double currentWeight =
                   double.tryParse(weightController.text) ?? 0.0;
-              final double currentPricePerKg =
-                  double.tryParse(pricePerKgController.text) ?? 0.0;
-              final double currentTotal = currentWeight * currentPricePerKg;
+              final int currentPricePerKg =
+                  int.tryParse(pricePerKgController.text) ?? 0;
+              final int currentTotal = (currentWeight * currentPricePerKg)
+                  .toInt();
 
               // 3. Update the read-only controller's text within the builder
               totalController.text = currentTotal.toStringAsFixed(0);
@@ -189,46 +191,49 @@ class _CatchDetailsState extends State<CatchDetails>
                           border: Border.all(color: AppColors.textBlue),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: NumberInputField(
-                          controller: weightController,
-                          label: "Available Weight",
-                          role: Role.fisher,
-                          suffix: "Kg",
-                          // 🌟 FIX 1: Add onChanged listener
-                          onChanged: updateStateOnChanged,
+                        child: Column(
+                          children: [
+                            NumberInputField(
+                              controller: weightController,
+                              label: "Available Weight",
+                              role: Role.fisher,
+                              suffix: "Kg",
+                              // 🌟 FIX 1: Add onChanged listener
+                              onChanged: updateStateOnChanged,
+                            ),
+                            const SizedBox(height: 16),
+                            NumberInputField(
+                              controller: pricePerKgController,
+                              label: "Price per Kg",
+                              role: Role.fisher,
+                              decimal: false,
+                              suffix: "CFA",
+                              // add validator for only integer input
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a value';
+                                }
+                                final parsedValue = int.tryParse(value);
+                                if (parsedValue == null) {
+                                  return 'Please enter a whole number';
+                                }
+                                return null;
+                              },
+                              // 🌟 FIX 2: Add onChanged listener
+                              onChanged: updateStateOnChanged,
+                            ),
+                            const SizedBox(height: 16),
+                            NumberInputField(
+                              controller: totalController,
+                              label: "Total",
+                              role: Role.fisher,
+                              suffix: "CFA",
+                              onChanged: null,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.textBlue),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: NumberInputField(
-                          controller: pricePerKgController,
-                          label: "Price per Kg",
-                          role: Role.fisher,
-                          suffix: "CFA",
-                          // 🌟 FIX 2: Add onChanged listener
-                          onChanged: updateStateOnChanged,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.textBlue),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: NumberInputField(
-                          controller: totalController,
-                          label: "Total",
-                          role: Role.fisher,
-                          suffix: "CFA",
-                          onChanged: null,
-                        ),
-                      ),
+
                       const SizedBox(height: 24),
                       CustomButton(
                         title: "Update Catch",
@@ -337,14 +342,7 @@ class _CatchDetailsState extends State<CatchDetails>
                 return Scaffold(
                   appBar: AppBar(
                     leading: const BackButton(),
-                    title: const Text(
-                      "Catch Details",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                        color: AppColors.textBlue,
-                      ),
-                    ),
+                    title: const PageTitle(title: "Catch Details"),
                     actions: [
                       IconButton(
                         onPressed: () =>
@@ -475,27 +473,39 @@ class _CatchDetailsState extends State<CatchDetails>
                             rows: [
                               ?selectedCatch.species.id == "prawns"
                                   ? InfoRow(
-                                      label: "Average Size",
+                                      label: "Size",
                                       value: selectedCatch.size,
+                                    )
+                                  : null,
+                              ?selectedCatch.species.id != "prawns"
+                                  ? InfoRow(
+                                      label: "Average Size",
+                                      value: "${selectedCatch.size} cm",
                                     )
                                   : null,
                               InfoRow(
                                 label: "Initial weight",
                                 suffix: "Kg",
-                                value: selectedCatch.initialWeight.toInt(),
+                                value: selectedCatch.initialWeight
+                                    .toStringAsFixed(1),
                               ),
                               InfoRow(
                                 label: "Available weight",
                                 suffix: "Kg",
-                                value: selectedCatch.availableWeight.toInt(),
+                                value: selectedCatch.availableWeight
+                                    .toStringAsFixed(1),
                               ),
                               InfoRow(
                                 label: "Price/Kg",
-                                value: formatPrice(selectedCatch.pricePerKg),
+                                value: formatPrice(
+                                  selectedCatch.pricePerKg.toDouble(),
+                                ),
                               ),
                               InfoRow(
                                 label: "Total",
-                                value: formatPrice(selectedCatch.total),
+                                value: formatPrice(
+                                  selectedCatch.total.toDouble(),
+                                ),
                               ),
                             ],
                           ),
@@ -730,7 +740,12 @@ class _CatchDetailsState extends State<CatchDetails>
                                               MainAxisAlignment.center,
                                           children: [
                                             const Text("Offers"),
-                                            if (selectedCatch.offers.isNotEmpty)
+                                            if (selectedCatch.offers
+                                                .where(
+                                                  (offer) =>
+                                                      offer.hasUpdateForFisher,
+                                                )
+                                                .isNotEmpty)
                                               Container(
                                                 margin: const EdgeInsets.only(
                                                   left: 8,
@@ -749,7 +764,7 @@ class _CatchDetailsState extends State<CatchDetails>
                                                             ),
                                                 ),
                                                 child: Text(
-                                                  "${selectedCatch.offers.length}",
+                                                  "${selectedCatch.offers.where((offer) => offer.hasUpdateForFisher).length}",
                                                   style: const TextStyle(
                                                     fontSize: 12,
                                                     color: AppColors.textWhite,

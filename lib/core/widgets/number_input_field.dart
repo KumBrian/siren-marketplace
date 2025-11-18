@@ -12,15 +12,19 @@ class NumberInputField extends StatefulWidget {
     required this.controller,
     this.onChanged,
     this.validator,
+    this.decimal = true,
+    this.editable = false,
   });
 
   final String label;
   final Role role;
-  final double? value;
+  final num? value;
   final String suffix;
   final TextEditingController controller;
   final ValueChanged<String>? onChanged;
   final String? Function(dynamic value)? validator;
+  final bool? decimal;
+  final bool? editable;
 
   @override
   State<NumberInputField> createState() => _NumberInputFieldState();
@@ -63,7 +67,7 @@ class _NumberInputFieldState extends State<NumberInputField> {
           if (!mounted) return; // Safety check if the widget was disposed
 
           if (newValue != null && newValue > 0.0) {
-            final newText = newValue.toStringAsFixed(2);
+            final newText = newValue.toStringAsFixed(0);
             // Only update if the text is genuinely different
             if (widget.controller.text != newText) {
               widget.controller.text = newText;
@@ -82,12 +86,12 @@ class _NumberInputFieldState extends State<NumberInputField> {
     // Check is updated to include 'Weight' as read-only.
     final isReadOnly =
         widget.label == "Price/Kg" ||
-        widget.label == "Total" ||
+        (widget.label == "Total" && !widget.editable!) ||
         (widget.label == "Weight" && widget.role == Role.fisher);
 
     return TextFormField(
       controller: widget.controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      keyboardType: TextInputType.numberWithOptions(decimal: widget.decimal),
 
       // Only attach onChanged for the input fields ("Total" is now the only one)
       onChanged: isReadOnly ? null : widget.onChanged,

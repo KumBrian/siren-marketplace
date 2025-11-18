@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/user/data/models/profile_route.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
@@ -52,10 +53,7 @@ class AccountInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Account Info",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
+        title: PageTitle(title: "Account Info"),
         centerTitle: true,
       ),
       body: BlocBuilder<UserBloc, UserState>(

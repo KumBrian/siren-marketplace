@@ -63,9 +63,9 @@ class OfferRepository {
     required String catchId,
     required String buyerId,
     required String fisherId,
-    required double price,
+    required int price,
     required double weight,
-    required double pricePerKg,
+    required int pricePerKg,
   }) async {
     final db = await dbHelper.database;
 
@@ -312,11 +312,11 @@ extension OfferRepositoryActions on OfferRepository {
   /// Used when either party proposes new terms.
   Future<Offer> counterOffer({
     required Offer previous,
-    required double newPrice,
+    required int newPrice,
     required double newWeight,
     required Role role,
   }) async {
-    final newPricePerKg = newPrice / newWeight;
+    final newPricePerKg = (newPrice / newWeight).toInt();
     final now = DateTime.now().toIso8601String();
 
     final updatedOffer = previous.copyWith(

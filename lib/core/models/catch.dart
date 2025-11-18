@@ -13,8 +13,8 @@ class Catch extends Equatable {
   final String datePosted;
   final double initialWeight;
   final double availableWeight;
-  final double pricePerKg;
-  final double total;
+  final int pricePerKg;
+  final int total;
   final String size;
   final String market;
   final List<String> images;
@@ -81,8 +81,8 @@ class Catch extends Equatable {
     double? availableWeight,
     CatchStatus? status,
     List<Offer>? offers,
-    double? pricePerKg,
-    double? total,
+    int? pricePerKg,
+    int? total,
   }) {
     return Catch(
       id: id,
@@ -128,8 +128,8 @@ class Catch extends Equatable {
     datePosted: m['date_created'] as String,
     initialWeight: (m['initial_weight'] as num).toDouble(),
     availableWeight: (m['available_weight'] as num).toDouble(),
-    pricePerKg: (m['price_per_kg'] as num).toDouble(),
-    total: (m['total'] as num).toDouble(),
+    pricePerKg: (m['price_per_kg'] as num).toInt(),
+    total: (m['total'] as num).toInt(),
     size: m['size'] as String,
     market: m['market'] as String,
     species: Species(

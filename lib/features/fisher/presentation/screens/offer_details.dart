@@ -14,6 +14,7 @@ import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
+import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
 import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
@@ -34,9 +35,9 @@ extension IterableExtensions<T> on Iterable<T> {
 
 /// Holds the necessary historical negotiation details for display.
 class PreviousOfferDetails {
-  final double price;
+  final int price;
   final double weight;
-  final double pricePerKg;
+  final int pricePerKg;
 
   const PreviousOfferDetails({
     required this.price,
@@ -258,14 +259,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                 return Scaffold(
                   appBar: AppBar(
                     leading: BackButton(onPressed: () => context.pop()),
-                    title: const Text(
-                      "Offer Details",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textBlue,
-                        fontSize: 24,
-                      ),
-                    ),
+                    title: const PageTitle(title: "Offer Details"),
                   ),
                   body: SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
@@ -402,11 +396,15 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                               ),
                               InfoRow(
                                 label: "Price/Kg",
-                                value: formatPrice(selectedOffer.pricePerKg),
+                                value: formatPrice(
+                                  selectedOffer.pricePerKg.toDouble(),
+                                ),
                               ),
                               InfoRow(
                                 label: "Total",
-                                value: formatPrice(selectedOffer.price),
+                                value: formatPrice(
+                                  selectedOffer.price.toDouble(),
+                                ),
                               ),
                             ],
                           ),
@@ -472,11 +470,13 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                                 ),
                                 InfoRow(
                                   label: "Price",
-                                  value: formatPrice(previous.price),
+                                  value: formatPrice(previous.price.toDouble()),
                                 ),
                                 InfoRow(
                                   label: "Price Per Kg",
-                                  value: formatPrice(previous.pricePerKg),
+                                  value: formatPrice(
+                                    previous.pricePerKg.toDouble(),
+                                  ),
                                 ),
                               ],
                             ),
@@ -513,51 +513,64 @@ class OfferHeader extends StatelessWidget {
     final clientRating = buyer?.rating ?? 0.0;
     final clientReviewCount = buyer?.reviewCount ?? 0;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ErrorHandlingCircleAvatar(avatarUrl: clientAvatar),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
+    return Material(
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: () {
+          context.push("/buyer/reviews/${buyer?.id}");
+        },
+        borderRadius: BorderRadius.circular(16),
+        splashColor: AppColors.blue700.withValues(alpha: 0.1),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                clientName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                  color: AppColors.textBlue,
+              ErrorHandlingCircleAvatar(avatarUrl: clientAvatar),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      clientName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: AppColors.textBlue,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          color: AppColors.shellOrange,
+                          size: 16,
+                        ),
+                        Text(
+                          clientRating.toStringAsFixed(1),
+                          style: const TextStyle(
+                            color: AppColors.textBlue,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                        Text(
+                          " ($clientReviewCount Reviews)",
+                          style: const TextStyle(
+                            color: AppColors.textBlue,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.star,
-                    color: AppColors.shellOrange,
-                    size: 16,
-                  ),
-                  Text(
-                    clientRating.toStringAsFixed(1),
-                    style: const TextStyle(
-                      color: AppColors.textBlue,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                  Text(
-                    " ($clientReviewCount Reviews)",
-                    style: const TextStyle(
-                      color: AppColors.textBlue,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

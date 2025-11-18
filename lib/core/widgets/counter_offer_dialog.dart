@@ -7,7 +7,7 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 typedef CounterSubmit =
     Future<void> Function(
       double newWeight,
-      double newPrice,
+      int newPrice,
       BuildContext dialogContext,
     );
 
@@ -16,7 +16,7 @@ Future<void> showCounterOfferDialog({
   required GlobalKey<FormState> formKey,
   required Role role,
   required double initialWeight,
-  required double initialPrice,
+  required int initialPrice,
   required CounterSubmit onSubmit,
 }) async {
   final weightController = TextEditingController(
@@ -27,9 +27,12 @@ Future<void> showCounterOfferDialog({
   );
   final pricePerKgController = TextEditingController();
 
-  double calcPricePerKg(double w, double p) => (w > 0) ? p / w : 0;
+  double calcPricePerKg(double w, int p) => (w > 0) ? p / w : 0;
 
-  double calculatedPricePerKg = calcPricePerKg(initialWeight, initialPrice);
+  int calculatedPricePerKg = calcPricePerKg(
+    initialWeight,
+    initialPrice,
+  ).toInt();
   pricePerKgController.text = calculatedPricePerKg.toStringAsFixed(0);
 
   await showDialog(
@@ -49,9 +52,9 @@ Future<void> showCounterOfferDialog({
           builder: (ctx, setLocalState) {
             void updatePricePerKg(String _) {
               final w = double.tryParse(weightController.text) ?? 0.0;
-              final p = double.tryParse(priceController.text) ?? 0.0;
+              final p = int.parse(priceController.text);
               setLocalState(() {
-                calculatedPricePerKg = calcPricePerKg(w, p);
+                calculatedPricePerKg = calcPricePerKg(w, p).toInt();
                 pricePerKgController.text = calculatedPricePerKg
                     .toStringAsFixed(0);
               });
@@ -83,6 +86,8 @@ Future<void> showCounterOfferDialog({
                           controller: priceController,
                           label: "Total",
                           suffix: "CFA",
+                          editable: true,
+                          decimal: false,
                           onChanged: updatePricePerKg,
                         ),
                         const SizedBox(height: 12),
@@ -90,6 +95,14 @@ Future<void> showCounterOfferDialog({
                           controller: pricePerKgController,
                           label: "Price/Kg",
                           suffix: "CFA",
+                          decimal: false,
+                          validator: (value) {
+                            final pricePerKg = int.tryParse(value ?? "");
+                            if (pricePerKg == null || pricePerKg <= 0) {
+                              return "Enter valid price per kg";
+                            }
+                            return null;
+                          },
                           value: calculatedPricePerKg,
                         ),
                       ],
@@ -101,8 +114,7 @@ Future<void> showCounterOfferDialog({
                     onPressed: () async {
                       final newWeight =
                           double.tryParse(weightController.text) ?? 0.0;
-                      final newPrice =
-                          double.tryParse(priceController.text) ?? 0.0;
+                      final newPrice = int.tryParse(priceController.text) ?? 0;
                       if (formKey.currentState!.validate() &&
                           newWeight > 0 &&
                           newPrice > 0) {
