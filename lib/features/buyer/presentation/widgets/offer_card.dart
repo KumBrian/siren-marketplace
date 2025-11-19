@@ -91,24 +91,33 @@ class OfferCard extends StatelessWidget {
                   : FontWeight.w400, // Make name prominent
             ),
             const SizedBox(width: 4),
-            const Icon(Icons.star, color: AppColors.shellOrange, size: 16),
+            const Icon(Icons.star, color: AppColors.shellOrange, size: 12),
             // 🆕 Use the passed-in fisherRating
-            _text(
+            Text(
               fisherRating.toStringAsFixed(1), // Ensure proper formatting
-              offer.hasUpdateForBuyer ? AppColors.textBlue : AppColors.textGray,
-              fontWeight: offer.hasUpdateForBuyer
-                  ? FontWeight.w500
-                  : FontWeight.w300,
+              style: TextStyle(
+                color: offer.hasUpdateForBuyer
+                    ? AppColors.textBlue
+                    : AppColors.textGray,
+                fontWeight: offer.hasUpdateForBuyer
+                    ? FontWeight.w500
+                    : FontWeight.w300,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
-        _text(
+        Text(
           offer.dateCreated.toFormattedDate(),
-          offer.hasUpdateForBuyer ? AppColors.textBlue : AppColors.textGray,
-          fontWeight: offer.hasUpdateForBuyer
-              ? FontWeight.w500
-              : FontWeight.w300,
-          fontSize: 12,
+          style: TextStyle(
+            color: offer.hasUpdateForBuyer
+                ? AppColors.textBlue
+                : AppColors.textGray,
+            fontWeight: offer.hasUpdateForBuyer
+                ? FontWeight.w500
+                : FontWeight.w300,
+            fontSize: 10,
+          ),
         ),
       ],
     );
@@ -117,6 +126,7 @@ class OfferCard extends StatelessWidget {
   /// Bottom row: pills (weight/price) + status
   Widget _detailsRow() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
@@ -128,14 +138,23 @@ class OfferCard extends StatelessWidget {
           ],
         ),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          spacing: 4,
           children: [
             // Status text
-            _text(offer.status.name.capitalize(), AppColors.textGray),
+            Text(
+              offer.status.name.capitalize(),
+              style: TextStyle(
+                color: AppColors.textGray,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             const SizedBox(width: 8),
             // Status circle indicator
             Container(
-              width: 10,
-              height: 10,
+              width: 8,
+              height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.getStatusColor(offer.status),
@@ -150,16 +169,18 @@ class OfferCard extends StatelessWidget {
   /// Small pill-shaped label
   Widget _pill(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         color: AppColors.gray100,
       ),
-      child: _text(
+      child: Text(
         text,
-        AppColors.textBlue,
-        fontWeight: FontWeight.bold,
-        fontSize: 14,
+        style: TextStyle(
+          color: AppColors.textBlue,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
       ),
     );
   }
@@ -171,12 +192,17 @@ class OfferCard extends StatelessWidget {
     FontWeight fontWeight = FontWeight.normal,
     double fontSize = 14,
   }) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: fontSize,
-        fontWeight: fontWeight,
-        color: color,
+    return SizedBox(
+      width: 100,
+      child: Text(
+        text,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+          color: color,
+        ),
       ),
     );
   }

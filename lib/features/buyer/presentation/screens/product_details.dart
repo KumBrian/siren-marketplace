@@ -235,14 +235,15 @@ class _ProductDetailsState extends State<ProductDetails> {
                               ),
                             );
                             context.read<CatchesBloc>().add(LoadCatches());
+                            context.read<ProductsCubit>().loadMarketCatches();
                             context.pop();
                             showDialog(
                               context: context,
-                              barrierDismissible: true,
+                              barrierDismissible: false,
                               builder: (ctx) {
-                                Future.delayed(Duration(seconds: 2), () {
-                                  if (ctx.mounted) Navigator.of(ctx).pop();
-                                });
+                                // Future.delayed(Duration(seconds: 2), () {
+                                //   if (ctx.mounted) Navigator.of(ctx).pop();
+                                // });
 
                                 return AlertDialog(
                                   title: Container(
@@ -271,6 +272,13 @@ class _ProductDetailsState extends State<ProductDetails> {
                                           color: AppColors.textBlue,
                                         ),
                                         textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      CustomButton(
+                                        title: "View Marketplace",
+                                        onPressed: () {
+                                          ctx.go("/buyer");
+                                        },
                                       ),
                                     ],
                                   ),
@@ -301,241 +309,259 @@ class _ProductDetailsState extends State<ProductDetails> {
           );
         }
         final user = userState.user;
-        return BlocBuilder<ProductsCubit, ProductsState>(
-          builder: (context, productsState) {
-            if (productsState is ProductsLoading ||
-                productsState is ProductsInitial) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+        return BlocListener<ProductsCubit, ProductsState>(
+          listener: (context, state) {
+            if (state is ProductsLoaded) {
+              final catchItem = state.availableCatches.firstWhereOrNull(
+                (c) => c.id == widget.productId,
               );
-            }
 
-            if (productsState is ProductsError) {
-              return Scaffold(
-                appBar: AppBar(leading: const BackButton()),
-                body: Center(
-                  child: Text(
-                    "Error loading products: ${productsState.message}",
+              if (catchItem != null) {
+                context.read<FisherCubit>().fetchFisher(catchItem.fisherId);
+              }
+            }
+          },
+          child: BlocBuilder<ProductsCubit, ProductsState>(
+            builder: (context, productsState) {
+              if (productsState is ProductsLoading ||
+                  productsState is ProductsInitial) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              if (productsState is ProductsError) {
+                return Scaffold(
+                  appBar: AppBar(leading: const BackButton()),
+                  body: Center(
+                    child: Text(
+                      "Error loading products: ${productsState.message}",
+                    ),
                   ),
-                ),
+                );
+              }
+
+              final loadedProducts = productsState as ProductsLoaded;
+              final catchItem = loadedProducts.availableCatches
+                  .firstWhereOrNull((c) => c.id == widget.productId);
+
+              if (catchItem == null) {
+                return Scaffold(
+                  appBar: AppBar(
+                    leading: const BackButton(),
+                    title: const Text("Details"),
+                  ),
+                  body: const Center(
+                    child: Text("Catch not found in marketplace listings."),
+                  ),
+                );
+              }
+
+              final c = catchItem;
+
+              // Check if the current user has any pending offers on this catch
+              final bool hasPendingOffer = c.offers.any(
+                (offer) =>
+                    offer.status == OfferStatus.pending &&
+                    offer.buyerId == user!.id,
               );
-            }
 
-            final loadedProducts = productsState as ProductsLoaded;
-            final catchItem = loadedProducts.availableCatches.firstWhereOrNull(
-              (c) => c.id == widget.productId,
-            );
-
-            if (catchItem == null) {
               return Scaffold(
                 appBar: AppBar(
                   leading: const BackButton(),
-                  title: const Text("Details"),
+                  title: PageTitle(title: "Product Details"),
+                  centerTitle: true,
                 ),
-                body: const Center(
-                  child: Text("Catch not found in marketplace listings."),
+                body: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 8,
+                      children: [
+                        // Images
+                        ProductImagesCarousel(images: c.images),
+
+                        SectionHeader(c.name),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.gray100,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.gray200),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  // Using the price from the Catch model
+                                  formatPrice(c.pricePerKg.toDouble()),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    color: AppColors.textBlue,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text("/Kg"),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.gray200),
+                          ),
+                          child: InfoTable(
+                            rows: [
+                              InfoRow(
+                                label: "Market",
+                                value: c.market.capitalize(),
+                              ),
+                              c.species.id == "prawns"
+                                  ? InfoRow(label: "Size", value: c.size)
+                                  : null,
+                              c.species.id != "prawns"
+                                  ? InfoRow(
+                                      label: "Average Size",
+                                      value: "${c.size} cm",
+                                    )
+                                  : null,
+                              InfoRow(
+                                label: "Available",
+                                value:
+                                    "${c.availableWeight.toStringAsFixed(1)} Kg",
+                              ),
+                              InfoRow(
+                                label: "Date Posted",
+                                value: c.datePosted.toFormattedDate(),
+                              ),
+                            ].whereType<InfoRow>().toList(), // Filter out nulls
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomButton(
+                                title: "Message",
+                                onPressed: () {},
+                                bordered: true,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: CustomButton(
+                                title: hasPendingOffer
+                                    ? "Offer Pending"
+                                    : "Make Offer",
+                                onPressed: hasPendingOffer
+                                    ? () {}
+                                    : () => _showMakeOfferDialog(context, c),
+                                // Consolidated disable logic:
+                                disabled:
+                                    c.availableWeight <= 0 || hasPendingOffer,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SectionHeader("Seller"),
+
+                        // ... (FisherCubit Builder)
+                        BlocBuilder<FisherCubit, FisherState>(
+                          builder: (context, state) {
+                            if (state is FisherLoading ||
+                                state is FisherInitial) {
+                              return const CircularProgressIndicator();
+                            } else if (state is FisherError) {
+                              return Text(
+                                "Error loading seller: ${state.message}",
+                              );
+                            } else if (state is FisherLoaded) {
+                              final fisher = state.fisher;
+                              return Material(
+                                borderRadius: BorderRadius.circular(16),
+                                child: InkWell(
+                                  onTap: () {
+                                    context.push("/buyer/reviews/${fisher.id}");
+                                  },
+                                  borderRadius: BorderRadius.circular(16),
+                                  splashColor: AppColors.blue700.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        ErrorHandlingCircleAvatar(
+                                          avatarUrl: fisher.avatarUrl,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                fisher.name,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 16,
+                                                  color: AppColors.textBlue,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.star,
+                                                    color:
+                                                        AppColors.shellOrange,
+                                                    size: 16,
+                                                  ),
+                                                  Text(
+                                                    fisher.rating
+                                                        .toStringAsFixed(1),
+                                                  ),
+                                                  Text(
+                                                    " (${fisher.reviewCount} Reviews)",
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
-            }
-
-            final c = catchItem;
-
-            // Check if the current user has any pending offers on this catch
-            final bool hasPendingOffer = c.offers.any(
-              (offer) =>
-                  offer.status == OfferStatus.pending &&
-                  offer.buyerId == user!.id,
-            );
-
-            return Scaffold(
-              appBar: AppBar(
-                leading: const BackButton(),
-                title: PageTitle(title: "Product Details"),
-                centerTitle: true,
-              ),
-              body: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      // Images
-                      ProductImagesCarousel(images: c.images),
-
-                      SectionHeader(c.name),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.gray100,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.gray200),
-                            ),
-                            child: Center(
-                              child: Text(
-                                // Using the price from the Catch model
-                                formatPrice(c.pricePerKg.toDouble()),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                  color: AppColors.textBlue,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Text("/Kg"),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.gray200),
-                        ),
-                        child: InfoTable(
-                          rows: [
-                            InfoRow(
-                              label: "Market",
-                              value: c.market.capitalize(),
-                            ),
-                            c.species.id == "prawns"
-                                ? InfoRow(label: "Average Size", value: c.size)
-                                : null,
-                            InfoRow(
-                              label: "Available",
-                              value:
-                                  "${c.availableWeight.toStringAsFixed(1)} Kg",
-                            ),
-                            InfoRow(
-                              label: "Date Posted",
-                              value: c.datePosted.toFormattedDate(),
-                            ),
-                          ].whereType<InfoRow>().toList(), // Filter out nulls
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CustomButton(
-                              title: "Message",
-                              onPressed: () {},
-                              bordered: true,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: CustomButton(
-                              title: hasPendingOffer
-                                  ? "Offer Pending"
-                                  : "Make Offer",
-                              onPressed: hasPendingOffer
-                                  ? () {}
-                                  : () => _showMakeOfferDialog(context, c),
-                              // Consolidated disable logic:
-                              disabled:
-                                  c.availableWeight <= 0 || hasPendingOffer,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SectionHeader("Seller"),
-
-                      // ... (FisherCubit Builder)
-                      BlocBuilder<FisherCubit, FisherState>(
-                        builder: (context, state) {
-                          if (state is FisherLoading ||
-                              state is FisherInitial) {
-                            return const CircularProgressIndicator();
-                          } else if (state is FisherError) {
-                            return Text(
-                              "Error loading seller: ${state.message}",
-                            );
-                          } else if (state is FisherLoaded) {
-                            final fisher = state.fisher;
-                            return Material(
-                              borderRadius: BorderRadius.circular(16),
-                              child: InkWell(
-                                onTap: () {
-                                  context.push("/buyer/reviews/${fisher.id}");
-                                },
-                                borderRadius: BorderRadius.circular(16),
-                                splashColor: AppColors.blue700.withValues(
-                                  alpha: 0.1,
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      ErrorHandlingCircleAvatar(
-                                        avatarUrl: fisher.avatarUrl,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              fisher.name,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 16,
-                                                color: AppColors.textBlue,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.star,
-                                                  color: AppColors.shellOrange,
-                                                  size: 16,
-                                                ),
-                                                Text(
-                                                  fisher.rating.toStringAsFixed(
-                                                    1,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  " (${fisher.reviewCount} Reviews)",
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+            },
+          ),
         );
       },
     );

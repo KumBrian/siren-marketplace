@@ -9,6 +9,15 @@ extension DateFormatting on String {
       return this;
     }
   }
+
+  String toShortFormattedDate() {
+    try {
+      final date = DateTime.parse(this);
+      return DateFormat("M/d/y").format(date);
+    } catch (_) {
+      return this;
+    }
+  }
 }
 
 extension StringExtensions on String {
