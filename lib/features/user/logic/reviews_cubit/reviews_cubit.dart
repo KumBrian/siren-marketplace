@@ -73,7 +73,9 @@ class ReviewsCubit extends Cubit<ReviewsState> {
       }
 
       final totalReviews = assembledReviews.length;
-      final averageRating = totalReviews > 0 ? totalRating / totalReviews : 0.0;
+      final double averageRating = totalReviews > 0
+          ? totalRating / totalReviews
+          : 0;
 
       // Emit successfully processed results.
       emit(

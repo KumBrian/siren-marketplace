@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 
 class SoldCard extends StatelessWidget {
@@ -101,8 +102,7 @@ class SoldCard extends StatelessWidget {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text:
-                                        "${offer.weight.toStringAsFixed(1)} Kg",
+                                    text: formatWeight(offer.weight),
                                     // Use toStringAsFixed
                                     style: const TextStyle(
                                       fontSize: 14,

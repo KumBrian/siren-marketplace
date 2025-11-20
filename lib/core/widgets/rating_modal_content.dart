@@ -35,7 +35,7 @@ class RatingModalContent extends StatefulWidget {
 }
 
 class _RatingModalContentState extends State<RatingModalContent> {
-  double _currentRating = 0;
+  num _currentRating = 0;
   final TextEditingController _messageController = TextEditingController();
   bool _isSubmitting = false;
 
@@ -48,7 +48,7 @@ class _RatingModalContentState extends State<RatingModalContent> {
     super.dispose();
   }
 
-  void _rate(double rating) {
+  void _rate(num rating) {
     setState(() {
       _currentRating = rating;
     });
@@ -135,12 +135,12 @@ class _RatingModalContentState extends State<RatingModalContent> {
               // RATING WIDGET
               Center(
                 child: AnimatedRatingStars(
-                  initialRating: 0.0,
+                  initialRating: 0,
                   minRating: 1,
-                  maxRating: 5.0,
+                  maxRating: 5,
                   filledColor: _activeColor,
                   emptyColor: _inactiveColor,
-                  onChanged: (double rating) {
+                  onChanged: (num rating) {
                     _rate(rating);
                   },
                   interactiveTooltips: true,

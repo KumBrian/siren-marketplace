@@ -10,6 +10,7 @@ import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/models/order.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
@@ -273,19 +274,24 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                         label: "Species",
                         value: catchSnapshot.species.name.capitalize(),
                       ),
-                      InfoRow(
-                        label: "Size",
-                        value: catchSnapshot.size.capitalize(),
-                      ),
+                      ?catchSnapshot.species.id == "prawns"
+                          ? InfoRow(label: "Size", value: catchSnapshot.size)
+                          : null,
+                      ?catchSnapshot.species.id != "prawns"
+                          ? InfoRow(
+                              label: "Average Size",
+                              value: "${catchSnapshot.size} cm",
+                            )
+                          : null,
 
                       // From Offer
                       InfoRow(
                         label: "Weight",
-                        value: "${offer.weight.toStringAsFixed(1)} Kg",
+                        value: formatWeight(offer.weight),
                       ),
                       InfoRow(
                         label: "Total Price",
-                        value: "${offer.price.toStringAsFixed(0)} CFA",
+                        value: formatPrice(offer.price),
                       ),
                     ],
                   ),

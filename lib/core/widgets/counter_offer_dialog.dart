@@ -6,7 +6,7 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 
 typedef CounterSubmit =
     Future<void> Function(
-      double newWeight,
+      int newWeightInGrams,
       int newPrice,
       BuildContext dialogContext,
     );
@@ -15,25 +15,37 @@ Future<void> showCounterOfferDialog({
   required BuildContext context,
   required GlobalKey<FormState> formKey,
   required Role role,
-  required double initialWeight,
-  required int initialPrice,
+  required int initialWeight, // Expecting Grams (e.g., 39300)
+  required int initialPrice, // Expecting Total Price (e.g., 6798)
   required CounterSubmit onSubmit,
 }) async {
+  // 1. SETUP: Convert Grams to String for display (39300 -> "39.3")
+  final initialWeightInKg = initialWeight / 1000.0;
   final weightController = TextEditingController(
-    text: initialWeight.toStringAsFixed(1),
+    text: initialWeightInKg.toString().replaceAll(
+      RegExp(r"([.]*0)(?!.*\d)"),
+      "",
+    ),
   );
-  final priceController = TextEditingController(
-    text: initialPrice.toStringAsFixed(0),
-  );
+
+  final priceController = TextEditingController(text: initialPrice.toString());
+
   final pricePerKgController = TextEditingController();
 
-  double calcPricePerKg(double w, int p) => (w > 0) ? p / w : 0;
+  // 2. LOGIC: Pure Integer Math Helper
+  // This ensures we never multiply floats during the core logic.
+  int calculatePricePerKg(int weightInGrams, int totalPrice) {
+    if (weightInGrams <= 0) return 0;
+    // Formula: (Total * 1000) / Grams
+    // We use round() to get the closest integer representation
+    return ((totalPrice * 1000) / weightInGrams).round();
+  }
 
-  int calculatedPricePerKg = calcPricePerKg(
+  // Initial Calculation
+  pricePerKgController.text = calculatePricePerKg(
     initialWeight,
     initialPrice,
-  ).toInt();
-  pricePerKgController.text = calculatedPricePerKg.toStringAsFixed(0);
+  ).toString();
 
   await showDialog(
     context: context,
@@ -50,14 +62,26 @@ Future<void> showCounterOfferDialog({
         ),
         content: StatefulBuilder(
           builder: (ctx, setLocalState) {
-            void updatePricePerKg(String _) {
-              final w = double.tryParse(weightController.text) ?? 0.0;
-              final p = int.parse(priceController.text);
-              setLocalState(() {
-                calculatedPricePerKg = calcPricePerKg(w, p).toInt();
-                pricePerKgController.text = calculatedPricePerKg
-                    .toStringAsFixed(0);
-              });
+            // 3. HELPER: Parse UI String to Clean Integer Grams
+            int getGramsFromInput() {
+              final val = double.tryParse(weightController.text) ?? 0.0;
+              // This .round() removes the floating point noise (e.g. 39.29999 -> 39300)
+              return (val * 1000).round();
+            }
+
+            // 4. UPDATE: One-way calculation (Total + Weight -> Price/Kg)
+            void updateCalculatedPricePerKg(String _) {
+              final weightInGrams = getGramsFromInput();
+              final total = int.tryParse(priceController.text) ?? 0;
+
+              final result = calculatePricePerKg(weightInGrams, total);
+
+              // Only update if the value actually changed to avoid flicker
+              if (pricePerKgController.text != result.toString()) {
+                setLocalState(() {
+                  pricePerKgController.text = result.toString();
+                });
+              }
             }
 
             return Form(
@@ -79,16 +103,18 @@ Future<void> showCounterOfferDialog({
                           label: "Weight",
                           role: role,
                           suffix: "Kg",
-                          onChanged: updatePricePerKg,
+                          // Changing weight updates the unit price
+                          onChanged: updateCalculatedPricePerKg,
                         ),
                         const SizedBox(height: 12),
                         NumberInputField(
                           controller: priceController,
-                          label: "Total",
+                          label: "Total Price",
                           suffix: "CFA",
                           editable: true,
                           decimal: false,
-                          onChanged: updatePricePerKg,
+                          // Changing total updates the unit price
+                          onChanged: updateCalculatedPricePerKg,
                         ),
                         const SizedBox(height: 12),
                         NumberInputField(
@@ -96,14 +122,13 @@ Future<void> showCounterOfferDialog({
                           label: "Price/Kg",
                           suffix: "CFA",
                           decimal: false,
+                          // Read-only derived field
+                          editable: false,
                           validator: (value) {
-                            final pricePerKg = int.tryParse(value ?? "");
-                            if (pricePerKg == null || pricePerKg <= 0) {
-                              return "Enter valid price per kg";
-                            }
+                            final val = int.tryParse(value ?? "0") ?? 0;
+                            if (val <= 0) return "Check inputs";
                             return null;
                           },
-                          value: calculatedPricePerKg,
                         ),
                       ],
                     ),
@@ -112,17 +137,14 @@ Future<void> showCounterOfferDialog({
                   CustomButton(
                     title: "Send Counter Offer",
                     onPressed: () async {
-                      final newWeight =
-                          double.tryParse(weightController.text) ?? 0.0;
-                      final newPrice = int.tryParse(priceController.text) ?? 0;
+                      // Get the clean Integers one last time
+                      final weightInGrams = getGramsFromInput();
+                      final total = int.tryParse(priceController.text) ?? 0;
+
                       if (formKey.currentState!.validate() &&
-                          newWeight > 0 &&
-                          newPrice > 0) {
-                        await onSubmit(
-                          newWeight,
-                          newPrice,
-                          dialogCtx,
-                        ); // ✅ pass the outer context
+                          weightInGrams > 0 &&
+                          total > 0) {
+                        await onSubmit(weightInGrams, total, dialogCtx);
                       }
                     },
                   ),

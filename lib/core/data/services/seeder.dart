@@ -17,19 +17,24 @@ import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
 import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
 import 'package:uuid/uuid.dart';
 
+// NOTE: This seeder assumes you updated your domain models to use grams
+// for weight storage. Required model fields (examples):
+// Catch: initialWeightGrams (int), availableWeightGrams (int), pricePerKg (int), total (int)
+// Offer: weightGrams (int), pricePerKg (int), price (int)
+// Order/fromOfferAndCatch should also expect grams-based fields or compute from the provided offer/catch.
+// Keep getters on the models to expose kg values for UI (e.g. weightKg => initialWeightGrams / 1000.0)
+
 const _uuid = Uuid();
 final _rng = Random();
 
 class CatchSeeder {
   // Dummy Avatars
-  // (index) => 'https://i.pravatar.cc/150?img=${index + 1}',
   static final List<String> _avatarUrls = List.generate(
     10,
     (index) => 'https://i.pravatar.cc/150?img=${index + 1}',
   );
 
   // Dummy Catch Images
-  // (index) => 'https://picsum.photos/400/300?random=${500 + index}',
   static final List<String> _catchImageUrls = List.generate(
     10,
     (index) => 'https://picsum.photos/400/300?random=${500 + index}',
@@ -102,6 +107,17 @@ class CatchSeeder {
   }
 
   // -------------------------------
+  // WEIGHT GENERATORS (grams, 0.1kg precision)
+  // -------------------------------
+  /// Generates a random weight in grams with 0.1kg (100g) steps.
+  /// maxKg is inclusive maximum kg (e.g. 100 -> up to 100.0 kg).
+  int generateWeightGramsOneDecimal(int maxKg) {
+    final steps = maxKg * 10; // number of 0.1kg steps
+    final step = _rng.nextInt(steps + 1); // 0..steps
+    return step * 100; // step * 0.1kg -> grams
+  }
+
+  // -------------------------------
   // CATCHES
   // -------------------------------
   Future<List<Catch>> seedCatches() async {
@@ -115,33 +131,37 @@ class CatchSeeder {
     final List<Catch> seeded = [];
     final now = DateTime.now();
 
-    // --- FIX START ---
     final List<String> fisherIds = _userMaps
         .where((user) => user['role'] == Role.fisher.name)
         .map((user) => user['id'] as String)
         .toList();
-    // --- FIX END ---
 
     for (int i = 0; i < 15; i++) {
       final species = _speciesList[i % _speciesList.length];
-      final weight = 20 + _rng.nextDouble() * 100;
-      final pricePerKg = 500 + _rng.nextInt(2000);
-      final market = _markets[i % _markets.length];
 
-      // --- FIX START: Assign a random fisher ID ---
+      // Weight stored as grams (integer)
+      final int initialWeightGrams = generateWeightGramsOneDecimal(100);
+
+      // pricePerKg remains integer (e.g. 1989)
+      final int pricePerKg = 500 + _rng.nextInt(2000);
+
+      final String market = _markets[i % _markets.length];
+
       final fisherId = fisherIds[_rng.nextInt(fisherIds.length)];
-      // --- FIX END ---
 
       CatchStatus status;
-      double availableWeight = weight;
+      int availableWeightGrams = initialWeightGrams;
       if (i < 3) {
         status = CatchStatus.available;
       } else if (i < 5) {
         status = CatchStatus.processing;
-        availableWeight = weight * 0.5;
+        // half the weight (integer arithmetic) — round down to nearest 100g
+        availableWeightGrams = (initialWeightGrams * 50) ~/ 100;
+        // normalize to 100g steps
+        availableWeightGrams = (availableWeightGrams / 100).floor() * 100;
       } else if (i == 14) {
         status = CatchStatus.sold;
-        availableWeight = 0;
+        availableWeightGrams = 0;
       } else {
         status = CatchStatus.available;
       }
@@ -151,23 +171,26 @@ class CatchSeeder {
       final shuffled = List.of(_catchImageUrls)..shuffle(_rng);
       final randomImages = shuffled.take(imageCount).toList();
 
+      // total price computed in integer arithmetic: (grams * pricePerKg) / 1000
+      final int totalPrice = (initialWeightGrams * pricePerKg) ~/ 1000;
+
       final c = Catch(
         id: _uuid.v4(),
         name: species.name,
         datePosted: now.subtract(Duration(hours: i * 5)).toIso8601String(),
-        initialWeight: double.parse(weight.toStringAsFixed(1)),
-        availableWeight: double.parse(availableWeight.toStringAsFixed(1)),
+        // new grams fields
+        initialWeight: initialWeightGrams,
+        availableWeight: availableWeightGrams,
         pricePerKg: pricePerKg,
-        total: (weight * pricePerKg).toInt(),
+        total: totalPrice,
         size: species.id != "prawns"
-            ? _rng.nextInt(20).toStringAsFixed(0)
+            ? _rng.nextInt(20).toString()
             : i < 7
             ? 'Medium'
             : 'Large',
         market: market,
         species: species,
         fisherId: fisherId,
-        // Use the dynamically selected ID
         images: randomImages,
         status: status,
       );
@@ -197,11 +220,12 @@ class CatchSeeder {
     final buyer2 = AppUser.fromMap(
       _userMaps.firstWhere((m) => m['id'] == 'buyer_id_2'),
     );
-    // Get all fishers
+
     final fishers = _userMaps
         .where((m) => m['role'] == Role.fisher.name)
         .map((m) => AppUser.fromMap(m))
         .toList();
+
     final Random random = Random();
     final List<Offer> allOffers = [];
     final buyers = [buyer1, buyer2];
@@ -210,24 +234,28 @@ class CatchSeeder {
       final catchItem = seededCatches[i];
       final buyer = buyers[i % buyers.length];
 
-      // Get the fisher details for the current catch
       final fisher = fishers.firstWhere((f) => f.id == catchItem.fisherId);
 
       if (catchItem.status == CatchStatus.available ||
           catchItem.status == CatchStatus.processing) {
-        // Pending
+        // Pending offer — 50% of available weight
+        final int pendingWeightGrams =
+            ((catchItem.availableWeight * 50) ~/ 100 / 100).floor() * 100;
+
+        // discounted pricePerKg (integer) — apply 5% discount and round
+        final int pendingPricePerKg = ((catchItem.pricePerKg * 95) ~/ 100);
+
+        final int pendingPrice =
+            (pendingWeightGrams * pendingPricePerKg) ~/ 1000;
+
         final pendingOffer = Offer(
           id: _uuid.v4(),
           catchId: catchItem.id,
           fisherId: catchItem.fisherId,
           buyerId: buyer.id,
-          pricePerKg: (catchItem.pricePerKg * 0.95).toInt(),
-          weight: double.parse(
-            (catchItem.availableWeight * 0.5).toStringAsFixed(2),
-          ),
-          price: (catchItem.pricePerKg * 0.95 * catchItem.availableWeight * 0.5)
-              .toInt(),
-
+          pricePerKg: pendingPricePerKg,
+          weight: pendingWeightGrams,
+          price: pendingPrice,
           status: OfferStatus.pending,
           dateCreated: DateTime.now().toIso8601String(),
           previousPrice: null,
@@ -236,32 +264,33 @@ class CatchSeeder {
           catchName: catchItem.name,
           catchImageUrl: catchItem.images.first,
           fisherName: fisher.name,
-          // Use the correct fisher name
           fisherRating: fisher.rating,
-          // Use the correct fisher rating
           fisherAvatarUrl: fisher.avatarUrl,
-          // Use the correct fisher avatar
           buyerName: buyer.name,
           buyerRating: buyer.rating,
           buyerAvatarUrl: buyer.avatarUrl,
           waitingFor: Role.values[random.nextInt(2)],
         );
+
         await offerRepository.insertOffer(pendingOffer);
         allOffers.add(pendingOffer);
 
-        // Accepted (every 4th catch)
+        // Accepted (every 4th catch) — 20% of available weight
         if (i % 4 == 0 && catchItem.status != CatchStatus.sold) {
+          final int acceptedWeightGrams =
+              ((catchItem.availableWeight * 20) ~/ 100 / 100).floor() * 100;
+
+          final int acceptedPrice =
+              (acceptedWeightGrams * catchItem.pricePerKg) ~/ 1000;
+
           final acceptedOffer = Offer(
             id: _uuid.v4(),
             catchId: catchItem.id,
             fisherId: catchItem.fisherId,
             buyerId: buyer.id,
             pricePerKg: catchItem.pricePerKg,
-            weight: double.parse(
-              (catchItem.availableWeight * 0.2).toStringAsFixed(2),
-            ),
-            price: (catchItem.pricePerKg * catchItem.availableWeight * 0.2)
-                .toInt(),
+            weight: acceptedWeightGrams,
+            price: acceptedPrice,
             status: OfferStatus.accepted,
             dateCreated: DateTime.now()
                 .subtract(Duration(days: 1))
@@ -272,15 +301,13 @@ class CatchSeeder {
             catchName: catchItem.name,
             catchImageUrl: catchItem.images.first,
             fisherName: fisher.name,
-            // Use the correct fisher name
             fisherRating: fisher.rating,
-            // Use the correct fisher rating
             fisherAvatarUrl: fisher.avatarUrl,
-            // Use the correct fisher avatar
             buyerName: buyer.name,
             buyerRating: buyer.rating,
             buyerAvatarUrl: buyer.avatarUrl,
           );
+
           await offerRepository.insertOffer(acceptedOffer);
           allOffers.add(acceptedOffer);
         }
@@ -316,7 +343,7 @@ class CatchSeeder {
     for (final offer in acceptedOffers) {
       final catchMap = await catchRepository.getCatchMapById(offer.catchId);
       final fisherMap = await userRepository.getUserMapById(offer.fisherId);
-      if (catchMap == null || fisherMap == null) continue;
+      if (catchMap == null) continue;
 
       final newOrder = Order.fromOfferAndCatch(
         offer: offer,
@@ -366,13 +393,6 @@ class CatchSeeder {
     print('${uniqueConversations.length} conversations seeded.');
   }
 
-  // Inside CatchSeeder class
-
-  // -------------------------------
-  // REVIEWS & RATINGS
-  // -------------------------------
-  // Inside CatchSeeder class
-
   // -------------------------------
   // REVIEWS & RATINGS
   // -------------------------------
@@ -392,7 +412,6 @@ class CatchSeeder {
 
     int reviewCount = 0;
 
-    // Process every 3rd order to simulate realistic rating behavior
     for (int i = 0; i < seededOrders.length; i++) {
       if (i % 3 != 0) continue;
 
@@ -402,13 +421,11 @@ class CatchSeeder {
         (m) => m['id'] == order.fisherId,
       );
 
-      // --- 1. Fisher rates the Buyer ---
       final fisherToBuyerRating = (_rng.nextInt(2) + 4)
           .toDouble(); // 4.0 or 5.0
       final buyerReviewMessage =
           reviewMessages[_rng.nextInt(reviewMessages.length)];
 
-      // 1a. Insert the raw rating record
       await databaseHelper.insertRating({
         'rating_id': _uuid.v4(),
         'order_id': order.id,
@@ -421,7 +438,6 @@ class CatchSeeder {
             .toIso8601String(),
       });
 
-      // 1b. Update Order flags (setting hasRatedBuyer=true, and the rating/message snapshot)
       await databaseHelper.updateOrderRatingStatus(
         orderId: order.id,
         isRatingBuyer: true,
@@ -429,7 +445,6 @@ class CatchSeeder {
         message: buyerReviewMessage,
       );
 
-      // 1c. Update Buyer's aggregated rating metrics
       await userRepository.updateUserRating(
         userId: order.buyerId,
         newRatingValue: fisherToBuyerRating,
@@ -437,14 +452,11 @@ class CatchSeeder {
 
       reviewCount++;
 
-      // --- 2. Buyer rates the Fisher (Less frequently) ---
       if (i % 6 == 0) {
-        final buyerToFisherRating = (_rng.nextInt(2) + 4)
-            .toDouble(); // 4.0 or 5.0
+        final buyerToFisherRating = (_rng.nextInt(2) + 4).toDouble();
         final fisherReviewMessage =
             reviewMessages[_rng.nextInt(reviewMessages.length)];
 
-        // 2a. Insert the raw rating record
         await databaseHelper.insertRating({
           'rating_id': _uuid.v4(),
           'order_id': order.id,
@@ -457,7 +469,6 @@ class CatchSeeder {
               .toIso8601String(),
         });
 
-        // 2b. Update Order flags (setting hasRatedFisher=true, and the rating/message snapshot)
         await databaseHelper.updateOrderRatingStatus(
           orderId: order.id,
           isRatingBuyer: false, // Target is the Fisher
@@ -465,7 +476,6 @@ class CatchSeeder {
           message: fisherReviewMessage,
         );
 
-        // 2c. Update Fisher's aggregated rating metrics
         await userRepository.updateUserRating(
           userId: order.fisherId,
           newRatingValue: buyerToFisherRating,
@@ -487,8 +497,8 @@ class CatchSeeder {
     await seedUsers();
     final catches = await seedCatches();
     final offers = await seedOffers(catches);
-    final orders = await seedOrders(); // Capture the seeded orders
-    await seedReviews(orders); // 👈 Run the new seeder
+    final orders = await seedOrders();
+    await seedReviews(orders);
     await seedConversations(offers);
     print('Database seeding complete.');
   }

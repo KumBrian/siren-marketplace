@@ -13,7 +13,7 @@ extension DateFormatting on String {
   String toShortFormattedDate() {
     try {
       final date = DateTime.parse(this);
-      return DateFormat("M/d/y").format(date);
+      return DateFormat("MMM d, yyyy").format(date);
     } catch (_) {
       return this;
     }

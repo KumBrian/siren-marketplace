@@ -25,8 +25,10 @@ class BuyerNotificationsScreen extends StatefulWidget {
 }
 
 class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   // 👈 Implement Observer
+
+  late TabController _tabController;
 
   List<Offer> _applyOfferFilters(List<Offer> offers, OrdersFilterState state) {
     if (state.selectedStatuses.isEmpty) {
@@ -41,6 +43,7 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
   void initState() {
     super.initState();
     // 🔑 Add the observer to listen for app state changes
+    _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -110,25 +113,22 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
             : <ConversationPreview>[];
 
         return SingleChildScrollView(
-          padding: EdgeInsets.only(
-            bottom: 80,
-            top: allMessages.isEmpty ? 32 : 16,
-          ),
+          padding: EdgeInsets.only(bottom: 80, top: 16),
           child: Column(
             children: [
-              const SearchBar(
-                hintText: "Search",
-                scrollPadding: EdgeInsets.symmetric(vertical: 8),
-                textStyle: WidgetStatePropertyAll(
-                  TextStyle(fontSize: 16, color: AppColors.textBlue),
-                ),
-                side: WidgetStatePropertyAll(
-                  BorderSide(color: AppColors.gray200),
-                ),
-                leading: Icon(Icons.search, color: AppColors.textBlue),
-                elevation: WidgetStatePropertyAll(0),
-              ),
-              const SizedBox(height: 8),
+              // const SearchBar(
+              //   hintText: "Search",
+              //   scrollPadding: EdgeInsets.symmetric(vertical: 8),
+              //   textStyle: WidgetStatePropertyAll(
+              //     TextStyle(fontSize: 16, color: AppColors.textBlue),
+              //   ),
+              //   side: WidgetStatePropertyAll(
+              //     BorderSide(color: AppColors.gray200),
+              //   ),
+              //   leading: Icon(Icons.search, color: AppColors.textBlue),
+              //   elevation: WidgetStatePropertyAll(0),
+              // ),
+              // const SizedBox(height: 8),
               if (allMessages.isEmpty)
                 Column(
                   children: [
@@ -181,6 +181,26 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCountBadge({required int count, required bool isSelected}) {
+    return Container(
+      key: ValueKey('badge_$count'),
+      margin: const EdgeInsets.only(left: 8),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isSelected
+            ? AppColors.textBlue
+            : AppColors.textBlue.withOpacity(
+                .6,
+              ), // Using withOpacity instead of withValues
+      ),
+      child: Text(
+        "$count",
+        style: const TextStyle(fontSize: 12, color: AppColors.textWhite),
+      ),
     );
   }
 
@@ -365,16 +385,116 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
                           length: 2,
                           child: Column(
                             children: [
-                              const TabBar(
-                                dividerHeight: 0,
-                                indicatorSize: TabBarIndicatorSize.tab,
-                                tabs: [
-                                  Tab(text: "Offers"),
-                                  Tab(text: "Messages"),
-                                ],
+                              BlocBuilder<OffersBloc, OffersState>(
+                                builder: (context, offersState) {
+                                  int offersWithUpdateCount = 0;
+                                  if (offersState is OffersLoaded) {
+                                    offersWithUpdateCount = offersState.offers
+                                        .where(
+                                          (offer) =>
+                                              offer.hasUpdateForBuyer == true,
+                                        )
+                                        .length;
+                                  }
+
+                                  const int unreadMessageCount =
+                                      5; // Replace with actual Bloc select!
+                                  return AnimatedBuilder(
+                                    animation: _tabController,
+                                    builder: (context, __) {
+                                      return TabBar(
+                                        controller: _tabController,
+                                        dividerHeight: 0,
+                                        indicatorSize: TabBarIndicatorSize.tab,
+                                        indicatorColor: AppColors.textBlue,
+                                        labelColor: AppColors.textBlue,
+                                        unselectedLabelColor:
+                                            AppColors.textGray,
+                                        tabs: [
+                                          Tab(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                const Text("Offers"),
+                                                if (offersWithUpdateCount > 0)
+                                                  Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                          left: 8,
+                                                        ),
+                                                    padding:
+                                                        const EdgeInsets.all(6),
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color:
+                                                          _tabController
+                                                                  .index ==
+                                                              0
+                                                          ? AppColors.textBlue
+                                                          : AppColors.textBlue
+                                                                .withValues(
+                                                                  alpha: .6,
+                                                                ),
+                                                    ),
+                                                    child: Text(
+                                                      "$offersWithUpdateCount",
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        color:
+                                                            AppColors.textWhite,
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                          Tab(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                const Text("Messages"),
+
+                                                Container(
+                                                  margin: const EdgeInsets.only(
+                                                    left: 8,
+                                                  ),
+                                                  padding: const EdgeInsets.all(
+                                                    6,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color:
+                                                        _tabController.index ==
+                                                            1
+                                                        ? AppColors.textBlue
+                                                        : AppColors.textBlue
+                                                              .withValues(
+                                                                alpha: .6,
+                                                              ),
+                                                  ),
+                                                  child: Text(
+                                                    "2",
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color:
+                                                          AppColors.textWhite,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
                               ),
                               Expanded(
                                 child: TabBarView(
+                                  controller: _tabController,
                                   physics: const BouncingScrollPhysics(),
                                   children: [
                                     // Offers Tab: Listens to Filter Cubit, uses data from BuyerCubit

@@ -138,162 +138,206 @@ class _ProductDetailsState extends State<ProductDetails> {
             onPressed: () => context.pop(),
           ),
         ),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            // in case of small devices
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.textBlue),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    children: [
-                      NumberInputField(
-                        controller: _weightController,
-                        label: "Weight",
-                        role: Role.buyer,
-                        suffix: "Kg",
-                        validator: (value) {
-                          final weight = double.tryParse(value ?? "");
-                          if (weight == null || weight <= 0) {
-                            return "Enter valid weight";
-                          }
-                          if (weight > c.availableWeight) {
-                            return "Cannot exceed available weight";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      NumberInputField(
-                        controller: _priceController,
-                        label: "Total Price",
-                        suffix: "CFA",
-                        decimal: false,
-                        validator: (value) {
-                          final price = double.tryParse(value ?? "");
-                          if (price == null || price <= 0) {
-                            return "Enter valid price";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      NumberInputField(
-                        controller: _pricePerKgController,
-                        label: "Price/Kg",
-                        suffix: "CFA",
-                        decimal: false,
-                        validator: (value) {
-                          final pricePerKg = double.tryParse(value ?? "");
-                          if (pricePerKg == null || pricePerKg <= 0) {
-                            return "Enter valid price per kg";
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                BlocBuilder<UserBloc, UserState>(
-                  builder: (context, userState) {
-                    final user = userState is UserLoaded
-                        ? userState.user
-                        : null;
-                    return CustomButton(
-                      title: "Send Offer",
-                      onPressed: () {
-                        if (formKey.currentState!.validate()) {
-                          final weight = double.tryParse(
-                            _weightController.text,
-                          );
-                          final totalPrice = int.tryParse(
-                            _priceController.text,
-                          );
-                          final pricePerKg = int.tryParse(
-                            _pricePerKgController.text,
-                          );
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            // 1. Calculation Logic: Convert input (Kg) to Logic (Grams)
+            void updateCalculations(String _) {
+              final weightInputKg =
+                  double.tryParse(_weightController.text) ?? 0.0;
+              final totalPrice = int.tryParse(_priceController.text) ?? 0;
 
-                          if (weight != null &&
-                              totalPrice != null &&
-                              pricePerKg != null) {
-                            context.read<OffersBloc>().add(
-                              CreateOffer(
-                                catchId: c.id,
-                                buyerId: user!.id,
-                                fisherId: c.fisherId,
-                                price: totalPrice,
-                                weight: weight,
-                                pricePerKg: pricePerKg,
-                              ),
-                            );
-                            context.read<CatchesBloc>().add(LoadCatches());
-                            context.read<ProductsCubit>().loadMarketCatches();
-                            context.pop();
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (ctx) {
-                                // Future.delayed(Duration(seconds: 2), () {
-                                //   if (ctx.mounted) Navigator.of(ctx).pop();
-                                // });
+              // Precision conversion
+              final weightInGrams = (weightInputKg * 1000).round();
 
-                                return AlertDialog(
-                                  title: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.textBlue,
-                                      border: Border.all(
-                                        color: AppColors.textBlue,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.check,
-                                      color: AppColors.textWhite,
-                                    ),
-                                  ),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        "Offer sent successfully!",
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: AppColors.textBlue,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      CustomButton(
-                                        title: "View Marketplace",
-                                        onPressed: () {
-                                          ctx.go("/buyer");
-                                        },
-                                      ),
-                                    ],
+              if (weightInGrams > 0 && totalPrice > 0) {
+                // Formula: (Total * 1000) / Grams = PricePerKg
+                final calculatedPricePerKg =
+                    ((totalPrice * 1000) / weightInGrams).round();
+
+                if (_pricePerKgController.text !=
+                    calculatedPricePerKg.toString()) {
+                  _pricePerKgController.text = calculatedPricePerKg.toString();
+                }
+              }
+            }
+
+            return Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.textBlue),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          NumberInputField(
+                            controller: _weightController,
+                            label: "Weight",
+                            role: Role.buyer,
+                            suffix: "Kg",
+                            // 2. Trigger calculation on change
+                            onChanged: updateCalculations,
+                            validator: (value) {
+                              final weightInputKg = double.tryParse(
+                                value ?? "",
+                              );
+
+                              if (weightInputKg == null || weightInputKg <= 0) {
+                                return "Enter valid weight";
+                              }
+
+                              // Convert to Grams for comparison against available weight
+                              final weightInGrams = (weightInputKg * 1000)
+                                  .round();
+
+                              if (weightInGrams > c.availableWeight) {
+                                return "Cannot exceed available weight";
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          NumberInputField(
+                            controller: _priceController,
+                            label: "Total Price",
+                            suffix: "CFA",
+                            decimal: false,
+                            // 2. Trigger calculation on change
+                            onChanged: updateCalculations,
+                            validator: (value) {
+                              final price = int.tryParse(value ?? "");
+                              if (price == null || price <= 0) {
+                                return "Enter valid price";
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          NumberInputField(
+                            controller: _pricePerKgController,
+                            label: "Price/Kg",
+                            suffix: "CFA",
+                            decimal: false,
+                            // Typically read-only if auto-calculated, but editable if needed
+                            validator: (value) {
+                              final pricePerKg = int.tryParse(value ?? "");
+                              if (pricePerKg == null || pricePerKg <= 0) {
+                                return "Enter valid price per kg";
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    BlocBuilder<UserBloc, UserState>(
+                      builder: (context, userState) {
+                        final user = userState is UserLoaded
+                            ? userState.user
+                            : null;
+                        return CustomButton(
+                          title: "Send Offer",
+                          onPressed: () {
+                            if (formKey.currentState!.validate()) {
+                              // 3. Final Parsing
+                              final weightInputKg = double.tryParse(
+                                _weightController.text,
+                              );
+                              final totalPrice = int.tryParse(
+                                _priceController.text,
+                              );
+                              final pricePerKg = int.tryParse(
+                                _pricePerKgController.text,
+                              );
+
+                              if (weightInputKg != null &&
+                                  totalPrice != null &&
+                                  pricePerKg != null) {
+                                // 4. Convert to Grams before sending
+                                final weightInGrams = (weightInputKg * 1000)
+                                    .round();
+
+                                context.read<OffersBloc>().add(
+                                  CreateOffer(
+                                    catchId: c.id,
+                                    buyerId: user!.id,
+                                    fisherId: c.fisherId,
+                                    price: totalPrice,
+                                    weight: weightInGrams,
+                                    // Sending INT (Grams)
+                                    pricePerKg: pricePerKg,
                                   ),
                                 );
-                              },
-                            );
-                          }
-                        }
+                                context.read<CatchesBloc>().add(LoadCatches());
+                                context
+                                    .read<ProductsCubit>()
+                                    .loadMarketCatches();
+
+                                Navigator.of(context).pop();
+
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (ctx) {
+                                    return AlertDialog(
+                                      title: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppColors.textBlue,
+                                          border: Border.all(
+                                            color: AppColors.textBlue,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.check,
+                                          color: AppColors.textWhite,
+                                        ),
+                                      ),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Text(
+                                            "Offer sent successfully!",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: AppColors.textBlue,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          CustomButton(
+                                            title: "View Marketplace",
+                                            onPressed: () {
+                                              // Import GoRouter or use Navigator based on your setup
+                                              ctx.go("/buyer");
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
+                            }
+                          },
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -439,8 +483,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                   : null,
                               InfoRow(
                                 label: "Available",
-                                value:
-                                    "${c.availableWeight.toStringAsFixed(1)} Kg",
+                                value: formatWeight(c.availableWeight),
                               ),
                               InfoRow(
                                 label: "Date Posted",

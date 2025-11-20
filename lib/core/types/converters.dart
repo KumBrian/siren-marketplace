@@ -41,11 +41,17 @@ CatchStatus catchStatusFromString(String status) {
 
 String catchStatusToString(CatchStatus status) => status.name;
 
-String formatPrice(double price) {
+String formatPrice(num price) {
   return NumberFormat.currency(
     locale: 'en_CM',
     symbol: 'CFA',
     decimalDigits: 0,
     customPattern: '###,### CFA',
   ).format(price);
+}
+
+String formatWeight(int weightInGrams) {
+  final weightInKg = weightInGrams / 1000;
+  final weightString = "${weightInKg.toStringAsFixed(1)} Kg";
+  return weightString;
 }

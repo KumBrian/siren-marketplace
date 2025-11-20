@@ -16,6 +16,7 @@ import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/order.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
@@ -255,10 +256,10 @@ class _OrderDetailsState extends State<OrderDetails> {
             final Map<String, dynamic> catchMap = jsonDecode(
               selectedOrder.catchSnapshotJson,
             );
-            final double acceptedWeight =
-                (catchMap['accepted_weight'] as num?)?.toDouble() ?? 0.0;
-            final double acceptedPrice =
-                (catchMap['accepted_price'] as num?)?.toDouble() ?? 0.0;
+            final int acceptedWeight =
+                (catchMap['accepted_weight'] as num?)?.toInt() ?? 0;
+            final int acceptedPrice =
+                (catchMap['accepted_price'] as num?)?.toInt() ?? 0;
             final OfferStatus orderStatus = selectedOrder.offer.status;
 
             final buyerName =
@@ -599,8 +600,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                                     : null,
                                 InfoRow(
                                   label: "Weight", // Updated label for clarity
-                                  value: acceptedWeight.toInt(),
-                                  suffix: "Kg",
+                                  value: formatWeight(acceptedWeight),
                                 ),
                                 InfoRow(
                                   label: "Total Price",

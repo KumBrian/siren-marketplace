@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 
 class ForSaleCard extends StatelessWidget {
   const ForSaleCard({
@@ -160,8 +161,9 @@ class ForSaleCard extends StatelessWidget {
 
                                 children: [
                                   TextSpan(
-                                    text:
-                                        "${catchData.initialWeight.toInt()} Kg",
+                                    text: formatWeight(
+                                      catchData.availableWeight,
+                                    ),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
