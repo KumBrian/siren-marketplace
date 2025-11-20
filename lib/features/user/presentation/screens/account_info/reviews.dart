@@ -99,7 +99,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                             // Round the rating value for the star display
                             rating: review.ratingValue,
                             name: review.raterName,
-                            date: review.dateCreated.toFormattedDate(),
+                            date: review.dateCreated.toShortFormattedDate(),
                             image: review.raterAvatarUrl,
                             message: review.message ?? 'No comment provided.',
                           ),

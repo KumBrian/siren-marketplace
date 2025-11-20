@@ -11,11 +11,11 @@ class Offer extends Equatable {
   final String buyerId;
   final int pricePerKg;
   final int price;
-  final double weight;
+  final int weight;
   final OfferStatus status;
   final String dateCreated;
   final int? previousPrice;
-  final double? previousWeight;
+  final int? previousWeight;
   final int? previousPricePerKg;
 
   // 🆕 ADDED FIELD
@@ -96,10 +96,10 @@ class Offer extends Equatable {
   Offer copyWith({
     OfferStatus? status,
     int? previousPrice,
-    double? previousWeight,
+    int? previousWeight,
     int? previousPricePerKg,
     int? price,
-    double? weight,
+    int? weight,
     int? pricePerKg,
     String? dateCreated,
     bool? hasUpdateForFisher,
@@ -185,11 +185,11 @@ class Offer extends Equatable {
     buyerId: m['buyer_id'] as String,
     pricePerKg: (m['price_per_kg'] as num).toInt(),
     price: (m['price'] as num).toInt(),
-    weight: (m['weight'] as num).toDouble(),
+    weight: (m['weight'] as num).toInt(),
     status: offerStatusFromString(m['status'] as String),
     dateCreated: m['date_created'] as String,
     previousPrice: (m['previous_price'] as num?)?.toInt(),
-    previousWeight: (m['previous_weight'] as num?)?.toDouble(),
+    previousWeight: (m['previous_weight'] as num?)?.toInt(),
     previousPricePerKg: (m['previous_price_per_kg'] as num?)?.toInt(),
     // 🆕 EXTRACTED FIELD
     hasUpdateForBuyer: (m['has_update_buyer'] as int) == 1,

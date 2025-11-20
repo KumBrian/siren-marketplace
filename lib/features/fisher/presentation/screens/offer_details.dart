@@ -36,7 +36,7 @@ extension IterableExtensions<T> on Iterable<T> {
 /// Holds the necessary historical negotiation details for display.
 class PreviousOfferDetails {
   final int price;
-  final double weight;
+  final int weight;
   final int pricePerKg;
 
   const PreviousOfferDetails({
@@ -395,20 +395,15 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                             rows: [
                               InfoRow(
                                 label: "Total Weight",
-                                value:
-                                    "${selectedOffer.weight.toStringAsFixed(1)} Kg",
+                                value: formatWeight(selectedOffer.weight),
                               ),
                               InfoRow(
                                 label: "Price/Kg",
-                                value: formatPrice(
-                                  selectedOffer.pricePerKg.toDouble(),
-                                ),
+                                value: formatPrice(selectedOffer.pricePerKg),
                               ),
                               InfoRow(
                                 label: "Total",
-                                value: formatPrice(
-                                  selectedOffer.price.toDouble(),
-                                ),
+                                value: formatPrice(selectedOffer.price),
                               ),
                             ],
                           ),
@@ -467,8 +462,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                               rows: [
                                 InfoRow(
                                   label: "Weight",
-                                  value:
-                                      "${previous.weight.toStringAsFixed(1)} Kg",
+                                  value: formatWeight(previous.weight),
                                 ),
                                 InfoRow(
                                   label: "Price",

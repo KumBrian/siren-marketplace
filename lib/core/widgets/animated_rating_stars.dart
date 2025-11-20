@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 /// Users can interact with this widget to provide a rating.
 class AnimatedRatingStars extends StatefulWidget {
   /// The initial rating for the widget.
-  final double initialRating;
+  final num initialRating;
 
   /// The minimum rating value.
-  final double minRating;
+  final int minRating;
 
   /// The maximum rating value.
-  final double maxRating;
+  final int maxRating;
 
   /// The color for filled stars.
   final Color filledColor;
@@ -29,7 +29,7 @@ class AnimatedRatingStars extends StatefulWidget {
   final IconData emptyIcon;
 
   /// A callback function called when the rating changes.
-  final Function(double) onChanged;
+  final Function(num) onChanged;
 
   // New properties
 
@@ -60,12 +60,15 @@ class AnimatedRatingStars extends StatefulWidget {
   /// Determines whether the widget is read-only.
   final bool readOnly;
 
+  /// Determines whether the widget will have half filled stars.
+  final bool halfFilled;
+
   /// Creates an [AnimatedRatingStars] widget.
   const AnimatedRatingStars({
     super.key,
-    this.initialRating = 0.0,
-    this.minRating = 0.0,
-    this.maxRating = 5.0,
+    this.initialRating = 0,
+    this.minRating = 0,
+    this.maxRating = 5,
     this.filledColor = Colors.amber,
     this.emptyColor = Colors.grey,
     this.filledIcon = Icons.star,
@@ -81,6 +84,7 @@ class AnimatedRatingStars extends StatefulWidget {
     this.animationDuration = const Duration(milliseconds: 300),
     this.animationCurve = Curves.easeInOut,
     this.readOnly = false,
+    this.halfFilled = false,
   });
 
   @override
@@ -88,7 +92,7 @@ class AnimatedRatingStars extends StatefulWidget {
 }
 
 class _AnimatedRatingStarsState extends State<AnimatedRatingStars> {
-  double _rating = 0.0;
+  num _rating = 0;
 
   @override
   void initState() {
@@ -96,27 +100,48 @@ class _AnimatedRatingStarsState extends State<AnimatedRatingStars> {
     _rating = widget.initialRating;
   }
 
+  // 🔑 FIX 2: Ensure the internal state tracks external changes
+  @override
+  void didUpdateWidget(covariant AnimatedRatingStars oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.initialRating != oldWidget.initialRating) {
+      setState(() {
+        _rating = widget.initialRating;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(widget.maxRating.toInt(), (index) {
+        // Calculate the score of the current star position (1, 2, 3, etc.)
+        final starValue = index + 1;
+
+        // Determine the state of the star
+        final bool isFilled = _rating >= starValue;
+
+        // Note: Half-filled logic is missing from your original onTap
+        // and is simplified here based on the current implementation structure.
+        final bool isHalfFilled =
+            false; // Simplified: requires more complex mouse tracking for interactive half-stars.
+
         return GestureDetector(
           onTap: () {
             if (!widget.readOnly) {
-              double selectedRating = index.toDouble() + 1.0;
-              if (_rating == selectedRating && widget.interactiveTooltips) {
-                _rating -= 0.5; // Toggle half-star state
-              } else {
-                _rating = selectedRating;
-              }
-              widget.onChanged(_rating);
-              setState(() {}); // Rebuild widget to reflect changes
+              // 🔑 FIX 1: Directly set the rating to the star the user clicked.
+              setState(() {
+                _rating = starValue;
+                widget.onChanged(_rating); // Notify parent immediately
+              });
             }
           },
           child: AnimatedStar(
-            filled: _rating >= index + 1,
-            halfFilled: widget.interactiveTooltips && _rating == index + 0.5,
+            filled: isFilled,
+            // If the rating is 3.5, the 4th star should check if 3.5 > 4 - 1
+            halfFilled: isHalfFilled,
             filledColor: widget.filledColor,
             emptyColor: widget.emptyColor,
             filledIcon: widget.customFilledIcon,

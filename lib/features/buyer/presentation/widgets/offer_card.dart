@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:hugeicons/styles/stroke_rounded.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 
@@ -132,9 +133,9 @@ class OfferCard extends StatelessWidget {
         Row(
           children: [
             // ✅ Use toStringAsFixed for double values
-            _pill("${offer.weight.toStringAsFixed(1)} kg"),
+            _pill(formatWeight(offer.weight)),
             const SizedBox(width: 8),
-            _pill("${offer.price.toStringAsFixed(0)} CFA"),
+            _pill(formatPrice(offer.price)),
           ],
         ),
         Row(
@@ -150,7 +151,7 @@ class OfferCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 8),
+
             // Status circle indicator
             Container(
               width: 8,

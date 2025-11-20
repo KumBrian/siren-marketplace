@@ -11,8 +11,8 @@ class Catch extends Equatable {
   final String id;
   final String name;
   final String datePosted;
-  final double initialWeight;
-  final double availableWeight;
+  final int initialWeight; //Weight in grams
+  final int availableWeight; //Weight in grams
   final int pricePerKg;
   final int total;
   final String size;
@@ -78,7 +78,7 @@ class Catch extends Equatable {
 
   // Used for transactional updates (e.g., reducing availableWeight)
   Catch copyWith({
-    double? availableWeight,
+    int? availableWeight,
     CatchStatus? status,
     List<Offer>? offers,
     int? pricePerKg,
@@ -126,8 +126,8 @@ class Catch extends Equatable {
     id: m['catch_id'] as String,
     name: m['name'] as String,
     datePosted: m['date_created'] as String,
-    initialWeight: (m['initial_weight'] as num).toDouble(),
-    availableWeight: (m['available_weight'] as num).toDouble(),
+    initialWeight: (m['initial_weight'] as num).toInt(),
+    availableWeight: (m['available_weight'] as num).toInt(),
     pricePerKg: (m['price_per_kg'] as num).toInt(),
     total: (m['total'] as num).toInt(),
     size: m['size'] as String,

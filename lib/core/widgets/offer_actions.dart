@@ -14,7 +14,6 @@ import 'package:siren_marketplace/core/widgets/counter_offer_dialog.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
-import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
@@ -114,29 +113,18 @@ class OfferActions extends StatefulWidget {
 }
 
 class _OfferActionsState extends State<OfferActions> {
-  final TextEditingController _weightController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _pricePerKgController = TextEditingController();
-
   final UserRepository _userRepository = sl<UserRepository>();
+
+  // Helper to display grams as Kg cleanly (1500 -> "1.5")
+  String _displayWeightInKg(int weightInGrams) {
+    return (weightInGrams / 1000)
+        .toStringAsFixed(2)
+        .replaceAll(RegExp(r"([.]*0)(?!.*\d)"), "");
+  }
 
   @override
   void dispose() {
-    _weightController.dispose();
-    _priceController.dispose();
-    _pricePerKgController.dispose();
     super.dispose();
-  }
-
-  CatchModel.Catch? _findCatchFromBloc(String catchId) {
-    final catchesState = context.read<CatchesBloc>().state;
-    if (catchesState is! CatchesLoaded) return null;
-
-    try {
-      return catchesState.catches.firstWhere((c) => c.id == catchId);
-    } catch (_) {
-      return null;
-    }
   }
 
   Future<void> _handleAccept(BuildContext confirmDialogContext) async {
@@ -144,7 +132,7 @@ class _OfferActionsState extends State<OfferActions> {
       Navigator.of(confirmDialogContext).pop();
     }
 
-    final catchItem = widget.catchItem; // SUCCESS: Use the passed item directly
+    final catchItem = widget.catchItem;
 
     if (!context.mounted) return;
     showLoadingDialog(context, message: 'Loading...');
@@ -155,11 +143,6 @@ class _OfferActionsState extends State<OfferActions> {
       );
 
       if (!context.mounted) return;
-
-      if (fisherMap == null) {
-        Navigator.of(context).pop();
-        throw Exception('Fisher data not found.');
-      }
 
       final fisher = Fisher.fromMap(fisherMap);
 
@@ -241,7 +224,8 @@ class _OfferActionsState extends State<OfferActions> {
                                     ),
                                   ),
                                   Text(
-                                    "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price.toDouble())}",
+                                    // UPDATED: Convert Grams to Kg for display
+                                    "${_displayWeightInKg(widget.offer.weight)} Kg / ${formatPrice(widget.offer.price.toDouble())}",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 18,
@@ -309,7 +293,8 @@ class _OfferActionsState extends State<OfferActions> {
                                   ),
                                 ),
                                 Text(
-                                  "${widget.offer.weight.toInt()} Kg / ${formatPrice(widget.offer.price.toDouble())}",
+                                  // UPDATED: Convert Grams to Kg for display
+                                  "${_displayWeightInKg(widget.offer.weight)} Kg / ${formatPrice(widget.offer.price.toDouble())}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w800,
                                     fontSize: 18,
@@ -355,8 +340,10 @@ class _OfferActionsState extends State<OfferActions> {
                                   context: context,
                                   role: user!.role,
                                   formKey: widget.formKey,
+                                  // UPDATED: Pass weight in Grams directly
                                   initialWeight: widget.offer.weight,
                                   initialPrice: widget.offer.price,
+                                  // UPDATED: onSubmit now receives int (Grams)
                                   onSubmit:
                                       (newWeight, newPrice, dialogCtx) async {
                                         if (Navigator.of(context).canPop()) {
@@ -372,7 +359,8 @@ class _OfferActionsState extends State<OfferActions> {
                                             CounterOffer(
                                               previousOffer: widget.offer,
                                               newPrice: newPrice,
-                                              newWeight: newWeight,
+                                              newWeight:
+                                                  newWeight, // Passing int
                                               counteringRole: user.role,
                                             ),
                                           );

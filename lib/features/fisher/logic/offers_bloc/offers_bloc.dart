@@ -193,7 +193,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       final updatedOffer = await _offerRepository.counterOffer(
         previous: event.previousOffer,
         newPrice: event.newPrice,
-        newWeight: event.newWeight,
+        newWeight: event.newWeightInGrams,
         role: event.counteringRole,
       );
 

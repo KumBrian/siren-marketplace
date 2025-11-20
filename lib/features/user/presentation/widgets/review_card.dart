@@ -6,7 +6,7 @@ import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart
 class ReviewCard extends StatelessWidget {
   final String name;
   final String date;
-  final double rating;
+  final int rating;
   final String image;
   final String message;
 
@@ -45,9 +45,9 @@ class ReviewCard extends StatelessWidget {
                     children: [
                       // Star Icons
                       AnimatedRatingStars(
-                        initialRating: rating.toDouble(),
+                        initialRating: rating,
                         minRating: 1,
-                        maxRating: 5.0,
+                        maxRating: 5,
 
                         filledColor: AppColors.shellOrange,
                         emptyColor: AppColors.gray100,

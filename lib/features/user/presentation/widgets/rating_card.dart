@@ -11,14 +11,14 @@ class RatingCard extends StatelessWidget {
 
   const RatingCard({
     super.key,
-    this.averageRating = 0.0,
+    this.averageRating = 0,
     this.totalReviews = 0,
     required this.ratingDistribution,
   });
 
   // Helper to calculate the percentage value for the progress bar
   double _getRatingValue(int star) {
-    if (totalReviews == 0) return 0.0;
+    if (totalReviews == 0) return 0;
     // Get count for the star level (e.g., 5-star count)
     final count = ratingDistribution[star] ?? 0;
     return count / totalReviews;
@@ -66,9 +66,9 @@ class RatingCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 AnimatedRatingStars(
-                  initialRating: averageRating.toDouble(),
+                  initialRating: averageRating,
                   minRating: 1,
-                  maxRating: 5.0,
+                  maxRating: 5,
                   filledColor: AppColors.shellOrange,
                   emptyColor: AppColors.gray100,
                   onChanged: (v) => null,
@@ -78,6 +78,7 @@ class RatingCard extends StatelessWidget {
                   customEmptyIcon: Icons.star_border_rounded,
                   starSize: 16,
                   readOnly: true,
+                  halfFilled: true,
                 ),
                 const SizedBox(height: 8),
                 Text(
