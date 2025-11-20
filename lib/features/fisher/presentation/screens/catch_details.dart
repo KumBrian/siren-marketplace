@@ -16,6 +16,7 @@ import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
+import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/data/models/message.dart';
 import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
@@ -137,31 +138,55 @@ class _CatchDetailsState extends State<CatchDetails>
     final TextEditingController totalController = TextEditingController();
 
     void showEditCatchDialog(BuildContext context, Catch selectedCatch) {
-      // 1. Initial setup
-      weightController.text = selectedCatch.availableWeight.toString();
+      // 1. Initial setup: Convert Grams (Int) to Kg (Double) for display
+      // We use regex to remove trailing zeros (e.g., "1.50" -> "1.5")
+      final double initialWeightInKg = selectedCatch.availableWeight / 1000.0;
+      weightController.text = initialWeightInKg.toString().replaceAll(
+        RegExp(r"([.]*0)(?!.*\d)"),
+        "",
+      );
+
       pricePerKgController.text = selectedCatch.pricePerKg.toString();
-      // Set initial total as well (optional, as it's recalculated immediately)
-      // totalController.text = selectedCatch.total.toStringAsFixed(0);
+
+      // Initial calculation for the read-only field
+      // Formula: (Grams * Price) / 1000
+      final int initialTotal =
+          ((selectedCatch.availableWeight * selectedCatch.pricePerKg) / 1000)
+              .round();
+      totalController.text = initialTotal.toString();
 
       showDialog(
         context: context,
         builder: (dialogCtx) {
           return StatefulBuilder(
             builder: (stfCtx, setState) {
-              // Helper to trigger the dialog rebuild on change
-              void updateStateOnChanged(_) {
+              // 2. Calculation runs on every rebuild
+
+              // A. Parse User Input (Kg)
+              final double currentWeightInputKg =
+                  double.tryParse(weightController.text) ?? 0.0;
+
+              // B. Convert to Grams (Int) for logic
+              final int currentWeightInGrams = (currentWeightInputKg * 1000)
+                  .round();
+
+              // C. Parse Price
+              final int currentPricePerKg =
+                  int.tryParse(pricePerKgController.text) ?? 0;
+
+              // D. Calculate Total using Integers
+              // (WeightInGrams * PricePerKg) / 1000
+              final int currentTotal = (currentWeightInGrams > 0)
+                  ? ((currentWeightInGrams * currentPricePerKg) / 1000).round()
+                  : 0;
+
+              // 3. Update the read-only controller's text
+              totalController.text = currentTotal.toString();
+
+              // Helper to trigger rebuild
+              void updateStateOnChanged(String _) {
                 setState(() {});
               }
-
-              // 2. Calculation runs on every rebuild (triggered by setState below)
-              final double currentWeight =
-                  double.tryParse(weightController.text) ?? 0.0;
-              final double currentPricePerKg =
-                  double.tryParse(pricePerKgController.text) ?? 0.0;
-              final double currentTotal = currentWeight * currentPricePerKg;
-
-              // 3. Update the read-only controller's text within the builder
-              totalController.text = currentTotal.toStringAsFixed(0);
 
               return AlertDialog(
                 contentPadding: const EdgeInsets.only(
@@ -189,60 +214,61 @@ class _CatchDetailsState extends State<CatchDetails>
                           border: Border.all(color: AppColors.textBlue),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: NumberInputField(
-                          controller: weightController,
-                          label: "Available Weight",
-                          role: Role.fisher,
-                          suffix: "Kg",
-                          // 🌟 FIX 1: Add onChanged listener
-                          onChanged: updateStateOnChanged,
+                        child: Column(
+                          children: [
+                            NumberInputField(
+                              controller: weightController,
+                              label: "Available Weight",
+                              role: Role.fisher,
+                              suffix: "Kg",
+                              // Visual unit for the user
+                              onChanged: updateStateOnChanged,
+                            ),
+                            const SizedBox(height: 16),
+                            NumberInputField(
+                              controller: pricePerKgController,
+                              label: "Price per Kg",
+                              role: Role.fisher,
+                              decimal: false,
+                              suffix: "CFA",
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter a value';
+                                }
+                                final parsedValue = int.tryParse(value);
+                                if (parsedValue == null) {
+                                  return 'Enter a whole number';
+                                }
+                                return null;
+                              },
+                              onChanged: updateStateOnChanged,
+                            ),
+                            const SizedBox(height: 16),
+                            NumberInputField(
+                              controller: totalController,
+                              label: "Total",
+                              role: Role.fisher,
+                              suffix: "CFA",
+                              onChanged: null,
+                              // Read-only
+                              decimal: false,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.textBlue),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: NumberInputField(
-                          controller: pricePerKgController,
-                          label: "Price per Kg",
-                          role: Role.fisher,
-                          suffix: "CFA",
-                          // 🌟 FIX 2: Add onChanged listener
-                          onChanged: updateStateOnChanged,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.textBlue),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: NumberInputField(
-                          controller: totalController,
-                          label: "Total",
-                          role: Role.fisher,
-                          suffix: "CFA",
-                          onChanged: null,
-                        ),
-                      ),
+
                       const SizedBox(height: 24),
                       CustomButton(
                         title: "Update Catch",
                         onPressed: () async {
                           if (editCatchFormKey.currentState!.validate()) {
-                            // Use the currently calculated values
+                            // 4. Update using the Calculated Grams (Int)
                             final updatedCatch = selectedCatch.copyWith(
-                              availableWeight: currentWeight,
-                              // Use current calculated weight
+                              availableWeight: currentWeightInGrams, // Int
                               pricePerKg: currentPricePerKg,
-                              // Use current calculated price
-                              total:
-                                  currentTotal, // Use current calculated total
+                              total: currentTotal,
                             );
+
                             context.read<CatchesBloc>().add(
                               UpdateCatchEvent(updatedCatch),
                             );
@@ -337,14 +363,7 @@ class _CatchDetailsState extends State<CatchDetails>
                 return Scaffold(
                   appBar: AppBar(
                     leading: const BackButton(),
-                    title: const Text(
-                      "Catch Details",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                        color: AppColors.textBlue,
-                      ),
-                    ),
+                    title: const PageTitle(title: "Catch Details"),
                     actions: [
                       IconButton(
                         onPressed: () =>
@@ -475,19 +494,29 @@ class _CatchDetailsState extends State<CatchDetails>
                             rows: [
                               ?selectedCatch.species.id == "prawns"
                                   ? InfoRow(
-                                      label: "Average Size",
+                                      label: "Size",
                                       value: selectedCatch.size,
+                                    )
+                                  : null,
+                              ?selectedCatch.species.id != "prawns"
+                                  ? InfoRow(
+                                      label: "Average Size",
+                                      value: "${selectedCatch.size} cm",
                                     )
                                   : null,
                               InfoRow(
                                 label: "Initial weight",
-                                suffix: "Kg",
-                                value: selectedCatch.initialWeight.toInt(),
+
+                                value: formatWeight(
+                                  selectedCatch.initialWeight,
+                                ),
                               ),
                               InfoRow(
                                 label: "Available weight",
-                                suffix: "Kg",
-                                value: selectedCatch.availableWeight.toInt(),
+
+                                value: formatWeight(
+                                  selectedCatch.availableWeight,
+                                ),
                               ),
                               InfoRow(
                                 label: "Price/Kg",
@@ -730,7 +759,12 @@ class _CatchDetailsState extends State<CatchDetails>
                                               MainAxisAlignment.center,
                                           children: [
                                             const Text("Offers"),
-                                            if (selectedCatch.offers.isNotEmpty)
+                                            if (selectedCatch.offers
+                                                .where(
+                                                  (offer) =>
+                                                      offer.hasUpdateForFisher,
+                                                )
+                                                .isNotEmpty)
                                               Container(
                                                 margin: const EdgeInsets.only(
                                                   left: 8,
@@ -749,7 +783,7 @@ class _CatchDetailsState extends State<CatchDetails>
                                                             ),
                                                 ),
                                                 child: Text(
-                                                  "${selectedCatch.offers.length}",
+                                                  "${selectedCatch.offers.where((offer) => offer.hasUpdateForFisher).length}",
                                                   style: const TextStyle(
                                                     fontSize: 12,
                                                     color: AppColors.textWhite,
@@ -765,7 +799,7 @@ class _CatchDetailsState extends State<CatchDetails>
                                               MainAxisAlignment.center,
                                           children: [
                                             const Text("Messages"),
-                                            if (messagesForCatch.isNotEmpty)
+                                            if (false)
                                               Container(
                                                 margin: const EdgeInsets.only(
                                                   left: 8,

@@ -124,6 +124,7 @@ class _MarketTrendsState extends State<MarketTrends> {
             const SizedBox(height: 8),
 
             // --- Chart Section ---
+            // --- ONLY THE CHART AREA IS MODIFIED BELOW ---
             SectionHeader("Average Sold Price Per Kg"),
             _buildChartContainer(
               child: Column(
@@ -135,46 +136,26 @@ class _MarketTrendsState extends State<MarketTrends> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Legend + Chart together, flexibly sized
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final availableHeight =
-                          constraints.maxHeight == double.infinity
-                          ? MediaQuery.of(context).size.height * 0.35
-                          : constraints.maxHeight * 0.5;
-
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: 300,
-                          maxHeight: availableHeight,
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.35,
+                    child: Column(
+                      children: [
+                        _buildCustomLegend(priceChartData.keys.toList()),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: PriceLineChart(
+                            chartDataSources: priceChartData,
+                            activeSpecies: _activeSpecies,
+                          ),
                         ),
-                        child: Column(
-                          children: [
-                            Flexible(
-                              flex: 0,
-                              child: _buildCustomLegend(
-                                priceChartData.keys.toList(),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Flexible(
-                              flex: 1,
-                              child: PriceLineChart(
-                                chartDataSources: priceChartData,
-                                activeSpecies: _activeSpecies,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 8),
-
+            // --- Repeat same structure for the second chart ---
             SectionHeader("Total Catch"),
             _buildChartContainer(
               child: Column(
@@ -186,43 +167,25 @@ class _MarketTrendsState extends State<MarketTrends> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Legend + Chart together, flexibly sized
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final availableHeight =
-                          constraints.maxHeight == double.infinity
-                          ? MediaQuery.of(context).size.height * 0.35
-                          : constraints.maxHeight * 0.5;
-
-                      return ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: 300,
-                          maxHeight: availableHeight,
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.35,
+                    child: Column(
+                      children: [
+                        _buildCustomLegend(priceChartData.keys.toList()),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: PriceLineChart(
+                            chartDataSources: priceChartData,
+                            activeSpecies: _activeSpecies,
+                          ),
                         ),
-                        child: Column(
-                          children: [
-                            Flexible(
-                              flex: 0,
-                              child: _buildCustomLegend(
-                                priceChartData.keys.toList(),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Flexible(
-                              flex: 1,
-                              child: PriceLineChart(
-                                chartDataSources: priceChartData,
-                                activeSpecies: _activeSpecies,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
+
             const SizedBox(height: 20),
           ],
         ),

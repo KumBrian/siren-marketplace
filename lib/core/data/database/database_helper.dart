@@ -9,7 +9,7 @@ extension CatchStatusExtension on CatchStatus {
 
 class DatabaseHelper {
   static const _databaseName = "SirenMarketplaceDB.db";
-  static const _databaseVersion = 3;
+  static const _databaseVersion = 4;
 
   // Table Names
   static const _usersTable = 'users';

@@ -83,8 +83,11 @@ class FilteredProductsCubit extends Cubit<FilteredProductsState> {
 
     // Filter by min weight
     if (filterState.minWeight > 0) {
+      // 🔑 CRITICAL FIX: Convert filter input (assumed to be in Kg) to Grams
+      final minWeightInGrams = filterState.minWeight * 1000;
+
       filteredList = filteredList
-          .where((c) => c.availableWeight >= filterState.minWeight)
+          .where((c) => c.availableWeight >= minWeightInGrams)
           .toList();
     }
 

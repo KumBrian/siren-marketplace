@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/bloc/cubits/filtered_products_cubit/filtered_products_cubit.dart';
+import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_filter_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
@@ -181,9 +182,14 @@ class _BuyerHomeState extends State<BuyerHome> {
                                       itemBuilder: (context, index) {
                                         final c = filteredCatches[index];
                                         return ProductCard(
-                                          onTap: () => context.go(
-                                            "/buyer/product-details/${c.id}",
-                                          ),
+                                          onTap: () {
+                                            context
+                                                .read<ProductsCubit>()
+                                                .loadMarketCatches();
+                                            context.go(
+                                              "/buyer/product-details/${c.id}",
+                                            );
+                                          },
                                           catchModel: c,
                                         );
                                       },

@@ -83,11 +83,11 @@ class UserRepository {
       'users',
       where: 'role = ?',
       whereArgs: [Role.fisher.name],
-      limit: 1,
+      limit: 2,
     );
 
     if (data.isEmpty) return null;
-    return data.first;
+    return data.last;
   }
 
   /// Fetches the first user with the role `buyer`, returning the raw map.
@@ -109,7 +109,7 @@ class UserRepository {
   /// Retrieves a single user by their unique identifier, returning the raw map.
   ///
   /// This should align cleanly with a future API endpoint such as `/users/{id}`.
-  Future<Map<String, dynamic>?> getUserMapById(String id) async {
+  Future<Map<String, dynamic>> getUserMapById(String id) async {
     final db = await dbHelper.database;
     final data = await db.query(
       'users',
@@ -118,7 +118,6 @@ class UserRepository {
       limit: 1,
     );
 
-    if (data.isEmpty) return null;
     return data.first;
   }
 
