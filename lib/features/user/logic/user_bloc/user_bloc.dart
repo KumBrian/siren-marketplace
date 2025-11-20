@@ -15,6 +15,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
 
   UserBloc({required this.userRepository}) : super(UserInitial()) {
     on<LoadPrimaryUser>(_onLoadPrimaryUser);
+
     on<FinalizeRoleSelection>(_onFinalizeRoleSelection);
 
     // 🌟 NEW HANDLER 🌟

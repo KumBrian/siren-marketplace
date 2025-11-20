@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 
 class ForSaleCard extends StatelessWidget {
   const ForSaleCard({
@@ -128,6 +129,28 @@ class ForSaleCard extends StatelessWidget {
                                     ),
                                   )
                                 : Container(),
+                            catchData.species.id != "prawns"
+                                ? RichText(
+                                    text: TextSpan(
+                                      text: "Size: ",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.gray650,
+                                      ),
+
+                                      children: [
+                                        TextSpan(
+                                          text: "${catchData.size} cm",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textBlue,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : Container(),
                             RichText(
                               text: TextSpan(
                                 text: "Weight: ",
@@ -138,8 +161,9 @@ class ForSaleCard extends StatelessWidget {
 
                                 children: [
                                   TextSpan(
-                                    text:
-                                        "${catchData.initialWeight.toInt()} Kg",
+                                    text: formatWeight(
+                                      catchData.availableWeight,
+                                    ),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,

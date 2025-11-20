@@ -19,6 +19,7 @@ import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
+import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
@@ -28,9 +29,9 @@ import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 class PreviousOfferDetails {
-  final double price;
-  final double weight;
-  final double pricePerKg;
+  final int price;
+  final int weight;
+  final int pricePerKg;
 
   const PreviousOfferDetails({
     required this.price,
@@ -180,148 +181,208 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
             onPressed: () => context.pop(),
           ),
         ),
-        content: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.textBlue),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    children: [
-                      NumberInputField(
-                        controller: _weightController,
-                        label: "Weight",
-                        role: Role.buyer,
-                        suffix: "Kg",
-                        validator: (value) {
-                          final weight = double.tryParse(value ?? "");
-                          if (weight == null || weight <= 0) {
-                            return "Enter valid weight";
-                          }
-                          if (weight > c.availableWeight) {
-                            return "Cannot exceed available weight";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      NumberInputField(
-                        controller: _priceController,
-                        label: "Total Price",
-                        suffix: "CFA",
-                        validator: (value) {
-                          final price = double.tryParse(value ?? "");
-                          if (price == null || price <= 0) {
-                            return "Enter valid price";
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      NumberInputField(
-                        controller: _pricePerKgController,
-                        label: "Price/Kg",
-                        suffix: "CFA",
-                        validator: (value) {
-                          final pricePerKg = double.tryParse(value ?? "");
-                          if (pricePerKg == null || pricePerKg <= 0) {
-                            return "Enter valid price per kg";
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                BlocBuilder<UserBloc, UserState>(
-                  builder: (context, userState) {
-                    final user = userState is UserLoaded
-                        ? userState.user
-                        : null;
-                    return CustomButton(
-                      title: "Send Offer",
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          final weight = double.tryParse(
-                            _weightController.text,
-                          );
-                          final totalPrice = double.tryParse(
-                            _priceController.text,
-                          );
-                          final pricePerKg = double.tryParse(
-                            _pricePerKgController.text,
-                          );
+        // Wrap in StatefulBuilder to allow auto-calculation between fields
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            // --- CALCULATION LOGIC START ---
+            // Helper to update Price/Kg when Weight or Total changes
+            void updateCalculations(String _) {
+              final weightInputKg =
+                  double.tryParse(_weightController.text) ?? 0.0;
+              final totalPrice = int.tryParse(_priceController.text) ?? 0;
 
-                          if (weight != null &&
-                              totalPrice != null &&
-                              pricePerKg != null &&
-                              user != null) {
-                            context.read<OffersBloc>().add(
-                              CreateOffer(
-                                catchId: c.id,
-                                buyerId: user.id,
-                                fisherId: c.fisherId,
-                                price: totalPrice,
-                                weight: weight,
-                                pricePerKg: pricePerKg,
-                              ),
-                            );
-                            context.read<CatchesBloc>().add(LoadCatches());
-                            context.pop();
+              // Convert to Grams for precision
+              final weightInGrams = (weightInputKg * 1000).round();
 
-                            showDialog(
-                              context: context,
-                              barrierDismissible: true,
-                              builder: (ctx) {
-                                Future.delayed(const Duration(seconds: 2), () {
-                                  if (ctx.mounted) Navigator.of(ctx).pop();
-                                });
+              if (weightInGrams > 0 && totalPrice > 0) {
+                // Formula: (Total * 1000) / Grams
+                final calcPricePerKg = ((totalPrice * 1000) / weightInGrams)
+                    .round();
 
-                                return AlertDialog(
-                                  title: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.textBlue,
-                                      border: Border.all(
-                                        color: AppColors.textBlue,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.check,
-                                      color: AppColors.textWhite,
-                                    ),
-                                  ),
-                                  content: const Text(
-                                    "Offer sent successfully!",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: AppColors.textBlue,
-                                    ),
+                // Update the UI without moving the cursor if possible,
+                // or just update the text property
+                if (_pricePerKgController.text != calcPricePerKg.toString()) {
+                  _pricePerKgController.text = calcPricePerKg.toString();
+                }
+              }
+            }
+            // --- CALCULATION LOGIC END ---
+
+            return Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.textBlue),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        children: [
+                          NumberInputField(
+                            controller: _weightController,
+                            label: "Weight",
+                            role: Role.buyer,
+                            suffix: "Kg",
+                            // Displaying Kg
+                            onChanged: updateCalculations,
+                            // Trigger Math
+                            validator: (value) {
+                              final weightInputKg = double.tryParse(
+                                value ?? "",
+                              );
+
+                              if (weightInputKg == null || weightInputKg <= 0) {
+                                return "Enter valid weight";
+                              }
+
+                              // Convert input to Grams for comparison
+                              final weightInGrams = (weightInputKg * 1000)
+                                  .round();
+
+                              // Compare Grams vs Grams
+                              if (weightInGrams > c.availableWeight) {
+                                return "Cannot exceed available weight";
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          NumberInputField(
+                            controller: _priceController,
+                            label: "Total Price",
+                            suffix: "CFA",
+                            decimal: false,
+                            // Price is usually Int
+                            onChanged: updateCalculations,
+                            // Trigger Math
+                            validator: (value) {
+                              final price = int.tryParse(value ?? "");
+                              if (price == null || price <= 0) {
+                                return "Enter valid price";
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          NumberInputField(
+                            controller: _pricePerKgController,
+                            label: "Price/Kg",
+                            suffix: "CFA",
+                            decimal: false,
+                            // Optional: Make this read-only if you want it strictly calculated
+                            // editable: false,
+                            validator: (value) {
+                              final pricePerKg = int.tryParse(value ?? "");
+                              if (pricePerKg == null || pricePerKg <= 0) {
+                                return "Enter valid price per kg";
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    BlocBuilder<UserBloc, UserState>(
+                      builder: (context, userState) {
+                        final user = userState is UserLoaded
+                            ? userState.user
+                            : null;
+                        return CustomButton(
+                          title: "Send Offer",
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              // 1. Parse Inputs
+                              final weightInputKg = double.tryParse(
+                                _weightController.text,
+                              );
+                              final totalPrice = int.tryParse(
+                                _priceController.text,
+                              );
+                              final pricePerKg = int.tryParse(
+                                _pricePerKgController.text,
+                              );
+
+                              if (weightInputKg != null &&
+                                  totalPrice != null &&
+                                  pricePerKg != null &&
+                                  user != null) {
+                                // 2. Final Conversion to Grams before sending
+                                final weightInGrams = (weightInputKg * 1000)
+                                    .round();
+
+                                context.read<OffersBloc>().add(
+                                  CreateOffer(
+                                    catchId: c.id,
+                                    buyerId: user.id,
+                                    fisherId: c.fisherId,
+                                    price: totalPrice,
+                                    weight: weightInGrams,
+                                    // Sending Int (Grams)
+                                    pricePerKg: pricePerKg,
                                   ),
                                 );
-                              },
-                            );
-                          }
-                        }
+                                context.read<CatchesBloc>().add(LoadCatches());
+                                Navigator.of(
+                                  context,
+                                ).pop(); // Use Navigator for safer pop
+
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: true,
+                                  builder: (ctx) {
+                                    Future.delayed(
+                                      const Duration(seconds: 2),
+                                      () {
+                                        if (ctx.mounted)
+                                          Navigator.of(ctx).pop();
+                                      },
+                                    );
+
+                                    return AlertDialog(
+                                      title: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppColors.textBlue,
+                                          border: Border.all(
+                                            color: AppColors.textBlue,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.check,
+                                          color: AppColors.textWhite,
+                                        ),
+                                      ),
+                                      content: const Text(
+                                        "Offer sent successfully!",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: AppColors.textBlue,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
+                            }
+                          },
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -426,7 +487,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
               return Scaffold(
                 appBar: AppBar(
                   leading: BackButton(onPressed: () => context.pop()),
-                  title: const Text("Offer Details"),
+                  title: const PageTitle(title: "Offer Details"),
                 ),
                 body: Center(child: Text(errorMessage)),
               );
@@ -457,20 +518,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                 return Scaffold(
                   appBar: AppBar(
                     leading: BackButton(onPressed: () => context.pop()),
-                    title: const Text(
-                      "Offer Details",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textBlue,
-                        fontSize: 24,
-                      ),
-                    ),
-                    actions: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.more_vert),
-                      ),
-                    ],
+                    title: const PageTitle(title: "Offer Details"),
                   ),
                   body: SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
@@ -503,8 +551,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                             rows: [
                               InfoRow(
                                 label: "Weight",
-                                value:
-                                    "${currentOffer.weight.toStringAsFixed(1)} Kg",
+                                value: formatWeight(currentOffer.weight),
                               ),
                               InfoRow(
                                 label: "Price Per Kg",
@@ -545,8 +592,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                               rows: [
                                 InfoRow(
                                   label: "Weight",
-                                  value:
-                                      "${previous.weight.toStringAsFixed(1)} Kg",
+                                  value: formatWeight(previous.weight),
                                 ),
                                 InfoRow(
                                   label: "Price",
@@ -839,51 +885,64 @@ class FisherDetails extends StatelessWidget {
       spacing: 8,
       children: [
         SectionHeader("Seller"),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ErrorHandlingCircleAvatar(avatarUrl: avatarUrl),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
+        Material(
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            onTap: () {
+              context.push("/buyer/reviews/${fisher?.id}");
+            },
+            borderRadius: BorderRadius.circular(16),
+            splashColor: AppColors.blue700.withValues(alpha: 0.1),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: AppColors.textBlue,
+                  ErrorHandlingCircleAvatar(avatarUrl: avatarUrl),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: AppColors.textBlue,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: AppColors.shellOrange,
+                              size: 16,
+                            ),
+                            Text(
+                              rating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                color: AppColors.textBlue,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                            Text(
+                              " ($reviewCount Reviews)",
+                              style: const TextStyle(
+                                color: AppColors.textBlue,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        color: AppColors.shellOrange,
-                        size: 16,
-                      ),
-                      Text(
-                        rating.toStringAsFixed(1),
-                        style: const TextStyle(
-                          color: AppColors.textBlue,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      Text(
-                        " ($reviewCount Reviews)",
-                        style: const TextStyle(
-                          color: AppColors.textBlue,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ],
     );

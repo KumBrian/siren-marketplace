@@ -10,7 +10,6 @@ import 'package:siren_marketplace/bloc/cubits/orders_filter_cubit/orders_filter_
 import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filter_cubit.dart';
-// Core
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/services/seeder.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
@@ -27,7 +26,7 @@ import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubi
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 import 'package:siren_marketplace/router.dart';
 
-const String CURRENT_FISHER_ID = 'fisher_id_1';
+const String CURRENT_FISHER_ID = 'fisher_id_2';
 const String CURRENT_BUYER_ID = 'buyer_id_1';
 
 Future<void> main() async {
@@ -87,6 +86,7 @@ class MyApp extends StatelessWidget {
             theme: ThemeData(
               fontFamily: 'Poppins',
               colorScheme: ColorScheme.fromSeed(seedColor: AppColors.blue500),
+              appBarTheme: AppBarTheme(centerTitle: true),
             ),
             // Passing the singleton UserBloc instance to the router
             routerConfig: createRouter(context.read<UserBloc>()),

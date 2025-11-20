@@ -100,16 +100,34 @@ class _FisherHomeState extends State<FisherHome> {
             BlocBuilder<CatchesBloc, CatchesState>(
               builder: (context, cState) {
                 if (cState is! CatchesLoaded) return const SizedBox.shrink();
-                final allCatches = cState.catches;
-                return IconButton(
-                  onPressed: () => context.go("/fisher/notifications"),
-                  icon: Badge(
-                    label: Text("${_totalOffersWithUpdates(allCatches)}"),
-                    child: Icon(
-                      CustomIcons.notificationbell,
-                      color: AppColors.textBlue,
-                    ),
-                  ),
+                return BlocBuilder<UserBloc, UserState>(
+                  builder: (context, userState) {
+                    if (userState is! UserLoaded) {
+                      return IconButton(
+                        onPressed: () {},
+                        icon: Icon(
+                          CustomIcons.notificationbell,
+                          color: AppColors.textBlue,
+                        ),
+                      );
+                    }
+
+                    final allCatches = cState.catches
+                        .where((c) => c.fisherId == userState.user!.id)
+                        .toList();
+                    return IconButton(
+                      onPressed: () => context.go(
+                        "/fisher/notifications/${userState.user!.id}",
+                      ),
+                      icon: Badge(
+                        label: Text("${_totalOffersWithUpdates(allCatches)}"),
+                        child: Icon(
+                          CustomIcons.notificationbell,
+                          color: AppColors.textBlue,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),

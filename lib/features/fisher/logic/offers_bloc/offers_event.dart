@@ -79,22 +79,22 @@ class RejectOffer extends OffersEvent {
 /// Event to counter an offer.
 class CounterOffer extends OffersEvent {
   final Offer previousOffer;
-  final double newPrice;
-  final double newWeight;
-  final Role counteringRole; // The role of the person making the counter
+  final int newPrice;
+  final int newWeightInGrams; // <--- RENAME HERE for clarity
+  final Role counteringRole;
 
   const CounterOffer({
     required this.previousOffer,
     required this.newPrice,
-    required this.newWeight,
+    required int newWeight, // Use the public parameter name
     required this.counteringRole,
-  });
+  }) : newWeightInGrams = newWeight; // Map it internally
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
     previousOffer,
     newPrice,
-    newWeight,
+    newWeightInGrams,
     counteringRole,
   ];
 }
@@ -113,9 +113,9 @@ class CreateOffer extends OffersEvent {
   final String catchId;
   final String buyerId;
   final String fisherId;
-  final double price;
-  final double weight;
-  final double pricePerKg;
+  final int price;
+  final int weight;
+  final int pricePerKg;
 
   const CreateOffer({
     required this.catchId,

@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:siren_marketplace/features/buyer/presentation/screens/buyer_review_screen.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/screens/fisher.dart';
+import 'package:siren_marketplace/features/fisher/presentation/screens/fisher_review_screen.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/about.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/account_info.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/beaches.dart';
@@ -154,10 +156,28 @@ GoRouter createRouter(UserBloc userBloc) {
             builder: (_, __) => const MarketTrends(),
           ),
           GoRoute(
-            path: 'notifications',
-            builder: (_, __) => const NotificationsScreen(),
+            path: 'notifications/:fisherId',
+            builder: (context, state) {
+              final String? fisherId = state.pathParameters['fisherId'];
+              return NotificationsScreen(fisherId: fisherId!);
+            },
           ),
           GoRoute(path: 'chat', builder: (_, __) => const ChatPage()),
+          GoRoute(
+            path: "reviews/:userId",
+            builder: (context, state) {
+              final String? userId = state.pathParameters['userId'];
+
+              if (userId == null) {
+                return const Scaffold(
+                  body: Center(child: Text("Invalid User ID")),
+                );
+              }
+
+              // ReviewsScreen is now responsible for fetching the user and their reviews
+              return FisherReviewScreen(userId: userId);
+            },
+          ),
         ],
       ),
       GoRoute(
@@ -203,6 +223,21 @@ GoRouter createRouter(UserBloc userBloc) {
             builder: (_, __) => const BuyerNotificationsScreen(),
           ),
           GoRoute(path: 'chat', builder: (_, __) => const ChatPage()),
+          GoRoute(
+            path: "reviews/:userId",
+            builder: (context, state) {
+              final String? userId = state.pathParameters['userId'];
+
+              if (userId == null) {
+                return const Scaffold(
+                  body: Center(child: Text("Invalid User ID")),
+                );
+              }
+
+              // ReviewsScreen is now responsible for fetching the user and their reviews
+              return BuyerReviewScreen(userId: userId);
+            },
+          ),
         ],
       ),
       GoRoute(

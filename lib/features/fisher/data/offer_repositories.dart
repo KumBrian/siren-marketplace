@@ -63,9 +63,9 @@ class OfferRepository {
     required String catchId,
     required String buyerId,
     required String fisherId,
-    required double price,
-    required double weight,
-    required double pricePerKg,
+    required int price,
+    required int weight,
+    required int pricePerKg,
   }) async {
     final db = await dbHelper.database;
 
@@ -310,17 +310,26 @@ extension OfferRepositoryActions on OfferRepository {
   /// - negotiation metadata
   ///
   /// Used when either party proposes new terms.
+  // Inside extension OfferRepositoryActions on OfferRepository
   Future<Offer> counterOffer({
     required Offer previous,
-    required double newPrice,
-    required double newWeight,
+    required int newPrice,
+    required int newWeight,
     required Role role,
   }) async {
-    final newPricePerKg = newPrice / newWeight;
+    // 1. CRITICAL FIX: Use the Grams formula for accurate Price/Kg calculation
+    int newPricePerKg = 0;
+    if (newWeight > 0) {
+      // Formula: (Total Price * 1000) / Weight in Grams
+      // Use .round() for standard rounding to the nearest integer.
+      newPricePerKg = ((newPrice * 1000) / newWeight).round();
+    }
+
     final now = DateTime.now().toIso8601String();
 
     final updatedOffer = previous.copyWith(
       pricePerKg: newPricePerKg,
+      // ✅ This will now be 11,210 instead of 11
       price: newPrice,
       weight: newWeight,
       status: OfferStatus.pending,

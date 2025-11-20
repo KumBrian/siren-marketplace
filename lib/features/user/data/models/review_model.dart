@@ -5,7 +5,7 @@ class Review extends Equatable {
   final String orderId;
   final String raterId;
   final String ratedUserId;
-  final double ratingValue;
+  final int ratingValue;
   final String? message;
   final String dateCreated; // Reverted back to String
 
@@ -41,7 +41,7 @@ class Review extends Equatable {
       orderId: map['order_id'] as String,
       raterId: map['rater_id'] as String,
       ratedUserId: map['rated_user_id'] as String,
-      ratingValue: (map['rating_value'] as num).toDouble(),
+      ratingValue: (map['rating_value'] as num).toInt(),
       message: map['message'] as String?,
       dateCreated: dateString,
       // Stays as String

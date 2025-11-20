@@ -16,6 +16,7 @@ import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/models/order.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
@@ -255,10 +256,10 @@ class _OrderDetailsState extends State<OrderDetails> {
             final Map<String, dynamic> catchMap = jsonDecode(
               selectedOrder.catchSnapshotJson,
             );
-            final double acceptedWeight =
-                (catchMap['accepted_weight'] as num?)?.toDouble() ?? 0.0;
-            final double acceptedPrice =
-                (catchMap['accepted_price'] as num?)?.toDouble() ?? 0.0;
+            final int acceptedWeight =
+                (catchMap['accepted_weight'] as num?)?.toInt() ?? 0;
+            final int acceptedPrice =
+                (catchMap['accepted_price'] as num?)?.toInt() ?? 0;
             final OfferStatus orderStatus = selectedOrder.offer.status;
 
             final buyerName =
@@ -599,8 +600,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                                     : null,
                                 InfoRow(
                                   label: "Weight", // Updated label for clarity
-                                  value: acceptedWeight.toInt(),
-                                  suffix: "Kg",
+                                  value: formatWeight(acceptedWeight),
                                 ),
                                 InfoRow(
                                   label: "Total Price",
@@ -614,61 +614,79 @@ class _OrderDetailsState extends State<OrderDetails> {
 
                           const SectionHeader("Buyer"),
 
-                          const SizedBox(height: 16),
-
                           // --- Buyer Details ---
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ErrorHandlingCircleAvatar(avatarUrl: buyerAvatar),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
+                          Material(
+                            borderRadius: BorderRadius.circular(16),
+                            child: InkWell(
+                              onTap: () {
+                                context.push("/fisher/reviews/${buyer?.id}");
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              splashColor: AppColors.blue700.withValues(
+                                alpha: 0.1,
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      buyerName, // Use buyer name
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                        color: AppColors.textBlue,
-                                      ),
+                                    ErrorHandlingCircleAvatar(
+                                      avatarUrl: buyerAvatar,
                                     ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.star,
-                                          color: AppColors.shellOrange,
-                                          size: 16,
-                                        ),
-                                        Text(
-                                          buyerRating.toStringAsFixed(1),
-                                          // Use buyer rating
-                                          style: const TextStyle(
-                                            color: AppColors.textBlue,
-                                            fontWeight: FontWeight.w300,
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            buyerName, // Use buyer name
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 16,
+                                              color: AppColors.textBlue,
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          " ($buyerReviewCount Reviews)",
-                                          // Use buyer review count
-                                          style: const TextStyle(
-                                            color: AppColors.textBlue,
-                                            fontWeight: FontWeight.w300,
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.star,
+                                                color: AppColors.shellOrange,
+                                                size: 16,
+                                              ),
+                                              Text(
+                                                buyerRating.toStringAsFixed(1),
+                                                // Use buyer rating
+                                                style: const TextStyle(
+                                                  color: AppColors.textBlue,
+                                                  fontWeight: FontWeight.w300,
+                                                ),
+                                              ),
+                                              Text(
+                                                " ($buyerReviewCount Reviews)",
+                                                // Use buyer review count
+                                                style: const TextStyle(
+                                                  color: AppColors.textBlue,
+                                                  fontWeight: FontWeight.w300,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 16),
 
                           // --- Action Buttons ---
-                          if (orderStatus != OfferStatus.completed)
+                          if (orderStatus != OfferStatus.completed) ...[
+                            const SizedBox(height: 16),
                             Column(
                               spacing: 8,
                               mainAxisSize: MainAxisSize.min,
@@ -809,8 +827,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                                 ),
                               ],
                             ),
+                          ],
 
-                          const SizedBox(height: 16),
                           if (orderStatus == OfferStatus.completed &&
                               !selectedOrder.hasRatedBuyer) ...[
                             CustomButton(
