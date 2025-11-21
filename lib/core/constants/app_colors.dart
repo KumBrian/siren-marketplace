@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:siren_marketplace/core/types/enum.dart';
+import '../../new_core/domain/enums/offer_status.dart';
 
 class AppColors {
   //SIREN BLUE
@@ -63,12 +63,9 @@ class AppColors {
         return AppColors.shellOrange;
       case OfferStatus.accepted:
         return AppColors.blue400;
-      case OfferStatus.completed:
+      case OfferStatus.expired:
         return AppColors.textGray;
       case OfferStatus.rejected:
-        return AppColors.fail500;
-
-      case OfferStatus.unknown:
         return AppColors.fail500;
     }
   }

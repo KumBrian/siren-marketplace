@@ -4,6 +4,7 @@ import '../../../../../new_core/di/injection.dart';
 import '../../../../../new_core/domain/enums/offer_status.dart';
 import '../../../../../new_core/domain/repositories/i_catch_repository.dart';
 import '../../../../../new_core/domain/repositories/i_offer_repository.dart';
+import '../../../../../new_core/domain/repositories/i_user_repository.dart';
 import '../../../../../new_core/domain/services/marketplace_service.dart';
 import '../../../../../new_core/domain/value_objects/price_per_kg.dart';
 import '../../../../../new_core/domain/value_objects/weight.dart';
@@ -12,14 +13,17 @@ import 'catch_detail_state.dart';
 class CatchDetailCubit extends Cubit<CatchDetailState> {
   final ICatchRepository _catchRepository;
   final IOfferRepository _offerRepository;
+  final IUserRepository _userRepository;
   final MarketplaceService _marketplaceService;
 
   CatchDetailCubit({
     ICatchRepository? catchRepository,
     IOfferRepository? offerRepository,
+    IUserRepository? userRepository,
     MarketplaceService? marketplaceService,
   }) : _catchRepository = catchRepository ?? DI().catchRepository,
        _offerRepository = offerRepository ?? DI().offerRepository,
+       _userRepository = userRepository ?? DI().userRepository,
        _marketplaceService = marketplaceService ?? DI().marketplaceService,
        super(const CatchDetailInitial());
 
@@ -35,7 +39,22 @@ class CatchDetailCubit extends Cubit<CatchDetailState> {
 
       final offers = await _offerRepository.getByCatchId(catchId);
 
-      emit(CatchDetailLoaded(catch_: catch_, offers: offers));
+      // Fetch buyer details
+      final buyerIds = offers.map((o) => o.buyerId).toSet().toList();
+      final buyers = await _userRepository.getByIds(buyerIds);
+      final buyerDetails = {for (var b in buyers) b.id: b};
+
+      // Fetch fisher details
+      final fisher = await _userRepository.getById(catch_.fisherId);
+
+      emit(
+        CatchDetailLoaded(
+          catch_: catch_,
+          offers: offers,
+          fisher: fisher,
+          buyerDetails: buyerDetails,
+        ),
+      );
     } catch (e) {
       emit(CatchDetailError('Failed to load catch detail: $e'));
     }

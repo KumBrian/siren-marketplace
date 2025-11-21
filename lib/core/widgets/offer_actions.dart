@@ -4,18 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
-import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/core/models/catch.dart' as CatchModel;
-import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/counter_offer_dialog.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
-import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
-import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/new_core/domain/entities/catch.dart';
+import 'package:siren_marketplace/new_core/domain/entities/offer.dart';
+import 'package:siren_marketplace/new_core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/new_core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/new_core/domain/value_objects/offer_terms.dart';
+import 'package:siren_marketplace/new_core/domain/value_objects/price.dart';
+import 'package:siren_marketplace/new_core/domain/value_objects/price_per_kg.dart';
+import 'package:siren_marketplace/new_core/domain/value_objects/weight.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_cubit.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_state.dart';
+import 'package:siren_marketplace/new_features/fisher/presentation/cubits/offer_detail/offer_detail_cubit.dart';
+import 'package:siren_marketplace/new_features/fisher/presentation/cubits/offer_detail/offer_detail_state.dart';
 
 void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
   showDialog(
@@ -104,17 +107,15 @@ class OfferActions extends StatefulWidget {
 
   final Offer offer;
   final GlobalKey<FormState> formKey;
-  final Role currentUserRole;
-  final void Function(String offerId) onNavigateToOrder;
-  final CatchModel.Catch catchItem;
+  final UserRole currentUserRole;
+  final void Function(String orderId) onNavigateToOrder;
+  final Catch catchItem;
 
   @override
   State<OfferActions> createState() => _OfferActionsState();
 }
 
 class _OfferActionsState extends State<OfferActions> {
-  final UserRepository _userRepository = sl<UserRepository>();
-
   // Helper to display grams as Kg cleanly (1500 -> "1.5")
   String _displayWeightInKg(int weightInGrams) {
     return (weightInGrams / 1000)
@@ -122,38 +123,40 @@ class _OfferActionsState extends State<OfferActions> {
         .replaceAll(RegExp(r"([.]*0)(?!.*\d)"), "");
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   Future<void> _handleAccept(BuildContext confirmDialogContext) async {
     if (Navigator.of(confirmDialogContext).canPop()) {
       Navigator.of(confirmDialogContext).pop();
     }
 
-    final catchItem = widget.catchItem;
-
     if (!context.mounted) return;
-    showLoadingDialog(context, message: 'Loading...');
+    showLoadingDialog(context, message: 'Accepting offer...');
 
     try {
-      final fisherMap = await _userRepository.getUserMapById(
-        widget.offer.fisherId,
-      );
+      // Get current user ID from AuthCubit
+      final authState = context.read<AuthCubit>().state;
+      final userId = authState is AuthAuthenticated ? authState.user.id : '';
+
+      await context.read<OfferDetailCubit>().acceptOffer(userId);
 
       if (!context.mounted) return;
 
-      final fisher = Fisher.fromMap(fisherMap);
+      // Listen for state changes
+      final state = context.read<OfferDetailCubit>().state;
+      if (state is OfferDetailLoaded && state.linkedOrder != null) {
+        // Close loading dialog
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
 
-      context.read<OffersBloc>().add(
-        AcceptOffer(
-          offer: widget.offer,
-          catchItem: catchItem,
-          fisher: fisher,
-          orderRepository: sl<OrderRepository>(),
-        ),
-      );
+        await showActionSuccessDialog(
+          context,
+          message: "Offer Successfully Accepted.",
+          actionTitle: "View Details",
+          onAction: () {
+            widget.onNavigateToOrder(state.linkedOrder!.id);
+          },
+        );
+      }
     } catch (e) {
       if (!context.mounted) return;
       Navigator.of(context).pop();
@@ -168,11 +171,26 @@ class _OfferActionsState extends State<OfferActions> {
   Future<void> _handleReject(BuildContext outerContext) async {
     if (Navigator.of(outerContext).canPop()) Navigator.of(outerContext).pop();
     if (!context.mounted) return;
-    showLoadingDialog(context, message: 'Creating order...');
+    showLoadingDialog(context, message: 'Rejecting offer...');
+
     try {
-      context.read<OffersBloc>().add(RejectOffer(offer: widget.offer));
+      // Get current user ID from AuthCubit
+      final authState = context.read<AuthCubit>().state;
+      final userId = authState is AuthAuthenticated ? authState.user.id : '';
+
+      await context.read<OfferDetailCubit>().rejectOffer(userId);
+
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+
+      await showActionSuccessDialog(
+        context,
+        message: 'Offer Rejected!',
+        autoCloseSeconds: 3,
+      );
     } catch (e) {
       if (outerContext.mounted) {
+        Navigator.of(context).pop();
         await showActionSuccessDialog(
           outerContext,
           message: 'Reject failed: $e',
@@ -182,10 +200,50 @@ class _OfferActionsState extends State<OfferActions> {
     }
   }
 
+  Future<void> _handleCounter(int newWeightGrams, int newPriceAmount) async {
+    if (!context.mounted) return;
+    showLoadingDialog(context, message: 'Sending counter-offer...');
+
+    try {
+      // Get current user ID from AuthCubit
+      final authState = context.read<AuthCubit>().state;
+      final userId = authState is AuthAuthenticated ? authState.user.id : '';
+
+      // Create new OfferTerms
+      final newTerms = OfferTerms.create(
+        weight: Weight.fromGrams(newWeightGrams),
+        totalPrice: Price.fromAmount(newPriceAmount),
+      );
+
+      await context.read<OfferDetailCubit>().counterOffer(
+        userId: userId,
+        newTerms: newTerms,
+      );
+
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+
+      await showActionSuccessDialog(
+        context,
+        message: 'Counter-Offer Sent!',
+        autoCloseSeconds: 3,
+      );
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        await showActionSuccessDialog(
+          context,
+          message: 'Counter failed: $e',
+          autoCloseSeconds: 3,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return widget.offer.status == OfferStatus.pending ||
-            (widget.offer.previousPricePerKg != null &&
+            (widget.offer.previousTerms != null &&
                 widget.offer.status == OfferStatus.pending)
         ? Column(
             children: [
@@ -224,8 +282,7 @@ class _OfferActionsState extends State<OfferActions> {
                                     ),
                                   ),
                                   Text(
-                                    // UPDATED: Convert Grams to Kg for display
-                                    "${_displayWeightInKg(widget.offer.weight)} Kg / ${formatPrice(widget.offer.price.toDouble())}",
+                                    "${_displayWeightInKg(widget.offer.currentTerms.weight.grams)} Kg / ${formatPrice(widget.offer.currentTerms.totalPrice.amount)}",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 18,
@@ -293,8 +350,7 @@ class _OfferActionsState extends State<OfferActions> {
                                   ),
                                 ),
                                 Text(
-                                  // UPDATED: Convert Grams to Kg for display
-                                  "${_displayWeightInKg(widget.offer.weight)} Kg / ${formatPrice(widget.offer.price.toDouble())}",
+                                  "${_displayWeightInKg(widget.offer.currentTerms.weight.grams)} Kg / ${formatPrice(widget.offer.currentTerms.totalPrice.amount)}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w800,
                                     fontSize: 18,
@@ -328,60 +384,27 @@ class _OfferActionsState extends State<OfferActions> {
                   if (widget.offer.waitingFor == widget.currentUserRole) ...[
                     const SizedBox(width: 16),
                     Expanded(
-                      child: BlocBuilder<UserBloc, UserState>(
-                        builder: (context, state) {
-                          if (state is UserLoaded) {
-                            final user = state.user;
-                            return CustomButton(
-                              title: "Counter-Offer",
-                              icon: Icons.autorenew_rounded,
-                              onPressed: () {
-                                showCounterOfferDialog(
-                                  context: context,
-                                  role: user!.role,
-                                  formKey: widget.formKey,
-                                  // UPDATED: Pass weight in Grams directly
-                                  initialWeight: widget.offer.weight,
-                                  initialPrice: widget.offer.price,
-                                  // UPDATED: onSubmit now receives int (Grams)
-                                  onSubmit:
-                                      (newWeight, newPrice, dialogCtx) async {
-                                        if (Navigator.of(context).canPop()) {
-                                          Navigator.of(context).pop();
-                                        }
-                                        if (!context.mounted) return;
-                                        showLoadingDialog(
-                                          context,
-                                          message: 'Creating order...',
-                                        );
-                                        try {
-                                          context.read<OffersBloc>().add(
-                                            CounterOffer(
-                                              previousOffer: widget.offer,
-                                              newPrice: newPrice,
-                                              newWeight:
-                                                  newWeight, // Passing int
-                                              counteringRole: user.role,
-                                            ),
-                                          );
-                                        } catch (e) {
-                                          if (context.mounted) {
-                                            await showActionSuccessDialog(
-                                              context,
-                                              message: 'Counter failed: $e',
-                                              autoCloseSeconds: 3,
-                                            );
-                                          }
-                                        }
-                                      },
-                                );
-                              },
-
-                              bordered: true,
-                            );
-                          }
-                          return Container();
+                      child: CustomButton(
+                        title: "Counter-Offer",
+                        icon: Icons.autorenew_rounded,
+                        onPressed: () {
+                          showCounterOfferDialog(
+                            context: context,
+                            role: widget.currentUserRole,
+                            formKey: widget.formKey,
+                            initialWeight:
+                                widget.offer.currentTerms.weight.grams,
+                            initialPrice:
+                                widget.offer.currentTerms.totalPrice.amount,
+                            onSubmit: (newWeight, newPrice, dialogCtx) async {
+                              if (Navigator.of(dialogCtx).canPop()) {
+                                Navigator.of(dialogCtx).pop();
+                              }
+                              await _handleCounter(newWeight, newPrice);
+                            },
+                          );
                         },
+                        bordered: true,
                       ),
                     ),
                   ],
@@ -405,12 +428,18 @@ class _OfferActionsState extends State<OfferActions> {
               ],
             ],
           )
-        : widget.offer.status == OfferStatus.accepted ||
-              widget.offer.status == OfferStatus.completed
-        ? CustomButton(
-            title: "Order Details",
-            onPressed: () {
-              widget.onNavigateToOrder(widget.offer.id);
+        : widget.offer.status == OfferStatus.accepted
+        ? BlocBuilder<OfferDetailCubit, OfferDetailState>(
+            builder: (context, state) {
+              if (state is OfferDetailLoaded && state.linkedOrder != null) {
+                return CustomButton(
+                  title: "Order Details",
+                  onPressed: () {
+                    widget.onNavigateToOrder(state.linkedOrder!.id);
+                  },
+                );
+              }
+              return Container();
             },
           )
         : Container();

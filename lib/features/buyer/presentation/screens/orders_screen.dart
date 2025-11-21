@@ -3,16 +3,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/bloc/cubits/offers_filter_cubit/offers_filter_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/types/enum.dart' hide OfferStatus;
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/order_card.dart';
+import 'package:siren_marketplace/new_core/domain/entities/offer.dart';
+import 'package:siren_marketplace/new_core/domain/entities/order.dart';
+import 'package:siren_marketplace/new_core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_cubit.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_state.dart';
+import 'package:siren_marketplace/new_features/fisher/presentation/cubits/offer_list/offer_list_cubit.dart';
+import 'package:siren_marketplace/new_features/fisher/presentation/cubits/offer_list/offer_list_state.dart';
 
-// 💡 FIX: Define the current buyer ID, consistent with the ID that places orders in seeder.dart.
+// Fallback buyer ID for demo purposes
 const String CURRENT_BUYER_ID = 'buyer_id_1';
 
 class BuyerOrders extends StatefulWidget {
@@ -29,6 +34,7 @@ class _BuyerOrdersState extends State<BuyerOrders> {
   ) {
     List<Offer> filteredList = offers;
 
+    // Map filter status names to OfferStatus enum
     final selectedStatuses = state.activeStatuses
         .map((statusName) {
           try {
@@ -36,10 +42,10 @@ class _BuyerOrdersState extends State<BuyerOrders> {
               (s) => s.name == statusName.toLowerCase(),
             );
           } catch (e) {
-            return OfferStatus.unknown;
+            return null;
           }
         })
-        .where((s) => s != OfferStatus.unknown)
+        .whereType<OfferStatus>()
         .toSet();
 
     if (selectedStatuses.isNotEmpty) {
@@ -48,20 +54,15 @@ class _BuyerOrdersState extends State<BuyerOrders> {
       }).toList();
     }
 
-    // --- Sorting by Date (createdAt) ---
+    // Sorting by Date
     filteredList.sort((a, b) {
       if (state.activeSortBy == SortBy.newOld) {
-        // Newest to Oldest (Descending)
         return b.dateCreated.compareTo(a.dateCreated);
       } else if (state.activeSortBy == SortBy.oldNew) {
-        // Oldest to Newest (Ascending)
         return a.dateCreated.compareTo(b.dateCreated);
       }
-      // No sorting/default order
       return 0;
     });
-
-    // 💡 NOTE: Implement search/searchQuery logic here if you add it to the cubit state.
 
     return filteredList;
   }
@@ -88,40 +89,34 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                   "Filter by:",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
-
                 const Text("Status", style: TextStyle(fontSize: 12)),
-
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: OfferStatus.values
-                      .where((s) => s != OfferStatus.unknown)
-                      .map((status) {
-                        final title =
-                            status.name.substring(0, 1).toUpperCase() +
-                            status.name.substring(1);
-                        return FilterButton(
-                          title: title,
-                          color: AppColors.getStatusColor(status),
-                          isSelected: filteredState.pendingStatuses.contains(
-                            title,
-                          ),
-                          onPressed: () => filterCubit.toggleStatus(title),
-                        );
-                      })
-                      .toList(),
+                  children: OfferStatus.values.map((status) {
+                    final title = status.displayName;
+                    final color = AppColors.getStatusColor(status);
+
+                    return FilterButton(
+                      title: title,
+                      color: color,
+                      isSelected: filteredState.pendingStatuses.contains(title),
+                      onPressed: () => filterCubit.toggleStatus(title),
+                    );
+                  }).toList(),
                 ),
                 const Divider(),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
                       onPressed: () {
                         filterCubit.clearAllFilters();
-                        context.read<BuyerCubit>().loadBuyerData(
-                          buyerId: CURRENT_BUYER_ID,
-                        );
+                        final authState = context.read<AuthCubit>().state;
+                        final buyerId = authState is AuthAuthenticated
+                            ? authState.user.id
+                            : CURRENT_BUYER_ID;
+                        context.read<OfferListCubit>().refreshBuyer(buyerId);
                         context.pop();
                       },
                       child: const Text(
@@ -175,9 +170,11 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                     TextButton(
                       onPressed: () {
                         filterCubit.clearAllFilters();
-                        context.read<BuyerCubit>().loadBuyerData(
-                          buyerId: CURRENT_BUYER_ID,
-                        );
+                        final authState = context.read<AuthCubit>().state;
+                        final buyerId = authState is AuthAuthenticated
+                            ? authState.user.id
+                            : CURRENT_BUYER_ID;
+                        context.read<OfferListCubit>().refreshBuyer(buyerId);
                         context.pop();
                       },
                       child: const Text(
@@ -202,7 +199,6 @@ class _BuyerOrdersState extends State<BuyerOrders> {
     );
   }
 
-  //
   Widget _buildDateSortOptions(
     OffersFilterCubit cubit,
     OffersFilterState state,
@@ -265,7 +261,6 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                 alignment: Alignment.topRight,
                 largeSize: 3,
                 smallSize: 8,
-
                 backgroundColor: AppColors.blue800,
                 child: SizedBox(
                   width: double.infinity,
@@ -276,7 +271,7 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                       splashColor: AppColors.blue700.withAlpha(25),
                       borderRadius: BorderRadius.circular(16),
                       onTap: () => _showSortModal(context, allOffers),
-                      child: Padding(
+                      child: const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Icon(
                           CustomIcons.sort,
@@ -300,10 +295,9 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                 isLabelVisible: hasFilters,
                 label: Text("${state.totalFilters}"),
                 alignment: Alignment.topRight,
-
                 backgroundColor: AppColors.blue800,
                 child: SizedBox(
-                  width: double.infinity, // locks full width of Expanded
+                  width: double.infinity,
                   child: Material(
                     color: AppColors.white100,
                     borderRadius: BorderRadius.circular(16),
@@ -353,31 +347,32 @@ class _BuyerOrdersState extends State<BuyerOrders> {
           child: Column(
             spacing: 16,
             children: [
-              SectionHeader("Offers", fontSize: 16),
+              const SectionHeader("Orders", fontSize: 16),
               Container(color: AppColors.textBlue, height: 2.0),
             ],
           ),
         ),
       ),
-      body: BlocBuilder<BuyerCubit, BuyerState>(
-        builder: (context, buyerState) {
-          if (buyerState is BuyerLoading || buyerState is BuyerInitial) {
+      body: BlocBuilder<OfferListCubit, OfferListState>(
+        builder: (context, offerListState) {
+          if (offerListState is OfferListLoading ||
+              offerListState is OfferListInitial) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (buyerState is BuyerError) {
+          if (offerListState is OfferListError) {
             return Center(
               child: Text(
-                'Error loading orders: ${buyerState.message}',
+                'Error loading offers: ${offerListState.message}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: AppColors.fail500),
               ),
             );
           }
-          final loadedState = buyerState as BuyerLoaded;
-          final allOffers = loadedState.madeOffers;
 
-          // 2. Nested BlocBuilder for applying filters
+          final loadedState = offerListState as OfferListLoaded;
+          final allOffers = loadedState.offers;
+
           return BlocBuilder<OffersFilterCubit, OffersFilterState>(
             builder: (context, filterState) {
               final filteredOffers = _applyOffersFilteringAndSorting(
@@ -386,10 +381,13 @@ class _BuyerOrdersState extends State<BuyerOrders> {
               );
 
               return RefreshIndicator(
-                // 💡 FIX: Pass the required buyerId to the loadBuyerData call
-                onRefresh: () => context.read<BuyerCubit>().loadBuyerData(
-                  buyerId: CURRENT_BUYER_ID,
-                ),
+                onRefresh: () {
+                  final authState = context.read<AuthCubit>().state;
+                  final buyerId = authState is AuthAuthenticated
+                      ? authState.user.id
+                      : CURRENT_BUYER_ID;
+                  return context.read<OfferListCubit>().refreshBuyer(buyerId);
+                },
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
@@ -400,14 +398,9 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                     children: [
                       SizedBox(
                         height: 56,
-                        child: _buildSearchAndFilterRow(
-                          context,
-                          filteredOffers,
-                        ),
+                        child: _buildSearchAndFilterRow(context, allOffers),
                       ),
-
-                      const SizedBox(height: 8), // Added standard spacing
-
+                      const SizedBox(height: 8),
                       Expanded(
                         child: filteredOffers.isEmpty
                             ? const Center(
@@ -420,20 +413,21 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                                 padding: const EdgeInsets.only(bottom: 80),
                                 itemCount: filteredOffers.length,
                                 itemBuilder: (context, index) {
-                                  final order = filteredOffers[index];
+                                  final offer = filteredOffers[index];
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 8.0),
                                     child: OrderCard(
-                                      offer: order,
+                                      offer: offer,
                                       onPressed: () {
-                                        order.status == OfferStatus.pending ||
-                                                order.status ==
+                                        // Navigate based on status like original
+                                        offer.status == OfferStatus.pending ||
+                                                offer.status ==
                                                     OfferStatus.rejected
                                             ? context.go(
-                                                "/buyer/offer-details/${order.id}",
+                                                "/buyer/offer-details/${offer.id}",
                                               )
                                             : context.go(
-                                                "/buyer/order-details/${order.id}",
+                                                "/buyer/order-details/${offer.id}",
                                               );
                                       },
                                     ),

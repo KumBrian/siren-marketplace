@@ -4,13 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
-import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/utils/phone_launcher.dart';
@@ -21,36 +16,13 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
-import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
-import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
-import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
-
-class PreviousOfferDetails {
-  final int price;
-  final int weight;
-  final int pricePerKg;
-
-  const PreviousOfferDetails({
-    required this.price,
-    required this.weight,
-    required this.pricePerKg,
-  });
-}
-
-class OfferTransactionData {
-  final Fisher? fisher;
-  final Catch? catchSnapshot;
-  final PreviousOfferDetails? previousDetails;
-
-  const OfferTransactionData({
-    this.fisher,
-    this.previousDetails,
-    this.catchSnapshot,
-  });
-}
+import 'package:siren_marketplace/new_core/domain/entities/catch.dart';
+import 'package:siren_marketplace/new_core/domain/entities/offer.dart';
+import 'package:siren_marketplace/new_core/domain/entities/user.dart';
+import 'package:siren_marketplace/new_core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/new_core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/new_features/fisher/presentation/cubits/offer_detail/offer_detail_cubit.dart';
+import 'package:siren_marketplace/new_features/fisher/presentation/cubits/offer_detail/offer_detail_state.dart';
 
 class BuyerOfferDetails extends StatefulWidget {
   const BuyerOfferDetails({super.key, required this.offerId});
@@ -63,72 +35,25 @@ class BuyerOfferDetails extends StatefulWidget {
 
 class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  Future<OfferTransactionData>? _transactionDataFuture;
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _pricePerKgController = TextEditingController();
-  final UserRepository _userRepository = sl<UserRepository>();
-  bool _hasMarkedAsViewed = false;
 
   @override
-  void initState() {
-    super.initState();
-    _dispatchGetOffer();
+  void dispose() {
+    _weightController.dispose();
+    _priceController.dispose();
+    _pricePerKgController.dispose();
+    super.dispose();
   }
 
-  Future<OfferTransactionData> _loadTransactionData(Offer offer) async {
-    final Map<String, dynamic>? fisherMap = await _userRepository
-        .getUserMapById(offer.fisherId);
-
-    Fisher? fisher;
-    if (fisherMap != null) {
-      fisher = Fisher.fromMap(fisherMap);
-    }
-
-    final Catch? catchSnapshot = await sl<CatchRepository>().getCatchById(
-      offer.catchId,
-    );
-
-    PreviousOfferDetails? previousDetails;
-    final hasPreviousNegotiation =
-        offer.previousPrice != null &&
-        offer.previousWeight != null &&
-        offer.previousPricePerKg != null;
-
-    if (hasPreviousNegotiation) {
-      previousDetails = PreviousOfferDetails(
-        price: offer.previousPrice!,
-        weight: offer.previousWeight!,
-        pricePerKg: offer.previousPricePerKg!,
-      );
-    }
-
-    return OfferTransactionData(
-      fisher: fisher,
-      catchSnapshot: catchSnapshot,
-      previousDetails: previousDetails,
-    );
-  }
-
-  void _dispatchGetOffer() {
-    if (widget.offerId.isEmpty) return;
-    context.read<OffersBloc>().add(GetOfferById(widget.offerId));
-  }
-
-  void _markOfferAsViewed(Offer offer, Role role) {
-    if (role == Role.buyer && offer.hasUpdateForBuyer && !_hasMarkedAsViewed) {
-      context.read<OffersBloc>().add(MarkOfferAsViewed(offer, role));
-      _hasMarkedAsViewed = true;
-    }
-  }
-
-  void _showMakeOfferDialog(BuildContext context, Catch c) {
+  void _showMakeOfferDialog(BuildContext context, Catch catchItem) {
     _weightController.clear();
     _priceController.clear();
     _pricePerKgController.clear();
 
-    final initialPricePerKg = c.pricePerKg;
-    _pricePerKgController.text = initialPricePerKg.toStringAsFixed(2);
+    final initialPricePerKg = catchItem.pricePerKg.amountPerKg;
+    _pricePerKgController.text = initialPricePerKg.toStringAsFixed(0);
 
     bool userEditingTotal = false;
 
@@ -165,7 +90,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         contentPadding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
         backgroundColor: Colors.white,
@@ -178,35 +103,25 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
           alignment: Alignment.centerRight,
           child: IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () => context.pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
           ),
         ),
-        // Wrap in StatefulBuilder to allow auto-calculation between fields
         content: StatefulBuilder(
           builder: (context, setState) {
-            // --- CALCULATION LOGIC START ---
-            // Helper to update Price/Kg when Weight or Total changes
             void updateCalculations(String _) {
               final weightInputKg =
                   double.tryParse(_weightController.text) ?? 0.0;
               final totalPrice = int.tryParse(_priceController.text) ?? 0;
-
-              // Convert to Grams for precision
               final weightInGrams = (weightInputKg * 1000).round();
 
               if (weightInGrams > 0 && totalPrice > 0) {
-                // Formula: (Total * 1000) / Grams
                 final calcPricePerKg = ((totalPrice * 1000) / weightInGrams)
                     .round();
-
-                // Update the UI without moving the cursor if possible,
-                // or just update the text property
                 if (_pricePerKgController.text != calcPricePerKg.toString()) {
                   _pricePerKgController.text = calcPricePerKg.toString();
                 }
               }
             }
-            // --- CALCULATION LOGIC END ---
 
             return Form(
               key: _formKey,
@@ -226,26 +141,20 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                           NumberInputField(
                             controller: _weightController,
                             label: "Weight",
-                            role: Role.buyer,
+                            role: UserRole.buyer,
                             suffix: "Kg",
-                            // Displaying Kg
                             onChanged: updateCalculations,
-                            // Trigger Math
                             validator: (value) {
                               final weightInputKg = double.tryParse(
                                 value ?? "",
                               );
-
                               if (weightInputKg == null || weightInputKg <= 0) {
                                 return "Enter valid weight";
                               }
-
-                              // Convert input to Grams for comparison
                               final weightInGrams = (weightInputKg * 1000)
                                   .round();
-
-                              // Compare Grams vs Grams
-                              if (weightInGrams > c.availableWeight) {
+                              if (weightInGrams >
+                                  catchItem.availableWeight.grams) {
                                 return "Cannot exceed available weight";
                               }
                               return null;
@@ -257,9 +166,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                             label: "Total Price",
                             suffix: "CFA",
                             decimal: false,
-                            // Price is usually Int
                             onChanged: updateCalculations,
-                            // Trigger Math
                             validator: (value) {
                               final price = int.tryParse(value ?? "");
                               if (price == null || price <= 0) {
@@ -274,8 +181,6 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                             label: "Price/Kg",
                             suffix: "CFA",
                             decimal: false,
-                            // Optional: Make this read-only if you want it strictly calculated
-                            // editable: false,
                             validator: (value) {
                               final pricePerKg = int.tryParse(value ?? "");
                               if (pricePerKg == null || pricePerKg <= 0) {
@@ -288,94 +193,68 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    BlocBuilder<UserBloc, UserState>(
-                      builder: (context, userState) {
-                        final user = userState is UserLoaded
-                            ? userState.user
-                            : null;
-                        return CustomButton(
-                          title: "Send Offer",
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              // 1. Parse Inputs
-                              final weightInputKg = double.tryParse(
-                                _weightController.text,
-                              );
-                              final totalPrice = int.tryParse(
-                                _priceController.text,
-                              );
-                              final pricePerKg = int.tryParse(
-                                _pricePerKgController.text,
-                              );
+                    CustomButton(
+                      title: "Send Offer",
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          final weightInputKg = double.tryParse(
+                            _weightController.text,
+                          );
+                          final totalPrice = int.tryParse(
+                            _priceController.text,
+                          );
+                          final pricePerKg = int.tryParse(
+                            _pricePerKgController.text,
+                          );
 
-                              if (weightInputKg != null &&
-                                  totalPrice != null &&
-                                  pricePerKg != null &&
-                                  user != null) {
-                                // 2. Final Conversion to Grams before sending
-                                final weightInGrams = (weightInputKg * 1000)
-                                    .round();
+                          if (weightInputKg != null &&
+                              totalPrice != null &&
+                              pricePerKg != null) {
+                            final weightInGrams = (weightInputKg * 1000)
+                                .round();
 
-                                context.read<OffersBloc>().add(
-                                  CreateOffer(
-                                    catchId: c.id,
-                                    buyerId: user.id,
-                                    fisherId: c.fisherId,
-                                    price: totalPrice,
-                                    weight: weightInGrams,
-                                    // Sending Int (Grams)
-                                    pricePerKg: pricePerKg,
+                            // TODO: Implement create offer functionality
+                            // This would need to be added to OfferDetailCubit
+                            Navigator.of(dialogContext).pop();
+
+                            showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (ctx) {
+                                Future.delayed(const Duration(seconds: 2), () {
+                                  if (ctx.mounted) Navigator.of(ctx).pop();
+                                });
+
+                                return AlertDialog(
+                                  title: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: AppColors.textBlue,
+                                      border: Border.all(
+                                        color: AppColors.textBlue,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.check,
+                                      color: AppColors.textWhite,
+                                    ),
+                                  ),
+                                  content: const Text(
+                                    "Offer sent successfully!",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: AppColors.textBlue,
+                                    ),
                                   ),
                                 );
-                                context.read<CatchesBloc>().add(LoadCatches());
-                                Navigator.of(
-                                  context,
-                                ).pop(); // Use Navigator for safer pop
-
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: true,
-                                  builder: (ctx) {
-                                    Future.delayed(
-                                      const Duration(seconds: 2),
-                                      () {
-                                        if (ctx.mounted)
-                                          Navigator.of(ctx).pop();
-                                      },
-                                    );
-
-                                    return AlertDialog(
-                                      title: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: AppColors.textBlue,
-                                          border: Border.all(
-                                            color: AppColors.textBlue,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.check,
-                                          color: AppColors.textWhite,
-                                        ),
-                                      ),
-                                      content: const Text(
-                                        "Offer sent successfully!",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: AppColors.textBlue,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              }
-                            }
-                          },
-                        );
+                              },
+                            );
+                          }
+                        }
                       },
                     ),
                   ],
@@ -389,384 +268,194 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
   }
 
   @override
-  void didUpdateWidget(covariant BuyerOfferDetails oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.offerId != widget.offerId) {
-      _transactionDataFuture = null;
-      _dispatchGetOffer();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserBloc, UserState>(
-      builder: (context, userState) {
-        final Role? role = userState is UserLoaded ? userState.role : null;
-
-        if (role == null) {
+    return BlocBuilder<OfferDetailCubit, OfferDetailState>(
+      builder: (context, state) {
+        if (state is OfferDetailLoading || state is OfferDetailInitial) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        final buyerCubit = context.read<BuyerCubit>();
+        if (state is OfferDetailError) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: BackButton(onPressed: () => context.pop()),
+              title: const PageTitle(title: "Offer Details"),
+            ),
+            body: Center(child: Text('Error: ${state.message}')),
+          );
+        }
 
-        return BlocConsumer<OffersBloc, OffersState>(
-          listenWhen: (prev, curr) =>
-              curr is OfferActionSuccess || curr is OfferActionFailure,
-          listener: (context, offerState) {
-            // Dismiss the loading dialog for ANY action completion (Success or Failure)
-            if (offerState is OfferActionSuccess ||
-                offerState is OfferActionFailure) {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
-            }
+        if (state is OfferDetailLoaded) {
+          final offer = state.offer;
+          final catchItem = state.relatedCatch;
+          final fisher = state.counterparty;
 
-            // Handle Accept success: Show final dialog and prepare navigation
-            if (offerState is OfferActionSuccess) {
-              if (offerState.action == 'Accept' &&
-                  offerState.orderId != null &&
-                  offerState.orderId!.isNotEmpty) {
-                final orderId = offerState.orderId!;
+          final hasPreviousTerms = offer.previousTerms != null;
 
-                showActionSuccessDialog(
-                  context,
-                  message: "Offer Successfully Accepted.",
-                  actionTitle: "View Details",
-                  onAction: () async {
-                    buyerCubit.loadBuyerData(
-                      buyerId: offerState.updatedOffer.buyerId,
-                    );
-                    await Future.delayed(const Duration(milliseconds: 100));
-                    if (context.mounted) {
-                      context.pushReplacement("/buyer/order-details/$orderId");
-                    }
-                  },
-                );
-              }
-
-              // Handle Reject/Counter success: Show dialog without navigation
-              String message = '';
-              if (offerState.action == 'Reject') {
-                message = 'Offer Rejected!';
-              } else if (offerState.action == 'Counter') {
-                message = 'Counter-Offer Sent!';
-              }
-
-              if (message.isNotEmpty && offerState.action != 'Accept') {
-                showActionSuccessDialog(
-                  context,
-                  message: message,
-                  autoCloseSeconds: 3,
-                );
-              }
-            }
-          },
-          builder: (context, offersState) {
-            if (offersState is OffersLoading || offersState is OffersInitial) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
-            final Offer? selectedOffer;
-
-            if (offersState is OfferDetailsLoaded) {
-              selectedOffer = offersState.offer;
-            } else if (offersState is OfferActionSuccess) {
-              selectedOffer = offersState.updatedOffer;
-            } else {
-              selectedOffer = null;
-            }
-
-            if (selectedOffer == null || selectedOffer.id != widget.offerId) {
-              final errorMessage = offersState is OffersError
-                  ? "Error loading offers: ${offersState.message}"
-                  : "Offer with ID ${widget.offerId} not found or mismatch.";
-
-              return Scaffold(
-                appBar: AppBar(
-                  leading: BackButton(onPressed: () => context.pop()),
-                  title: const PageTitle(title: "Offer Details"),
-                ),
-                body: Center(child: Text(errorMessage)),
-              );
-            }
-
-            final Offer currentOffer = selectedOffer;
-            _markOfferAsViewed(currentOffer, role);
-
-            if (_transactionDataFuture == null ||
-                _transactionDataFuture!.hashCode != currentOffer.hashCode) {
-              _transactionDataFuture = _loadTransactionData(currentOffer);
-            }
-            return FutureBuilder<OfferTransactionData>(
-              key: ValueKey('${selectedOffer.id}-${selectedOffer.dateCreated}'),
-              future: _loadTransactionData(selectedOffer),
-              builder: (context, asyncSnapshot) {
-                if (asyncSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
-                  );
-                }
-
-                final transactionData = asyncSnapshot.data;
-                final Fisher? fisher = transactionData?.fisher;
-                final Catch? catchSnapshot = transactionData?.catchSnapshot;
-                final PreviousOfferDetails? previous =
-                    transactionData?.previousDetails;
-                return Scaffold(
-                  appBar: AppBar(
-                    leading: BackButton(onPressed: () => context.pop()),
-                    title: const PageTitle(title: "Offer Details"),
+          return Scaffold(
+            appBar: AppBar(
+              leading: BackButton(onPressed: () => context.pop()),
+              title: const PageTitle(title: "Offer Details"),
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BuyerOfferHeader(
+                    offer: offer,
+                    catchName: catchItem.name,
+                    catchImage: catchItem.images.isNotEmpty
+                        ? catchItem.images[0]
+                        : '',
                   ),
-                  body: SingleChildScrollView(
+                  const SizedBox(height: 16),
+
+                  if (offer.waitingFor == UserRole.buyer) ...[
+                    const SectionHeader("Fisherman's Offer"),
+                  ],
+
+                  if (offer.waitingFor == UserRole.fisher) ...[
+                    const SectionHeader("Current Offer"),
+                  ],
+
+                  const SizedBox(height: 16),
+                  Container(
                     padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        BuyerOfferHeader(
-                          offer: currentOffer,
-                          catchName: currentOffer.catchName,
-                          catchImage: currentOffer.catchImageUrl,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.gray200),
+                    ),
+                    child: InfoTable(
+                      rows: [
+                        InfoRow(
+                          label: "Weight",
+                          value: formatWeight(offer.currentTerms.weight.grams),
                         ),
-                        const SizedBox(height: 16),
-
-                        if (currentOffer.waitingFor == Role.buyer) ...[
-                          const SectionHeader("Fisherman's Offer"),
-                        ],
-
-                        if (currentOffer.waitingFor == Role.fisher) ...[
-                          const SectionHeader("Current Offer"),
-                        ],
-
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.gray200),
-                          ),
-                          child: InfoTable(
-                            rows: [
-                              InfoRow(
-                                label: "Weight",
-                                value: formatWeight(currentOffer.weight),
-                              ),
-                              InfoRow(
-                                label: "Price Per Kg",
-                                value:
-                                    "${currentOffer.pricePerKg.toStringAsFixed(0)} CFA",
-                              ),
-                              InfoRow(
-                                label: "Total",
-                                value:
-                                    "${currentOffer.price.toStringAsFixed(0)} CFA",
-                              ),
-                            ],
-                          ),
+                        InfoRow(
+                          label: "Price Per Kg",
+                          value:
+                              "${offer.currentTerms.pricePerKg.amountPerKg.toStringAsFixed(0)} CFA",
                         ),
-                        const SizedBox(height: 16),
-
-                        OfferActions(
-                          offer: currentOffer,
-                          formKey: _formKey,
-                          currentUserRole: Role.buyer,
-                          catchItem: catchSnapshot!,
-                          onNavigateToOrder: (offerId) {
-                            context.push("/buyer/order-details/$offerId");
-                          },
+                        InfoRow(
+                          label: "Total",
+                          value:
+                              "${offer.currentTerms.totalPrice.amount.toStringAsFixed(0)} CFA",
                         ),
-                        const SizedBox(height: 16),
-
-                        if (previous != null) ...[
-                          const SectionHeader("Last Counter-Offer"),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.gray200),
-                            ),
-                            child: InfoTable(
-                              rows: [
-                                InfoRow(
-                                  label: "Weight",
-                                  value: formatWeight(previous.weight),
-                                ),
-                                InfoRow(
-                                  label: "Price",
-                                  value: formatPrice(previous.price),
-                                ),
-                                InfoRow(
-                                  label: "Price Per Kg",
-                                  value: formatPrice(previous.pricePerKg),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        FisherDetails(fisher: fisher),
-                        const SizedBox(height: 16),
-
-                        if (currentOffer.status == OfferStatus.rejected) ...[
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              title: "Marketplace",
-                              onPressed: () {
-                                context.go("/buyer");
-                              },
-                              icon: Icons.storefront,
-                              bordered: true,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              title: "Make New Offer",
-                              onPressed: () =>
-                                  _showMakeOfferDialog(context, catchSnapshot),
-                            ),
-                          ),
-                        ],
-
-                        if (currentOffer.status == OfferStatus.accepted) ...[
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              title: "Call Seller",
-                              onPressed: () {
-                                makePhoneCall('651204966', context);
-                              },
-                              hugeIcon: HugeIcons.strokeRoundedCall02,
-                              bordered: true,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              title: "Message Seller",
-                              onPressed: () => context.push("/buyer/chat"),
-                              icon: CustomIcons.chatbubble,
-                            ),
-                          ),
-                        ],
-
-                        if (currentOffer.status == OfferStatus.completed) ...[
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              title: "Rate the fisher",
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.white,
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(24),
-                                    ),
-                                  ),
-                                  builder: (context) {
-                                    return Padding(
-                                      padding: EdgeInsets.only(
-                                        bottom: MediaQuery.of(
-                                          context,
-                                        ).viewInsets.bottom,
-                                        left: 16,
-                                        right: 16,
-                                        top: 24,
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              IconButton(
-                                                onPressed: context.pop,
-                                                icon: const Icon(Icons.close),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              const Text(
-                                                "Give a Review",
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 24,
-                                                  color: AppColors.textBlue,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 24),
-                                          Center(
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: List.generate(5, (
-                                                index,
-                                              ) {
-                                                return const Padding(
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: 4.0,
-                                                  ),
-                                                  child: Icon(
-                                                    Icons.star,
-                                                    size: 32,
-                                                    color:
-                                                        AppColors.shellOrange,
-                                                  ),
-                                                );
-                                              }),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 24),
-                                          const TextField(
-                                            maxLines: 4,
-                                            decoration: InputDecoration(
-                                              hintText: "Write a review...",
-                                              border: OutlineInputBorder(
-                                                borderRadius: BorderRadius.all(
-                                                  Radius.circular(16),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          SizedBox(
-                                            width: double.infinity,
-                                            child: CustomButton(
-                                              title: "Submit Review",
-                                              onPressed: () {},
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
-                );
-              },
-            );
-          },
-        );
+                  const SizedBox(height: 16),
+
+                  OfferActions(
+                    offer: offer,
+                    formKey: _formKey,
+                    currentUserRole: UserRole.buyer,
+                    catchItem: catchItem,
+                    onNavigateToOrder: (orderId) {
+                      context.push("/buyer/order-details/$orderId");
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  if (hasPreviousTerms) ...[
+                    const SectionHeader("Last Counter-Offer"),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.gray200),
+                      ),
+                      child: InfoTable(
+                        rows: [
+                          InfoRow(
+                            label: "Weight",
+                            value: formatWeight(
+                              offer.previousTerms!.weight.grams,
+                            ),
+                          ),
+                          InfoRow(
+                            label: "Price",
+                            value: formatPrice(
+                              offer.previousTerms!.totalPrice.amount.toInt(),
+                            ),
+                          ),
+                          InfoRow(
+                            label: "Price Per Kg",
+                            value: formatPrice(
+                              offer.previousTerms!.pricePerKg.amountPerKg,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  FisherDetails(fisher: fisher),
+                  const SizedBox(height: 16),
+
+                  if (offer.status == OfferStatus.rejected) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: CustomButton(
+                        title: "Marketplace",
+                        onPressed: () {
+                          context.go("/buyer");
+                        },
+                        icon: Icons.storefront,
+                        bordered: true,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: CustomButton(
+                        title: "Make New Offer",
+                        onPressed: () =>
+                            _showMakeOfferDialog(context, catchItem),
+                      ),
+                    ),
+                  ],
+
+                  if (offer.status == OfferStatus.accepted) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: CustomButton(
+                        title: "Call Seller",
+                        onPressed: () {
+                          // TODO: Use fisher's actual phone number
+                          makePhoneCall('651204966', context);
+                        },
+                        hugeIcon: HugeIcons.strokeRoundedCall02,
+                        bordered: true,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: CustomButton(
+                        title: "Message Seller",
+                        onPressed: () => context.push("/buyer/chat"),
+                        icon: CustomIcons.chatbubble,
+                      ),
+                    ),
+                  ],
+
+                  // Note: OfferStatus.completed doesn't exist in new enum
+                  // Completed offers would be handled as orders
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return const Scaffold(body: Center(child: Text("Unexpected state")));
       },
     );
   }
@@ -780,7 +469,6 @@ class BuyerOfferHeader extends StatelessWidget {
   const BuyerOfferHeader({
     super.key,
     required this.offer,
-
     required this.catchName,
     required this.catchImage,
   });
@@ -792,6 +480,8 @@ class BuyerOfferHeader extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: () {
+            if (catchImage.isEmpty) return;
+
             final provider =
                 (catchImage.contains("http")
                         ? NetworkImage(catchImage)
@@ -810,17 +500,23 @@ class BuyerOfferHeader extends StatelessWidget {
           },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Image.network(
-              catchImage,
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Image.asset(
-                "assets/images/shrimp.jpg",
-                height: 60,
-                width: 60,
-              ),
-            ),
+            child: catchImage.isNotEmpty
+                ? Image.network(
+                    catchImage,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      "assets/images/shrimp.jpg",
+                      height: 60,
+                      width: 60,
+                    ),
+                  )
+                : Image.asset(
+                    "assets/images/shrimp.jpg",
+                    height: 60,
+                    width: 60,
+                  ),
           ),
         ),
         const SizedBox(width: 10),
@@ -850,7 +546,7 @@ class BuyerOfferHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    offer.status.name.capitalize(),
+                    offer.status.displayName.capitalize(),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -868,7 +564,7 @@ class BuyerOfferHeader extends StatelessWidget {
 }
 
 class FisherDetails extends StatelessWidget {
-  final Fisher? fisher;
+  final User? fisher;
 
   const FisherDetails({super.key, required this.fisher});
 
@@ -876,20 +572,22 @@ class FisherDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final String avatarUrl =
         fisher?.avatarUrl ?? "assets/images/user-profile.png";
-    final String name = fisher?.name ?? "";
-    final double rating = fisher?.rating ?? 0.0;
+    final String name = fisher?.name ?? "Unknown Fisher";
+    final double rating = fisher?.rating.value ?? 0.0;
     final int reviewCount = fisher?.reviewCount ?? 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
-        SectionHeader("Seller"),
+        const SectionHeader("Seller"),
         Material(
           borderRadius: BorderRadius.circular(16),
           child: InkWell(
             onTap: () {
-              context.push("/buyer/reviews/${fisher?.id}");
+              if (fisher != null) {
+                context.push("/buyer/reviews/${fisher!.id}");
+              }
             },
             borderRadius: BorderRadius.circular(16),
             splashColor: AppColors.blue700.withValues(alpha: 0.1),

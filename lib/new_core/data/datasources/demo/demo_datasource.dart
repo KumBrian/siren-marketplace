@@ -675,8 +675,8 @@ class DemoDataSourceFactory {
       orderDataSource: DemoOrderDataSource(_orders),
       reviewDataSource: DemoReviewDataSource(_reviews),
       sessionDataSource: DemoSessionDataSource(
-        initialUser: _users['buyer-1'], // Default to buyer1
-        initialRole: 'buyer',
+        initialUser: null,
+        initialRole: null,
       ),
     );
   }

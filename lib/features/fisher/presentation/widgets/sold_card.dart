@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
-import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/new_core/domain/entities/order.dart';
+import 'package:siren_marketplace/new_core/domain/enums/order_status.dart';
 
 class SoldCard extends StatelessWidget {
   const SoldCard({
     super.key,
     required this.onPressed,
-    required this.offer,
-    required this.catchImageUrl, // 🆕 The primary image URL, derived from the Catch
-    required this.catchTitle, // 🆕 The catch name/title, derived from the Catch
+    required this.order,
+    required this.catchImageUrl,
+    required this.catchTitle,
   });
 
-  final Offer offer;
-  final String catchImageUrl; // New required field
-  final String catchTitle; // New required field
+  final Order order;
+  final String catchImageUrl;
+  final String catchTitle;
   final VoidCallback onPressed;
 
   @override
@@ -23,7 +22,7 @@ class SoldCard extends StatelessWidget {
     // Helper to extract the first image or use a placeholder/default
     final imageUrl = catchImageUrl.isNotEmpty
         ? catchImageUrl
-        : 'assets/images/placeholder.png'; // Use a placeholder if image is missing
+        : 'assets/images/placeholder.png';
 
     return Material(
       color: AppColors.white100,
@@ -32,7 +31,6 @@ class SoldCard extends StatelessWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(16),
         splashColor: AppColors.blue700.withValues(alpha: 0.1),
-        // Simplified usage of withOpacity
         child: Row(
           children: [
             ClipRRect(
@@ -42,7 +40,6 @@ class SoldCard extends StatelessWidget {
               ),
               child: imageUrl.contains("http")
                   ? Image.network(
-                      // Assuming Image.network is correct for the URL
                       imageUrl,
                       width: 120,
                       height: 120,
@@ -54,7 +51,6 @@ class SoldCard extends StatelessWidget {
                       ),
                     )
                   : Image.asset(
-                      // Assuming Image.network is correct for the URL
                       imageUrl,
                       width: 120,
                       height: 120,
@@ -73,8 +69,6 @@ class SoldCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // FIX: Removed fixed width SizedBox to prevent overflow.
-                    // The text will now use the space provided by the surrounding Expanded widget.
                     Text(
                       catchTitle,
                       maxLines: 1,
@@ -89,7 +83,6 @@ class SoldCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Column holding the RichText widgets (Price and Weight)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -102,8 +95,7 @@ class SoldCard extends StatelessWidget {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: formatWeight(offer.weight),
-                                    // Use toStringAsFixed
+                                    text: order.terms.weight.toString(),
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -114,7 +106,6 @@ class SoldCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            // Added spacing
                             RichText(
                               text: TextSpan(
                                 text: "Selling Price: ",
@@ -124,9 +115,7 @@ class SoldCard extends StatelessWidget {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text:
-                                        "${offer.price.toStringAsFixed(0)} CFA",
-                                    // Use toStringAsFixed
+                                    text: "${order.terms.totalPrice.amount} CFA",
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
@@ -138,8 +127,7 @@ class SoldCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        // Assuming this notification icon indicates a new/unhandled status
-                        if (offer.status != OfferStatus.completed) ...[
+                        if (order.status != OrderStatus.completed) ...[
                           const Icon(
                             Icons.notifications,
                             color: AppColors.fail500,
@@ -149,7 +137,6 @@ class SoldCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    // Final padding
                   ],
                 ),
               ),

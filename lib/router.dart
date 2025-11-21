@@ -14,7 +14,8 @@ import 'features/buyer/presentation/screens/congratulations_screen.dart';
 import 'features/buyer/presentation/screens/notifications_screen.dart';
 import 'features/buyer/presentation/screens/offer_details.dart';
 import 'features/buyer/presentation/screens/order_details.dart';
-import 'features/buyer/presentation/screens/orders_screen.dart';
+import 'features/buyer/presentation/screens/orders_screen.dart'
+    hide CURRENT_BUYER_ID;
 import 'features/buyer/presentation/screens/product_details.dart';
 import 'features/chat/presentation/screens/chat_page.dart';
 import 'features/fisher/logic/offers_bloc/offers_bloc.dart';
@@ -38,10 +39,15 @@ import 'features/user/presentation/screens/observation_info.dart';
 import 'features/user/presentation/screens/projects.dart';
 import 'features/user/presentation/screens/role_selection_screen.dart';
 import 'features/user/presentation/screens/user_profile.dart';
-import 'new_core/domain/enums/user_role.dart';
-// NEW IMPORTS
+import 'core/constants/demo_constants.dart';
+import 'new_core/domain/enums/user_role.dart'; // NEW IMPORTS
 import 'new_core/presentation/cubits/auth/auth_cubit.dart';
 import 'new_core/presentation/cubits/auth/auth_state.dart';
+import 'new_features/fisher/presentation/cubits/catch_detail/catch_detail_cubit.dart';
+import 'new_features/fisher/presentation/cubits/offer_detail/offer_detail_cubit.dart';
+import 'new_features/fisher/presentation/cubits/offer_list/offer_list_cubit.dart';
+import 'new_features/fisher/presentation/cubits/order_detail/order_detail_cubit.dart';
+import 'new_features/fisher/presentation/cubits/order_list/order_list_cubit.dart';
 
 // ============================================================================
 // ROUTER REFRESH LISTENER (Hybrid: Listens to both old and new BLoCs)
@@ -147,15 +153,26 @@ GoRouter createRouter(UserBloc userBloc, AuthCubit authCubit) {
             path: 'catch-details/:id',
             builder: (context, state) {
               final catchId = state.pathParameters['id']!;
-              return CatchDetails(catchId: catchId);
+              return BlocProvider(
+                create: (context) =>
+                    CatchDetailCubit()..loadCatchDetail(catchId),
+                child: CatchDetails(catchId: catchId),
+              );
             },
           ),
           GoRoute(
             path: 'order-details/:id',
             builder: (context, state) {
               final orderId = state.pathParameters['id']!;
+              // Get current user ID from AuthCubit
+              final authState = context.read<AuthCubit>().state;
+              final currentUserId = authState is AuthAuthenticated
+                  ? authState.user.id
+                  : CURRENT_FISHER_ID; // Fallback to demo ID
+
               return BlocProvider(
-                create: (context) => sl<OrdersBloc>(),
+                create: (context) =>
+                    OrderDetailCubit()..loadOrderDetail(orderId, currentUserId),
                 child: OrderDetails(orderId: orderId),
               );
             },
@@ -164,8 +181,15 @@ GoRouter createRouter(UserBloc userBloc, AuthCubit authCubit) {
             path: 'offer-details/:id',
             builder: (context, state) {
               final offerId = state.pathParameters['id']!;
+              // Get current user ID from AuthCubit
+              final authState = context.read<AuthCubit>().state;
+              final currentUserId = authState is AuthAuthenticated
+                  ? authState.user.id
+                  : CURRENT_FISHER_ID; // Fallback to demo ID
+
               return BlocProvider(
-                create: (context) => sl<OffersBloc>(),
+                create: (context) =>
+                    OfferDetailCubit()..loadOfferDetail(offerId, currentUserId),
                 child: FisherOfferDetails(offerId: offerId),
               );
             },
@@ -185,7 +209,11 @@ GoRouter createRouter(UserBloc userBloc, AuthCubit authCubit) {
             path: 'notifications/:fisherId',
             builder: (context, state) {
               final String? fisherId = state.pathParameters['fisherId'];
-              return NotificationsScreen(fisherId: fisherId!);
+              return BlocProvider(
+                create: (context) =>
+                    OfferListCubit()..loadOffersForFisher(fisherId!),
+                child: NotificationsScreen(fisherId: fisherId!),
+              );
             },
           ),
           GoRoute(path: 'chat', builder: (_, __) => const ChatPage()),
@@ -215,16 +243,27 @@ GoRouter createRouter(UserBloc userBloc, AuthCubit authCubit) {
           GoRoute(
             path: 'product-details/:id',
             builder: (context, state) {
-              final productId = state.pathParameters['id']!;
-              return ProductDetails(productId: productId);
+              final catchId = state.pathParameters['id']!;
+              return BlocProvider(
+                create: (context) =>
+                    CatchDetailCubit()..loadCatchDetail(catchId),
+                child: ProductDetails(productId: catchId),
+              );
             },
           ),
           GoRoute(
             path: 'offer-details/:id',
             builder: (context, state) {
               final offerId = state.pathParameters['id']!;
+              // Get current user ID from AuthCubit
+              final authState = context.read<AuthCubit>().state;
+              final currentUserId = authState is AuthAuthenticated
+                  ? authState.user.id
+                  : CURRENT_BUYER_ID; // Fallback to demo ID
+
               return BlocProvider(
-                create: (context) => sl<OffersBloc>(),
+                create: (context) =>
+                    OfferDetailCubit()..loadOfferDetail(offerId, currentUserId),
                 child: BuyerOfferDetails(offerId: offerId),
               );
             },
@@ -233,10 +272,35 @@ GoRouter createRouter(UserBloc userBloc, AuthCubit authCubit) {
             path: 'order-details/:id',
             builder: (context, state) {
               final orderId = state.pathParameters['id']!;
-              return BuyerOrderDetails(orderId: orderId);
+              // Get current user ID from AuthCubit
+              final authState = context.read<AuthCubit>().state;
+              final currentUserId = authState is AuthAuthenticated
+                  ? authState.user.id
+                  : CURRENT_BUYER_ID; // Fallback to demo ID
+
+              return BlocProvider(
+                create: (context) =>
+                    OrderDetailCubit()..loadOrderDetail(orderId, currentUserId),
+                child: BuyerOrderDetails(orderId: orderId),
+              );
             },
           ),
-          GoRoute(path: 'orders', builder: (_, __) => const BuyerOrders()),
+          GoRoute(
+            path: 'orders',
+            builder: (context, state) {
+              // Get current user ID from AuthCubit
+              final authState = context.read<AuthCubit>().state;
+              final currentUserId = authState is AuthAuthenticated
+                  ? authState.user.id
+                  : CURRENT_BUYER_ID; // Fallback to demo ID
+
+              return BlocProvider(
+                create: (context) =>
+                    OfferListCubit()..loadOffersForBuyer(currentUserId),
+                child: const BuyerOrders(),
+              );
+            },
+          ),
           GoRoute(
             path: 'congratulations/:id',
             builder: (context, state) {
@@ -246,7 +310,19 @@ GoRouter createRouter(UserBloc userBloc, AuthCubit authCubit) {
           ),
           GoRoute(
             path: 'notifications',
-            builder: (_, __) => const BuyerNotificationsScreen(),
+            builder: (context, state) {
+              // Get current user ID from AuthCubit
+              final authState = context.read<AuthCubit>().state;
+              final buyerId = authState is AuthAuthenticated
+                  ? authState.user.id
+                  : CURRENT_BUYER_ID; // Fallback to demo ID
+
+              return BlocProvider(
+                create: (context) =>
+                    OfferListCubit()..loadOffersForBuyer(buyerId),
+                child: const BuyerNotificationsScreen(),
+              );
+            },
           ),
           GoRoute(path: 'chat', builder: (_, __) => const ChatPage()),
           GoRoute(
