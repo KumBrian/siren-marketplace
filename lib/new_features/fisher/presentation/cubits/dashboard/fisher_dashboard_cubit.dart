@@ -50,6 +50,7 @@ class FisherDashboardCubit extends Cubit<FisherDashboardState> {
           availableCatches: availableCatches,
           expiredCatches: expiredCatches,
           recentOrders: recentOrders,
+          completedOrders: completedOrders,
         ),
       );
     } catch (e) {

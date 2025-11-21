@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/new_core/domain/enums/offer_status.dart';
 
 part 'orders_filter_state.dart';
 

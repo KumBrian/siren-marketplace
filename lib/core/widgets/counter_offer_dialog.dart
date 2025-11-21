@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
+
+import '../../new_core/domain/enums/user_role.dart';
 
 typedef CounterSubmit =
     Future<void> Function(
@@ -14,7 +15,7 @@ typedef CounterSubmit =
 Future<void> showCounterOfferDialog({
   required BuildContext context,
   required GlobalKey<FormState> formKey,
-  required Role role,
+  required UserRole role,
   required int initialWeight, // Expecting Grams (e.g., 39300)
   required int initialPrice, // Expecting Total Price (e.g., 6798)
   required CounterSubmit onSubmit,

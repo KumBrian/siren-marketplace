@@ -16,7 +16,8 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_card.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_cubit.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_state.dart';
 
 class BuyerHome extends StatefulWidget {
   const BuyerHome({super.key});
@@ -47,24 +48,38 @@ class _BuyerHomeState extends State<BuyerHome> {
     return 0;
   }
 
+  Role _mapUserRoleToRole(dynamic role) {
+    // Helper to map UserRole to Role if needed by legacy blocs
+    // Assuming OffersBloc still uses legacy Role
+    if (role.toString() == 'UserRole.fisher') return Role.fisher;
+    return Role.buyer;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_hasLoadedOffers) {
-      final userState = context.read<UserBloc>().state;
-      if (userState is UserLoaded) {
+      final authState = context.read<AuthCubit>().state;
+      if (authState is AuthAuthenticated) {
         context.read<OffersBloc>().add(
-          LoadOffersForUser(userId: userState.user!.id, role: userState.role),
+          LoadOffersForUser(
+            userId: authState.user.id,
+            role: _mapUserRoleToRole(authState.currentRole),
+          ),
         );
         _hasLoadedOffers = true; // Mark as done immediately if already loaded
       }
     }
-    return BlocListener<UserBloc, UserState>(
-      listenWhen: (prev, current) => !_hasLoadedOffers && current is UserLoaded,
-      listener: (context, userState) {
-        if (userState is UserLoaded) {
-          // This fires if UserBloc loads *after* BuyerHome mounts.
+    return BlocListener<AuthCubit, AuthState>(
+      listenWhen:
+          (prev, current) => !_hasLoadedOffers && current is AuthAuthenticated,
+      listener: (context, authState) {
+        if (authState is AuthAuthenticated) {
+          // This fires if AuthCubit loads *after* BuyerHome mounts.
           context.read<OffersBloc>().add(
-            LoadOffersForUser(userId: userState.user!.id, role: userState.role),
+            LoadOffersForUser(
+              userId: authState.user.id,
+              role: _mapUserRoleToRole(authState.currentRole),
+            ),
           );
           _hasLoadedOffers = true; // Mark as done when the listener fires
         }

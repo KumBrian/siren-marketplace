@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/role_button.dart';
+import 'package:siren_marketplace/new_core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_cubit.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_state.dart';
 
 class RoleScreen extends StatefulWidget {
   const RoleScreen({super.key});
@@ -17,7 +18,7 @@ class RoleScreen extends StatefulWidget {
 
 class _RoleScreenState extends State<RoleScreen> {
   // Local state to hold the currently selected role for UI
-  Role _selectedRole = Role.unknown;
+  UserRole? _selectedRole;
 
   @override
   Widget build(BuildContext context) {
@@ -33,34 +34,37 @@ class _RoleScreenState extends State<RoleScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: BlocConsumer<UserBloc, UserState>(
+          child: BlocConsumer<AuthCubit, AuthState>(
             listener: (context, state) {
-              // Initialize selection on first load
-              if (state is UserLoaded && _selectedRole == Role.unknown) {
+              // Initialize selection on first load if authenticated
+              if (state is AuthAuthenticated && _selectedRole == null) {
                 setState(() {
-                  _selectedRole = state.role;
+                  _selectedRole = state.currentRole;
                 });
               }
 
               // If there's an error, reset selection on the next frame (safe)
-              if (state is UserError) {
+              if (state is AuthError) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!mounted) return;
                   setState(() {
-                    _selectedRole = Role.unknown;
+                    _selectedRole = null;
                   });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.message)),
+                  );
                 });
               }
 
-              if (state is UserLoaded) {
+              if (state is AuthAuthenticated) {
                 // safe navigation after state settled
-                if (state.role == Role.buyer) {
+                if (state.currentRole == UserRole.buyer) {
                   // use addPostFrame to be extra safe
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!mounted) return;
                     context.go('/buyer');
                   });
-                } else if (state.role == Role.fisher) {
+                } else if (state.currentRole == UserRole.fisher) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!mounted) return;
                     context.go('/fisher');
@@ -69,12 +73,11 @@ class _RoleScreenState extends State<RoleScreen> {
               }
             },
             builder: (context, state) {
-              final bool isLoading = state is UserLoading;
-              final bool isError = state is UserError;
+              final bool isLoading = state is AuthLoading;
+              final bool isError = state is AuthError;
 
               // Disable button if loading or unknown selection
-              final buttonDisabled =
-                  isLoading || _selectedRole == Role.unknown || isError;
+              final buttonDisabled = isLoading || _selectedRole == null || isError;
 
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 60.0),
@@ -111,17 +114,17 @@ class _RoleScreenState extends State<RoleScreen> {
                         RoleButton(
                           title: "Fisher",
                           icon: "assets/icons/fisher.png",
-                          isActive: _selectedRole == Role.fisher,
+                          isActive: _selectedRole == UserRole.fisher,
                           onPressed: () =>
-                              setState(() => _selectedRole = Role.fisher),
+                              setState(() => _selectedRole = UserRole.fisher),
                         ),
                         const SizedBox(height: 20),
                         RoleButton(
                           title: "Buyer",
                           icon: "assets/icons/buyer.png",
-                          isActive: _selectedRole == Role.buyer,
+                          isActive: _selectedRole == UserRole.buyer,
                           onPressed: () =>
-                              setState(() => _selectedRole = Role.buyer),
+                              setState(() => _selectedRole = UserRole.buyer),
                         ),
                       ],
                     ),
@@ -131,16 +134,22 @@ class _RoleScreenState extends State<RoleScreen> {
                     CustomButton(
                       title: "Continue",
                       // Disable if role is unknown, or if BLoC is currently loading
-                      disabled:
-                          buttonDisabled ||
-                          _selectedRole == Role.unknown ||
-                          state is UserLoading,
+                      disabled: buttonDisabled ||
+                          _selectedRole == null ||
+                          state is AuthLoading,
                       suffixIcon: CupertinoIcons.chevron_forward,
                       onPressed: () {
-                        // 1. Emit the Finalize event to load the user profile
-                        context.read<UserBloc>().add(
-                          FinalizeRoleSelection(_selectedRole),
-                        );
+                        if (_selectedRole != null) {
+                          // Login with specific demo user based on role
+                          final userId = _selectedRole == UserRole.fisher
+                              ? 'fisher-1' // Hardcoded for demo
+                              : 'buyer-1'; // Hardcoded for demo
+
+                          context.read<AuthCubit>().loginWithRole(
+                            userId: userId,
+                            role: _selectedRole!,
+                          );
+                        }
                       },
                     ),
                   ],

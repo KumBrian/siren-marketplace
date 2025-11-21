@@ -1,41 +1,20 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_state.dart';
-import 'package:siren_marketplace/constants/constants.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
-import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
-import 'package:siren_marketplace/core/models/order.dart';
-import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
-import 'package:siren_marketplace/core/types/extensions.dart';
-import 'package:siren_marketplace/core/utils/custom_icons.dart';
-import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
-import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
-
-class OrderDependencies {
-  final Catch catchSnapshot;
-  final Buyer? buyer;
-
-  const OrderDependencies({required this.catchSnapshot, this.buyer});
-}
+import 'package:siren_marketplace/new_core/domain/enums/order_status.dart';
+import 'package:siren_marketplace/new_core/domain/value_objects/rating.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_cubit.dart';
+import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_state.dart';
+import 'package:siren_marketplace/new_features/fisher/presentation/cubits/order_detail/order_detail_cubit.dart';
+import 'package:siren_marketplace/new_features/fisher/presentation/cubits/order_detail/order_detail_state.dart';
 
 class OrderDetails extends StatefulWidget {
   const OrderDetails({super.key, required this.orderId});
@@ -49,44 +28,28 @@ class OrderDetails extends StatefulWidget {
 class _OrderDetailsState extends State<OrderDetails> {
   final FocusNode _buttonFocusNode = FocusNode(debugLabel: 'Repost Menu');
 
-  // ⛔️ REMOVED: OrderDetailState? _lastOrderDetailsState;
-  final UserRepository _userRepository = sl<UserRepository>();
+  Future<void> _markOrderAsCompleted() async {
+    // Get current user ID from AuthCubit
+    final authState = context.read<AuthCubit>().state;
+    final userId = authState is AuthAuthenticated ? authState.user.id : '';
 
-  Future<OrderDependencies>? _orderDependenciesFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _dispatchGetOrder();
+    await context.read<OrderDetailCubit>().completeOrder(userId);
   }
 
-  @override
-  void didUpdateWidget(covariant OrderDetails oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.orderId != widget.orderId) {
-      _orderDependenciesFuture = null;
-      _dispatchGetOrder();
-    }
-  }
+  Future<void> _submitReview({
+    required String reviewedUserId,
+    required double ratingValue,
+    String? comment,
+  }) async {
+    final authState = context.read<AuthCubit>().state;
+    final userId = authState is AuthAuthenticated ? authState.user.id : '';
 
-  void _dispatchGetOrder() {
-    if (widget.orderId.isEmpty) return;
-
-    final bloc = context.read<OrdersBloc>();
-    final currentState = bloc.state;
-
-    // Check if the current state is already showing the required order detail
-    if (currentState is OrderDetailsLoaded &&
-        currentState.order.id == widget.orderId) {
-      return;
-    }
-
-    // ✅ NEW EVENT: Use the GetOrderById event from OrdersBloc
-    bloc.add(GetOrderById(widget.orderId));
-  }
-
-  Future<void> _markOrderAsCompleted(Order order) async {
-    context.read<OrdersBloc>().add(CompleteOrder(order: order));
+    await context.read<OrderDetailCubit>().submitReview(
+      reviewerId: userId,
+      reviewedUserId: reviewedUserId,
+      rating: Rating.fromValue(ratingValue),
+      comment: comment,
+    );
   }
 
   @override
@@ -95,83 +58,12 @@ class _OrderDetailsState extends State<OrderDetails> {
     super.dispose();
   }
 
-  Future<OrderDependencies> _loadDependencies(Order order) async {
-    try {
-      final Map<String, dynamic> catchMap = jsonDecode(order.catchSnapshotJson);
-      final catchSnapshot = Catch.fromMap(catchMap);
-
-      final Map<String, dynamic>? buyerMap = await _userRepository
-          .getUserMapById(order.buyerId)
-          .timeout(const Duration(seconds: 10));
-
-      Buyer? buyer;
-      if (buyerMap != null) {
-        buyer = Buyer.fromMap(buyerMap);
-      }
-
-      return OrderDependencies(catchSnapshot: catchSnapshot, buyer: buyer);
-    } on TimeoutException {
-      throw Exception(
-        "Dependency loading timed out after 10 seconds. Check network or repository.",
-      );
-    } catch (e) {
-      throw Exception("Failed to load order dependencies: $e");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<OrdersBloc, OrdersState>(
-      listenWhen: (prev, curr) =>
-          curr is OrdersLoaded ||
-          curr is OrderDetailsLoaded ||
-          curr is OrdersError,
-      listener: (context, state) {
-        // 💡 Listener logic is now simpler and focused on user feedback
-        if (state is OrderDetailsLoaded && state.order.id == widget.orderId) {
-          // This ensures the FutureBuilder is reset to load dependencies
-          // if the order details were updated by the Notifier refresh.
-          if (mounted) {
-            setState(() {
-              _orderDependenciesFuture = _loadDependencies(state.order);
-            });
-          }
-        }
-
-        if (state is OrdersError) {
-          // You might want to show a toast or dialog here for errors
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Action failed: ${state.message}"),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
-
+    return BlocBuilder<OrderDetailCubit, OrderDetailState>(
       builder: (context, state) {
-        if (state is OrdersError) {
+        if (state is OrderDetailLoading) {
           return Scaffold(
-            appBar: AppBar(
-              leading: BackButton(onPressed: () => context.pop()),
-              title: const Text("Order Details"),
-            ),
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Text(
-                  "Load Error: ${state.message}",
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          );
-        }
-
-        if (state is! OrderDetailsLoaded || state.order.id != widget.orderId) {
-          // Show loading if we are waiting for the specific order
-          return Scaffold(
-            key: ValueKey(widget.orderId),
             appBar: AppBar(
               leading: BackButton(onPressed: () => context.pop()),
               title: const Text("Order Details"),
@@ -180,767 +72,375 @@ class _OrderDetailsState extends State<OrderDetails> {
           );
         }
 
-        final selectedOrder = state.order;
+        if (state is OrderDetailError) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: BackButton(onPressed: () => context.pop()),
+              title: const Text("Order Details"),
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    state.message,
+                    style: const TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
-        _orderDependenciesFuture ??= _loadDependencies(selectedOrder);
+        if (state is! OrderDetailLoaded) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: BackButton(onPressed: () => context.pop()),
+              title: const Text("Order Details"),
+            ),
+            body: const Center(child: Text("No order data available")),
+          );
+        }
 
-        return FutureBuilder<OrderDependencies>(
-          future: _orderDependenciesFuture,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Scaffold(
-                appBar: AppBar(
-                  leading: BackButton(onPressed: () => context.pop()),
-                  title: const Text("Order Details (Error)"),
-                ),
-                body: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 48,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "Failed to load critical order data.",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textBlue,
+        // Extract data from loaded state
+        final order = state.order;
+        final catch_ = state.catch_;
+        final buyer = state.counterparty;
+        final canSubmitReview = state.canSubmitReview;
+
+        // Extract values using new architecture
+        final weightGrams = order.terms.weight.grams;
+        final totalPrice = order.terms.totalPrice.amount;
+        final pricePerKg = order.terms.pricePerKg.amountPerKg;
+
+        final buyerName = buyer.name;
+        final buyerAvatar = buyer.avatarUrl ?? "assets/images/user-profile.png";
+        final buyerRating = buyer.rating.value;
+        final buyerReviewCount = buyer.reviewCount;
+        final String imageUrl = catch_.images.isNotEmpty
+            ? catch_.images.first
+            : "assets/images/prawns.jpg";
+
+        return Scaffold(
+          appBar: AppBar(
+            leading: BackButton(onPressed: () => context.pop()),
+            title: const Text(
+              "Order Details",
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textBlue,
+              ),
+            ),
+            backgroundColor: Colors.white,
+            elevation: 0,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Order Status Badge
+                _buildStatusBadge(order.status),
+                const SizedBox(height: 16),
+
+                // Catch Image
+                GestureDetector(
+                  onTap: () {
+                    final imageProvider = Image.network(imageUrl).image;
+                    showImageViewer(
+                      context,
+                      imageProvider,
+                      swipeDismissible: true,
+                      doubleTapZoomable: true,
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      imageUrl,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 200,
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            size: 64,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Reason: ${snapshot.error}",
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.gray650,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        CustomButton(
-                          title: "Retry Loading",
-                          onPressed: () {
-                            setState(() {
-                              _orderDependenciesFuture = null;
-                            });
-                            _dispatchGetOrder();
-                          },
-                          icon: Icons.refresh,
-                          bordered: true,
-                        ),
-                      ],
+                        );
+                      },
                     ),
                   ),
                 ),
-              );
-            }
+                const SizedBox(height: 24),
 
-            if (snapshot.connectionState != ConnectionState.done ||
-                snapshot.data == null) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            final dependencies = snapshot.data!;
-            final catchSnapshot = dependencies.catchSnapshot;
-            final buyer = dependencies.buyer;
-
-            final Map<String, dynamic> catchMap = jsonDecode(
-              selectedOrder.catchSnapshotJson,
-            );
-            final int acceptedWeight =
-                (catchMap['accepted_weight'] as num?)?.toInt() ?? 0;
-            final int acceptedPrice =
-                (catchMap['accepted_price'] as num?)?.toInt() ?? 0;
-            final OfferStatus orderStatus = selectedOrder.offer.status;
-
-            final buyerName =
-                buyer?.name ?? 'Buyer ID: ${selectedOrder.buyerId}';
-            final buyerAvatar =
-                buyer?.avatarUrl ?? "assets/images/user-profile.png";
-            final buyerRating = buyer?.rating ?? 0.0;
-            final buyerReviewCount = buyer?.reviewCount ?? 0;
-
-            final String imageUrl = catchSnapshot.images.isNotEmpty
-                ? catchSnapshot.images.first
-                : "assets/images/prawns.jpg";
-
-            // ---------------------------------------------------------------
-            // UI SECTION - UNCHANGED
-            // ---------------------------------------------------------------
-            return BlocBuilder<UserBloc, UserState>(
-              builder: (context, userState) {
-                if (userState is UserLoaded) {
-                  final user = userState.user;
-                  final buyerId = selectedOrder.buyerId;
-                  final String ratedUserName = buyerName;
-                  final bool hasRatedBuyer = selectedOrder.hasRatedBuyer;
-                  return Scaffold(
-                    appBar: AppBar(
-                      leading: BackButton(onPressed: () => context.pop()),
-                      title: const Text(
-                        "Order Details",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textBlue,
-                          fontSize: 24,
-                        ),
-                      ),
-                      actions: [
-                        IconButton(
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.white,
-                              useSafeArea: true,
-                              showDragHandle: true,
-                              builder: (context) {
-                                return DraggableScrollableSheet(
-                                  expand: false,
-                                  initialChildSize: 0.6,
-                                  minChildSize: 0.6,
-                                  maxChildSize: 0.95,
-                                  builder: (context, scrollController) {
-                                    return Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 32,
-                                        right: 32,
-                                        bottom: MediaQuery.of(
-                                          context,
-                                        ).viewInsets.bottom,
-                                      ),
-                                      child: ListView(
-                                        controller: scrollController,
-                                        children: [
-                                          const Text(
-                                            "Why did this transaction not go through?",
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.textBlue,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          BlocBuilder<
-                                            FailedTransactionCubit,
-                                            FailedTransactionState
-                                          >(
-                                            builder: (context, state) {
-                                              final cubit = context
-                                                  .read<
-                                                    FailedTransactionCubit
-                                                  >();
-                                              return ListView.builder(
-                                                itemCount:
-                                                    kFailedTransactionReasons
-                                                        .length,
-                                                shrinkWrap: true,
-                                                physics:
-                                                    const NeverScrollableScrollPhysics(),
-                                                padding: EdgeInsets.zero,
-                                                itemBuilder: (context, index) {
-                                                  final reason =
-                                                      kFailedTransactionReasons[index];
-                                                  final isSelected =
-                                                      state.selectedReason ==
-                                                      reason;
-                                                  return InkWell(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                    onTap: () => cubit
-                                                        .toggleReason(reason),
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            vertical: 4,
-                                                          ),
-                                                      child: Row(
-                                                        children: [
-                                                          Checkbox(
-                                                            value: isSelected,
-                                                            onChanged: (_) =>
-                                                                cubit
-                                                                    .toggleReason(
-                                                                      reason,
-                                                                    ),
-                                                            shape: RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius.circular(
-                                                                    6,
-                                                                  ),
-                                                            ),
-                                                            visualDensity:
-                                                                VisualDensity
-                                                                    .compact,
-                                                            splashRadius: 5,
-                                                          ),
-                                                          Expanded(
-                                                            child: Text(
-                                                              reason,
-                                                              style:
-                                                                  const TextStyle(
-                                                                    fontSize:
-                                                                        14,
-                                                                  ),
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              );
-                                            },
-                                          ),
-                                          const SizedBox(height: 16),
-                                          const Text(
-                                            "Other reason? Specify",
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                              color: AppColors.textBlue,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          TextField(
-                                            maxLines: 3,
-                                            decoration: InputDecoration(
-                                              hintText:
-                                                  "Enter the reason here...",
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 24),
-                                          CustomButton(
-                                            title: "Confirm",
-                                            onPressed: () {},
-                                          ),
-                                          const SizedBox(height: 16),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            );
-                          },
-                          icon: const Icon(Icons.autorenew),
-                        ),
-                      ],
+                // Catch Details Section
+                const SectionHeader("Catch Details"),
+                const SizedBox(height: 12),
+                InfoTable(
+                  rows: [
+                    InfoRow(label: "Species", value: catch_.species.name),
+                    InfoRow(label: "Market", value: catch_.market),
+                    InfoRow(
+                      label: "Weight",
+                      value: "${(weightGrams / 1000).toStringAsFixed(2)} kg",
                     ),
-                    body: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // --- Order ID and Date ---
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "Order #${selectedOrder.id}",
-                                // Use actual Order ID
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                  color: AppColors.textBlue,
-                                ),
-                              ),
-                              Text(
-                                selectedOrder.dateUpdated.toFormattedDate(),
-                                // Use Order date
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.gray650,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
+                    InfoRow(
+                      label: "Price",
+                      value: "KES ${totalPrice.toStringAsFixed(2)}",
+                    ),
+                    InfoRow(
+                      label: "Price/kg",
+                      value: "KES ${pricePerKg.toStringAsFixed(2)}",
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
-                          // --- Product/Catch Details ---
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  final ImageProvider imageProvider =
-                                      imageUrl.startsWith('http')
-                                      ? NetworkImage(imageUrl) as ImageProvider
-                                      : AssetImage(imageUrl);
+                // Buyer Information Section
+                const SectionHeader("Buyer Information"),
+                const SizedBox(height: 12),
+                _buildBuyerInfo(
+                  buyerName: buyerName,
+                  buyerAvatar: buyerAvatar,
+                  buyerRating: buyerRating,
+                  buyerReviewCount: buyerReviewCount,
+                  buyerId: buyer.id,
+                ),
+                const SizedBox(height: 24),
 
-                                  showImageViewer(
-                                    context,
-                                    imageProvider,
-                                    swipeDismissible: true,
-                                    immersive: true,
-                                    useSafeArea: true,
-                                    doubleTapZoomable: true,
-                                    backgroundColor: Colors.black.withValues(
-                                      alpha: 0.4,
-                                    ),
-                                  );
-                                },
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  child: Image.network(
-                                    imageUrl, // Use the safely determined URL
-                                    // Use Catch image URL
-                                    width: 60,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Image.asset(
-                                              "assets/images/prawns.jpg",
-                                              width: 60,
-                                              height: 60,
-                                              fit: BoxFit.cover,
-                                            ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      catchSnapshot.name, // Use Catch name
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                        color: AppColors.textBlue,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          orderStatus.name.capitalize(),
-                                          // Use actual status
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.getStatusColor(
-                                              orderStatus,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: 10,
-                                          height: 10,
-                                          margin: const EdgeInsets.only(
-                                            left: 4,
-                                          ),
-                                          // Added margin
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.white,
-                                            ),
-                                            color: AppColors.getStatusColor(
-                                              orderStatus,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
+                // Action Buttons
+                if (order.isActive) ...[
+                  CustomButton(
+                    title: "Mark as Completed",
+                    onPressed: () => _showCompletionConfirmation(context),
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
-                          // --- Info Table ---
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.gray200),
-                            ),
-                            child: InfoTable(
-                              rows: [
-                                InfoRow(
-                                  label: "Market",
-                                  value: catchSnapshot.market,
-                                ),
-                                InfoRow(
-                                  label: "Species",
-                                  value: catchSnapshot.species.name,
-                                ),
-                                catchSnapshot.species.id == "prawns"
-                                    ? InfoRow(
-                                        label: "Size",
-                                        value: catchSnapshot.size,
-                                      )
-                                    : null,
-                                InfoRow(
-                                  label: "Weight", // Updated label for clarity
-                                  value: formatWeight(acceptedWeight),
-                                ),
-                                InfoRow(
-                                  label: "Total Price",
-                                  value: acceptedPrice.toStringAsFixed(0),
-                                  suffix: "CFA",
-                                ),
-                              ].whereType<InfoRow>().toList(),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                // Review Section (if order is completed and can submit review)
+                if (order.isCompleted && canSubmitReview) ...[
+                  CustomButton(
+                    title: "Submit Review for $buyerName",
+                    onPressed: () => _showReviewModal(
+                      context,
+                      reviewedUserId: buyer.id,
+                      reviewedUserName: buyerName,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
-                          const SectionHeader("Buyer"),
-
-                          // --- Buyer Details ---
-                          Material(
-                            borderRadius: BorderRadius.circular(16),
-                            child: InkWell(
-                              onTap: () {
-                                context.push("/fisher/reviews/${buyer?.id}");
-                              },
-                              borderRadius: BorderRadius.circular(16),
-                              splashColor: AppColors.blue700.withValues(
-                                alpha: 0.1,
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ErrorHandlingCircleAvatar(
-                                      avatarUrl: buyerAvatar,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            buyerName, // Use buyer name
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 16,
-                                              color: AppColors.textBlue,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.star,
-                                                color: AppColors.shellOrange,
-                                                size: 16,
-                                              ),
-                                              Text(
-                                                buyerRating.toStringAsFixed(1),
-                                                // Use buyer rating
-                                                style: const TextStyle(
-                                                  color: AppColors.textBlue,
-                                                  fontWeight: FontWeight.w300,
-                                                ),
-                                              ),
-                                              Text(
-                                                " ($buyerReviewCount Reviews)",
-                                                // Use buyer review count
-                                                style: const TextStyle(
-                                                  color: AppColors.textBlue,
-                                                  fontWeight: FontWeight.w300,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          // --- Action Buttons ---
-                          if (orderStatus != OfferStatus.completed) ...[
-                            const SizedBox(height: 16),
-                            Column(
-                              spacing: 8,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CustomButton(
-                                  title: "Call Buyer",
-                                  onPressed: () =>
-                                      makePhoneCall('651204966', context),
-                                  // Using the provided phone number
-                                  bordered: true,
-                                  hugeIcon: HugeIcons.strokeRoundedCall02,
-                                ),
-                                CustomButton(
-                                  title: "Message Buyer",
-                                  onPressed: () => context.push("/fisher/chat"),
-                                  // Using the provided phone number
-                                  bordered: true,
-                                  icon: CustomIcons.chatbubble,
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                CustomButton(
-                                  title: "Mark as Completed",
-                                  onPressed: () {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.white,
-                                      useSafeArea: true,
-                                      showDragHandle: true,
-                                      builder: (context) {
-                                        return DraggableScrollableSheet(
-                                          expand: false,
-                                          builder: (context, scrollController) {
-                                            return Padding(
-                                              padding: const EdgeInsets.all(
-                                                16.0,
-                                              ),
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  const Text(
-                                                    "Confirm Order Completion",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: AppColors.textBlue,
-                                                    ),
-                                                    textAlign: TextAlign.center,
-                                                  ),
-                                                  const SizedBox(height: 16),
-                                                  const Text(
-                                                    "Are you sure you want to mark this order as completed? This action cannot be undone.",
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: AppColors.gray650,
-                                                    ),
-                                                    textAlign: TextAlign.center,
-                                                  ),
-                                                  const SizedBox(height: 24),
-                                                  CustomButton(
-                                                    title: "Confirm",
-                                                    onPressed: () {
-                                                      context
-                                                          .pop(); // Dismiss modal
-                                                      _markOrderAsCompleted(
-                                                        selectedOrder,
-                                                      );
-                                                      showDialog(
-                                                        context: context,
-                                                        builder: (context) {
-                                                          return AlertDialog(
-                                                            title: Container(
-                                                              height: 100,
-                                                              width: 100,
-                                                              decoration: BoxDecoration(
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                color: AppColors
-                                                                    .shell300,
-                                                              ),
-                                                              child: Center(
-                                                                child: SvgPicture.asset(
-                                                                  "assets/icons/confetti.svg",
-                                                                  width: 50,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            content: Column(
-                                                              mainAxisSize:
-                                                                  MainAxisSize
-                                                                      .min,
-                                                              children: [
-                                                                SectionHeader(
-                                                                  "Well done!",
-                                                                ),
-                                                                SectionHeader(
-                                                                  "You've completed this order.",
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            actions: [
-                                                              CustomButton(
-                                                                title: "Thanks",
-                                                                onPressed: () =>
-                                                                    context
-                                                                        .pop(),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        },
-                                                      );
-                                                    },
-                                                    icon: Icons.check,
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  CustomButton(
-                                                    title: "Cancel",
-                                                    onPressed: () {
-                                                      context
-                                                          .pop(); // Dismiss modal
-                                                    },
-                                                    bordered: true,
-                                                    icon: Icons.cancel_outlined,
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    );
-                                  },
-                                  icon: Icons.check,
-                                ),
-                              ],
-                            ),
-                          ],
-
-                          if (orderStatus == OfferStatus.completed &&
-                              !selectedOrder.hasRatedBuyer) ...[
-                            CustomButton(
-                              title: "Rate the buyer",
-                              onPressed: () {
-                                final ordersBloc = context.read<OrdersBloc>();
-                                // --- Rate Buyer Modal Logic (Unchanged) ---
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.white,
-                                  useSafeArea: true,
-                                  showDragHandle: true,
-                                  builder: (context) {
-                                    return RatingModalContent(
-                                      orderId: selectedOrder.id,
-                                      raterId: user!.id,
-                                      // The Fisher is the Rater
-                                      ratedUserId: buyerId,
-                                      ratedUserName: ratedUserName,
-                                      // 🌟 PASS THE WRAPPER FUNCTION 🌟
-                                      onSubmitRating:
-                                          ({
-                                            required String orderId,
-                                            required String raterId,
-                                            required String ratedUserId,
-                                            required double ratingValue,
-                                            String? message,
-                                          }) async {
-                                            // Convert the function call into an OrdersBloc event
-                                            ordersBloc.add(
-                                              SubmitRating(
-                                                orderId: orderId,
-                                                raterId: raterId,
-                                                ratedUserId: ratedUserId,
-                                                ratingValue: ratingValue,
-                                                message: message,
-                                              ),
-                                            );
-                                            // We return a completed Future as dispatching an event is async
-                                          },
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ] else if (orderStatus == OfferStatus.completed &&
-                              selectedOrder.hasRatedBuyer) ...[
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.0,
-                              ),
-                              child: Row(
-                                children: [
-                                  const HugeIcon(
-                                    icon:
-                                        HugeIcons.strokeRoundedCheckmarkBadge01,
-                                    color: AppColors.success500,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    "You rated the Buyer ${selectedOrder.buyerRatingValue!.toStringAsFixed(1)} stars.",
-                                    style: const TextStyle(
-                                      color: AppColors.textBlue,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-
-                          if (orderStatus == OfferStatus.completed) ...[
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Row(
-                                children: [
-                                  HugeIcon(
-                                    icon: selectedOrder.hasRatedFisher
-                                        ? HugeIcons
-                                              .strokeRoundedCheckmarkBadge01
-                                        : HugeIcons.strokeRoundedClock01,
-                                    color: selectedOrder.hasRatedFisher
-                                        ? AppColors.success500
-                                        : AppColors.shellOrange,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    selectedOrder.hasRatedFisher
-                                        ? "The Buyer has rated you."
-                                        : "Waiting for Buyer to rate you.",
-                                    style: const TextStyle(
-                                      color: AppColors.textBlue,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
+                // Contact Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          // TODO: Implement call functionality with buyer contact
+                        },
+                        icon: const Icon(Icons.phone),
+                        label: const Text("Call Buyer"),
                       ),
                     ),
-                  );
-                }
-                return Container();
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          context.push(
+                            '/fisher/chat',
+                            extra: {'userId': buyer.id, 'userName': buyerName},
+                          );
+                        },
+                        icon: const Icon(Icons.message),
+                        label: const Text("Message"),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusBadge(OrderStatus status) {
+    Color badgeColor;
+    String statusText;
+
+    switch (status) {
+      case OrderStatus.active:
+        badgeColor = Colors.blue;
+        statusText = "Active";
+        break;
+      case OrderStatus.completed:
+        badgeColor = Colors.green;
+        statusText = "Completed";
+        break;
+      case OrderStatus.cancelled:
+        badgeColor = Colors.red;
+        statusText = "Cancelled";
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: badgeColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: badgeColor),
+      ),
+      child: Text(
+        statusText,
+        style: TextStyle(
+          color: badgeColor,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBuyerInfo({
+    required String buyerName,
+    required String buyerAvatar,
+    required double buyerRating,
+    required int buyerReviewCount,
+    required String buyerId,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Row(
+        children: [
+          ErrorHandlingCircleAvatar(avatarUrl: buyerAvatar, radius: 30),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  buyerName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textBlue,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      "${buyerRating.toStringAsFixed(1)} ($buyerReviewCount reviews)",
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              context.push('/fisher/reviews/$buyerId');
+            },
+            icon: const Icon(Icons.arrow_forward_ios, size: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCompletionConfirmation(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Confirm Order Completion",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textBlue,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Are you sure you want to mark this order as completed? This action cannot be undone.",
+                style: TextStyle(fontSize: 14, color: AppColors.gray650),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              CustomButton(
+                title: "Confirm",
+                onPressed: () {
+                  context.pop(); // Dismiss modal
+                  _markOrderAsCompleted();
+                },
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => context.pop(),
+                child: const Text("Cancel"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showReviewModal(
+    BuildContext context, {
+    required String reviewedUserId,
+    required String reviewedUserName,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (modalContext) {
+        return RatingModalContent(
+          orderId: widget.orderId,
+          raterId: context.read<AuthCubit>().state is AuthAuthenticated
+              ? (context.read<AuthCubit>().state as AuthAuthenticated).user.id
+              : '',
+          ratedUserId: reviewedUserId,
+          ratedUserName: reviewedUserName,
+          onSubmitRating:
+              ({
+                required String orderId,
+                required String raterId,
+                required String ratedUserId,
+                required double ratingValue,
+                String? message,
+              }) async {
+                await _submitReview(
+                  reviewedUserId: ratedUserId,
+                  ratingValue: ratingValue,
+                  comment: message,
+                );
               },
-            );
-          },
         );
       },
     );

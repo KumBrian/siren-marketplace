@@ -33,11 +33,14 @@ import 'new_core/di/injection.dart' as NewDI;
 import 'new_core/presentation/cubits/auth/auth_cubit.dart';
 import 'new_core/presentation/cubits/expiration/expiration_cubit.dart';
 import 'new_core/presentation/cubits/notification/notification_cubit.dart';
+import 'new_features/fisher/presentation/cubits/dashboard/fisher_dashboard_cubit.dart';
 import 'router.dart';
 
+import 'core/constants/demo_constants.dart';
+
 // Temporary demo user IDs (will be managed by AuthCubit)
-const String CURRENT_FISHER_ID = 'fisher-1'; // Using new demo data
-const String CURRENT_BUYER_ID = 'buyer-1'; // Using new demo data
+// const String CURRENT_FISHER_ID = 'fisher-1'; // Moved to demo_constants.dart
+// const String CURRENT_BUYER_ID = 'buyer-1'; // Moved to demo_constants.dart
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +71,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => AuthCubit()..initialize()),
         BlocProvider(create: (_) => NotificationCubit()),
         BlocProvider(create: (_) => ExpirationCubit()..startPeriodicCheck()),
+        BlocProvider(create: (_) => FisherDashboardCubit()),
 
         // ============================================================
         // 🔴 OLD ARCHITECTURE - Keep temporarily for existing screens

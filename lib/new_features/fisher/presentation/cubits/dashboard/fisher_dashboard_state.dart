@@ -23,12 +23,14 @@ class FisherDashboardLoaded extends FisherDashboardState {
   final List<Catch> availableCatches;
   final List<Catch> expiredCatches;
   final List<Order> recentOrders;
+  final List<Order> completedOrders;
 
   const FisherDashboardLoaded({
     required this.totalTurnover,
     required this.availableCatches,
     required this.expiredCatches,
     required this.recentOrders,
+    required this.completedOrders,
   });
 
   @override
@@ -37,6 +39,7 @@ class FisherDashboardLoaded extends FisherDashboardState {
     availableCatches,
     expiredCatches,
     recentOrders,
+    completedOrders,
   ];
 }
 
