@@ -1,22 +1,15 @@
+// lib/router.dart
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:siren_marketplace/features/buyer/presentation/screens/buyer_review_screen.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/fisher/presentation/screens/fisher.dart';
-import 'package:siren_marketplace/features/fisher/presentation/screens/fisher_review_screen.dart';
-import 'package:siren_marketplace/features/user/presentation/screens/about.dart';
-import 'package:siren_marketplace/features/user/presentation/screens/account_info.dart';
-import 'package:siren_marketplace/features/user/presentation/screens/beaches.dart';
-import 'package:siren_marketplace/features/user/presentation/screens/logout.dart';
-import 'package:siren_marketplace/features/user/presentation/screens/projects.dart';
-import 'package:siren_marketplace/features/user/presentation/screens/user_profile.dart';
 
+// OLD IMPORTS (Keep temporarily)
 import 'core/di/injector.dart';
-import 'core/types/enum.dart';
+import 'core/types/enum.dart' as OldEnum;
 import 'features/buyer/presentation/screens/buyer.dart';
+import 'features/buyer/presentation/screens/buyer_review_screen.dart';
 import 'features/buyer/presentation/screens/congratulations_screen.dart';
 import 'features/buyer/presentation/screens/notifications_screen.dart';
 import 'features/buyer/presentation/screens/offer_details.dart';
@@ -24,92 +17,125 @@ import 'features/buyer/presentation/screens/order_details.dart';
 import 'features/buyer/presentation/screens/orders_screen.dart';
 import 'features/buyer/presentation/screens/product_details.dart';
 import 'features/chat/presentation/screens/chat_page.dart';
+import 'features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'features/fisher/logic/orders_bloc/orders_bloc.dart';
 import 'features/fisher/presentation/screens/catch_details.dart';
 import 'features/fisher/presentation/screens/congratulations_screen.dart';
+import 'features/fisher/presentation/screens/fisher.dart';
+import 'features/fisher/presentation/screens/fisher_review_screen.dart';
 import 'features/fisher/presentation/screens/market_trends.dart';
 import 'features/fisher/presentation/screens/notifications_screen.dart';
 import 'features/fisher/presentation/screens/offer_details.dart';
 import 'features/fisher/presentation/screens/order_details.dart';
 import 'features/user/logic/user_bloc/user_bloc.dart';
+import 'features/user/presentation/screens/about.dart';
+import 'features/user/presentation/screens/account_info.dart';
 import 'features/user/presentation/screens/account_info/personal_information.dart';
 import 'features/user/presentation/screens/account_info/reviews.dart';
+import 'features/user/presentation/screens/beaches.dart';
+import 'features/user/presentation/screens/logout.dart';
 import 'features/user/presentation/screens/observation_info.dart';
+import 'features/user/presentation/screens/projects.dart';
 import 'features/user/presentation/screens/role_selection_screen.dart';
+import 'features/user/presentation/screens/user_profile.dart';
+import 'new_core/domain/enums/user_role.dart';
+// NEW IMPORTS
+import 'new_core/presentation/cubits/auth/auth_cubit.dart';
+import 'new_core/presentation/cubits/auth/auth_state.dart';
+
+// ============================================================================
+// ROUTER REFRESH LISTENER (Hybrid: Listens to both old and new BLoCs)
+// ============================================================================
 
 class GoRouterRefreshStream extends ChangeNotifier {
-  // Now listens to the state of the UserBloc
-  GoRouterRefreshStream(Stream<UserState> stream) {
-    // We only need to notify listeners when the role changes from/to 'unknown'
-    // or when the user is successfully loaded.
-    _subscription = stream.listen((state) {
+  GoRouterRefreshStream({
+    required Stream<UserState> oldUserStream,
+    required Stream<AuthState> newAuthStream,
+  }) {
+    // Listen to OLD UserBloc
+    _oldSubscription = oldUserStream.listen((state) {
       if (state is UserLoaded || state is UserError) {
+        notifyListeners();
+      }
+    });
+
+    // Listen to NEW AuthCubit
+    _newSubscription = newAuthStream.listen((state) {
+      if (state is AuthAuthenticated || state is AuthUnauthenticated) {
         notifyListeners();
       }
     });
   }
 
-  late final StreamSubscription<UserState> _subscription;
+  late final StreamSubscription<UserState> _oldSubscription;
+  late final StreamSubscription<AuthState> _newSubscription;
 
   @override
   void dispose() {
-    _subscription.cancel();
+    _oldSubscription.cancel();
+    _newSubscription.cancel();
     super.dispose();
   }
 }
 
-// -------------------------------------------------------------------------
-// 2. Updated Router Creation Function
-// -------------------------------------------------------------------------
+// ============================================================================
+// ROUTER CREATION (Hybrid: Supports both old and new architecture)
+// ============================================================================
 
-// Accepts the new UserBloc instead of the old RoleCubit
-GoRouter createRouter(UserBloc userBloc) {
+GoRouter createRouter(UserBloc userBloc, AuthCubit authCubit) {
   return GoRouter(
     initialLocation: '/',
-    // Use the UserBloc stream for refresh listening
-    refreshListenable: GoRouterRefreshStream(userBloc.stream),
-
+    refreshListenable: GoRouterRefreshStream(
+      oldUserStream: userBloc.stream,
+      newAuthStream: authCubit.stream,
+    ),
     redirect: (context, state) {
-      final userState = userBloc.state;
+      // Get states from both old and new systems
+      final oldUserState = userBloc.state;
+      final newAuthState = authCubit.state;
       final bool isRoot = state.fullPath == '/';
 
-      // Handle the loading state by waiting
-      if (userState is UserLoading) {
-        return isRoot
-            ? null
-            : '/'; // Allow staying on root, redirect others to root
+      // Priority: Use NEW AuthCubit if authenticated, otherwise fall back to OLD
+      UserRole? currentRole;
+
+      if (newAuthState is AuthAuthenticated) {
+        // NEW system is active
+        currentRole = newAuthState.currentRole;
+      } else if (oldUserState is UserLoaded) {
+        // OLD system is active (map old Role to new UserRole)
+        currentRole = _mapOldRoleToNew(oldUserState.role);
       }
 
-      // Get the determined role from the loaded state
-      final Role currentRole = userState is UserLoaded
-          ? userState.role
-          : Role.unknown;
+      // Handle loading states
+      if (oldUserState is UserLoading || newAuthState is AuthLoading) {
+        return isRoot ? null : '/';
+      }
 
-      // ---------------------------------------------------------------------
-      // 🎯 FIX: Modify Rule 2 to allow the root path access.
-      // ---------------------------------------------------------------------
-
-      // Rule 1: Not loaded/Unknown role attempts to access non-root path -> Redirect to root
-      if (currentRole == Role.unknown && !isRoot) {
+      // Rule 1: No role and trying to access non-root → redirect to root
+      if (currentRole == null && !isRoot) {
         return '/';
       }
 
-      // Rule 2 (MODIFIED): A valid role loaded attempts to access the root path (`/`).
-      // We explicitly allow the user to stay on the root path (the RoleScreen).
-      if (currentRole != Role.unknown && isRoot) {
-        // Return null to allow the current path (which is '/')
+      // Rule 2: Has role and on root → allow (can switch roles)
+      if (currentRole != null && isRoot) {
         return null;
       }
 
-      // Rule 3: Allow navigation for all other cases (e.g., Fisher access /fisher/home)
+      // Rule 3: Allow all other navigation
       return null;
     },
-
-    // ---------------------------------------------------------------------
-    // 3. Route Definitions (unchanged, as they are URL-based)
-    // ---------------------------------------------------------------------
     routes: [
-      GoRoute(path: '/', builder: (_, __) => const RoleScreen()),
+      // ======================================================================
+      // ROOT ROUTE - Role Selection (Using NEW AuthCubit)
+      // ======================================================================
+      GoRoute(
+        path: '/',
+        builder: (_, __) => const RoleScreen(), // Your existing role screen
+      ),
+
+      // ======================================================================
+      // FISHER ROUTES (Will migrate to new BLoCs progressively)
+      // ======================================================================
       GoRoute(
         path: '/fisher',
         builder: (_, __) => BlocProvider(
@@ -167,24 +193,24 @@ GoRouter createRouter(UserBloc userBloc) {
             path: "reviews/:userId",
             builder: (context, state) {
               final String? userId = state.pathParameters['userId'];
-
               if (userId == null) {
                 return const Scaffold(
                   body: Center(child: Text("Invalid User ID")),
                 );
               }
-
-              // ReviewsScreen is now responsible for fetching the user and their reviews
               return FisherReviewScreen(userId: userId);
             },
           ),
         ],
       ),
+
+      // ======================================================================
+      // BUYER ROUTES (Will migrate to new BLoCs progressively)
+      // ======================================================================
       GoRoute(
         path: '/buyer',
         builder: (_, __) =>
             BlocProvider(create: (context) => sl<OffersBloc>(), child: Buyer()),
-
         routes: [
           GoRoute(
             path: 'product-details/:id',
@@ -227,19 +253,20 @@ GoRouter createRouter(UserBloc userBloc) {
             path: "reviews/:userId",
             builder: (context, state) {
               final String? userId = state.pathParameters['userId'];
-
               if (userId == null) {
                 return const Scaffold(
                   body: Center(child: Text("Invalid User ID")),
                 );
               }
-
-              // ReviewsScreen is now responsible for fetching the user and their reviews
               return BuyerReviewScreen(userId: userId);
             },
           ),
         ],
       ),
+
+      // ======================================================================
+      // USER PROFILE ROUTES
+      // ======================================================================
       GoRoute(
         path: '/user-profile/:role',
         builder: (context, state) {
@@ -280,9 +307,7 @@ GoRouter createRouter(UserBloc userBloc) {
           ),
           GoRoute(
             path: 'observation-info',
-            builder: (context, state) {
-              return const ObservationInfo();
-            },
+            builder: (context, state) => const ObservationInfo(),
           ),
           GoRoute(path: 'projects', builder: (context, state) => Projects()),
           GoRoute(path: 'beaches', builder: (context, state) => Beaches()),
@@ -292,4 +317,18 @@ GoRouter createRouter(UserBloc userBloc) {
       ),
     ],
   );
+}
+
+// ============================================================================
+// HELPER: Map old Role enum to new UserRole enum
+// ============================================================================
+UserRole? _mapOldRoleToNew(OldEnum.Role oldRole) {
+  switch (oldRole) {
+    case OldEnum.Role.fisher:
+      return UserRole.fisher;
+    case OldEnum.Role.buyer:
+      return UserRole.buyer;
+    case OldEnum.Role.unknown:
+      return null;
+  }
 }
