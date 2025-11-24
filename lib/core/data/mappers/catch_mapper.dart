@@ -1,4 +1,5 @@
-import '../../domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+
 import '../../domain/enums/catch_status.dart';
 import '../../domain/value_objects/price.dart';
 import '../../domain/value_objects/price_per_kg.dart';

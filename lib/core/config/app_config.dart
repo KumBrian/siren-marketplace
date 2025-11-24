@@ -1,4 +1,3 @@
-/// Configuration for data source selection
 enum DataSourceMode {
   demo, // Use in-memory demo data
   local, // Use SQLite (to be implemented)
