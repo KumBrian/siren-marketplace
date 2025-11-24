@@ -1,5 +1,5 @@
-import '../entities/catch.dart';
-import '../enums/catch_status.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
 
 abstract class ICatchRepository {
   /// Create a new catch

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../di/injection.dart';
+import '../di/injector.dart';
 import 'app_config.dart';
 
-/// Widget for easily switching data sources in debug builds
 class DataSourceSwitcher extends StatefulWidget {
   final Widget child;
 
@@ -21,14 +20,12 @@ class _DataSourceSwitcherState extends State<DataSourceSwitcher> {
     return Stack(
       children: [
         widget.child,
-
-        // Floating debug menu (only in debug mode)
         if (const bool.fromEnvironment('dart.vm.product') == false)
           Positioned(
             top: 50,
             right: 10,
             child: Container(
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.black87,
                 borderRadius: BorderRadius.circular(8),
@@ -36,11 +33,11 @@ class _DataSourceSwitcherState extends State<DataSourceSwitcher> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                  const Text(
                     'Data Source',
                     style: TextStyle(color: Colors.white, fontSize: 12),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   _buildModeButton(DataSourceMode.demo, '📦 Demo'),
                   _buildModeButton(DataSourceMode.local, '💾 Local'),
                   _buildModeButton(DataSourceMode.api, '🌐 API'),
@@ -53,49 +50,50 @@ class _DataSourceSwitcherState extends State<DataSourceSwitcher> {
   }
 
   Widget _buildModeButton(DataSourceMode mode, String label) {
-    final isSelected = _currentMode == mode;
+    final bool isSelected = _currentMode == mode;
 
     return GestureDetector(
       onTap: () async {
+        if (isSelected) return;
+
         setState(() => _currentMode = mode);
         AppConfig.setMode(mode);
 
-        // Show loading dialog
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => AlertDialog(
+          builder: (_) => AlertDialog(
             content: Row(
               children: [
-                CircularProgressIndicator(),
-                SizedBox(width: 16),
+                const CircularProgressIndicator(),
+                const SizedBox(width: 16),
                 Text('Switching to ${mode.name}...'),
               ],
             ),
           ),
         );
 
-        // Reinitialize DI
         try {
-          await DI().init();
-          Navigator.of(context).pop(); // Close loading dialog
+          await initDependencies(); // ← THIS IS NOW CORRECT
+          if (context.mounted) Navigator.of(context).pop();
 
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Switched to ${mode.name} mode')),
-          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Switched to ${mode.name} mode')),
+            );
+          }
         } catch (e) {
-          Navigator.of(context).pop(); // Close loading dialog
-
-          // Show error
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+          if (context.mounted) Navigator.of(context).pop();
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Error: $e')));
+          }
         }
       },
       child: Container(
-        margin: EdgeInsets.only(top: 4),
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        margin: const EdgeInsets.only(top: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? Colors.blue : Colors.grey[800],
           borderRadius: BorderRadius.circular(4),
