@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:hugeicons/styles/stroke_rounded.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
-
-import '../../../../new_core/domain/entities/offer.dart';
-import '../../../../new_core/domain/enums/user_role.dart';
 
 class OfferCard extends StatelessWidget {
   const OfferCard({
@@ -70,7 +68,7 @@ class OfferCard extends StatelessWidget {
         // Used withOpacity for cleaner syntax
         color: AppColors.textBlue.withValues(alpha: 0.1),
       ),
-      child: offer.waitingFor == UserRole.fisher
+      child: offer.hasUpdateForFisher
           ? Icon(CustomIcons.moneybag_filled, color: AppColors.textBlue)
           : HugeIcon(
               icon: HugeIconsStrokeRounded.moneyBag01,
@@ -90,10 +88,10 @@ class OfferCard extends StatelessWidget {
             // 🆕 Use the passed-in clientName
             _text(
               clientName,
-              offer.waitingFor == UserRole.fisher
+              offer.hasUpdateForFisher
                   ? AppColors.textBlue
                   : AppColors.textGray,
-              fontWeight: offer.waitingFor == UserRole.fisher
+              fontWeight: offer.hasUpdateForFisher
                   ? FontWeight.w500
                   : FontWeight.w300,
             ),
@@ -103,10 +101,10 @@ class OfferCard extends StatelessWidget {
             Text(
               clientRating.toStringAsFixed(1),
               style: TextStyle(
-                color: offer.waitingFor == UserRole.fisher
+                color: offer.hasUpdateForFisher
                     ? AppColors.textBlue
                     : AppColors.textGray,
-                fontWeight: offer.waitingFor == UserRole.fisher
+                fontWeight: offer.hasUpdateForFisher
                     ? FontWeight.w500
                     : FontWeight.w300,
                 fontSize: 12,
@@ -116,12 +114,12 @@ class OfferCard extends StatelessWidget {
         ),
         // Date created is on the offer
         Text(
-          offer.dateCreated.toIso8601String().toFormattedDate(),
+          offer.dateCreated.toFormattedDate(),
           style: TextStyle(
-            color: offer.waitingFor == UserRole.fisher
+            color: offer.hasUpdateForFisher
                 ? AppColors.textBlue
                 : AppColors.textGray,
-            fontWeight: offer.waitingFor == UserRole.fisher
+            fontWeight: offer.hasUpdateForFisher
                 ? FontWeight.w500
                 : FontWeight.w300,
             fontSize: 10,
@@ -140,10 +138,10 @@ class OfferCard extends StatelessWidget {
         Row(
           children: [
             // Weight and Price are on the offer
-            _pill(formatWeight(offer.currentTerms.weight.grams)),
+            _pill(formatWeight(offer.weight)),
 
             const SizedBox(width: 8),
-            _pill(formatPrice(offer.currentTerms.totalPrice.amount)),
+            _pill(formatPrice(offer.price)),
           ],
         ),
         Row(

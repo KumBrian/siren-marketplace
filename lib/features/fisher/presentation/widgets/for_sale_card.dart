@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/new_core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/types/converters.dart';
 
 class ForSaleCard extends StatelessWidget {
   const ForSaleCard({
@@ -31,28 +32,23 @@ class ForSaleCard extends StatelessWidget {
                 bottomLeft: Radius.circular(16),
               ),
               // round corners
-              child: catchData.images.isNotEmpty
-                  ? (catchData.images[0].contains("http")
-                      ? Image.network(
-                          catchData.images[0],
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Image.asset(
-                            "assets/images/shrimp.jpg",
-                            height: 120,
-                            width: 120,
-                          ),
-                        )
-                      : Image.asset(
-                          catchData.images[0],
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                        ))
-                  : Image.asset(
-                      "assets/images/shrimp.jpg",
+              child: catchData.images[0].contains("http")
+                  ? Image.network(
+                      catchData.images[0],
                       width: 120,
+
+                      height: 120,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        "assets/images/shrimp.jpg",
+                        height: 120,
+                        width: 120,
+                      ),
+                    )
+                  : Image.asset(
+                      catchData.images[0],
+                      width: 120,
+
                       height: 120,
                       fit: BoxFit.cover,
                     ),
@@ -165,7 +161,9 @@ class ForSaleCard extends StatelessWidget {
 
                                 children: [
                                   TextSpan(
-                                    text: catchData.availableWeight.toString(),
+                                    text: formatWeight(
+                                      catchData.availableWeight,
+                                    ),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,

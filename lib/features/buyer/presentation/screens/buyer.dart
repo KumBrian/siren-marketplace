@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/bloc/cubits/bottom_nav_cubit/bottom_nav_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/custom_nav_bar_tabs.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/user_profile.dart';
-import 'package:siren_marketplace/new_core/domain/enums/user_role.dart';
-import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_cubit.dart';
-import 'package:siren_marketplace/new_core/presentation/cubits/auth/auth_state.dart';
 
 import 'home_screen.dart';
 import 'orders_screen.dart';
@@ -35,15 +32,6 @@ class _BuyerState extends State<Buyer> with SingleTickerProviderStateMixin {
     });
   }
 
-  Role _mapUserRoleToRole(UserRole role) {
-    switch (role) {
-      case UserRole.fisher:
-        return Role.fisher;
-      case UserRole.buyer:
-        return Role.buyer;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,12 +51,12 @@ class _BuyerState extends State<Buyer> with SingleTickerProviderStateMixin {
                 const Center(child: Text("Placeholder 0")),
                 BuyerHome(),
                 const BuyerOrders(),
-                BlocBuilder<AuthCubit, AuthState>(
+                BlocBuilder<UserBloc, UserState>(
                   builder: (context, state) {
-                    if (state is AuthAuthenticated) {
-                      return UserProfile(role: state.currentRole.name);
+                    if (state is UserLoaded) {
+                      return UserProfile(role: state.role.name);
                     }
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: Text("Placeholder 4"));
                   },
                 ),
               ],
@@ -77,22 +65,22 @@ class _BuyerState extends State<Buyer> with SingleTickerProviderStateMixin {
               bottom: 24,
               left: 16,
               right: 16,
-              child: BlocListener<AuthCubit, AuthState>(
+              child: BlocListener<UserBloc, UserState>(
                 listenWhen: (previous, current) => current != previous,
                 listener: (context, state) {
-                  if (state is AuthAuthenticated) {
+                  if (state is UserLoaded) {
                     final navCubit = context.read<BottomNavCubit>();
                     navCubit.reset();
                     _tabController.animateTo(1);
                   }
                 },
                 child: BlocBuilder<BottomNavCubit, int>(
-                  builder: (context, navState) {
-                    final authState = context.watch<AuthCubit>().state;
-                    if (authState is AuthAuthenticated) {
+                  builder: (context, state) {
+                    if (context.read<UserBloc>().state is UserLoaded) {
                       return CustomNavBarWithTabs(
-                        selectedIndex: navState,
-                        role: _mapUserRoleToRole(authState.currentRole),
+                        selectedIndex: state,
+                        role:
+                            (context.read<UserBloc>().state as UserLoaded).role,
                         onTabSelected: (value) {
                           context.read<BottomNavCubit>().changeIndex(value);
                         },
