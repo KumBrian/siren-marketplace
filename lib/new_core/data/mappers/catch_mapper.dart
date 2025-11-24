@@ -4,6 +4,7 @@ import '../../domain/value_objects/price.dart';
 import '../../domain/value_objects/price_per_kg.dart';
 import '../../domain/value_objects/weight.dart';
 import '../models/catch_model.dart';
+import 'offer_mapper.dart';
 import 'species_mapper.dart';
 
 class CatchMapper {
@@ -23,6 +24,7 @@ class CatchMapper {
       species: SpeciesMapper.toModel(entity.species),
       fisherId: entity.fisherId,
       status: entity.status.name,
+      offers: entity.offers.map((o) => OfferMapper.toModel(o)).toList(),
     );
   }
 
@@ -42,6 +44,7 @@ class CatchMapper {
       species: SpeciesMapper.toEntity(model.species),
       fisherId: model.fisherId,
       status: _parseStatus(model.status),
+      offers: model.offers.map((o) => OfferMapper.toEntity(o)).toList(),
     );
   }
 

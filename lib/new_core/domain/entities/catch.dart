@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:siren_marketplace/new_core/domain/entities/offer.dart';
 
 import '../enums/catch_status.dart';
 import '../value_objects/price.dart';
@@ -20,6 +21,7 @@ class Catch extends Equatable {
   final Species species;
   final String fisherId;
   final CatchStatus status;
+  final List<Offer> offers;
 
   const Catch({
     required this.id,
@@ -35,6 +37,7 @@ class Catch extends Equatable {
     required this.species,
     required this.fisherId,
     required this.status,
+    this.offers = const [],
   });
 
   // Business Logic
@@ -42,6 +45,7 @@ class Catch extends Equatable {
   static const Duration deletionGracePeriod = Duration(days: 1);
 
   DateTime get expirationDate => datePosted.add(expirationDuration);
+
   DateTime get deletionDate => expirationDate.add(deletionGracePeriod);
 
   bool get isExpired {
@@ -68,11 +72,16 @@ class Catch extends Equatable {
   }
 
   bool get hasImages => images.isNotEmpty;
+
   String? get primaryImage => hasImages ? images.first : null;
 
   bool get isSoldOut => status == CatchStatus.soldOut;
+
   bool get isAvailable => status == CatchStatus.available;
+
   bool get canReceiveOffers => status.canReceiveOffers && !isExpired;
+
+  List<Offer> get catchOffers => offers;
 
   // Domain Actions
   Catch markAsExpired() {
@@ -104,6 +113,18 @@ class Catch extends Equatable {
     return copyWith(availableWeight: newAvailable, status: newStatus);
   }
 
+  Catch increaseAvailableWeight(Weight newWeight) {
+    if (newWeight > initialWeight) {
+      throw ArgumentError(
+        'Available weight cannot be more than initial weight',
+      );
+    }
+
+    final newStatus = newWeight.isZero ? CatchStatus.soldOut : status;
+
+    return copyWith(availableWeight: newWeight, status: newStatus);
+  }
+
   Catch copyWith({
     String? name,
     DateTime? datePosted,
@@ -114,6 +135,7 @@ class Catch extends Equatable {
     String? market,
     List<String>? images,
     CatchStatus? status,
+    List<Offer>? offers,
   }) {
     return Catch(
       id: id,
@@ -129,6 +151,7 @@ class Catch extends Equatable {
       species: species,
       fisherId: fisherId,
       status: status ?? this.status,
+      offers: offers ?? this.offers,
     );
   }
 
@@ -147,5 +170,6 @@ class Catch extends Equatable {
     species,
     fisherId,
     status,
+    offers,
   ];
 }

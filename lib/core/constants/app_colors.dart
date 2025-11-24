@@ -63,7 +63,7 @@ class AppColors {
         return AppColors.shellOrange;
       case OfferStatus.accepted:
         return AppColors.blue400;
-      case OfferStatus.expired:
+      case OfferStatus.completed:
         return AppColors.textGray;
       case OfferStatus.rejected:
         return AppColors.fail500;

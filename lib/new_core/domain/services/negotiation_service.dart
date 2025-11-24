@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+
 import '../entities/offer.dart';
 import '../entities/order.dart';
 import '../enums/offer_status.dart';
@@ -21,6 +23,12 @@ class NegotiationService {
   }) : _offerRepository = offerRepository,
        _orderRepository = orderRepository,
        _catchRepository = catchRepository;
+
+  static const Uuid _uuidGenerator = Uuid();
+
+  // Optional: Define prefixes for clarity
+  static const String _offerPrefix = 'OFF';
+  static const String _orderPrefix = 'ORD';
 
   /// Create a new offer for a catch
   Future<Offer> createOffer({
@@ -50,7 +58,7 @@ class NegotiationService {
 
     // Create offer
     final offer = Offer(
-      id: _generateId(),
+      id: _generateId(_offerPrefix),
       catchId: catchId,
       fisherId: fisherId,
       buyerId: buyerId,
@@ -105,7 +113,7 @@ class NegotiationService {
 
       // Create order
       final order = Order(
-        id: _generateId(),
+        id: _generateId(_orderPrefix),
         offerId: acceptedOffer.id,
         catchId: acceptedOffer.catchId,
         fisherId: acceptedOffer.fisherId,
@@ -181,7 +189,12 @@ class NegotiationService {
     return await _offerRepository.getPendingForUser(userId);
   }
 
-  String _generateId() {
-    return DateTime.now().millisecondsSinceEpoch.toString();
+  String _generateId(String prefix) {
+    final uuid = _uuidGenerator.v4();
+    final shortId = uuid.replaceAll('-', '').substring(0, 8).toUpperCase();
+
+    final formattedPrefix = prefix.toUpperCase().padRight(3).substring(0, 3);
+
+    return formattedPrefix + shortId;
   }
 }

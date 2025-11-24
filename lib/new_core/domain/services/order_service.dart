@@ -1,4 +1,7 @@
+import 'package:siren_marketplace/new_core/domain/entities/offer.dart';
+
 import '../entities/order.dart';
+import '../enums/offer_status.dart';
 import '../enums/order_status.dart';
 import '../repositories/i_catch_repository.dart';
 import '../repositories/i_offer_repository.dart';
@@ -23,6 +26,14 @@ class OrderService {
     return await _orderRepository.getByUserId(userId);
   }
 
+  Future<Offer> getOffer(String offerId) async {
+    final offer = await _offerRepository.getById(offerId);
+    if (offer == null) {
+      throw ArgumentError('Offer not found');
+    }
+    return offer;
+  }
+
   /// Get order by ID
   Future<Order?> getOrderById(String orderId) async {
     return await _orderRepository.getById(orderId);
@@ -34,9 +45,12 @@ class OrderService {
     required String userId,
   }) async {
     final order = await _orderRepository.getById(orderId);
+
     if (order == null) {
       throw ArgumentError('Order not found');
     }
+
+    final offer = await getOffer(order.offerId);
 
     // Validate user is part of the order
     if (order.fisherId != userId && order.buyerId != userId) {
@@ -48,6 +62,9 @@ class OrderService {
     }
 
     final completed = order.markAsCompleted();
+    await _offerRepository.update(
+      offer.copyWith(status: OfferStatus.completed),
+    );
     await _orderRepository.update(completed);
     return completed;
   }

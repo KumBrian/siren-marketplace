@@ -12,6 +12,8 @@ class OfferModel {
   final String status; // 'pending', 'accepted', 'rejected', 'expired'
   final String dateCreated; // ISO8601
   final String dateUpdated; // ISO8601
+  final bool hasUpdateForFisher;
+  final bool hasUpdateForBuyer;
   final String? waitingFor; // 'fisher' or 'buyer'
 
   const OfferModel({
@@ -29,6 +31,8 @@ class OfferModel {
     required this.dateCreated,
     required this.dateUpdated,
     this.waitingFor,
+    this.hasUpdateForFisher = true,
+    this.hasUpdateForBuyer = true,
   });
 
   Map<String, dynamic> toJson() => {
@@ -46,6 +50,8 @@ class OfferModel {
     'date_created': dateCreated,
     'date_updated': dateUpdated,
     'waiting_for': waitingFor,
+    'has_update_for_fisher': hasUpdateForFisher,
+    'has_update_for_buyer': hasUpdateForBuyer,
   };
 
   factory OfferModel.fromJson(Map<String, dynamic> json) => OfferModel(
@@ -65,6 +71,8 @@ class OfferModel {
     dateCreated: json['date_created'] as String,
     dateUpdated: json['date_updated'] as String,
     waitingFor: json['waiting_for'] as String?,
+    hasUpdateForFisher: json['has_update_for_fisher'] as bool,
+    hasUpdateForBuyer: json['has_update_for_buyer'] as bool,
   );
 
   // SQLite mapping
@@ -83,6 +91,8 @@ class OfferModel {
     'date_created': dateCreated,
     'date_updated': dateUpdated,
     'waiting_for': waitingFor,
+    'has_update_for_fisher': hasUpdateForFisher,
+    'has_update_for_buyer': hasUpdateForBuyer,
   };
 
   factory OfferModel.fromMap(Map<String, dynamic> map) => OfferModel(
@@ -100,5 +110,7 @@ class OfferModel {
     dateCreated: map['date_created'] as String,
     dateUpdated: map['date_updated'] as String,
     waitingFor: map['waiting_for'] as String?,
+    hasUpdateForFisher: map['has_update_for_fisher'] as bool,
+    hasUpdateForBuyer: map['has_update_for_buyer'] as bool,
   );
 }

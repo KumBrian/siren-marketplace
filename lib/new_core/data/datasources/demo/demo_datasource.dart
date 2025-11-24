@@ -450,21 +450,33 @@ class DemoDataSourceFactory {
 
     // Seed Species
     final species1 = SpeciesModel(
-      id: 'species-1',
-      name: 'Tuna',
-      scientificName: 'Thunnus',
+      id: 'small-prawn',
+      name: 'Small Prawn',
+      scientificName: 'Dendrobranchiata',
     );
 
     final species2 = SpeciesModel(
-      id: 'species-2',
-      name: 'Salmon',
-      scientificName: 'Salmo salar',
+      id: 'large-prawn',
+      name: 'Large Prawn',
+      scientificName: 'Dendrobranchiata',
     );
 
     final species3 = SpeciesModel(
-      id: 'species-3',
-      name: 'Mackerel',
-      scientificName: 'Scomber',
+      id: 'grey-shrimp',
+      name: 'Grey Shrimp',
+      scientificName: 'Litopenaeus setiferus',
+    );
+
+    final species4 = SpeciesModel(
+      id: 'pink-shrimp',
+      name: 'Pink Shrimp',
+      scientificName: 'Pandalus borealis',
+    );
+
+    final species5 = SpeciesModel(
+      id: "tiger-shrimp",
+      name: "Tiger Shrimp",
+      scientificName: "Penaeus monodon",
     );
 
     // Seed Catches
@@ -472,7 +484,7 @@ class DemoDataSourceFactory {
 
     final catch1 = CatchModel(
       id: 'catch-1',
-      name: 'Fresh Tuna',
+      name: species1.name,
       datePosted: now.subtract(Duration(days: 2)).toIso8601String(),
       initialWeightGrams: 5000,
       // 5kg
@@ -481,7 +493,7 @@ class DemoDataSourceFactory {
       // $15/kg
       totalPriceAmount: 7500,
       // $75 total
-      size: 'Large',
+      size: 'Small',
       market: 'Port Market',
       images: [
         'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=400',
@@ -494,7 +506,7 @@ class DemoDataSourceFactory {
 
     final catch2 = CatchModel(
       id: 'catch-2',
-      name: 'Wild Salmon',
+      name: species2.name,
       datePosted: now.subtract(Duration(days: 1)).toIso8601String(),
       initialWeightGrams: 3000,
       // 3kg
@@ -503,7 +515,7 @@ class DemoDataSourceFactory {
       // $20/kg
       totalPriceAmount: 6000,
       // $60 total
-      size: 'Medium',
+      size: 'Large',
       market: 'Coastal Market',
       images: [
         'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400',
@@ -515,7 +527,7 @@ class DemoDataSourceFactory {
 
     final catch3 = CatchModel(
       id: 'catch-3',
-      name: 'Mackerel Batch',
+      name: species3.name,
       datePosted: now.subtract(Duration(days: 5)).toIso8601String(),
       initialWeightGrams: 10000,
       // 10kg
@@ -525,7 +537,7 @@ class DemoDataSourceFactory {
       // $8/kg
       totalPriceAmount: 5600,
       // $56 for remaining
-      size: 'Bulk',
+      size: '000',
       market: 'Port Market',
       images: [
         'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?w=400',
@@ -537,7 +549,7 @@ class DemoDataSourceFactory {
 
     final catch4 = CatchModel(
       id: 'catch-4',
-      name: 'Premium Tuna',
+      name: species1.name,
       datePosted: now.subtract(Duration(days: 8)).toIso8601String(),
       initialWeightGrams: 4000,
       availableWeightGrams: 4000,
@@ -553,10 +565,56 @@ class DemoDataSourceFactory {
       status: CatchStatus.expired.name, // Expired for testing
     );
 
+    final catch5 = CatchModel(
+      id: 'catch-5',
+      name: species4.name,
+      datePosted: now.subtract(Duration(days: 5)).toIso8601String(),
+      initialWeightGrams: 10000,
+      // 10kg
+      availableWeightGrams: 7000,
+      // 7kg remaining (3kg sold)
+      pricePerKgAmount: 800,
+      // $8/kg
+      totalPriceAmount: 5600,
+      // $56 for remaining
+      size: '00',
+      market: 'Port Market',
+      images: [
+        'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?w=400',
+      ],
+      species: species4,
+      fisherId: fisher1.id,
+      status: CatchStatus.available.name,
+    );
+
+    final catch6 = CatchModel(
+      id: 'catch-6',
+      name: species5.name,
+      datePosted: now.subtract(Duration(days: 5)).toIso8601String(),
+      initialWeightGrams: 10000,
+      // 10kg
+      availableWeightGrams: 7000,
+      // 7kg remaining (3kg sold)
+      pricePerKgAmount: 800,
+      // $8/kg
+      totalPriceAmount: 5600,
+      // $56 for remaining
+      size: '0',
+      market: 'Port Market',
+      images: [
+        'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?w=400',
+      ],
+      species: species5,
+      fisherId: fisher1.id,
+      status: CatchStatus.available.name,
+    );
+
     _catches[catch1.id] = catch1;
     _catches[catch2.id] = catch2;
     _catches[catch3.id] = catch3;
     _catches[catch4.id] = catch4;
+    _catches[catch5.id] = catch5;
+    _catches[catch6.id] = catch6;
 
     // Seed Offers
     final offer1 = OfferModel(
@@ -575,7 +633,10 @@ class DemoDataSourceFactory {
       status: OfferStatus.pending.name,
       dateCreated: now.subtract(Duration(hours: 3)).toIso8601String(),
       dateUpdated: now.subtract(Duration(hours: 1)).toIso8601String(),
-      waitingFor: 'fisher', // Fisher's turn to respond
+      waitingFor: 'fisher',
+      // Fisher's turn to respond
+      hasUpdateForFisher: true,
+      hasUpdateForBuyer: false,
     );
 
     final offer2 = OfferModel(
@@ -595,6 +656,8 @@ class DemoDataSourceFactory {
       dateCreated: now.subtract(Duration(hours: 2)).toIso8601String(),
       dateUpdated: now.subtract(Duration(hours: 2)).toIso8601String(),
       waitingFor: 'fisher',
+      hasUpdateForFisher: true,
+      hasUpdateForBuyer: false,
     );
 
     final offer3 = OfferModel(
@@ -613,6 +676,8 @@ class DemoDataSourceFactory {
       dateCreated: now.subtract(Duration(days: 4)).toIso8601String(),
       dateUpdated: now.subtract(Duration(days: 4)).toIso8601String(),
       waitingFor: null,
+      hasUpdateForFisher: true,
+      hasUpdateForBuyer: true,
     );
 
     _offers[offer1.id] = offer1;

@@ -24,6 +24,8 @@ class OfferMapper {
       dateCreated: entity.dateCreated.toIso8601String(),
       dateUpdated: entity.dateUpdated.toIso8601String(),
       waitingFor: entity.waitingFor?.name,
+      hasUpdateForFisher: entity.hasUpdateForFisher,
+      hasUpdateForBuyer: entity.hasUpdateForBuyer,
     );
   }
 
@@ -56,6 +58,8 @@ class OfferMapper {
       waitingFor: model.waitingFor != null
           ? _parseRole(model.waitingFor!)
           : null,
+      hasUpdateForFisher: model.hasUpdateForFisher,
+      hasUpdateForBuyer: model.hasUpdateForBuyer,
     );
   }
 

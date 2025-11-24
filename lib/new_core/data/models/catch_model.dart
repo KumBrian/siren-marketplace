@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:siren_marketplace/new_core/data/models/offer_model.dart';
+
 import 'species_model.dart';
 
 class CatchModel {
@@ -16,6 +18,7 @@ class CatchModel {
   final SpeciesModel species;
   final String fisherId;
   final String status; // 'available', 'soldOut', 'expired', 'removed'
+  final List<OfferModel> offers;
 
   const CatchModel({
     required this.id,
@@ -31,6 +34,7 @@ class CatchModel {
     required this.species,
     required this.fisherId,
     required this.status,
+    this.offers = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -47,6 +51,7 @@ class CatchModel {
     'species': species.toJson(),
     'fisher_id': fisherId,
     'status': status,
+    'offers': offers.map((o) => o.toJson()).toList(),
   };
 
   factory CatchModel.fromJson(Map<String, dynamic> json) => CatchModel(
@@ -63,6 +68,9 @@ class CatchModel {
     species: SpeciesModel.fromJson(json['species'] as Map<String, dynamic>),
     fisherId: json['fisher_id'] as String,
     status: json['status'] as String,
+    offers: (json['offers'] as List)
+        .map((o) => OfferModel.fromJson(o as Map<String, dynamic>))
+        .toList(),
   );
 
   // SQLite mapping (flattened species)
@@ -81,6 +89,7 @@ class CatchModel {
     'species_name': species.name,
     'fisher_id': fisherId,
     'status': status,
+    'offers': offers.map((o) => o.toMap()).toList(),
   };
 
   factory CatchModel.fromMap(Map<String, dynamic> map) => CatchModel(
@@ -102,5 +111,6 @@ class CatchModel {
     ),
     fisherId: map['fisher_id'] as String,
     status: map['status'] as String,
+    offers: (map['offers'] as List).map((o) => OfferModel.fromMap(o)).toList(),
   );
 }
