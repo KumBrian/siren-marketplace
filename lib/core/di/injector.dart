@@ -23,16 +23,11 @@ import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/
 import 'package:siren_marketplace/features/buyer/logic/buyer_orders_bloc/buyer_orders_bloc.dart';
 import 'package:siren_marketplace/features/chat/data/conversation_repository.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 import 'package:siren_marketplace/features/fisher/data/fisher_repository.dart';
-import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
-import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
-import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
 import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
-// Feature Cubits/Blocs
+import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/orders_bloc/orders_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
@@ -171,23 +166,6 @@ void _initDemoMode() {
   sl.registerLazySingleton(() => FisherRepository(dbHelper: sl()));
   sl.registerLazySingleton(() => ConversationRepository(dbHelper: sl()));
   sl.registerLazySingleton(() => BuyerRepository(dbHelper: sl()));
-
-  sl.registerLazySingleton(
-    () => OfferRepository(dbHelper: sl(), notifier: sl()),
-  );
-
-  sl.registerLazySingleton(
-    () =>
-        CatchRepository(dbHelper: sl(), offerRepository: sl(), notifier: sl()),
-  );
-
-  sl.registerLazySingleton(
-    () => OrderRepository(
-      dbHelper: sl(),
-      offerRepository: sl(),
-      fisherRepository: sl(),
-    ),
-  );
 }
 
 // ============================================================================
@@ -208,6 +186,21 @@ void _initCubitsAndBlocs() {
     () => CatchesCubit(repository: sl<ICatchRepository>()),
   );
 
+  sl.registerLazySingleton(
+    () => OffersCubit(
+      repository: sl<IOfferRepository>(),
+      negotiationService: sl<NegotiationService>(),
+    ),
+  );
+
+  sl.registerLazySingleton(
+    () => OrdersCubit(
+      orderRepository: sl<IOrderRepository>(),
+      offerRepository: sl<IOfferRepository>(),
+      ratingService: sl<RatingService>(),
+    ),
+  );
+
   // Factories (per view)
   sl.registerFactory(() => ProductsCubit(sl()));
   sl.registerFactory(
@@ -219,25 +212,6 @@ void _initCubitsAndBlocs() {
   sl.registerFactory(() => BuyerCubit(sl(), sl(), sl()));
 
   sl.registerFactory(() => UserBloc(userRepository: sl()));
-
-  sl.registerFactory(
-    () => OrdersBloc(
-      orderRepository: sl(),
-      offerRepository: sl(),
-      notifier: sl(),
-    ),
-  );
-
-  sl.registerFactory(() => CatchesBloc(sl()));
-
-  sl.registerFactory(
-    () => OffersBloc(
-      offerRepository: sl(),
-      notifier: sl(),
-      catchRepository: sl(),
-      userRepository: sl(),
-    ),
-  );
 
   sl.registerFactory(() => BuyerMarketBloc(sl()));
   sl.registerFactory(() => OfferDetailsBloc(sl(), sl(), sl(), sl()));

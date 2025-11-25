@@ -44,4 +44,8 @@ class PricePerKg extends Equatable {
 
   @override
   String toString() => '\$${major.toStringAsFixed(2)}/kg';
+
+  int compareTo(PricePerKg priceB) {
+    return amountPerKg.compareTo(priceB.amountPerKg);
+  }
 }

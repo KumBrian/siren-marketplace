@@ -5,10 +5,15 @@ import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_state.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/value_objects/price.dart';
+import 'package:siren_marketplace/core/domain/value_objects/price_per_kg.dart';
+import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/types/enum.dart' hide OfferStatus;
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
@@ -18,9 +23,10 @@ import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/data/models/message.dart';
-import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
+import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 List<Message> PLACEHOLDER_MESSAGES = [
   // Example data
@@ -59,6 +65,10 @@ class _CatchDetailsState extends State<CatchDetails>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+
+    // Load catch and offers data
+    context.read<CatchesCubit>().loadById(widget.catchId);
+    context.read<OffersCubit>().loadByCatchId(widget.catchId);
   }
 
   @override
@@ -66,8 +76,6 @@ class _CatchDetailsState extends State<CatchDetails>
     super.dispose();
     _tabController.dispose();
   }
-
-  // Inside _CatchDetailsState
 
   void _showDeleteDialog(BuildContext context, Catch selectedCatch) {
     showDialog(
@@ -104,15 +112,17 @@ class _CatchDetailsState extends State<CatchDetails>
             ),
             const SizedBox(height: 8),
 
-            // 🔑 REMOVED the nested BlocBuilder and success dialog here.
             CustomButton(
               title: "Accept",
               onPressed: () {
-                // Dispatch the event directly to the CatchesBloc
-                context.read<CatchesBloc>().add(
-                  DeleteCatchEvent(selectedCatch.id),
-                );
-                // Close the initial confirmation dialog
+                // Get fisher ID from user state
+                final userState = context.read<UserBloc>().state;
+                if (userState is UserLoaded) {
+                  context.read<CatchesCubit>().deleteCatch(
+                    selectedCatch.id,
+                    userState.user!.id,
+                  );
+                }
                 context.pop();
               },
             ),
@@ -138,50 +148,39 @@ class _CatchDetailsState extends State<CatchDetails>
     final TextEditingController totalController = TextEditingController();
 
     void showEditCatchDialog(BuildContext context, Catch selectedCatch) {
-      // 1. Initial setup: Convert Grams (Int) to Kg (Double) for display
-      // We use regex to remove trailing zeros (e.g., "1.50" -> "1.5")
-      final double initialWeightInKg = selectedCatch.availableWeight / 1000.0;
+      // Initial setup: Display weight in Kg
+      final double initialWeightInKg = selectedCatch.availableWeight.kilograms;
       weightController.text = initialWeightInKg.toString().replaceAll(
         RegExp(r"([.]*0)(?!.*\d)"),
         "",
       );
 
-      pricePerKgController.text = selectedCatch.pricePerKg.toString();
+      pricePerKgController.text = selectedCatch.pricePerKg.amountPerKg
+          .toString();
 
       // Initial calculation for the read-only field
-      // Formula: (Grams * Price) / 1000
-      final int initialTotal =
-          ((selectedCatch.availableWeight * selectedCatch.pricePerKg) / 1000)
-              .round();
-      totalController.text = initialTotal.toString();
+      final double initialTotal = selectedCatch.totalPrice.major;
+      totalController.text = initialTotal.toStringAsFixed(0);
 
       showDialog(
         context: context,
         builder: (dialogCtx) {
           return StatefulBuilder(
             builder: (stfCtx, setState) {
-              // 2. Calculation runs on every rebuild
-
-              // A. Parse User Input (Kg)
+              // Parse User Input (Kg)
               final double currentWeightInputKg =
                   double.tryParse(weightController.text) ?? 0.0;
 
-              // B. Convert to Grams (Int) for logic
-              final int currentWeightInGrams = (currentWeightInputKg * 1000)
-                  .round();
+              // Parse Price
+              final double currentPricePerKg =
+                  double.tryParse(pricePerKgController.text) ?? 0;
 
-              // C. Parse Price
-              final int currentPricePerKg =
-                  int.tryParse(pricePerKgController.text) ?? 0;
+              // Calculate Total
+              final double currentTotal =
+                  currentWeightInputKg * currentPricePerKg;
 
-              // D. Calculate Total using Integers
-              // (WeightInGrams * PricePerKg) / 1000
-              final int currentTotal = (currentWeightInGrams > 0)
-                  ? ((currentWeightInGrams * currentPricePerKg) / 1000).round()
-                  : 0;
-
-              // 3. Update the read-only controller's text
-              totalController.text = currentTotal.toString();
+              // Update the read-only controller's text
+              totalController.text = currentTotal.toStringAsFixed(0);
 
               // Helper to trigger rebuild
               void updateStateOnChanged(String _) {
@@ -221,7 +220,6 @@ class _CatchDetailsState extends State<CatchDetails>
                               label: "Available Weight",
                               role: Role.fisher,
                               suffix: "Kg",
-                              // Visual unit for the user
                               onChanged: updateStateOnChanged,
                             ),
                             const SizedBox(height: 16),
@@ -235,9 +233,9 @@ class _CatchDetailsState extends State<CatchDetails>
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter a value';
                                 }
-                                final parsedValue = int.tryParse(value);
+                                final parsedValue = double.tryParse(value);
                                 if (parsedValue == null) {
-                                  return 'Enter a whole number';
+                                  return 'Enter a valid number';
                                 }
                                 return null;
                               },
@@ -262,15 +260,19 @@ class _CatchDetailsState extends State<CatchDetails>
                         title: "Update Catch",
                         onPressed: () async {
                           if (editCatchFormKey.currentState!.validate()) {
-                            // 4. Update using the Calculated Grams (Int)
+                            // Update using value objects
                             final updatedCatch = selectedCatch.copyWith(
-                              availableWeight: currentWeightInGrams, // Int
-                              pricePerKg: currentPricePerKg,
-                              total: currentTotal,
+                              availableWeight: Weight.fromKg(
+                                currentWeightInputKg,
+                              ),
+                              pricePerKg: PricePerKg.fromAmount(
+                                currentPricePerKg.floor(),
+                              ),
+                              totalPrice: Price.fromMajor(currentTotal),
                             );
 
-                            context.read<CatchesBloc>().add(
-                              UpdateCatchEvent(updatedCatch),
+                            context.read<CatchesCubit>().updateCatch(
+                              updatedCatch,
                             );
                             Navigator.of(dialogCtx).pop();
                           }
@@ -287,449 +289,443 @@ class _CatchDetailsState extends State<CatchDetails>
     }
 
     return Scaffold(
-      body: BlocListener<CatchesBloc, CatchesState>(
-        bloc: context.read<CatchesBloc>(),
-        listenWhen: (previous, current) {
-          return current is CatchDeletedSuccess;
-        },
-        listener: (context, state) {
-          if (state is CatchDeletedSuccess) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (successCtx) => AlertDialog(
-                title: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.textBlue,
-                    border: Border.all(color: AppColors.textBlue, width: 2),
-                  ),
-                  child: const Icon(Icons.check, color: AppColors.textWhite),
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Center(
-                      child: Text(
-                        "Catch deleted!",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: AppColors.textBlue,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    CustomButton(
-                      title: "All Catches",
-                      onPressed: () {
-                        successCtx.pop();
-                        context.go("/fisher");
-                      },
-                    ),
-                  ],
-                ),
-              ),
+      body: BlocBuilder<CatchesCubit, CatchesState>(
+        builder: (context, catchesState) {
+          if (catchesState.loading && catchesState.catches.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (catchesState.error != null && catchesState.catches.isEmpty) {
+            return Center(
+              child: Text('Error loading catch: ${catchesState.error}'),
             );
           }
-        },
-        child: BlocBuilder<CatchesBloc, CatchesState>(
-          builder: (context, catchesState) {
-            if (catchesState is CatchDeletedSuccess) {
-              return const Scaffold(
-                backgroundColor: Colors.white,
-                body: SizedBox.shrink(),
-              );
-            }
-            if (catchesState is CatchesLoading ||
-                catchesState is CatchesInitial) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (catchesState is CatchesError) {
-              return Center(
-                child: Text('Error loading catches: ${catchesState.message}'),
-              );
-            }
 
-            if (catchesState is CatchesLoaded) {
-              final catches = catchesState.catches;
-              final selectedCatch = catches.firstWhere(
-                (c) => c.id == widget.catchId,
-              );
-              try {
-                final messagesForCatch = PLACEHOLDER_MESSAGES;
-                return Scaffold(
-                  appBar: AppBar(
-                    leading: const BackButton(),
-                    title: const PageTitle(title: "Catch Details"),
-                    actions: [
-                      IconButton(
-                        onPressed: () =>
-                            _showDeleteDialog(context, selectedCatch),
-                        icon: const Icon(
-                          CustomIcons.trash,
-                          color: AppColors.fail500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  body: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    child: Column(
-                      spacing: 8,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                final providers = selectedCatch.images
-                                    .map<ImageProvider>(
-                                      (img) => img.startsWith("http")
-                                          ? NetworkImage(img)
-                                          : AssetImage(img) as ImageProvider,
-                                    )
-                                    .toList();
+          if (catchesState.catches.isEmpty) {
+            return const Center(child: Text('Catch not found'));
+          }
 
-                                final multiImageProvider = MultiImageProvider(
-                                  providers,
-                                );
-                                showImageViewerPager(
-                                  context,
-                                  multiImageProvider,
-                                  swipeDismissible: true,
-                                  immersive: true,
-                                  useSafeArea: true,
-                                  doubleTapZoomable: true,
-                                  backgroundColor: Colors.black.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                );
-                              },
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: selectedCatch.images[0].contains("http")
-                                    ? Image.network(
-                                        selectedCatch.images.isNotEmpty
-                                            ? selectedCatch.images[0]
-                                            : 'https://via.placeholder.com/60',
-                                        width: 60,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stacktrace) =>
-                                                Image.asset(
-                                                  'assets/images/shrimp.jpg',
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                      )
-                                    : Image.asset(
-                                        selectedCatch.images.isNotEmpty
-                                            ? selectedCatch.images[0]
-                                            : 'assets/images/prawns.jpg',
+          final selectedCatch = catchesState.catches.first;
+          final messagesForCatch = PLACEHOLDER_MESSAGES;
+
+          return Scaffold(
+            appBar: AppBar(
+              leading: const BackButton(),
+              title: const PageTitle(title: "Catch Details"),
+              actions: [
+                IconButton(
+                  onPressed: () => _showDeleteDialog(context, selectedCatch),
+                  icon: const Icon(CustomIcons.trash, color: AppColors.fail500),
+                ),
+              ],
+            ),
+            body: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
+                spacing: 8,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          final providers = selectedCatch.images
+                              .map<ImageProvider>(
+                                (img) => img.startsWith("http")
+                                    ? NetworkImage(img)
+                                    : AssetImage(img) as ImageProvider,
+                              )
+                              .toList();
+
+                          final multiImageProvider = MultiImageProvider(
+                            providers,
+                          );
+                          showImageViewerPager(
+                            context,
+                            multiImageProvider,
+                            swipeDismissible: true,
+                            immersive: true,
+                            useSafeArea: true,
+                            doubleTapZoomable: true,
+                            backgroundColor: Colors.black.withValues(
+                              alpha: 0.4,
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: selectedCatch.images[0].contains("http")
+                              ? Image.network(
+                                  selectedCatch.images.isNotEmpty
+                                      ? selectedCatch.images[0]
+                                      : 'https://via.placeholder.com/60',
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stacktrace) =>
+                                      Image.asset(
+                                        'assets/images/shrimp.jpg',
                                         width: 60,
                                         height: 60,
                                         fit: BoxFit.cover,
                                       ),
+                                )
+                              : Image.asset(
+                                  selectedCatch.images.isNotEmpty
+                                      ? selectedCatch.images[0]
+                                      : 'assets/images/prawns.jpg',
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              selectedCatch.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: AppColors.textBlue,
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    selectedCatch.name,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                      color: AppColors.textBlue,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    selectedCatch.datePosted.toFormattedDate(),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.gray650,
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 8),
+                            Text(
+                              selectedCatch.datePosted
+                                  .toIso8601String()
+                                  .toFormattedDate(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.gray650,
                               ),
-                            ),
-                            Spacer(),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              padding: EdgeInsets.zero,
-                              splashRadius: 5,
-                              icon: Icon(
-                                CustomIcons.edit,
-                                size: 14,
-                                color: Color(0xFF0A2A45),
-                              ),
-                              onPressed: () {
-                                showEditCatchDialog(context, selectedCatch);
-                              },
                             ),
                           ],
                         ),
+                      ),
+                      Spacer(),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        splashRadius: 5,
+                        icon: Icon(
+                          CustomIcons.edit,
+                          size: 14,
+                          color: Color(0xFF0A2A45),
+                        ),
+                        onPressed: () {
+                          showEditCatchDialog(context, selectedCatch);
+                        },
+                      ),
+                    ],
+                  ),
 
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.gray200),
-                          ),
-                          child: InfoTable(
-                            rows: [
-                              ?selectedCatch.species.id == "prawns"
-                                  ? InfoRow(
-                                      label: "Size",
-                                      value: selectedCatch.size,
-                                    )
-                                  : null,
-                              ?selectedCatch.species.id != "prawns"
-                                  ? InfoRow(
-                                      label: "Average Size",
-                                      value: "${selectedCatch.size} cm",
-                                    )
-                                  : null,
-                              InfoRow(
-                                label: "Initial weight",
-
-                                value: formatWeight(
-                                  selectedCatch.initialWeight,
-                                ),
-                              ),
-                              InfoRow(
-                                label: "Available weight",
-
-                                value: formatWeight(
-                                  selectedCatch.availableWeight,
-                                ),
-                              ),
-                              InfoRow(
-                                label: "Price/Kg",
-                                value: formatPrice(selectedCatch.pricePerKg),
-                              ),
-                              InfoRow(
-                                label: "Total",
-                                value: formatPrice(selectedCatch.total),
-                              ),
-                            ],
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.gray200),
+                    ),
+                    child: InfoTable(
+                      rows: [
+                        ?selectedCatch.species.id == "prawns"
+                            ? InfoRow(label: "Size", value: selectedCatch.size)
+                            : null,
+                        ?selectedCatch.species.id != "prawns"
+                            ? InfoRow(
+                                label: "Average Size",
+                                value: "${selectedCatch.size} cm",
+                              )
+                            : null,
+                        InfoRow(
+                          label: "Initial weight",
+                          value: "${selectedCatch.initialWeight.kilograms} kg",
+                        ),
+                        InfoRow(
+                          label: "Available weight",
+                          value:
+                              "${selectedCatch.availableWeight.kilograms} kg",
+                        ),
+                        InfoRow(
+                          label: "Price/Kg",
+                          value: formatPrice(
+                            selectedCatch.pricePerKg.amountPerKg,
                           ),
                         ),
+                        InfoRow(
+                          label: "Total",
+                          value: formatPrice(selectedCatch.totalPrice.amount),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                        AnimatedBuilder(
-                          animation: _tabController,
-                          builder: (context, child) {
-                            return BlocBuilder<
-                              CatchFilterCubit,
-                              CatchFilterState
-                            >(
-                              builder: (context, state) {
-                                final cubit = context.read<CatchFilterCubit>();
-                                return Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    if (_tabController.index == 0)
-                                      TextButton(
-                                        onPressed: () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            showDragHandle: true,
-                                            builder: (context) {
-                                              return BlocBuilder<
-                                                CatchFilterCubit,
-                                                CatchFilterState
-                                              >(
-                                                builder: (innerContext, innerState) {
-                                                  final innerCubit =
-                                                      innerContext
-                                                          .read<
-                                                            CatchFilterCubit
-                                                          >();
-                                                  return Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          left: 16,
-                                                          right: 16,
-                                                          top: 16,
-                                                          bottom: 32,
-                                                        ),
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        const Text(
-                                                          "Filter by",
-                                                          style: TextStyle(
-                                                            fontSize: 12,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 12,
-                                                        ),
-                                                        const Text("Status"),
-                                                        Text(
-                                                          "Select all that apply",
-                                                          style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: AppColors
-                                                                .textGray,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 12,
-                                                        ),
-                                                        Wrap(
-                                                          spacing: 8,
-                                                          runSpacing: 8,
-                                                          children: OfferStatus
-                                                              .values
-                                                              .where(
-                                                                (s) =>
-                                                                    s !=
-                                                                    OfferStatus
-                                                                        .unknown,
-                                                              )
-                                                              .map((status) {
-                                                                final title =
-                                                                    status.name
-                                                                        .substring(
-                                                                          0,
-                                                                          1,
-                                                                        )
-                                                                        .toUpperCase() +
-                                                                    status.name
-                                                                        .substring(
-                                                                          1,
-                                                                        );
-                                                                return FilterButton(
-                                                                  title: title,
-                                                                  color:
-                                                                      AppColors.getStatusColor(
-                                                                        status,
-                                                                      ),
-                                                                  isSelected: innerState
-                                                                      .pendingStatuses
-                                                                      .contains(
-                                                                        title,
-                                                                      ),
-                                                                  onPressed: () =>
-                                                                      innerCubit
-                                                                          .toggleStatus(
-                                                                            title,
-                                                                          ),
-                                                                );
-                                                              })
-                                                              .toList(),
-                                                        ),
-                                                        const Divider(),
-                                                        Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .spaceBetween,
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .center,
-                                                          children: [
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                innerCubit
-                                                                    .clearAllFilters();
-                                                                innerContext
-                                                                    .pop();
-                                                              },
-                                                              child: const Text(
-                                                                "Reset All",
-                                                                style: TextStyle(
-                                                                  decoration:
-                                                                      TextDecoration
-                                                                          .underline,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            CustomButton(
-                                                              title:
-                                                                  "Apply Filters",
-                                                              onPressed: () {
-                                                                innerCubit
-                                                                    .applyFilters();
-                                                                innerContext
-                                                                    .pop();
-                                                              },
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                              );
-                                            },
-                                          );
-                                        },
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              CustomIcons.filter,
-                                              size: 20,
-                                              color: AppColors.textBlue,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              "Filter${state.totalFilters == 0 ? "" : "(${state.totalFilters})"}",
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w400,
-                                                fontSize: 16,
-                                                color: AppColors.textBlue,
+                  AnimatedBuilder(
+                    animation: _tabController,
+                    builder: (context, child) {
+                      return BlocBuilder<CatchFilterCubit, CatchFilterState>(
+                        builder: (context, state) {
+                          final cubit = context.read<CatchFilterCubit>();
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (_tabController.index == 0)
+                                TextButton(
+                                  onPressed: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      showDragHandle: true,
+                                      builder: (context) {
+                                        return BlocBuilder<
+                                          CatchFilterCubit,
+                                          CatchFilterState
+                                        >(
+                                          builder: (innerContext, innerState) {
+                                            final innerCubit = innerContext
+                                                .read<CatchFilterCubit>();
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 16,
+                                                right: 16,
+                                                top: 16,
+                                                bottom: 32,
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    if (_tabController.index == 0)
-                                      const SizedBox(width: 10),
-                                    TextButton(
-                                      onPressed: () {
-                                        cubit.setSort(
-                                          state.activeSortBy == "ascending"
-                                              ? "descending"
-                                              : "ascending",
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    "Filter by",
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  const Text("Status"),
+                                                  Text(
+                                                    "Select all that apply",
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: AppColors.textGray,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 8,
+                                                    children: OfferStatus.values.map((
+                                                      status,
+                                                    ) {
+                                                      final title =
+                                                          status.name
+                                                              .substring(0, 1)
+                                                              .toUpperCase() +
+                                                          status.name.substring(
+                                                            1,
+                                                          );
+                                                      return FilterButton(
+                                                        title: title,
+                                                        color:
+                                                            AppColors.getStatusColor(
+                                                              status,
+                                                            ),
+                                                        isSelected: innerState
+                                                            .pendingStatuses
+                                                            .contains(title),
+                                                        onPressed: () =>
+                                                            innerCubit
+                                                                .toggleStatus(
+                                                                  title,
+                                                                ),
+                                                      );
+                                                    }).toList(),
+                                                  ),
+                                                  const Divider(),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          innerCubit
+                                                              .clearAllFilters();
+                                                          innerContext.pop();
+                                                        },
+                                                        child: const Text(
+                                                          "Reset All",
+                                                          style: TextStyle(
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .underline,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      CustomButton(
+                                                        title: "Apply Filters",
+                                                        onPressed: () {
+                                                          innerCubit
+                                                              .applyFilters();
+                                                          innerContext.pop();
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
                                         );
                                       },
+                                    );
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        CustomIcons.filter,
+                                        size: 20,
+                                        color: AppColors.textBlue,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        "Filter${state.totalFilters == 0 ? "" : "(${state.totalFilters})"}",
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 16,
+                                          color: AppColors.textBlue,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              if (_tabController.index == 0)
+                                const SizedBox(width: 10),
+                              TextButton(
+                                onPressed: () {
+                                  cubit.setSort(
+                                    state.activeSortBy == "ascending"
+                                        ? "descending"
+                                        : "ascending",
+                                  );
+                                },
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      state.activeSortBy == "ascending"
+                                          ? Icons.arrow_upward_outlined
+                                          : Icons.arrow_downward_outlined,
+                                      size: 20,
+                                      color: AppColors.textBlue,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      "Date",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16,
+                                        color: AppColors.textBlue,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        AnimatedBuilder(
+                          animation: _tabController,
+                          builder: (context, _) {
+                            return BlocBuilder<OffersCubit, OffersState>(
+                              builder: (context, offersState) {
+                                final offersWithUpdates = offersState.offers
+                                    .where((o) => o.hasUpdateForFisher)
+                                    .length;
+
+                                return TabBar(
+                                  controller: _tabController,
+                                  dividerHeight: 0,
+                                  indicatorSize: TabBarIndicatorSize.tab,
+                                  indicatorColor: AppColors.textBlue,
+                                  labelColor: AppColors.textBlue,
+                                  unselectedLabelColor: AppColors.textGray,
+                                  tabs: [
+                                    Tab(
                                       child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          Icon(
-                                            state.activeSortBy == "ascending"
-                                                ? Icons.arrow_upward_outlined
-                                                : Icons.arrow_downward_outlined,
-                                            size: 20,
-                                            color: AppColors.textBlue,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            "Date",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 16,
-                                              color: AppColors.textBlue,
+                                          const Text("Offers"),
+                                          if (offersWithUpdates > 0)
+                                            Container(
+                                              margin: const EdgeInsets.only(
+                                                left: 8,
+                                              ),
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: _tabController.index == 0
+                                                    ? AppColors.textBlue
+                                                    : AppColors.textBlue
+                                                          .withValues(
+                                                            alpha: .6,
+                                                          ),
+                                              ),
+                                              child: Text(
+                                                "$offersWithUpdates",
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppColors.textWhite,
+                                                ),
+                                              ),
                                             ),
-                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Tab(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Text("Messages"),
+                                          if (false)
+                                            Container(
+                                              margin: const EdgeInsets.only(
+                                                left: 8,
+                                              ),
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: _tabController.index == 1
+                                                    ? AppColors.textBlue
+                                                    : AppColors.textBlue
+                                                          .withValues(
+                                                            alpha: .6,
+                                                          ),
+                                              ),
+                                              child: Text(
+                                                "${messagesForCatch.length}",
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppColors.textWhite,
+                                                ),
+                                              ),
+                                            ),
                                         ],
                                       ),
                                     ),
@@ -740,141 +736,23 @@ class _CatchDetailsState extends State<CatchDetails>
                           },
                         ),
                         Expanded(
-                          child: Column(
+                          child: TabBarView(
+                            controller: _tabController,
+                            physics: const BouncingScrollPhysics(),
                             children: [
-                              AnimatedBuilder(
-                                animation: _tabController,
-                                builder: (context, _) {
-                                  return TabBar(
-                                    controller: _tabController,
-                                    dividerHeight: 0,
-                                    indicatorSize: TabBarIndicatorSize.tab,
-                                    indicatorColor: AppColors.textBlue,
-                                    labelColor: AppColors.textBlue,
-                                    unselectedLabelColor: AppColors.textGray,
-                                    tabs: [
-                                      Tab(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Text("Offers"),
-                                            if (selectedCatch.offers
-                                                .where(
-                                                  (offer) =>
-                                                      offer.hasUpdateForFisher,
-                                                )
-                                                .isNotEmpty)
-                                              Container(
-                                                margin: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                padding: const EdgeInsets.all(
-                                                  6,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color:
-                                                      _tabController.index == 0
-                                                      ? AppColors.textBlue
-                                                      : AppColors.textBlue
-                                                            .withValues(
-                                                              alpha: .6,
-                                                            ),
-                                                ),
-                                                child: Text(
-                                                  "${selectedCatch.offers.where((offer) => offer.hasUpdateForFisher).length}",
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: AppColors.textWhite,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      Tab(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Text("Messages"),
-                                            if (false)
-                                              Container(
-                                                margin: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                padding: const EdgeInsets.all(
-                                                  6,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color:
-                                                      _tabController.index == 1
-                                                      ? AppColors.textBlue
-                                                      : AppColors.textBlue
-                                                            .withValues(
-                                                              alpha: .6,
-                                                            ),
-                                                ),
-                                                child: Text(
-                                                  "${messagesForCatch.length}",
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: AppColors.textWhite,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                              BlocBuilder<OffersCubit, OffersState>(
+                                builder: (context, offerState) {
+                                  return _buildOffersList(
+                                    context,
+                                    offerState.offers,
+                                    context.watch<CatchFilterCubit>().state,
                                   );
                                 },
                               ),
-                              Expanded(
-                                child: TabBarView(
-                                  controller: _tabController,
-                                  physics: const BouncingScrollPhysics(),
-                                  children: [
-                                    BlocConsumer<OffersBloc, OffersState>(
-                                      listener: (context, offerState) {
-                                        if (offerState is OfferActionSuccess) {
-                                          context.read<CatchesBloc>().add(
-                                            LoadCatches(),
-                                          );
-                                        }
-                                      },
-                                      builder: (context, offerState) {
-                                        final catchesState = context
-                                            .watch<CatchesBloc>()
-                                            .state;
-                                        Catch refreshedCatch = selectedCatch;
-
-                                        if (catchesState is CatchesLoaded) {
-                                          refreshedCatch = catchesState.catches
-                                              .firstWhere(
-                                                (c) => c.id == selectedCatch.id,
-                                                orElse: () => selectedCatch,
-                                              );
-                                        }
-
-                                        return _buildOffersList(
-                                          context,
-                                          refreshedCatch,
-                                          context
-                                              .watch<CatchFilterCubit>()
-                                              .state,
-                                        );
-                                      },
-                                    ),
-                                    _buildMessagesList(
-                                      context,
-                                      messagesForCatch,
-                                      context.watch<CatchFilterCubit>().state,
-                                    ),
-                                  ],
-                                ),
+                              _buildMessagesList(
+                                context,
+                                messagesForCatch,
+                                context.watch<CatchFilterCubit>().state,
                               ),
                             ],
                           ),
@@ -882,35 +760,29 @@ class _CatchDetailsState extends State<CatchDetails>
                       ],
                     ),
                   ),
-                );
-              } catch (_) {
-                return const Scaffold(
-                  backgroundColor: AppColors.white100,
-                  body: SizedBox.shrink(),
-                );
-              }
-            }
-            return const Scaffold(backgroundColor: AppColors.white100);
-          },
-        ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
   Widget _buildOffersList(
     BuildContext context,
-    Catch selectedCatch,
+    List<Offer> offers,
     CatchFilterState filters,
   ) {
-    final filteredOffers = selectedCatch.offers.where((offer) {
+    final filteredOffers = offers.where((offer) {
       if (filters.activeStatuses.isEmpty) return true;
       final statusName = offer.status.name.capitalize();
       return filters.activeStatuses.contains(statusName);
     }).toList();
 
     filteredOffers.sort((a, b) {
-      final dateA = DateTime.parse(a.dateCreated);
-      final dateB = DateTime.parse(b.dateCreated);
+      final dateA = a.dateCreated;
+      final dateB = b.dateCreated;
       return filters.activeSortBy == "ascending"
           ? dateA.compareTo(dateB)
           : dateB.compareTo(dateA);
@@ -927,8 +799,8 @@ class _CatchDetailsState extends State<CatchDetails>
         final offer = filteredOffers[index];
         return OfferCard(
           offer: offer,
-          clientName: offer.buyerName,
-          clientRating: offer.buyerRating,
+          clientName: "Buyer", // TODO: Load buyer name separately
+          clientRating: 0.0, // TODO: Load buyer rating separately
           onPressed: () => context.push("/fisher/offer-details/${offer.id}"),
         );
       },

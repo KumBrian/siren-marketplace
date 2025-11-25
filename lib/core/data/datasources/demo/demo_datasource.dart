@@ -154,6 +154,12 @@ class DemoOfferDataSource implements IOfferDataSource {
   }
 
   @override
+  Future<List<OfferModel>> getAllOffers() async {
+    await Future.delayed(Duration(milliseconds: 100));
+    return _offers.values.toList();
+  }
+
+  @override
   Future<OfferModel?> getById(String offerId) async {
     await Future.delayed(Duration(milliseconds: 100));
     return _offers[offerId];
@@ -217,6 +223,12 @@ class DemoOrderDataSource implements IOrderDataSource {
     await Future.delayed(Duration(milliseconds: 100));
     _orders[order.id] = order;
     return order.id;
+  }
+
+  @override
+  Future<List<OrderModel>> getAllOrders() async {
+    await Future.delayed(Duration(milliseconds: 100));
+    return _orders.values.toList();
   }
 
   @override

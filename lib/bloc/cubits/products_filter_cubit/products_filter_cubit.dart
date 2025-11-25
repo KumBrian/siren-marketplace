@@ -16,7 +16,7 @@ class ProductsFilterCubit extends Cubit<ProductsFilterState> {
     emit(state.copyWith(selectedLocations: locations, applyFilters: false));
   }
 
-  void setMinWeight(double? minWeight) {
+  void setMinWeight(int? minWeight) {
     emit(state.copyWith(minWeight: minWeight, applyFilters: false));
   }
 

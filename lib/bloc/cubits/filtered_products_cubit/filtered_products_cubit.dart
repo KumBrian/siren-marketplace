@@ -3,20 +3,21 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_filter_cubit.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
-import 'package:siren_marketplace/core/models/species.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/species.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
+import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
-import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 
 part 'filtered_products_state.dart';
 
 class FilteredProductsCubit extends Cubit<FilteredProductsState> {
-  final CatchRepository _catchRepository;
+  final ICatchRepository _catchRepository;
   final ProductsFilterCubit _filterCubit;
   late final StreamSubscription _filterSubscription;
 
   FilteredProductsCubit({
-    required CatchRepository catchRepository,
+    required ICatchRepository catchRepository,
     required ProductsFilterCubit filterCubit,
   }) : _catchRepository = catchRepository,
        _filterCubit = filterCubit,
@@ -37,7 +38,7 @@ class FilteredProductsCubit extends Cubit<FilteredProductsState> {
     emit(state.copyWith(isLoading: true, errorMessage: null));
 
     try {
-      final catches = await _catchRepository.fetchMarketCatches();
+      final catches = await _catchRepository.getAvailableCatches();
 
       final uniqueSpecies = catches.map((c) => c.species).toSet().toList();
       final uniqueLocations = catches.map((c) => c.market).toSet().toList();
@@ -84,10 +85,10 @@ class FilteredProductsCubit extends Cubit<FilteredProductsState> {
     // Filter by min weight
     if (filterState.minWeight > 0) {
       // 🔑 CRITICAL FIX: Convert filter input (assumed to be in Kg) to Grams
-      final minWeightInGrams = filterState.minWeight * 1000;
+      final int minWeightInGrams = filterState.minWeight * 1000;
 
       filteredList = filteredList
-          .where((c) => c.availableWeight >= minWeightInGrams)
+          .where((c) => c.availableWeight >= Weight.fromGrams(minWeightInGrams))
           .toList();
     }
 
@@ -112,8 +113,10 @@ class FilteredProductsCubit extends Cubit<FilteredProductsState> {
 
       // 2) Sort by date (if selected)
       if (filterState.sortByDate != SortBy.none) {
-        final dateA = DateTime.tryParse(a.datePosted) ?? DateTime(1970);
-        final dateB = DateTime.tryParse(b.datePosted) ?? DateTime(1970);
+        final dateA =
+            DateTime.tryParse(a.datePosted.toIso8601String()) ?? DateTime(1970);
+        final dateB =
+            DateTime.tryParse(b.datePosted.toIso8601String()) ?? DateTime(1970);
         final dateCompare = dateA.compareTo(dateB);
         final dateResult = filterState.sortByDate == SortBy.newOld
             ? -dateCompare
@@ -122,8 +125,10 @@ class FilteredProductsCubit extends Cubit<FilteredProductsState> {
       }
 
       // Default fallback: newest first
-      final fallbackA = DateTime.tryParse(a.datePosted) ?? DateTime(1970);
-      final fallbackB = DateTime.tryParse(b.datePosted) ?? DateTime(1970);
+      final fallbackA =
+          DateTime.tryParse(a.datePosted.toIso8601String()) ?? DateTime(1970);
+      final fallbackB =
+          DateTime.tryParse(b.datePosted.toIso8601String()) ?? DateTime(1970);
       return fallbackB.compareTo(fallbackA);
     }
 

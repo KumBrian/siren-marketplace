@@ -5,8 +5,11 @@ abstract class IOrderRepository {
   /// Create a new order
   Future<String> create(Order order);
 
+  /// Get all orders
+  Future<List<Order>> getAllOrders();
+
   /// Get order by ID
-  Future<Order?> getById(String orderId);
+  Future<Order> getById(String orderId);
 
   /// Get order by offer ID
   Future<Order?> getByOfferId(String offerId);
