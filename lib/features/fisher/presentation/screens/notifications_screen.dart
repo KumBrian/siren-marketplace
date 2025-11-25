@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_state.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
@@ -14,7 +14,7 @@ import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -29,17 +29,15 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen>
     with TickerProviderStateMixin {
   Widget _buildOffersTab(BuildContext context, CatchFilterState filterState) {
-    return BlocBuilder<OffersBloc, OffersState>(
+    return BlocBuilder<OffersCubit, OffersState>(
       builder: (context, offersState) {
-        if (offersState is OffersLoading) {
+        if (offersState.loading && offersState.offers.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final List<Offer> allOffers = offersState is OffersLoaded
-            ? offersState.offers
-                  .where((offer) => offer.fisherId == widget.fisherId)
-                  .toList()
-            : [];
+        final List<Offer> allOffers = offersState.offers
+            .where((offer) => offer.fisherId == widget.fisherId)
+            .toList();
 
         // 1. Apply Filtering Logic
         final filteredOffers = allOffers.where((offer) {
@@ -53,8 +51,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
         // 2. Apply Sorting Logic
         filteredOffers.sort((a, b) {
-          final dateA = DateTime.parse(a.dateCreated);
-          final dateB = DateTime.parse(b.dateCreated);
+          final dateA = a.dateCreated;
+          final dateB = b.dateCreated;
 
           if (filterState.activeSortBy == "ascending") {
             return dateA.compareTo(dateB);
@@ -67,24 +65,6 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           padding: const EdgeInsets.only(bottom: 80),
           child: Column(
             children: [
-              // SearchBar component
-              // Padding(
-              //   padding: EdgeInsets.only(bottom: 8.0),
-              //   child: SearchBar(
-              //     hintText: "Search",
-              //     textStyle: WidgetStatePropertyAll(
-              //       TextStyle(fontSize: 16, color: AppColors.textBlue),
-              //     ),
-              //     shape: WidgetStateProperty.all(
-              //       RoundedRectangleBorder(
-              //         borderRadius: BorderRadius.all(Radius.circular(12)),
-              //       ),
-              //     ),
-              //     leading: Icon(Icons.search, color: AppColors.textBlue),
-              //     elevation: WidgetStatePropertyAll(0),
-              //   ),
-              // ),
-
               // 3. Display offers or placeholder
               if (filteredOffers.isEmpty)
                 Column(
@@ -111,11 +91,11 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         fontSize: 12,
                       ),
                     ),
-                    if (offersState is OffersError)
+                    if (offersState.error != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
-                          "Error loading offers: ${offersState.message}",
+                          "Error loading offers: ${offersState.error}",
                           style: const TextStyle(
                             color: AppColors.fail500,
                             fontSize: 10,
@@ -135,8 +115,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     final offer = filteredOffers[index];
                     return OfferCard(
                       offer: offer,
-                      clientName: offer.buyerName,
-                      clientRating: offer.buyerRating,
+                      clientName: "Buyer", // TODO: Load buyer name
+                      clientRating: 0.0, // TODO: Load buyer rating
 
                       onPressed: () {
                         context.push("/fisher/offer-details/${offer.id}");
@@ -205,23 +185,6 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 )
               : Column(
                   children: [
-                    // Padding(
-                    //   padding: EdgeInsets.only(bottom: 8.0),
-                    //   child: SearchBar(
-                    //     hintText: "Search",
-                    //     textStyle: WidgetStatePropertyAll(
-                    //       TextStyle(fontSize: 16, color: AppColors.textBlue),
-                    //     ),
-                    //     shape: WidgetStateProperty.all(
-                    //       RoundedRectangleBorder(
-                    //         borderRadius: BorderRadius.all(Radius.circular(12)),
-                    //       ),
-                    //     ),
-                    //
-                    //     leading: Icon(Icons.search, color: AppColors.textBlue),
-                    //     elevation: WidgetStatePropertyAll(0),
-                    //   ),
-                    // ),
                     ListView.separated(
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
@@ -253,10 +216,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   @override
   void initState() {
     super.initState();
-    // ✅ NEW: Load offers specifically for the current Fisher user
-    context.read<OffersBloc>().add(
-      LoadOffersForUser(userId: widget.fisherId, role: Role.fisher),
-    );
+    // Load offers for the current Fisher user
+    context.read<OffersCubit>().loadForFisher(widget.fisherId);
     _tabController = TabController(length: 2, vsync: this);
   }
 
@@ -387,67 +348,31 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     length: 2,
                     child: Column(
                       children: [
-                        BlocBuilder<OffersBloc, OffersState>(
+                        BlocBuilder<OffersCubit, OffersState>(
                           builder: (context, offersState) {
-                            if (offersState is OffersLoaded) {
-                              final offers = offersState.offers;
-                              final offersWithUpdateCount = offers
-                                  .where((offer) => offer.hasUpdateForFisher)
-                                  .length;
+                            final offers = offersState.offers;
+                            final offersWithUpdateCount = offers
+                                .where((offer) => offer.hasUpdateForFisher)
+                                .length;
 
-                              return AnimatedBuilder(
-                                animation: _tabController,
-                                builder: (context, _) {
-                                  return TabBar(
-                                    controller: _tabController,
-                                    dividerHeight: 0,
-                                    indicatorSize: TabBarIndicatorSize.tab,
-                                    indicatorColor: AppColors.textBlue,
-                                    labelColor: AppColors.textBlue,
-                                    unselectedLabelColor: AppColors.textGray,
-                                    tabs: [
-                                      Tab(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Text("Offers"),
-                                            if (offersWithUpdateCount > 0)
-                                              Container(
-                                                margin: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                padding: const EdgeInsets.all(
-                                                  6,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color:
-                                                      _tabController.index == 0
-                                                      ? AppColors.textBlue
-                                                      : AppColors.textBlue
-                                                            .withValues(
-                                                              alpha: .6,
-                                                            ),
-                                                ),
-                                                child: Text(
-                                                  "$offersWithUpdateCount",
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: AppColors.textWhite,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      Tab(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Text("Messages"),
-
+                            return AnimatedBuilder(
+                              animation: _tabController,
+                              builder: (context, _) {
+                                return TabBar(
+                                  controller: _tabController,
+                                  dividerHeight: 0,
+                                  indicatorSize: TabBarIndicatorSize.tab,
+                                  indicatorColor: AppColors.textBlue,
+                                  labelColor: AppColors.textBlue,
+                                  unselectedLabelColor: AppColors.textGray,
+                                  tabs: [
+                                    Tab(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Text("Offers"),
+                                          if (offersWithUpdateCount > 0)
                                             Container(
                                               margin: const EdgeInsets.only(
                                                 left: 8,
@@ -455,7 +380,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                                               padding: const EdgeInsets.all(6),
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
-                                                color: _tabController.index == 1
+                                                color: _tabController.index == 0
                                                     ? AppColors.textBlue
                                                     : AppColors.textBlue
                                                           .withValues(
@@ -463,22 +388,50 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                                                           ),
                                               ),
                                               child: Text(
-                                                "2",
+                                                "$offersWithUpdateCount",
                                                 style: const TextStyle(
                                                   fontSize: 12,
                                                   color: AppColors.textWhite,
                                                 ),
                                               ),
                                             ),
-                                          ],
-                                        ),
+                                        ],
                                       ),
-                                    ],
-                                  );
-                                },
-                              );
-                            }
-                            return Container();
+                                    ),
+                                    Tab(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Text("Messages"),
+
+                                          Container(
+                                            margin: const EdgeInsets.only(
+                                              left: 8,
+                                            ),
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: _tabController.index == 1
+                                                  ? AppColors.textBlue
+                                                  : AppColors.textBlue
+                                                        .withValues(alpha: .6),
+                                            ),
+                                            child: Text(
+                                              "2",
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: AppColors.textWhite,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                         ),
                         Expanded(
@@ -486,7 +439,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                             controller: _tabController,
                             physics: const BouncingScrollPhysics(),
                             children: [
-                              // Uses the OffersBloc for aggregated offers
+                              // Uses the OffersCubit for aggregated offers
                               _buildOffersTab(context, filterState),
                               // Uses the ConversationsBloc for messages
                               _buildMessagesTab(context),

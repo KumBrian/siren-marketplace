@@ -15,6 +15,8 @@ class Offer extends Equatable {
   final DateTime dateCreated;
   final DateTime dateUpdated;
   final UserRole? waitingFor;
+  final bool hasUpdateForFisher;
+  final bool hasUpdateForBuyer;
 
   const Offer({
     required this.id,
@@ -27,13 +29,19 @@ class Offer extends Equatable {
     required this.dateCreated,
     required this.dateUpdated,
     this.waitingFor,
+    this.hasUpdateForFisher = true,
+    this.hasUpdateForBuyer = true,
   });
 
   // Business Logic
   bool get isPending => status == OfferStatus.pending;
+
   bool get isAccepted => status == OfferStatus.accepted;
+
   bool get isRejected => status == OfferStatus.rejected;
+
   bool get isFinal => status.isFinal;
+
   bool get hasBeenCountered => previousTerms != null;
 
   bool isUsersTurn(String userId) {
@@ -113,6 +121,8 @@ class Offer extends Equatable {
     DateTime? dateUpdated,
     UserRole? waitingFor,
     bool clearWaitingFor = false,
+    bool? hasUpdateForFisher,
+    bool? hasUpdateForBuyer,
   }) {
     return Offer(
       id: id,
@@ -125,6 +135,8 @@ class Offer extends Equatable {
       dateCreated: dateCreated ?? this.dateCreated,
       dateUpdated: dateUpdated ?? this.dateUpdated,
       waitingFor: clearWaitingFor ? null : (waitingFor ?? this.waitingFor),
+      hasUpdateForFisher: hasUpdateForFisher ?? this.hasUpdateForFisher,
+      hasUpdateForBuyer: hasUpdateForBuyer ?? this.hasUpdateForBuyer,
     );
   }
 

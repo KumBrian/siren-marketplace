@@ -3,18 +3,26 @@ import 'dart:math';
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/order.dart';
+import 'package:siren_marketplace/core/domain/entities/species.dart';
+import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
+import 'package:siren_marketplace/core/domain/services/negotiation_service.dart';
+import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
+import 'package:siren_marketplace/core/domain/value_objects/price.dart';
+import 'package:siren_marketplace/core/domain/value_objects/price_per_kg.dart';
+import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/app_user.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
-import 'package:siren_marketplace/core/models/order.dart';
-import 'package:siren_marketplace/core/models/species.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+
 import 'package:siren_marketplace/features/chat/data/conversation_repository.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
-import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
-import 'package:siren_marketplace/features/fisher/data/offer_repositories.dart';
-import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
 import 'package:uuid/uuid.dart';
 
 // NOTE: This seeder assumes you updated your domain models to use grams
@@ -62,7 +70,7 @@ class CatchSeeder {
       'avatar_url': _avatarUrls[0],
       'rating': 4.8,
       'review_count': 124,
-      'role': Role.fisher.name,
+      'role': UserRole.fisher.name,
     },
     {
       'id': 'fisher_id_2',
@@ -70,7 +78,7 @@ class CatchSeeder {
       'avatar_url': _avatarUrls[1],
       'rating': 4.5,
       'review_count': 90,
-      'role': Role.fisher.name,
+      'role': UserRole.fisher.name,
     },
     {
       'id': 'buyer_id_1',
@@ -78,7 +86,7 @@ class CatchSeeder {
       'avatar_url': _avatarUrls[2],
       'rating': 4.9,
       'review_count': 210,
-      'role': Role.buyer.name,
+      'role': UserRole.buyer.name,
     },
     {
       'id': 'buyer_id_2',
@@ -86,7 +94,7 @@ class CatchSeeder {
       'avatar_url': _avatarUrls[3],
       'rating': 4.7,
       'review_count': 150,
-      'role': Role.buyer.name,
+      'role': UserRole.buyer.name,
     },
   ];
 
@@ -121,18 +129,18 @@ class CatchSeeder {
   // CATCHES
   // -------------------------------
   Future<List<Catch>> seedCatches() async {
-    final repository = sl<CatchRepository>();
-    final existing = await repository.getAllCatchMaps();
+    final repository = sl<ICatchRepository>();
+    final existing = await repository.getAvailableCatches();
     if (existing.isNotEmpty) {
       print('Catches exist. Returning existing.');
-      return existing.map((m) => Catch.fromMap(m)).toList();
+      return existing;
     }
 
     final List<Catch> seeded = [];
     final now = DateTime.now();
 
     final List<String> fisherIds = _userMaps
-        .where((user) => user['role'] == Role.fisher.name)
+        .where((user) => user['role'] == UserRole.fisher.name)
         .map((user) => user['id'] as String)
         .toList();
 
@@ -154,13 +162,13 @@ class CatchSeeder {
       if (i < 3) {
         status = CatchStatus.available;
       } else if (i < 5) {
-        status = CatchStatus.processing;
+        status = CatchStatus.expired;
         // half the weight (integer arithmetic) — round down to nearest 100g
         availableWeightGrams = (initialWeightGrams * 50) ~/ 100;
         // normalize to 100g steps
         availableWeightGrams = (availableWeightGrams / 100).floor() * 100;
       } else if (i == 14) {
-        status = CatchStatus.sold;
+        status = CatchStatus.soldOut;
         availableWeightGrams = 0;
       } else {
         status = CatchStatus.available;
@@ -177,12 +185,12 @@ class CatchSeeder {
       final c = Catch(
         id: _uuid.v4(),
         name: species.name,
-        datePosted: now.subtract(Duration(hours: i * 5)).toIso8601String(),
+        datePosted: now.subtract(Duration(hours: i * 5)),
         // new grams fields
-        initialWeight: initialWeightGrams,
-        availableWeight: availableWeightGrams,
-        pricePerKg: pricePerKg,
-        total: totalPrice,
+        initialWeight: Weight.fromGrams(initialWeightGrams),
+        availableWeight: Weight.fromGrams(availableWeightGrams),
+        pricePerKg: PricePerKg.fromAmount(pricePerKg),
+        totalPrice: Price.fromAmount(totalPrice),
         size: species.id != "prawns"
             ? _rng.nextInt(20).toString()
             : i < 7
@@ -195,7 +203,7 @@ class CatchSeeder {
         status: status,
       );
 
-      await repository.insertCatch(c);
+      await repository.create(c);
       seeded.add(c);
     }
 
@@ -207,11 +215,11 @@ class CatchSeeder {
   // OFFERS
   // -------------------------------
   Future<List<Offer>> seedOffers(List<Catch> seededCatches) async {
-    final offerRepository = sl<OfferRepository>();
-    final existing = await offerRepository.getAllOfferMaps();
+    final offerRepository = sl<IOfferRepository>();
+    final existing = await offerRepository.getAllOffers();
     if (existing.isNotEmpty) {
       print('Offers exist. Returning existing.');
-      return existing.map((m) => Offer.fromMap(m)).toList();
+      return existing;
     }
 
     final buyer1 = AppUser.fromMap(
@@ -222,7 +230,7 @@ class CatchSeeder {
     );
 
     final fishers = _userMaps
-        .where((m) => m['role'] == Role.fisher.name)
+        .where((m) => m['role'] == UserRole.fisher.name)
         .map((m) => AppUser.fromMap(m))
         .toList();
 
@@ -237,13 +245,14 @@ class CatchSeeder {
       final fisher = fishers.firstWhere((f) => f.id == catchItem.fisherId);
 
       if (catchItem.status == CatchStatus.available ||
-          catchItem.status == CatchStatus.processing) {
+          catchItem.status == CatchStatus.expired) {
         // Pending offer — 50% of available weight
         final int pendingWeightGrams =
-            ((catchItem.availableWeight * 50) ~/ 100 / 100).floor() * 100;
+            ((catchItem.availableWeight.grams * 50) ~/ 100 / 100).floor() * 100;
 
         // discounted pricePerKg (integer) — apply 5% discount and round
-        final int pendingPricePerKg = ((catchItem.pricePerKg * 95) ~/ 100);
+        final int pendingPricePerKg =
+            ((catchItem.pricePerKg.amountPerKg * 95) ~/ 100);
 
         final int pendingPrice =
             (pendingWeightGrams * pendingPricePerKg) ~/ 1000;
@@ -253,62 +262,45 @@ class CatchSeeder {
           catchId: catchItem.id,
           fisherId: catchItem.fisherId,
           buyerId: buyer.id,
-          pricePerKg: pendingPricePerKg,
-          weight: pendingWeightGrams,
-          price: pendingPrice,
+          currentTerms: OfferTerms.create(
+            totalPrice: Price.fromAmount(pendingPrice),
+            weight: Weight.fromGrams(pendingWeightGrams),
+          ),
           status: OfferStatus.pending,
-          dateCreated: DateTime.now().toIso8601String(),
-          previousPrice: null,
-          previousPricePerKg: null,
-          previousWeight: null,
-          catchName: catchItem.name,
-          catchImageUrl: catchItem.images.first,
-          fisherName: fisher.name,
-          fisherRating: fisher.rating,
-          fisherAvatarUrl: fisher.avatarUrl,
-          buyerName: buyer.name,
-          buyerRating: buyer.rating,
-          buyerAvatarUrl: buyer.avatarUrl,
-          waitingFor: Role.values[random.nextInt(2)],
+          dateCreated: DateTime.now(),
+          previousTerms: null,
+          dateUpdated: DateTime.now(),
+          waitingFor: UserRole.values[random.nextInt(2)],
         );
 
-        await offerRepository.insertOffer(pendingOffer);
+        await offerRepository.create(pendingOffer);
         allOffers.add(pendingOffer);
 
         // Accepted (every 4th catch) — 20% of available weight
-        if (i % 4 == 0 && catchItem.status != CatchStatus.sold) {
+        if (i % 4 == 0 && catchItem.status != CatchStatus.soldOut) {
           final int acceptedWeightGrams =
-              ((catchItem.availableWeight * 20) ~/ 100 / 100).floor() * 100;
+              ((catchItem.availableWeight.grams * 20) ~/ 100 / 100).floor() *
+              100;
 
           final int acceptedPrice =
-              (acceptedWeightGrams * catchItem.pricePerKg) ~/ 1000;
+              (acceptedWeightGrams * catchItem.pricePerKg.amountPerKg) ~/ 1000;
 
           final acceptedOffer = Offer(
             id: _uuid.v4(),
             catchId: catchItem.id,
             fisherId: catchItem.fisherId,
             buyerId: buyer.id,
-            pricePerKg: catchItem.pricePerKg,
-            weight: acceptedWeightGrams,
-            price: acceptedPrice,
+            currentTerms: OfferTerms.create(
+              totalPrice: Price.fromAmount(acceptedPrice),
+              weight: Weight.fromGrams(acceptedWeightGrams),
+            ),
             status: OfferStatus.accepted,
-            dateCreated: DateTime.now()
-                .subtract(Duration(days: 1))
-                .toIso8601String(),
-            previousPrice: null,
-            previousPricePerKg: null,
-            previousWeight: null,
-            catchName: catchItem.name,
-            catchImageUrl: catchItem.images.first,
-            fisherName: fisher.name,
-            fisherRating: fisher.rating,
-            fisherAvatarUrl: fisher.avatarUrl,
-            buyerName: buyer.name,
-            buyerRating: buyer.rating,
-            buyerAvatarUrl: buyer.avatarUrl,
+            dateCreated: DateTime.now().subtract(Duration(days: 1)),
+            previousTerms: null,
+            dateUpdated: DateTime.now(),
           );
 
-          await offerRepository.insertOffer(acceptedOffer);
+          await offerRepository.create(acceptedOffer);
           allOffers.add(acceptedOffer);
         }
       }
@@ -322,36 +314,35 @@ class CatchSeeder {
   // ORDERS
   // -------------------------------
   Future<List<Order>> seedOrders() async {
-    final orderRepository = sl<OrderRepository>();
-    final offerRepository = sl<OfferRepository>();
-    final catchRepository = sl<CatchRepository>();
+    final orderRepository = sl<IOrderRepository>();
+    final offerRepository = sl<IOfferRepository>();
+    final catchRepository = sl<ICatchRepository>();
+    final negotiationService = sl<NegotiationService>();
     final userRepository = sl<UserRepository>();
 
-    final existing = await orderRepository.getAllOrderMaps();
+    final existing = await orderRepository.getAllOrders();
     if (existing.isNotEmpty) {
       print('Orders exist. Skipping.');
       return [];
     }
 
-    final allOfferMaps = await offerRepository.getAllOfferMaps();
-    final acceptedOffers = allOfferMaps
-        .map((m) => Offer.fromMap(m))
+    final allOffers = await offerRepository.getAllOffers();
+    final acceptedOffers = allOffers
         .where((o) => o.status == OfferStatus.accepted)
         .toList();
 
     final List<Order> orders = [];
     for (final offer in acceptedOffers) {
-      final catchMap = await catchRepository.getCatchMapById(offer.catchId);
+      final catchItem = await catchRepository.getById(offer.catchId);
       final fisherMap = await userRepository.getUserMapById(offer.fisherId);
-      if (catchMap == null) continue;
+      if (catchItem == null) continue;
 
-      final newOrder = Order.fromOfferAndCatch(
-        offer: offer,
-        catchItem: Catch.fromMap(catchMap),
-        fisher: Fisher.fromMap(fisherMap),
+      final Order newOrder = await negotiationService.acceptOffer(
+        offerId: offer.id,
+        userId: offer.fisherId,
       );
 
-      await orderRepository.insertOrder(newOrder);
+      await orderRepository.create(newOrder);
       orders.add(newOrder);
     }
 
@@ -364,6 +355,8 @@ class CatchSeeder {
   // -------------------------------
   Future<void> seedConversations(List<Offer> allOffers) async {
     final conversationRepository = sl<ConversationRepository>();
+    final catchRepository = sl<ICatchRepository>();
+    final userRepository = sl<UserRepository>();
 
     final Map<String, Offer> uniqueConversations = {};
     for (final offer in allOffers) {
@@ -373,17 +366,27 @@ class CatchSeeder {
       }
     }
 
+    final fisherName = await userRepository.getUserMapById(
+      uniqueConversations.values.first.fisherId,
+    );
+    final buyerName = await userRepository.getUserMapById(
+      uniqueConversations.values.first.buyerId,
+    );
+    final catchItem = await catchRepository.getById(
+      uniqueConversations.values.first.catchId,
+    );
+
     for (final offer in uniqueConversations.values) {
       final conv = ConversationPreview(
         id: _uuid.v4(),
         buyerId: offer.buyerId,
         fisherId: offer.fisherId,
-        contactName: offer.fisherName,
-        contactAvatarPath: offer.fisherAvatarUrl,
+        contactName: buyerName['name'],
+        contactAvatarPath: buyerName['avatarUrl'],
         lastMessage: offer.status == OfferStatus.accepted
-            ? 'The offer for ${offer.catchName} was accepted. Awaiting payment.'
+            ? 'The offer for ${catchItem?.name} was accepted. Awaiting payment.'
             : 'Is this price negotiable for a bulk order?',
-        lastMessageTime: offer.dateCreated,
+        lastMessageTime: offer.dateCreated.toIso8601String(),
         unreadCount: offer.status == OfferStatus.pending ? 1 : 0,
       );
 

@@ -16,6 +16,12 @@ class OfferRepositoryImpl implements IOfferRepository {
   }
 
   @override
+  Future<List<Offer>> getAllOffers() async {
+    final models = await dataSource.getAllOffers();
+    return models.map((m) => OfferMapper.toEntity(m)).toList();
+  }
+
+  @override
   Future<Offer?> getById(String offerId) async {
     final model = await dataSource.getById(offerId);
     return model != null ? OfferMapper.toEntity(model) : null;

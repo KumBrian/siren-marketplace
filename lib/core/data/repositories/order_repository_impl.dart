@@ -1,5 +1,6 @@
 import '../../domain/entities/order.dart';
 import '../../domain/enums/order_status.dart';
+import '../../domain/exceptions/not_found_exception.dart';
 import '../../domain/repositories/i_order_repository.dart';
 import '../datasources/interfaces/i_order_datasource.dart';
 import '../mappers/order_mapper.dart';
@@ -16,9 +17,18 @@ class OrderRepositoryImpl implements IOrderRepository {
   }
 
   @override
-  Future<Order?> getById(String orderId) async {
+  Future<List<Order>> getAllOrders() async {
+    final models = await dataSource.getAllOrders();
+    return models.map((m) => OrderMapper.toEntity(m)).toList();
+  }
+
+  @override
+  Future<Order> getById(String orderId) async {
     final model = await dataSource.getById(orderId);
-    return model != null ? OrderMapper.toEntity(model) : null;
+    if (model == null) {
+      throw NotFoundException(entityType: 'Order', entityId: orderId);
+    }
+    return OrderMapper.toEntity(model);
   }
 
   @override

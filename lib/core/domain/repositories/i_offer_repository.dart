@@ -5,6 +5,9 @@ abstract class IOfferRepository {
   /// Create a new offer
   Future<String> create(Offer offer);
 
+  /// Get all offers
+  Future<List<Offer>> getAllOffers();
+
   /// Get offer by ID
   Future<Offer?> getById(String offerId);
 

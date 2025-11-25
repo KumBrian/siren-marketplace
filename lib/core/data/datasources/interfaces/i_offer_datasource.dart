@@ -4,6 +4,8 @@ import '../../models/offer_model.dart';
 abstract class IOfferDataSource {
   Future<String> create(OfferModel offer);
 
+  Future<List<OfferModel>> getAllOffers();
+
   Future<OfferModel?> getById(String offerId);
 
   Future<List<OfferModel>> getByCatchId(String catchId);

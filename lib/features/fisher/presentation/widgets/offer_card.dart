@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:hugeicons/styles/stroke_rounded.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
@@ -114,7 +114,7 @@ class OfferCard extends StatelessWidget {
         ),
         // Date created is on the offer
         Text(
-          offer.dateCreated.toFormattedDate(),
+          offer.dateCreated.toIso8601String().toFormattedDate(),
           style: TextStyle(
             color: offer.hasUpdateForFisher
                 ? AppColors.textBlue
@@ -138,10 +138,10 @@ class OfferCard extends StatelessWidget {
         Row(
           children: [
             // Weight and Price are on the offer
-            _pill(formatWeight(offer.weight)),
+            _pill(offer.currentTerms.weight.kilograms.toString()),
 
             const SizedBox(width: 8),
-            _pill(formatPrice(offer.price)),
+            _pill(formatPrice(offer.currentTerms.totalPrice.amount)),
           ],
         ),
         Row(

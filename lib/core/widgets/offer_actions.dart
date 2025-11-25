@@ -6,15 +6,18 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/core/models/catch.dart' as CatchModel;
-import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
+import 'package:siren_marketplace/core/domain/value_objects/price.dart';
+import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/counter_offer_dialog.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
-import 'package:siren_marketplace/features/fisher/data/order_repository.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
@@ -104,9 +107,9 @@ class OfferActions extends StatefulWidget {
 
   final Offer offer;
   final GlobalKey<FormState> formKey;
-  final Role currentUserRole;
+  final UserRole currentUserRole;
   final void Function(String offerId) onNavigateToOrder;
-  final CatchModel.Catch catchItem;
+  final Catch catchItem;
 
   @override
   State<OfferActions> createState() => _OfferActionsState();
@@ -114,13 +117,6 @@ class OfferActions extends StatefulWidget {
 
 class _OfferActionsState extends State<OfferActions> {
   final UserRepository _userRepository = sl<UserRepository>();
-
-  // Helper to display grams as Kg cleanly (1500 -> "1.5")
-  String _displayWeightInKg(int weightInGrams) {
-    return (weightInGrams / 1000)
-        .toStringAsFixed(2)
-        .replaceAll(RegExp(r"([.]*0)(?!.*\d)"), "");
-  }
 
   @override
   void dispose() {
@@ -146,13 +142,9 @@ class _OfferActionsState extends State<OfferActions> {
 
       final fisher = Fisher.fromMap(fisherMap);
 
-      context.read<OffersBloc>().add(
-        AcceptOffer(
-          offer: widget.offer,
-          catchItem: catchItem,
-          fisher: fisher,
-          orderRepository: sl<OrderRepository>(),
-        ),
+      context.read<OffersCubit>().acceptOffer(
+        widget.offer.id,
+        widget.currentUserRole,
       );
     } catch (e) {
       if (!context.mounted) return;
@@ -170,7 +162,10 @@ class _OfferActionsState extends State<OfferActions> {
     if (!context.mounted) return;
     showLoadingDialog(context, message: 'Creating order...');
     try {
-      context.read<OffersBloc>().add(RejectOffer(offer: widget.offer));
+      context.read<OffersCubit>().rejectOffer(
+        widget.offer.id,
+        widget.currentUserRole,
+      );
     } catch (e) {
       if (outerContext.mounted) {
         await showActionSuccessDialog(
@@ -185,7 +180,7 @@ class _OfferActionsState extends State<OfferActions> {
   @override
   Widget build(BuildContext context) {
     return widget.offer.status == OfferStatus.pending ||
-            (widget.offer.previousPricePerKg != null &&
+            (widget.offer.hasBeenCountered &&
                 widget.offer.status == OfferStatus.pending)
         ? Column(
             children: [
@@ -225,7 +220,7 @@ class _OfferActionsState extends State<OfferActions> {
                                   ),
                                   Text(
                                     // UPDATED: Convert Grams to Kg for display
-                                    "${_displayWeightInKg(widget.offer.weight)} Kg / ${formatPrice(widget.offer.price.toDouble())}",
+                                    "${widget.offer.currentTerms.weight.kilograms} Kg / ${formatPrice(widget.offer.currentTerms.totalPrice.amount)}",
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 18,
@@ -294,7 +289,7 @@ class _OfferActionsState extends State<OfferActions> {
                                 ),
                                 Text(
                                   // UPDATED: Convert Grams to Kg for display
-                                  "${_displayWeightInKg(widget.offer.weight)} Kg / ${formatPrice(widget.offer.price.toDouble())}",
+                                  "${widget.offer.currentTerms.weight.kilograms} Kg / ${formatPrice(widget.offer.currentTerms.totalPrice.amount)}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w800,
                                     fontSize: 18,
@@ -341,9 +336,13 @@ class _OfferActionsState extends State<OfferActions> {
                                   role: user!.role,
                                   formKey: widget.formKey,
                                   // UPDATED: Pass weight in Grams directly
-                                  initialWeight: widget.offer.weight,
-                                  initialPrice: widget.offer.price,
-                                  // UPDATED: onSubmit now receives int (Grams)
+                                  initialWeight:
+                                      widget.offer.currentTerms.weight.grams,
+                                  initialPrice: widget
+                                      .offer
+                                      .currentTerms
+                                      .totalPrice
+                                      .amount,
                                   onSubmit:
                                       (newWeight, newPrice, dialogCtx) async {
                                         if (Navigator.of(context).canPop()) {
@@ -355,15 +354,20 @@ class _OfferActionsState extends State<OfferActions> {
                                           message: 'Creating order...',
                                         );
                                         try {
-                                          context.read<OffersBloc>().add(
-                                            CounterOffer(
-                                              previousOffer: widget.offer,
-                                              newPrice: newPrice,
-                                              newWeight:
-                                                  newWeight, // Passing int
-                                              counteringRole: user.role,
-                                            ),
-                                          );
+                                          context
+                                              .read<OffersCubit>()
+                                              .counterOffer(
+                                                widget.offer.id,
+                                                widget.currentUserRole,
+                                                OfferTerms.create(
+                                                  weight: Weight.fromGrams(
+                                                    newWeight,
+                                                  ),
+                                                  totalPrice: Price.fromAmount(
+                                                    newPrice,
+                                                  ),
+                                                ),
+                                              );
                                         } catch (e) {
                                           if (context.mounted) {
                                             await showActionSuccessDialog(

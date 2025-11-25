@@ -3,7 +3,7 @@ part of 'products_filter_cubit.dart';
 class ProductsFilterState extends Equatable {
   final List<Species> selectedSpecies;
   final List<String> selectedLocations;
-  final double minWeight;
+  final int minWeight;
   final SortBy sortByPrice;
   final SortBy sortByDate;
   final bool applyFilters;
@@ -22,7 +22,7 @@ class ProductsFilterState extends Equatable {
   ProductsFilterState copyWith({
     List<Species>? selectedSpecies,
     List<String>? selectedLocations,
-    double? minWeight,
+    int? minWeight,
     SortBy? sortByPrice,
     SortBy? sortByDate,
     bool? applyFilters,

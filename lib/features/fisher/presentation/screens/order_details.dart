@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +12,11 @@ import 'package:siren_marketplace/constants/constants.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/order.dart';
+import 'package:siren_marketplace/core/domain/enums/order_status.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
-import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
@@ -27,14 +28,14 @@ import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
-import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/orders_bloc/orders_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 class OrderDependencies {
-  final Catch catchSnapshot;
+  final Catch catchItem;
   final Buyer? buyer;
 
-  const OrderDependencies({required this.catchSnapshot, this.buyer});
+  const OrderDependencies({required this.catchItem, this.buyer});
 }
 
 class OrderDetails extends StatefulWidget {
@@ -51,6 +52,7 @@ class _OrderDetailsState extends State<OrderDetails> {
 
   // ⛔️ REMOVED: OrderDetailState? _lastOrderDetailsState;
   final UserRepository _userRepository = sl<UserRepository>();
+  final ICatchRepository _catchRepository = sl<ICatchRepository>();
 
   Future<OrderDependencies>? _orderDependenciesFuture;
 
@@ -72,21 +74,20 @@ class _OrderDetailsState extends State<OrderDetails> {
   void _dispatchGetOrder() {
     if (widget.orderId.isEmpty) return;
 
-    final bloc = context.read<OrdersBloc>();
-    final currentState = bloc.state;
+    final cubit = context.read<OrdersCubit>();
+    final currentState = cubit.state;
 
     // Check if the current state is already showing the required order detail
-    if (currentState is OrderDetailsLoaded &&
-        currentState.order.id == widget.orderId) {
+    if (currentState.selectedOrder?.id == widget.orderId) {
       return;
     }
 
-    // ✅ NEW EVENT: Use the GetOrderById event from OrdersBloc
-    bloc.add(GetOrderById(widget.orderId));
+    // ✅ NEW EVENT: Use the loadById method from OrdersCubit
+    cubit.loadById(widget.orderId);
   }
 
   Future<void> _markOrderAsCompleted(Order order) async {
-    context.read<OrdersBloc>().add(CompleteOrder(order: order));
+    context.read<OrdersCubit>().completeOrder(order);
   }
 
   @override
@@ -97,8 +98,7 @@ class _OrderDetailsState extends State<OrderDetails> {
 
   Future<OrderDependencies> _loadDependencies(Order order) async {
     try {
-      final Map<String, dynamic> catchMap = jsonDecode(order.catchSnapshotJson);
-      final catchSnapshot = Catch.fromMap(catchMap);
+      final catchItem = await _catchRepository.getById(order.catchId);
 
       final Map<String, dynamic>? buyerMap = await _userRepository
           .getUserMapById(order.buyerId)
@@ -109,7 +109,7 @@ class _OrderDetailsState extends State<OrderDetails> {
         buyer = Buyer.fromMap(buyerMap);
       }
 
-      return OrderDependencies(catchSnapshot: catchSnapshot, buyer: buyer);
+      return OrderDependencies(catchItem: catchItem!, buyer: buyer);
     } on TimeoutException {
       throw Exception(
         "Dependency loading timed out after 10 seconds. Check network or repository.",
@@ -121,28 +121,29 @@ class _OrderDetailsState extends State<OrderDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<OrdersBloc, OrdersState>(
+    return BlocConsumer<OrdersCubit, OrdersState>(
       listenWhen: (prev, curr) =>
-          curr is OrdersLoaded ||
-          curr is OrderDetailsLoaded ||
-          curr is OrdersError,
+          curr.selectedOrder != null || curr.error != null,
       listener: (context, state) {
         // 💡 Listener logic is now simpler and focused on user feedback
-        if (state is OrderDetailsLoaded && state.order.id == widget.orderId) {
+        if (state.selectedOrder != null &&
+            state.selectedOrder!.id == widget.orderId) {
           // This ensures the FutureBuilder is reset to load dependencies
           // if the order details were updated by the Notifier refresh.
           if (mounted) {
             setState(() {
-              _orderDependenciesFuture = _loadDependencies(state.order);
+              _orderDependenciesFuture = _loadDependencies(
+                state.selectedOrder!,
+              );
             });
           }
         }
 
-        if (state is OrdersError) {
+        if (state.error != null) {
           // You might want to show a toast or dialog here for errors
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Action failed: ${state.message}"),
+              content: Text("Action failed: ${state.error}"),
               backgroundColor: Colors.red,
             ),
           );
@@ -150,7 +151,7 @@ class _OrderDetailsState extends State<OrderDetails> {
       },
 
       builder: (context, state) {
-        if (state is OrdersError) {
+        if (state.error != null && state.selectedOrder == null) {
           return Scaffold(
             appBar: AppBar(
               leading: BackButton(onPressed: () => context.pop()),
@@ -160,7 +161,7 @@ class _OrderDetailsState extends State<OrderDetails> {
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: Text(
-                  "Load Error: ${state.message}",
+                  "Load Error: ${state.error}",
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -168,7 +169,8 @@ class _OrderDetailsState extends State<OrderDetails> {
           );
         }
 
-        if (state is! OrderDetailsLoaded || state.order.id != widget.orderId) {
+        if (state.selectedOrder == null ||
+            state.selectedOrder!.id != widget.orderId) {
           // Show loading if we are waiting for the specific order
           return Scaffold(
             key: ValueKey(widget.orderId),
@@ -180,7 +182,7 @@ class _OrderDetailsState extends State<OrderDetails> {
           );
         }
 
-        final selectedOrder = state.order;
+        final selectedOrder = state.selectedOrder!;
 
         _orderDependenciesFuture ??= _loadDependencies(selectedOrder);
 
@@ -250,17 +252,13 @@ class _OrderDetailsState extends State<OrderDetails> {
             }
 
             final dependencies = snapshot.data!;
-            final catchSnapshot = dependencies.catchSnapshot;
+            final catchItem = dependencies.catchItem;
             final buyer = dependencies.buyer;
 
-            final Map<String, dynamic> catchMap = jsonDecode(
-              selectedOrder.catchSnapshotJson,
-            );
-            final int acceptedWeight =
-                (catchMap['accepted_weight'] as num?)?.toInt() ?? 0;
-            final int acceptedPrice =
-                (catchMap['accepted_price'] as num?)?.toInt() ?? 0;
-            final OfferStatus orderStatus = selectedOrder.offer.status;
+            final int acceptedWeight = selectedOrder.terms.weight.grams;
+            final int acceptedPrice = selectedOrder.terms.totalPrice.amount
+                .toInt();
+            final OrderStatus orderStatus = selectedOrder.status;
 
             final buyerName =
                 buyer?.name ?? 'Buyer ID: ${selectedOrder.buyerId}';
@@ -269,8 +267,8 @@ class _OrderDetailsState extends State<OrderDetails> {
             final buyerRating = buyer?.rating ?? 0.0;
             final buyerReviewCount = buyer?.reviewCount ?? 0;
 
-            final String imageUrl = catchSnapshot.images.isNotEmpty
-                ? catchSnapshot.images.first
+            final String imageUrl = catchItem.images.isNotEmpty
+                ? catchItem.images.first
                 : "assets/images/prawns.jpg";
 
             // ---------------------------------------------------------------
@@ -282,7 +280,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                   final user = userState.user;
                   final buyerId = selectedOrder.buyerId;
                   final String ratedUserName = buyerName;
-                  final bool hasRatedBuyer = selectedOrder.hasRatedBuyer;
+                  final bool hasRatedBuyer = selectedOrder.hasReviewFromFisher;
                   return Scaffold(
                     appBar: AppBar(
                       leading: BackButton(onPressed: () => context.pop()),
@@ -466,7 +464,9 @@ class _OrderDetailsState extends State<OrderDetails> {
                                 ),
                               ),
                               Text(
-                                selectedOrder.dateUpdated.toFormattedDate(),
+                                selectedOrder.dateUpdated
+                                    .toIso8601String()
+                                    .toFormattedDate(),
                                 // Use Order date
                                 style: const TextStyle(
                                   fontSize: 12,
@@ -527,7 +527,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      catchSnapshot.name, // Use Catch name
+                                      catchItem.name, // Use Catch name
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 16,
@@ -544,9 +544,10 @@ class _OrderDetailsState extends State<OrderDetails> {
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w500,
-                                            color: AppColors.getStatusColor(
-                                              orderStatus,
-                                            ),
+                                            color:
+                                                AppColors.getOrderStatusColor(
+                                                  orderStatus,
+                                                ),
                                           ),
                                         ),
                                         Container(
@@ -561,9 +562,10 @@ class _OrderDetailsState extends State<OrderDetails> {
                                             border: Border.all(
                                               color: Colors.white,
                                             ),
-                                            color: AppColors.getStatusColor(
-                                              orderStatus,
-                                            ),
+                                            color:
+                                                AppColors.getOrderStatusColor(
+                                                  orderStatus,
+                                                ),
                                           ),
                                         ),
                                       ],
@@ -586,16 +588,16 @@ class _OrderDetailsState extends State<OrderDetails> {
                               rows: [
                                 InfoRow(
                                   label: "Market",
-                                  value: catchSnapshot.market,
+                                  value: catchItem.market,
                                 ),
                                 InfoRow(
                                   label: "Species",
-                                  value: catchSnapshot.species.name,
+                                  value: catchItem.species.name,
                                 ),
-                                catchSnapshot.species.id == "prawns"
+                                catchItem.species.id == "prawns"
                                     ? InfoRow(
                                         label: "Size",
-                                        value: catchSnapshot.size,
+                                        value: catchItem.size,
                                       )
                                     : null,
                                 InfoRow(
@@ -830,11 +832,11 @@ class _OrderDetailsState extends State<OrderDetails> {
                           ],
 
                           if (orderStatus == OfferStatus.completed &&
-                              !selectedOrder.hasRatedBuyer) ...[
+                              !selectedOrder.hasReviewFromFisher) ...[
                             CustomButton(
                               title: "Rate the buyer",
                               onPressed: () {
-                                final ordersBloc = context.read<OrdersBloc>();
+                                final ordersCubit = context.read<OrdersCubit>();
                                 // --- Rate Buyer Modal Logic (Unchanged) ---
                                 showModalBottomSheet(
                                   context: context,
@@ -858,15 +860,13 @@ class _OrderDetailsState extends State<OrderDetails> {
                                             required double ratingValue,
                                             String? message,
                                           }) async {
-                                            // Convert the function call into an OrdersBloc event
-                                            ordersBloc.add(
-                                              SubmitRating(
-                                                orderId: orderId,
-                                                raterId: raterId,
-                                                ratedUserId: ratedUserId,
-                                                ratingValue: ratingValue,
-                                                message: message,
-                                              ),
+                                            // Convert the function call into an OrdersCubit method call
+                                            ordersCubit.submitRating(
+                                              orderId: orderId,
+                                              reviewerId: raterId,
+                                              reviewedUserId: ratedUserId,
+                                              ratingValue: ratingValue.toInt(),
+                                              comment: message ?? '',
                                             );
                                             // We return a completed Future as dispatching an event is async
                                           },
@@ -876,7 +876,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                               },
                             ),
                           ] else if (orderStatus == OfferStatus.completed &&
-                              selectedOrder.hasRatedBuyer) ...[
+                              selectedOrder.hasReviewFromFisher) ...[
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                 vertical: 8.0,
@@ -891,7 +891,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    "You rated the Buyer ${selectedOrder.buyerRatingValue!.toStringAsFixed(1)} stars.",
+                                    "You rated the Buyer",
                                     style: const TextStyle(
                                       color: AppColors.textBlue,
                                       fontWeight: FontWeight.w500,
@@ -909,18 +909,18 @@ class _OrderDetailsState extends State<OrderDetails> {
                               child: Row(
                                 children: [
                                   HugeIcon(
-                                    icon: selectedOrder.hasRatedFisher
+                                    icon: selectedOrder.hasReviewFromBuyer
                                         ? HugeIcons
                                               .strokeRoundedCheckmarkBadge01
                                         : HugeIcons.strokeRoundedClock01,
-                                    color: selectedOrder.hasRatedFisher
+                                    color: selectedOrder.hasReviewFromBuyer
                                         ? AppColors.success500
                                         : AppColors.shellOrange,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    selectedOrder.hasRatedFisher
+                                    selectedOrder.hasReviewFromBuyer
                                         ? "The Buyer has rated you."
                                         : "Waiting for Buyer to rate you.",
                                     style: const TextStyle(

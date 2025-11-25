@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/features/buyer/presentation/screens/buyer_review_screen.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/screens/fisher.dart';
 import 'package:siren_marketplace/features/fisher/presentation/screens/fisher_review_screen.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/about.dart';
@@ -24,9 +23,7 @@ import 'features/buyer/presentation/screens/order_details.dart';
 import 'features/buyer/presentation/screens/orders_screen.dart';
 import 'features/buyer/presentation/screens/product_details.dart';
 import 'features/chat/presentation/screens/chat_page.dart';
-import 'features/fisher/logic/orders_bloc/orders_bloc.dart';
 import 'features/fisher/presentation/screens/catch_details.dart';
-import 'features/fisher/presentation/screens/congratulations_screen.dart';
 import 'features/fisher/presentation/screens/market_trends.dart';
 import 'features/fisher/presentation/screens/notifications_screen.dart';
 import 'features/fisher/presentation/screens/offer_details.dart';
@@ -112,10 +109,7 @@ GoRouter createRouter(UserBloc userBloc) {
       GoRoute(path: '/', builder: (_, __) => const RoleScreen()),
       GoRoute(
         path: '/fisher',
-        builder: (_, __) => BlocProvider(
-          create: (context) => sl<OrdersBloc>(),
-          child: const Fisher(),
-        ),
+        builder: (_, __) => const Fisher(),
         routes: [
           GoRoute(
             path: 'catch-details/:id',
@@ -128,27 +122,14 @@ GoRouter createRouter(UserBloc userBloc) {
             path: 'order-details/:id',
             builder: (context, state) {
               final orderId = state.pathParameters['id']!;
-              return BlocProvider(
-                create: (context) => sl<OrdersBloc>(),
-                child: OrderDetails(orderId: orderId),
-              );
+              return OrderDetails(orderId: orderId);
             },
           ),
           GoRoute(
             path: 'offer-details/:id',
             builder: (context, state) {
               final offerId = state.pathParameters['id']!;
-              return BlocProvider(
-                create: (context) => sl<OffersBloc>(),
-                child: FisherOfferDetails(offerId: offerId),
-              );
-            },
-          ),
-          GoRoute(
-            path: 'congratulations/:id',
-            builder: (context, state) {
-              final offerId = state.pathParameters['id']!;
-              return CongratulationsScreen(offerId: offerId);
+              return FisherOfferDetails(offerId: offerId);
             },
           ),
           GoRoute(
@@ -182,8 +163,7 @@ GoRouter createRouter(UserBloc userBloc) {
       ),
       GoRoute(
         path: '/buyer',
-        builder: (_, __) =>
-            BlocProvider(create: (context) => sl<OffersBloc>(), child: Buyer()),
+        builder: (_, __) => const Buyer(),
 
         routes: [
           GoRoute(
@@ -197,10 +177,7 @@ GoRouter createRouter(UserBloc userBloc) {
             path: 'offer-details/:id',
             builder: (context, state) {
               final offerId = state.pathParameters['id']!;
-              return BlocProvider(
-                create: (context) => sl<OffersBloc>(),
-                child: BuyerOfferDetails(offerId: offerId),
-              );
+              return BuyerOfferDetails(offerId: offerId);
             },
           ),
           GoRoute(

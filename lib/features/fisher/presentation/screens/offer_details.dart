@@ -5,11 +5,14 @@ import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/types/enum.dart' hide OfferStatus;
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
@@ -17,8 +20,7 @@ import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
-import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 /// Helper extension to find the first element matching a test, or return null.
@@ -33,29 +35,12 @@ extension IterableExtensions<T> on Iterable<T> {
   }
 }
 
-/// Holds the necessary historical negotiation details for display.
-class PreviousOfferDetails {
-  final int price;
-  final int weight;
-  final int pricePerKg;
-
-  const PreviousOfferDetails({
-    required this.price,
-    required this.weight,
-    required this.pricePerKg,
-  });
-}
-
+/// Holds the necessary transaction details for display.
 class OfferTransactionData {
   final Buyer? buyer;
-  final Catch? catchSnapshot;
-  final PreviousOfferDetails? previousDetails;
+  final Catch catchItem;
 
-  const OfferTransactionData({
-    this.buyer,
-    this.previousDetails,
-    this.catchSnapshot,
-  });
+  const OfferTransactionData({this.buyer, required this.catchItem});
 }
 
 class FisherOfferDetails extends StatefulWidget {
@@ -70,6 +55,7 @@ class FisherOfferDetails extends StatefulWidget {
 class _FisherOfferDetailsState extends State<FisherOfferDetails> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final UserRepository _userRepository = sl<UserRepository>();
+  final ICatchRepository _catchRepository = sl<ICatchRepository>();
   Future<OfferTransactionData>? _transactionDataFuture;
   bool _hasMarkedAsViewed = false;
 
@@ -88,43 +74,23 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
       buyer = Buyer.fromMap(buyerMap);
     }
 
-    final Catch? catchSnapshot = await sl<CatchRepository>().getCatchById(
-      offer.catchId,
-    );
+    final Catch? catchItem = await _catchRepository.getById(offer.catchId);
 
-    PreviousOfferDetails? previousDetails;
-    final hasPreviousNegotiation =
-        offer.previousPrice != null &&
-        offer.previousWeight != null &&
-        offer.previousPricePerKg != null;
-
-    if (hasPreviousNegotiation) {
-      previousDetails = PreviousOfferDetails(
-        price: offer.previousPrice!,
-        weight: offer.previousWeight!,
-        pricePerKg: offer.previousPricePerKg!,
-      );
-    }
-
-    return OfferTransactionData(
-      buyer: buyer,
-      catchSnapshot: catchSnapshot,
-      previousDetails: previousDetails,
-    );
+    return OfferTransactionData(buyer: buyer, catchItem: catchItem!);
   }
 
   void _markOfferAsViewed(Offer offer, Role role) {
     if (role == Role.fisher &&
         offer.hasUpdateForFisher &&
         !_hasMarkedAsViewed) {
-      context.read<OffersBloc>().add(MarkOfferAsViewed(offer, role));
+      context.read<OffersCubit>().markOfferAsViewed(offer.id, UserRole.fisher);
       _hasMarkedAsViewed = true;
     }
   }
 
   void _dispatchGetOffer() {
     if (widget.offerId.isEmpty) return;
-    context.read<OffersBloc>().add(GetOfferById(widget.offerId));
+    context.read<OffersCubit>().loadById(widget.offerId);
   }
 
   @override
@@ -139,6 +105,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
     if (oldWidget.offerId != widget.offerId) {
       // Reset Future and fetch data on ID change
       _transactionDataFuture = null;
+      _hasMarkedAsViewed = false;
       _dispatchGetOffer();
     }
   }
@@ -155,44 +122,36 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
           );
         }
 
-        return BlocConsumer<OffersBloc, OffersState>(
+        return BlocConsumer<OffersCubit, OffersState>(
           listenWhen: (prev, curr) =>
-              curr is OfferActionSuccess || curr is OfferActionFailure,
+              curr.updatedOffer != null || curr.order != null,
           listener: (context, offerState) {
-            // Dismiss the loading dialog for ANY action completion (Success or Failure)
-            if (offerState is OfferActionSuccess ||
-                offerState is OfferActionFailure) {
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
+            // Handle Accept success: Show final dialog and prepare navigation
+            if (offerState.order != null) {
+              final orderId = offerState.order!.id;
+
+              showActionSuccessDialog(
+                context,
+                message: "Offer Successfully Accepted.",
+                actionTitle: "View Details",
+                onAction: () {
+                  context.pushReplacement("/fisher/order-details/$orderId");
+                },
+              );
             }
 
-            // Handle Accept success: Show final dialog and prepare navigation
-            if (offerState is OfferActionSuccess) {
-              if (offerState.action == 'Accept' &&
-                  offerState.orderId != null &&
-                  offerState.orderId!.isNotEmpty) {
-                final orderId = offerState.orderId!;
-
-                showActionSuccessDialog(
-                  context,
-                  message: "Offer Successfully Accepted.",
-                  actionTitle: "View Details",
-                  onAction: () {
-                    context.pushReplacement("/fisher/order-details/$orderId");
-                  },
-                );
-              }
-
-              // Handle Reject/Counter success: Show dialog without navigation
+            // Handle Reject/Counter success: Show dialog without navigation
+            if (offerState.updatedOffer != null && offerState.order == null) {
+              final updatedOffer = offerState.updatedOffer!;
               String message = '';
-              if (offerState.action == 'Reject') {
+
+              if (updatedOffer.status == OfferStatus.rejected) {
                 message = 'Offer Rejected!';
-              } else if (offerState.action == 'Counter') {
+              } else if (updatedOffer.status == OfferStatus.pending) {
                 message = 'Counter-Offer Sent!';
               }
 
-              if (message.isNotEmpty && offerState.action != 'Accept') {
+              if (message.isNotEmpty) {
                 showActionSuccessDialog(
                   context,
                   message: message,
@@ -202,25 +161,23 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
             }
           },
           builder: (context, offersState) {
-            if (offersState is OffersLoading || offersState is OffersInitial) {
+            if (offersState.loading && offersState.offers.isEmpty) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
-            final Offer? selectedOffer;
 
-            if (offersState is OfferDetailsLoaded) {
-              selectedOffer = offersState.offer;
-            } else if (offersState is OfferActionSuccess) {
-              selectedOffer = offersState.updatedOffer;
-            } else {
-              selectedOffer = null;
-            }
+            // Get the offer from state
+            final Offer? selectedOffer =
+                offersState.offers.firstWhereOrNull(
+                  (o) => o.id == widget.offerId,
+                ) ??
+                offersState.updatedOffer;
 
-            if (selectedOffer == null || selectedOffer.id != widget.offerId) {
-              final errorMessage = offersState is OffersError
-                  ? "Error loading offers: ${offersState.message}"
-                  : "Offer with ID ${widget.offerId} not found or mismatch.";
+            if (selectedOffer == null) {
+              final errorMessage =
+                  offersState.error ??
+                  "Offer with ID ${widget.offerId} not found.";
 
               return Scaffold(
                 appBar: AppBar(
@@ -242,7 +199,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
 
             return FutureBuilder<OfferTransactionData>(
               key: ValueKey('${selectedOffer.id}-${selectedOffer.dateCreated}'),
-              future: _loadTransactionData(selectedOffer),
+              future: _transactionDataFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Scaffold(
@@ -252,9 +209,14 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
 
                 final transactionData = snapshot.data;
                 final Buyer? buyer = transactionData?.buyer;
-                final Catch? catchSnapshot = transactionData?.catchSnapshot;
-                final PreviousOfferDetails? previous =
-                    transactionData?.previousDetails;
+                final Catch catchSnapshot = transactionData!.catchItem;
+
+                // Get catch image and name
+                final catchImageUrl = catchSnapshot.images.isNotEmpty == true
+                    ? catchSnapshot.images.first
+                    : "assets/images/prawns.jpg";
+                final catchName =
+                    catchSnapshot?.species.name ?? "Unknown Catch";
 
                 return Scaffold(
                   appBar: AppBar(
@@ -275,12 +237,10 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                             GestureDetector(
                               onTap: () {
                                 final ImageProvider imageProvider =
-                                    selectedOffer!.catchImageUrl.startsWith(
-                                      'http',
-                                    )
-                                    ? NetworkImage(selectedOffer.catchImageUrl)
+                                    catchImageUrl.startsWith('http')
+                                    ? NetworkImage(catchImageUrl)
                                           as ImageProvider
-                                    : AssetImage(selectedOffer.catchImageUrl);
+                                    : AssetImage(catchImageUrl);
 
                                 showImageViewer(
                                   context,
@@ -296,21 +256,27 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                               },
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  selectedOffer!.catchImageUrl,
-                                  // Use the safely determined URL
-                                  // Use Catch image URL
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Image.asset(
-                                        "assets/images/prawns.jpg",
+                                child: catchImageUrl.startsWith('http')
+                                    ? Image.network(
+                                        catchImageUrl,
+                                        width: 60,
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Image.asset(
+                                                  "assets/images/prawns.jpg",
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                      )
+                                    : Image.asset(
+                                        catchImageUrl,
                                         width: 60,
                                         height: 60,
                                         fit: BoxFit.cover,
                                       ),
-                                ),
                               ),
                             ),
                             Expanded(
@@ -322,7 +288,7 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    selectedOffer.catchName, // Use Catch name
+                                    catchName,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 16,
@@ -334,8 +300,8 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                                     children: [
                                       Text(
                                         selectedOffer.dateCreated
+                                            .toIso8601String()
                                             .toFormattedDate(),
-                                        // Use actual status
                                         style: const TextStyle(
                                           fontSize: 12,
                                           color: AppColors.gray650,
@@ -395,32 +361,41 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                             rows: [
                               InfoRow(
                                 label: "Total Weight",
-                                value: formatWeight(selectedOffer.weight),
+                                value:
+                                    "${selectedOffer.currentTerms.weight.kilograms} kg",
                               ),
                               InfoRow(
                                 label: "Price/Kg",
-                                value: formatPrice(selectedOffer.pricePerKg),
+                                value: formatPrice(
+                                  selectedOffer
+                                      .currentTerms
+                                      .pricePerKg
+                                      .amountPerKg,
+                                ),
                               ),
                               InfoRow(
                                 label: "Total",
-                                value: formatPrice(selectedOffer.price),
+                                value: formatPrice(
+                                  selectedOffer.currentTerms.totalPrice.amount,
+                                ),
                               ),
                             ],
                           ),
                         ),
 
                         // Offer Actions Section
-                        OfferActions(
-                          offer: selectedOffer,
-                          formKey: _formKey,
-                          currentUserRole: Role.fisher,
-                          catchItem: catchSnapshot!,
-                          onNavigateToOrder: (offerId) {
-                            context.pushReplacement(
-                              "/fisher/order-details/$offerId",
-                            );
-                          },
-                        ),
+                        if (selectedOffer.status != OfferStatus.rejected)
+                          OfferActions(
+                            offer: selectedOffer,
+                            formKey: _formKey,
+                            currentUserRole: UserRole.fisher,
+                            catchItem: catchSnapshot,
+                            onNavigateToOrder: (orderId) {
+                              context.pushReplacement(
+                                "/fisher/order-details/$orderId",
+                              );
+                            },
+                          ),
 
                         // Rejection Message
                         if (selectedOffer.status == OfferStatus.rejected)
@@ -446,10 +421,9 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                               ),
                             ],
                           ),
-                        // Removed SizedBox(height: 8) after rejection message
 
                         // Previous Counter-Offer Details
-                        if (previous != null) ...[
+                        if (selectedOffer.previousTerms != null) ...[
                           const SectionHeader("Last Counter-Offer"),
 
                           Container(
@@ -462,22 +436,30 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                               rows: [
                                 InfoRow(
                                   label: "Weight",
-                                  value: formatWeight(previous.weight),
+                                  value:
+                                      "${selectedOffer.previousTerms!.weight.kilograms} kg",
                                 ),
                                 InfoRow(
                                   label: "Price",
-                                  value: formatPrice(previous.price.toDouble()),
+                                  value: formatPrice(
+                                    selectedOffer
+                                        .previousTerms!
+                                        .totalPrice
+                                        .amount,
+                                  ),
                                 ),
                                 InfoRow(
                                   label: "Price Per Kg",
                                   value: formatPrice(
-                                    previous.pricePerKg.toDouble(),
+                                    selectedOffer
+                                        .previousTerms!
+                                        .pricePerKg
+                                        .amountPerKg,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          // Removed SizedBox(height: 8) after counter-offer details
                         ],
 
                         // Offer Header / Buyer Info Section

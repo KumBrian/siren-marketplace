@@ -1,6 +1,7 @@
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+
 import '../../../../core/models/app_user.dart';
-import '../../../../core/models/catch.dart';
-import '../../../../core/models/offer.dart' show Offer;
 import '../../../../core/types/enum.dart' show Role;
 
 class Fisher extends AppUser {

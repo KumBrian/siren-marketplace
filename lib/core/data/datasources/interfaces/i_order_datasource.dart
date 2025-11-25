@@ -4,6 +4,8 @@ import '../../models/order_model.dart';
 abstract class IOrderDataSource {
   Future<String> create(OrderModel order);
 
+  Future<List<OrderModel>> getAllOrders();
+
   Future<OrderModel?> getById(String orderId);
 
   Future<OrderModel?> getByOfferId(String offerId);

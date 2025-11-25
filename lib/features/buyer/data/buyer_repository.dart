@@ -1,5 +1,5 @@
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
