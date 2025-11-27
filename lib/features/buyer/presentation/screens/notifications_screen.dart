@@ -12,10 +12,9 @@ import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/offer_card.dart';
-import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/users_bloc/users_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 class BuyerNotificationsScreen extends StatefulWidget {
   const BuyerNotificationsScreen({super.key});
@@ -59,16 +58,6 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
       // Load buyer-specific offers using OffersCubit
       final offersCubit = context.read<OffersCubit>();
       offersCubit.loadForBuyer(user.id);
-
-      // Load fisher users for the offers
-      final usersCubit = context.read<UsersCubit>();
-      final fisherIds = offersCubit.state.offers
-          .map((offer) => offer.fisherId)
-          .toSet()
-          .toList();
-      if (fisherIds.isNotEmpty) {
-        usersCubit.loadByIds(fisherIds);
-      }
 
       // Load conversations
       final conversationsBloc = context.read<ConversationsBloc>();
@@ -453,8 +442,13 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
 
                   return RefreshIndicator(
                     onRefresh: _loadBuyerData,
-                    child: BlocBuilder<UsersCubit, UsersState>(
+                    child: BlocBuilder<UserCubit, UserState>(
                       builder: (context, usersState) {
+                        if (usersState is! UserLoaded) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
                         return ListView.separated(
                           padding: const EdgeInsets.only(bottom: 80, top: 16),
                           itemCount: filteredOffers.length,
@@ -462,7 +456,9 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
                               const SizedBox(height: 8),
                           itemBuilder: (context, index) {
                             final offer = filteredOffers[index];
-                            final fisher = usersState.users[offer.fisherId];
+                            final fisher = context
+                                .read<UserCubit>()
+                                .getUserFromCache(offer.fisherId);
 
                             return OfferCard(
                               offer: offer,
@@ -471,8 +467,8 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
                                   "/buyer/offer-details/${offer.id}",
                                 );
                               },
-                              fisherName: fisher?.name ?? 'Unknown Fisher',
-                              fisherRating: fisher?.rating.value ?? 0.0,
+                              fisherName: fisher!.name,
+                              fisherRating: fisher.rating.value,
                             );
                           },
                         );

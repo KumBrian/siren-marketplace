@@ -26,7 +26,11 @@ class OrderRepositoryImpl implements IOrderRepository {
   Future<Order> getById(String orderId) async {
     final model = await dataSource.getById(orderId);
     if (model == null) {
-      throw NotFoundException(entityType: 'Order', entityId: orderId);
+      throw NotFoundException(
+        "Order not found",
+        entityType: 'Order',
+        entityId: orderId,
+      );
     }
     return OrderMapper.toEntity(model);
   }

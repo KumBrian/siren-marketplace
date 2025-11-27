@@ -10,12 +10,10 @@ import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_tr
 import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_state.dart';
 import 'package:siren_marketplace/constants/constants.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
-import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/order.dart';
+import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/domain/enums/order_status.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
@@ -27,13 +25,13 @@ import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/orders_bloc/orders_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 class OrderDependencies {
   final Catch catchItem;
-  final Buyer? buyer;
+  final User? buyer;
 
   const OrderDependencies({required this.catchItem, this.buyer});
 }
@@ -49,10 +47,6 @@ class OrderDetails extends StatefulWidget {
 
 class _OrderDetailsState extends State<OrderDetails> {
   final FocusNode _buttonFocusNode = FocusNode(debugLabel: 'Repost Menu');
-
-  // ⛔️ REMOVED: OrderDetailState? _lastOrderDetailsState;
-  final UserRepository _userRepository = sl<UserRepository>();
-  final ICatchRepository _catchRepository = sl<ICatchRepository>();
 
   Future<OrderDependencies>? _orderDependenciesFuture;
 
@@ -96,18 +90,18 @@ class _OrderDetailsState extends State<OrderDetails> {
     super.dispose();
   }
 
-  Future<OrderDependencies> _loadDependencies(Order order) async {
+  Future<OrderDependencies> _loadDependencies(
+    Order order,
+    BuildContext context,
+  ) async {
     try {
-      final catchItem = await _catchRepository.getById(order.catchId);
+      final catchItem = await context.read<CatchesCubit>().loadById(
+        order.catchId,
+      );
 
-      final Map<String, dynamic>? buyerMap = await _userRepository
-          .getUserMapById(order.buyerId)
-          .timeout(const Duration(seconds: 10));
-
-      Buyer? buyer;
-      if (buyerMap != null) {
-        buyer = Buyer.fromMap(buyerMap);
-      }
+      final User? buyer = await context.read<UserCubit>().loadById(
+        order.buyerId,
+      );
 
       return OrderDependencies(catchItem: catchItem!, buyer: buyer);
     } on TimeoutException {
@@ -134,6 +128,7 @@ class _OrderDetailsState extends State<OrderDetails> {
             setState(() {
               _orderDependenciesFuture = _loadDependencies(
                 state.selectedOrder!,
+                context,
               );
             });
           }
@@ -184,7 +179,7 @@ class _OrderDetailsState extends State<OrderDetails> {
 
         final selectedOrder = state.selectedOrder!;
 
-        _orderDependenciesFuture ??= _loadDependencies(selectedOrder);
+        _orderDependenciesFuture ??= _loadDependencies(selectedOrder, context);
 
         return FutureBuilder<OrderDependencies>(
           future: _orderDependenciesFuture,
@@ -264,7 +259,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                 buyer?.name ?? 'Buyer ID: ${selectedOrder.buyerId}';
             final buyerAvatar =
                 buyer?.avatarUrl ?? "assets/images/user-profile.png";
-            final buyerRating = buyer?.rating ?? 0.0;
+
             final buyerReviewCount = buyer?.reviewCount ?? 0;
 
             final String imageUrl = catchItem.images.isNotEmpty
@@ -274,13 +269,12 @@ class _OrderDetailsState extends State<OrderDetails> {
             // ---------------------------------------------------------------
             // UI SECTION - UNCHANGED
             // ---------------------------------------------------------------
-            return BlocBuilder<UserBloc, UserState>(
+            return BlocBuilder<UserCubit, UserState>(
               builder: (context, userState) {
                 if (userState is UserLoaded) {
                   final user = userState.user;
                   final buyerId = selectedOrder.buyerId;
                   final String ratedUserName = buyerName;
-                  final bool hasRatedBuyer = selectedOrder.hasReviewFromFisher;
                   return Scaffold(
                     appBar: AppBar(
                       leading: BackButton(onPressed: () => context.pop()),
@@ -621,7 +615,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                             borderRadius: BorderRadius.circular(16),
                             child: InkWell(
                               onTap: () {
-                                context.push("/fisher/reviews/${buyer?.id}");
+                                context.push("/fisher/reviews/${buyer.id}");
                               },
                               borderRadius: BorderRadius.circular(16),
                               splashColor: AppColors.blue700.withValues(
@@ -660,7 +654,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                                                 size: 16,
                                               ),
                                               Text(
-                                                buyerRating.toStringAsFixed(1),
+                                                buyer!.rating.value
+                                                    .toStringAsFixed(1),
                                                 // Use buyer rating
                                                 style: const TextStyle(
                                                   color: AppColors.textBlue,

@@ -15,9 +15,9 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/multi_select_dropdown.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_card.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 class BuyerHome extends StatefulWidget {
   const BuyerHome({super.key});
@@ -47,13 +47,13 @@ class _BuyerHomeState extends State<BuyerHome> {
   @override
   Widget build(BuildContext context) {
     if (!_hasLoadedOffers) {
-      final userState = context.read<UserBloc>().state;
+      final userState = context.read<UserCubit>().state;
       if (userState is UserLoaded) {
         context.read<OffersCubit>().loadForBuyer(userState.user!.id);
         _hasLoadedOffers = true;
       }
     }
-    return BlocListener<UserBloc, UserState>(
+    return BlocListener<UserCubit, UserState>(
       listenWhen: (prev, current) => !_hasLoadedOffers && current is UserLoaded,
       listener: (context, userState) {
         if (userState is UserLoaded) {

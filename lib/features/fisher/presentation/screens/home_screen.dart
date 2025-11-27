@@ -8,16 +8,15 @@ import 'package:siren_marketplace/core/domain/entities/order.dart';
 import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/order_status.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart'
-    hide CatchStatus, OfferStatus;
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/orders_bloc/orders_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/for_sale_card.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/sold_card.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_cubit.dart';
 
 // Professional data structure for the list view
 class SoldItemData {
@@ -39,8 +38,8 @@ class _FisherHomeState extends State<FisherHome> {
   void initState() {
     super.initState();
 
-    final userState = context.read<UserBloc>().state;
-    if (userState is UserLoaded && userState.role == Role.fisher) {
+    final userState = context.read<UserCubit>().state;
+    if (userState is UserLoaded && userState.role == UserRole.fisher) {
       final fisherId = userState.user!.id;
 
       // Load data using new cubits
@@ -62,10 +61,10 @@ class _FisherHomeState extends State<FisherHome> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<UserBloc, UserState>(
+    return BlocListener<UserCubit, UserState>(
       listenWhen: (prev, curr) => prev != curr && curr is UserLoaded,
       listener: (context, userState) {
-        if (userState is UserLoaded && userState.role == Role.fisher) {
+        if (userState is UserLoaded && userState.role == UserRole.fisher) {
           final fisherId = userState.user!.id;
 
           // Load data using new cubits
@@ -89,7 +88,7 @@ class _FisherHomeState extends State<FisherHome> {
           actions: [
             BlocBuilder<OffersCubit, OffersState>(
               builder: (context, offersState) {
-                return BlocBuilder<UserBloc, UserState>(
+                return BlocBuilder<UserCubit, UserState>(
                   builder: (context, userState) {
                     if (userState is! UserLoaded) {
                       return IconButton(
@@ -128,7 +127,7 @@ class _FisherHomeState extends State<FisherHome> {
             ),
           ],
         ),
-        body: BlocBuilder<UserBloc, UserState>(
+        body: BlocBuilder<UserCubit, UserState>(
           builder: (context, userState) {
             if (userState is UserLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -138,7 +137,7 @@ class _FisherHomeState extends State<FisherHome> {
                 child: Text("Error loading user: ${userState.message}"),
               );
             }
-            if (userState is! UserLoaded || userState.role != Role.fisher) {
+            if (userState is! UserLoaded || userState.role != UserRole.fisher) {
               return const Center(child: Text("Access Denied: Not a Fisher."));
             }
 

@@ -1,6 +1,7 @@
 enum UserRole {
   fisher,
-  buyer;
+  buyer,
+  unknown;
 
   String get displayName {
     switch (this) {
@@ -8,6 +9,8 @@ enum UserRole {
         return 'Fisher';
       case UserRole.buyer:
         return 'Buyer';
+      case UserRole.unknown:
+        return 'Unknown';
     }
   }
 

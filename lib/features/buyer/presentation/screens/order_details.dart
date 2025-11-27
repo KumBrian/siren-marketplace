@@ -17,9 +17,9 @@ import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/orders_bloc/orders_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/users_bloc/users_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 class BuyerOrderDetails extends StatefulWidget {
   const BuyerOrderDetails({super.key, required this.orderId});
@@ -48,7 +48,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
         if (state.selectedOrder != null) {
           final order = state.selectedOrder!;
           context.read<CatchesCubit>().loadById(order.catchId);
-          context.read<UsersCubit>().loadById(order.fisherId);
+          context.read<UserCubit>().loadById(order.fisherId);
         }
       },
       builder: (context, ordersState) {
@@ -94,9 +94,12 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                 .where((c) => c.id == order.catchId)
                 .firstOrNull;
 
-            return BlocBuilder<UsersCubit, UsersState>(
+            return BlocBuilder<UserCubit, UserState>(
               builder: (context, usersState) {
-                final fisher = usersState.users[order.fisherId];
+                if (usersState is! UserLoaded) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final fisher = usersState.user;
 
                 if (catchItem == null || fisher == null) {
                   return Scaffold(

@@ -4,20 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
 import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/widgets/counter_offer_dialog.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
-import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
 
 void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
   showDialog(
@@ -115,7 +114,7 @@ class OfferActions extends StatefulWidget {
 }
 
 class _OfferActionsState extends State<OfferActions> {
-  final UserRepository _userRepository = sl<UserRepository>();
+  final IUserRepository _userRepository = sl<IUserRepository>();
 
   @override
   void dispose() {
@@ -127,19 +126,24 @@ class _OfferActionsState extends State<OfferActions> {
       Navigator.of(confirmDialogContext).pop();
     }
 
-    final catchItem = widget.catchItem;
-
     if (!context.mounted) return;
     showLoadingDialog(context, message: 'Loading...');
 
     try {
-      final fisherMap = await _userRepository.getUserMapById(
-        widget.offer.fisherId,
-      );
+      final fisherUser = await _userRepository.getById(widget.offer.fisherId);
+
+      if (fisherUser == null) {
+        if (!context.mounted) return;
+        Navigator.of(context).pop();
+        await showActionSuccessDialog(
+          context,
+          message: 'Fisher not found',
+          autoCloseSeconds: 3,
+        );
+        return;
+      }
 
       if (!context.mounted) return;
-
-      final fisher = Fisher.fromMap(fisherMap);
 
       context.read<OffersCubit>().acceptOffer(
         widget.offer.id,

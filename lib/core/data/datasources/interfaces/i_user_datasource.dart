@@ -16,4 +16,8 @@ abstract class IUserDataSource {
   });
 
   Future<bool> exists(String userId);
+
+  Future<UserModel?> getFirstFisher();
+
+  Future<UserModel?> getFirstBuyer();
 }

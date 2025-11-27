@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/features/user/data/models/profile_route.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/profile_route_widget.dart';
@@ -29,7 +29,7 @@ class UserProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Role userRole = roleFromString(role);
+    final UserRole userRole = roleFromString(role);
     return Scaffold(
       appBar: AppBar(
         title: Image.asset(

@@ -32,7 +32,7 @@ class CatchesCubit extends Cubit<CatchesState> {
   }
 
   /// Load a single catch by ID
-  Future<void> loadById(String catchId) async {
+  Future<Catch?> loadById(String catchId) async {
     emit(state.copyWith(loading: true, error: null));
 
     try {
@@ -40,10 +40,13 @@ class CatchesCubit extends Cubit<CatchesState> {
 
       // Update the catches list with this single catch
       emit(state.copyWith(loading: false, catches: [catchItem!]));
+      return catchItem;
     } on NotFoundException catch (e) {
       emit(state.copyWith(loading: false, error: e.message));
+      return null;
     } on DomainException catch (e) {
       emit(state.copyWith(loading: false, error: e.message));
+      return null;
     } catch (e) {
       emit(
         state.copyWith(
@@ -52,6 +55,7 @@ class CatchesCubit extends Cubit<CatchesState> {
         ),
       );
     }
+    return null;
   }
 
   /// Load multiple catches by IDs

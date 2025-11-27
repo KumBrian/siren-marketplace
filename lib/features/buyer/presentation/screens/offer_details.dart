@@ -27,9 +27,9 @@ import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 
 import 'package:siren_marketplace/core/domain/services/session_service.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/users_bloc/users_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 class OfferTransactionData {
   final User? fisher;
@@ -69,14 +69,14 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
       setState(() {
         _currentUserId = user.id;
       });
-      context.read<UsersCubit>().loadById(user.id);
+      context.read<UserCubit>().loadById(user.id);
     }
   }
 
   Future<OfferTransactionData> _loadTransactionData(Offer offer) async {
     // Load Fisher
-    final usersCubit = context.read<UsersCubit>();
-    if (usersCubit.getUserFromCache(offer.fisherId) == null) {
+    final usersCubit = context.read<UserCubit>();
+    if (usersCubit.state is! UserLoaded) {
       await usersCubit.loadById(offer.fisherId);
     }
     final fisher = usersCubit.getUserFromCache(offer.fisherId);
@@ -271,10 +271,15 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    BlocBuilder<UsersCubit, UsersState>(
+                    BlocBuilder<UserCubit, UserState>(
                       builder: (context, usersState) {
+                        if (usersState is! UserLoaded) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
                         final user = _currentUserId != null
-                            ? usersState.users[_currentUserId]
+                            ? usersState.user
                             : null;
                         return CustomButton(
                           title: "Send Offer",
@@ -382,11 +387,12 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UsersCubit, UsersState>(
+    return BlocBuilder<UserCubit, UserState>(
       builder: (context, usersState) {
-        final currentUser = _currentUserId != null
-            ? usersState.users[_currentUserId]
-            : null;
+        if (usersState is! UserLoaded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final currentUser = _currentUserId != null ? usersState.user : null;
         final UserRole? role = currentUser?.currentRole;
 
         if (role == null) {

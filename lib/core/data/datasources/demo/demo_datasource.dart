@@ -9,6 +9,7 @@ import '../../models/order_model.dart';
 import '../../models/review_model.dart';
 import '../../models/species_model.dart';
 import '../../models/user_model.dart';
+import '../../../domain/enums/user_role.dart';
 import '../interfaces/i_catch_datasource.dart';
 import '../interfaces/i_offer_datasource.dart';
 import '../interfaces/i_order_datasource.dart';
@@ -71,8 +72,33 @@ class DemoUserDataSource implements IUserDataSource {
 
   @override
   Future<bool> exists(String userId) async {
-    await Future.delayed(Duration(milliseconds: 50));
-    return _users.containsKey(userId);
+    // Original: await Future.delayed(Duration(milliseconds: 50));
+    // Original: return _users.containsKey(userId);
+    return _users.values.any((u) => u.id == userId);
+  }
+
+  @override
+  Future<UserModel?> getFirstFisher() async {
+    await Future.delayed(
+      Duration(milliseconds: 100),
+    ); // Simulate async operation
+    try {
+      return _users.values.firstWhere((u) => u.currentRole == UserRole.fisher);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<UserModel?> getFirstBuyer() async {
+    await Future.delayed(
+      Duration(milliseconds: 100),
+    ); // Simulate async operation
+    try {
+      return _users.values.firstWhere((u) => u.currentRole == UserRole.buyer);
+    } catch (e) {
+      return null;
+    }
   }
 }
 
