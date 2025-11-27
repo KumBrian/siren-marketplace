@@ -60,7 +60,27 @@ class UserRepositoryImpl implements IUserRepository {
   }
 
   @override
+  Future<void> create(User user) async {
+    final model = UserMapper.toModel(user);
+    await dataSource.create(model);
+  }
+
+  @override
   Future<bool> exists(String userId) async {
     return await dataSource.exists(userId);
+  }
+
+  @override
+  Future<User?> getFirstFisher() async {
+    final model = await dataSource.getFirstFisher();
+    if (model == null) return null;
+    return UserMapper.toEntity(model);
+  }
+
+  @override
+  Future<User?> getFirstBuyer() async {
+    final model = await dataSource.getFirstBuyer();
+    if (model == null) return null;
+    return UserMapper.toEntity(model);
   }
 }

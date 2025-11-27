@@ -14,7 +14,7 @@ import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
 
 class NotificationsScreen extends StatefulWidget {

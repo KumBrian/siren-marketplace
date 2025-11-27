@@ -24,4 +24,13 @@ abstract class IUserRepository {
 
   /// Check if user exists
   Future<bool> exists(String userId);
+
+  /// Create a new user
+  Future<void> create(User user);
+
+  /// Get the first user with role fisher (for demo/dev purposes)
+  Future<User?> getFirstFisher();
+
+  /// Get the first user with role buyer (for demo/dev purposes)
+  Future<User?> getFirstBuyer();
 }

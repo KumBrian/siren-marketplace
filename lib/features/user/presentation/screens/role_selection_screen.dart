@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/role_button.dart';
 
 class RoleScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class RoleScreen extends StatefulWidget {
 
 class _RoleScreenState extends State<RoleScreen> {
   // Local state to hold the currently selected role for UI
-  Role _selectedRole = Role.unknown;
+  UserRole _selectedRole = UserRole.unknown;
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +34,10 @@ class _RoleScreenState extends State<RoleScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: BlocConsumer<UserBloc, UserState>(
+          child: BlocConsumer<UserCubit, UserState>(
             listener: (context, state) {
               // Initialize selection on first load
-              if (state is UserLoaded && _selectedRole == Role.unknown) {
+              if (state is UserLoaded && _selectedRole == UserRole.unknown) {
                 setState(() {
                   _selectedRole = state.role;
                 });
@@ -47,20 +48,20 @@ class _RoleScreenState extends State<RoleScreen> {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!mounted) return;
                   setState(() {
-                    _selectedRole = Role.unknown;
+                    _selectedRole = UserRole.unknown;
                   });
                 });
               }
 
               if (state is UserLoaded) {
                 // safe navigation after state settled
-                if (state.role == Role.buyer) {
+                if (state.role == UserRole.buyer) {
                   // use addPostFrame to be extra safe
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!mounted) return;
                     context.go('/buyer');
                   });
-                } else if (state.role == Role.fisher) {
+                } else if (state.role == UserRole.fisher) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (!mounted) return;
                     context.go('/fisher');
@@ -74,7 +75,7 @@ class _RoleScreenState extends State<RoleScreen> {
 
               // Disable button if loading or unknown selection
               final buttonDisabled =
-                  isLoading || _selectedRole == Role.unknown || isError;
+                  isLoading || _selectedRole == UserRole.unknown || isError;
 
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 60.0),
@@ -111,9 +112,9 @@ class _RoleScreenState extends State<RoleScreen> {
                         RoleButton(
                           title: "Fisher",
                           icon: "assets/icons/fisher.png",
-                          isActive: _selectedRole == Role.fisher,
+                          isActive: _selectedRole == UserRole.fisher,
                           onPressed: () =>
-                              setState(() => _selectedRole = Role.fisher),
+                              setState(() => _selectedRole = UserRole.fisher),
                         ),
                         const SizedBox(height: 20),
                         RoleButton(
@@ -121,7 +122,7 @@ class _RoleScreenState extends State<RoleScreen> {
                           icon: "assets/icons/buyer.png",
                           isActive: _selectedRole == Role.buyer,
                           onPressed: () =>
-                              setState(() => _selectedRole = Role.buyer),
+                              setState(() => _selectedRole = UserRole.buyer),
                         ),
                       ],
                     ),
@@ -138,8 +139,8 @@ class _RoleScreenState extends State<RoleScreen> {
                       suffixIcon: CupertinoIcons.chevron_forward,
                       onPressed: () {
                         // 1. Emit the Finalize event to load the user profile
-                        context.read<UserBloc>().add(
-                          FinalizeRoleSelection(_selectedRole),
+                        context.read<UserCubit>().finalizeRoleSelection(
+                          _selectedRole,
                         );
                       },
                     ),

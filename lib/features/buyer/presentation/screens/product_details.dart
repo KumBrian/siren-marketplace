@@ -18,9 +18,9 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/users_bloc/users_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 class ProductDetails extends StatefulWidget {
   const ProductDetails({super.key, required this.productId});
@@ -325,7 +325,7 @@ class _ProductDetailsState extends State<ProductDetails> {
             .firstOrNull;
 
         if (catchItem != null) {
-          context.read<UsersCubit>().loadById(catchItem.fisherId);
+          context.read<UserCubit>().loadById(catchItem.fisherId);
         }
       },
       builder: (context, catchesState) {
@@ -486,9 +486,14 @@ class _ProductDetailsState extends State<ProductDetails> {
 
                         const SectionHeader("Seller"),
 
-                        BlocBuilder<UsersCubit, UsersState>(
+                        BlocBuilder<UserCubit, UserState>(
                           builder: (context, usersState) {
-                            final fisher = usersState.users[catchItem.fisherId];
+                            if (usersState is! UserLoaded) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
+                            final fisher = usersState.user;
 
                             if (fisher == null) {
                               return const CircularProgressIndicator();

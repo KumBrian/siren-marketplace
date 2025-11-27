@@ -8,7 +8,7 @@ import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/user/data/models/profile_route.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/profile_route_widget.dart';
 
 List<ProfileRoute> profileRoutes = [
@@ -56,7 +56,7 @@ class AccountInfo extends StatelessWidget {
         title: PageTitle(title: "Account Info"),
         centerTitle: true,
       ),
-      body: BlocBuilder<UserBloc, UserState>(
+      body: BlocBuilder<UserCubit, UserState>(
         builder: (context, userState) {
           if (userState is UserLoaded) {
             final user = userState.user;
@@ -69,7 +69,7 @@ class AccountInfo extends StatelessWidget {
                     children: [
                       ClipOval(
                         child: Image.network(
-                          user!.avatarUrl,
+                          user!.avatarUrl!,
                           fit: BoxFit.cover,
                           height: 150,
                           width: 150,
@@ -91,7 +91,7 @@ class AccountInfo extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            roleToString(user.role).capitalize(),
+                            roleToString(user.currentRole).capitalize(),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
@@ -115,7 +115,7 @@ class AccountInfo extends StatelessWidget {
                         profileRoutes.length,
                         (index) => ProfileRouteWidget(
                           profileRoute: profileRoutes[index],
-                          role: user.role,
+                          role: user.currentRole,
                         ),
                       ),
                     ),

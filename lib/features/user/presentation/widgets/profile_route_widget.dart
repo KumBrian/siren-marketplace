@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/features/user/data/models/profile_route.dart';
 
 class ProfileRouteWidget extends StatelessWidget {
@@ -10,7 +10,7 @@ class ProfileRouteWidget extends StatelessWidget {
 
   static const String routeName = '/user-profile';
   final ProfileRoute profileRoute;
-  final Role? role;
+  final UserRole? role;
 
   @override
   Widget build(BuildContext context) {

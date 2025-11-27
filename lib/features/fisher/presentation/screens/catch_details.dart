@@ -14,7 +14,6 @@ import 'package:siren_marketplace/core/domain/value_objects/price_per_kg.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart' hide OfferStatus;
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
@@ -24,10 +23,10 @@ import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/data/models/message.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 List<Message> PLACEHOLDER_MESSAGES = [
   // Example data
@@ -117,7 +116,7 @@ class _CatchDetailsState extends State<CatchDetails>
               title: "Accept",
               onPressed: () {
                 // Get fisher ID from user state
-                final userState = context.read<UserBloc>().state;
+                final userState = context.read<UserCubit>().state;
                 if (userState is UserLoaded) {
                   context.read<CatchesCubit>().deleteCatch(
                     selectedCatch.id,

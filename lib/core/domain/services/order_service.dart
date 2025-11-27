@@ -1,21 +1,17 @@
 import '../entities/order.dart';
 import '../enums/order_status.dart';
 import '../repositories/i_catch_repository.dart';
-import '../repositories/i_offer_repository.dart';
 import '../repositories/i_order_repository.dart';
 
 /// Service handling order lifecycle operations
 class OrderService {
   final IOrderRepository _orderRepository;
-  final IOfferRepository _offerRepository;
   final ICatchRepository _catchRepository;
 
   OrderService({
     required IOrderRepository orderRepository,
-    required IOfferRepository offerRepository,
     required ICatchRepository catchRepository,
   }) : _orderRepository = orderRepository,
-       _offerRepository = offerRepository,
        _catchRepository = catchRepository;
 
   /// Get all orders for a user
@@ -34,9 +30,6 @@ class OrderService {
     required String userId,
   }) async {
     final order = await _orderRepository.getById(orderId);
-    if (order == null) {
-      throw ArgumentError('Order not found');
-    }
 
     // Validate user is part of the order
     if (order.fisherId != userId && order.buyerId != userId) {
@@ -58,9 +51,6 @@ class OrderService {
     required String userId,
   }) async {
     final order = await _orderRepository.getById(orderId);
-    if (order == null) {
-      throw ArgumentError('Order not found');
-    }
 
     // Validate user is part of the order
     if (order.fisherId != userId && order.buyerId != userId) {

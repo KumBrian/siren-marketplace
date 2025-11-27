@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/core/widgets/text_input_field.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 class PersonalInformation extends StatefulWidget {
   const PersonalInformation({super.key});
@@ -28,7 +28,7 @@ class _PersonalInformationState extends State<PersonalInformation> {
         ),
         centerTitle: true,
       ),
-      body: BlocBuilder<UserBloc, UserState>(
+      body: BlocBuilder<UserCubit, UserState>(
         builder: (context, userState) {
           if (userState is! UserLoaded) return const SizedBox();
 
@@ -58,7 +58,7 @@ class _PersonalInformationState extends State<PersonalInformation> {
                         keyboardType: TextInputType.name,
                       ),
                       const SizedBox(height: 24),
-                      DropdownButtonFormField<Role>(
+                      DropdownButtonFormField<UserRole>(
                         initialValue: role,
                         decoration: InputDecoration(
                           border: const UnderlineInputBorder(),
@@ -71,17 +71,17 @@ class _PersonalInformationState extends State<PersonalInformation> {
                         ),
                         items: const [
                           DropdownMenuItem(
-                            value: Role.fisher,
+                            value: UserRole.fisher,
                             child: Text("Fisher"),
                           ),
                           DropdownMenuItem(
-                            value: Role.buyer,
+                            value: UserRole.buyer,
                             child: Text("Buyer"),
                           ),
                         ],
                         onChanged: (v) {
                           if (v != null) {
-                            // context.read<UserBloc>().add(FinalizeRoleSelection(v));
+                            context.read<UserCubit>().finalizeRoleSelection(v);
                           }
                         },
                       ),

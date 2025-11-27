@@ -14,23 +14,22 @@ import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_fil
 import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filter_cubit.dart';
 // DB, Notifier, Feature Repos
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
+// import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
 
 import 'package:siren_marketplace/features/chat/data/conversation_repository.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/data/fisher_repository.dart';
-import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/orders_bloc/orders_cubit.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/users_bloc/users_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 import '../config/app_config.dart';
 import '../data/datasources/demo/demo_datasource.dart';
+import '../data/datasources/interfaces/i_user_datasource.dart';
+import '../data/datasources/local/local_datasource_factory.dart';
 import '../data/repositories/catch_repository_impl.dart';
 import '../data/repositories/offer_repository_impl.dart';
 import '../data/repositories/order_repository_impl.dart';
@@ -78,7 +77,8 @@ Future<void> initDependencies() async {
       break;
 
     case DataSourceMode.local:
-      throw UnimplementedError("Local mode not implemented");
+      _initLocalMode(dbHelper);
+      break;
 
     case DataSourceMode.api:
       throw UnimplementedError("API mode not implemented");
@@ -110,11 +110,7 @@ Future<void> initDependencies() async {
   );
 
   sl.registerLazySingleton(
-    () => OrderService(
-      orderRepository: sl(),
-      offerRepository: sl(),
-      catchRepository: sl(),
-    ),
+    () => OrderService(orderRepository: sl(), catchRepository: sl()),
   );
 
   sl.registerLazySingleton(
@@ -159,8 +155,33 @@ void _initDemoMode() {
   );
 
   // Feature-layer repos (from second DI file)
-  sl.registerLazySingleton(() => UserRepository(dbHelper: sl()));
-  sl.registerLazySingleton(() => FisherRepository(dbHelper: sl()));
+  // Note: In a full refactor, these should also use IRepository interfaces
+  sl.registerLazySingleton(() => ConversationRepository(dbHelper: sl()));
+}
+
+// ============================================================================
+// LOCAL MODE
+// ============================================================================
+void _initLocalMode(DatabaseHelper dbHelper) {
+  final local = LocalDataSourceFactory.create(dbHelper);
+
+  // Register Data Sources
+  sl.registerLazySingleton<IUserDataSource>(() => local.userDataSource);
+
+  // Register Repositories
+  sl.registerLazySingleton<IUserRepository>(
+    () => UserRepositoryImpl(dataSource: sl()),
+  );
+
+  // For now, other repositories might still need direct DB access or legacy impls
+  // until they are refactored to use DataSources.
+  // We can temporarily register legacy repos here if needed, or throw Unimplemented
+  // for parts not yet refactored.
+
+  // Example placeholders for not-yet-refactored repos:
+  // sl.registerLazySingleton<ICatchRepository>(() => CatchRepositoryImpl(dataSource: ...));
+
+  // Feature-layer repos
   sl.registerLazySingleton(() => ConversationRepository(dbHelper: sl()));
 }
 
@@ -197,16 +218,15 @@ void _initCubitsAndBlocs() {
     ),
   );
 
-  sl.registerLazySingleton(() => UsersCubit(repository: sl<IUserRepository>()));
-
   // Factories (per view)
   sl.registerFactory(() => ProductsCubit(sl()));
   sl.registerFactory(
     () => FilteredProductsCubit(catchRepository: sl(), filterCubit: sl()),
   );
 
-  sl.registerFactory(() => FisherCubit(repository: sl()));
   sl.registerFactory(() => ReviewsCubit(sl(), sl()));
-  sl.registerFactory(() => UserBloc(userRepository: sl()));
+  sl.registerFactory(
+    () => UserCubit(userRepository: sl(), reviewRepository: sl()),
+  );
   sl.registerFactory(() => ConversationsBloc(sl()));
 }

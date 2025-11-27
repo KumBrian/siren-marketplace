@@ -15,19 +15,14 @@ import 'package:siren_marketplace/core/data/services/seeder.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 import 'package:siren_marketplace/router.dart';
 
-import 'features/fisher/new_logic/catches_bloc/catches_cubit.dart';
-import 'features/fisher/new_logic/offers_bloc/offers_cubit.dart';
-import 'features/fisher/new_logic/orders_bloc/orders_cubit.dart';
-import 'features/fisher/new_logic/users_bloc/users_cubit.dart';
-
-const String CURRENT_FISHER_ID = 'fisher_id_2';
-const String CURRENT_BUYER_ID = 'buyer_id_1';
+import 'features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'features/fisher/logic/offers_bloc/offers_cubit.dart';
+import 'features/fisher/logic/orders_bloc/orders_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,13 +44,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider.value(value: sl<UserBloc>()..add(const LoadPrimaryUser())),
-        BlocProvider.value(value: sl<FisherCubit>()),
+        BlocProvider.value(value: sl<UserCubit>()),
         BlocProvider.value(value: sl<ConversationsBloc>()),
         BlocProvider(create: (_) => sl<CatchesCubit>()),
         BlocProvider(create: (_) => sl<OffersCubit>()),
         BlocProvider(create: (_) => sl<OrdersCubit>()),
-        BlocProvider(create: (_) => sl<UsersCubit>()),
         BlocProvider(create: (_) => sl<CatchFilterCubit>()),
         BlocProvider(create: (_) => sl<SpeciesFilterCubit>()),
         BlocProvider(create: (_) => sl<BottomNavCubit>()),
@@ -78,7 +71,7 @@ class MyApp extends StatelessWidget {
               appBarTheme: AppBarTheme(centerTitle: true),
             ),
             // Passing the singleton UserBloc instance to the router
-            routerConfig: createRouter(context.read<UserBloc>()),
+            routerConfig: createRouter(context.read<UserCubit>()),
           );
         },
       ),

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/bloc/cubits/bottom_nav_cubit/bottom_nav_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/widgets/custom_nav_bar_tabs.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/user_profile.dart';
 
 import 'home_screen.dart';
@@ -51,7 +51,7 @@ class _BuyerState extends State<Buyer> with SingleTickerProviderStateMixin {
                 const Center(child: Text("Placeholder 0")),
                 BuyerHome(),
                 const BuyerOrders(),
-                BlocBuilder<UserBloc, UserState>(
+                BlocBuilder<UserCubit, UserState>(
                   builder: (context, state) {
                     if (state is UserLoaded) {
                       return UserProfile(role: state.role.name);
@@ -65,7 +65,7 @@ class _BuyerState extends State<Buyer> with SingleTickerProviderStateMixin {
               bottom: 24,
               left: 16,
               right: 16,
-              child: BlocListener<UserBloc, UserState>(
+              child: BlocListener<UserCubit, UserState>(
                 listenWhen: (previous, current) => current != previous,
                 listener: (context, state) {
                   if (state is UserLoaded) {
@@ -76,11 +76,11 @@ class _BuyerState extends State<Buyer> with SingleTickerProviderStateMixin {
                 },
                 child: BlocBuilder<BottomNavCubit, int>(
                   builder: (context, state) {
-                    if (context.read<UserBloc>().state is UserLoaded) {
+                    if (context.read<UserCubit>().state is UserLoaded) {
                       return CustomNavBarWithTabs(
                         selectedIndex: state,
-                        role:
-                            (context.read<UserBloc>().state as UserLoaded).role,
+                        role: (context.read<UserCubit>().state as UserLoaded)
+                            .role,
                         onTabSelected: (value) {
                           context.read<BottomNavCubit>().changeIndex(value);
                         },

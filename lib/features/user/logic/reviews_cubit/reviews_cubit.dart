@@ -1,18 +1,16 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
 import 'package:siren_marketplace/features/user/data/models/review_model.dart';
 
 part 'reviews_state.dart';
 
-/// Manages the end-to-end lifecycle of user review retrieval and aggregation.
-/// This cubit provides a consolidated, production-ready pipeline for loading
-/// reviews, enriching them with rater metadata, and emitting rated output
+/// Cubit responsible for managing user reviews and calculating
 /// metrics (average score, distribution, and sorted lists).
 class ReviewsCubit extends Cubit<ReviewsState> {
   final DatabaseHelper _databaseHelper;
-  final UserRepository _userRepository;
+  final IUserRepository _userRepository;
 
   ReviewsCubit(this._databaseHelper, this._userRepository)
     : super(ReviewsInitial());
@@ -47,12 +45,12 @@ class ReviewsCubit extends Cubit<ReviewsState> {
         final raterId = reviewMap['rater_id'] as String;
 
         // Lookup rater profile data.
-        final raterMap = await _userRepository.getUserMapById(raterId);
+        final raterUser = await _userRepository.getById(raterId);
 
-        if (raterMap != null) {
+        if (raterUser != null) {
           // Safe extraction with fallback to maintain data integrity.
-          final raterName = (raterMap['name'] as String?) ?? 'Unknown User';
-          final raterAvatarUrl = (raterMap['avatar_url'] as String?) ?? '';
+          final raterName = raterUser.name;
+          final raterAvatarUrl = raterUser.avatarUrl ?? '';
 
           // Convert raw DB map to fully enriched Review domain model.
           final review = Review.fromMap(

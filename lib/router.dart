@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/features/buyer/presentation/screens/buyer_review_screen.dart';
 import 'package:siren_marketplace/features/fisher/presentation/screens/fisher.dart';
 import 'package:siren_marketplace/features/fisher/presentation/screens/fisher_review_screen.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/about.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/account_info.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/beaches.dart';
@@ -14,7 +16,6 @@ import 'package:siren_marketplace/features/user/presentation/screens/projects.da
 import 'package:siren_marketplace/features/user/presentation/screens/user_profile.dart';
 
 import 'core/di/injector.dart';
-import 'core/types/enum.dart';
 import 'features/buyer/presentation/screens/buyer.dart';
 import 'features/buyer/presentation/screens/notifications_screen.dart';
 import 'features/buyer/presentation/screens/offer_details.dart';
@@ -27,7 +28,6 @@ import 'features/fisher/presentation/screens/market_trends.dart';
 import 'features/fisher/presentation/screens/notifications_screen.dart';
 import 'features/fisher/presentation/screens/offer_details.dart';
 import 'features/fisher/presentation/screens/order_details.dart';
-import 'features/user/logic/user_bloc/user_bloc.dart';
 import 'features/user/presentation/screens/account_info/personal_information.dart';
 import 'features/user/presentation/screens/account_info/reviews.dart';
 import 'features/user/presentation/screens/observation_info.dart';
@@ -59,14 +59,14 @@ class GoRouterRefreshStream extends ChangeNotifier {
 // -------------------------------------------------------------------------
 
 // Accepts the new UserBloc instead of the old RoleCubit
-GoRouter createRouter(UserBloc userBloc) {
+GoRouter createRouter(UserCubit userCubit) {
   return GoRouter(
     initialLocation: '/',
     // Use the UserBloc stream for refresh listening
-    refreshListenable: GoRouterRefreshStream(userBloc.stream),
+    refreshListenable: GoRouterRefreshStream(userCubit.stream),
 
     redirect: (context, state) {
-      final userState = userBloc.state;
+      final userState = userCubit.state;
       final bool isRoot = state.fullPath == '/';
 
       // Handle the loading state by waiting
@@ -77,22 +77,22 @@ GoRouter createRouter(UserBloc userBloc) {
       }
 
       // Get the determined role from the loaded state
-      final Role currentRole = userState is UserLoaded
+      final UserRole currentRole = userState is UserLoaded
           ? userState.role
-          : Role.unknown;
+          : UserRole.unknown;
 
       // ---------------------------------------------------------------------
       // 🎯 FIX: Modify Rule 2 to allow the root path access.
       // ---------------------------------------------------------------------
 
       // Rule 1: Not loaded/Unknown role attempts to access non-root path -> Redirect to root
-      if (currentRole == Role.unknown && !isRoot) {
+      if (currentRole == UserRole.unknown && !isRoot) {
         return '/';
       }
 
       // Rule 2 (MODIFIED): A valid role loaded attempts to access the root path (`/`).
       // We explicitly allow the user to stay on the root path (the RoleScreen).
-      if (currentRole != Role.unknown && isRoot) {
+      if (currentRole != UserRole.unknown && isRoot) {
         // Return null to allow the current path (which is '/')
         return null;
       }
@@ -215,7 +215,7 @@ GoRouter createRouter(UserBloc userBloc) {
         builder: (context, state) {
           final role = state.pathParameters['role']!;
           return BlocProvider(
-            create: (context) => sl<UserBloc>(),
+            create: (context) => sl<UserCubit>(),
             child: UserProfile(role: role),
           );
         },
@@ -232,7 +232,7 @@ GoRouter createRouter(UserBloc userBloc) {
               ),
               GoRoute(
                 path: "reviews",
-                builder: (context, state) => BlocBuilder<UserBloc, UserState>(
+                builder: (context, state) => BlocBuilder<UserCubit, UserState>(
                   builder: (context, state) {
                     if (state is UserLoaded) {
                       final userId = state.user?.id;

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/types/extensions.dart'; // Assuming you have .toFormattedDate()
 import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/rating_card.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/review_card.dart';
 
@@ -30,13 +30,20 @@ class _FisherReviewScreenState extends State<FisherReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserBloc, UserState>(
+    return BlocBuilder<UserCubit, UserState>(
       builder: (context, userState) {
+        if (userState is! UserLoaded) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final user = userState.user;
         // Determine the user's name from the UserCubit's state
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'User Review',
+              'User Review ${user?.name}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             centerTitle: true,

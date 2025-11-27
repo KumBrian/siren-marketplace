@@ -5,6 +5,9 @@ class NotFoundException extends DomainException {
   final String entityType;
   final String entityId;
 
-  NotFoundException({required this.entityType, required this.entityId})
-    : super('$entityType with id $entityId not found', code: 'NOT_FOUND');
+  NotFoundException(
+    String s, {
+    required this.entityType,
+    required this.entityId,
+  }) : super('$entityType with id $entityId not found', code: 'NOT_FOUND');
 }

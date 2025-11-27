@@ -3,25 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
-import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
+import 'package:siren_marketplace/core/domain/exceptions/not_found_exception.dart';
+import 'package:siren_marketplace/core/domain/value_objects/rating.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart' hide OfferStatus;
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/buyer/data/models/buyer.dart';
-import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 /// Helper extension to find the first element matching a test, or return null.
 extension IterableExtensions<T> on Iterable<T> {
@@ -37,10 +36,10 @@ extension IterableExtensions<T> on Iterable<T> {
 
 /// Holds the necessary transaction details for display.
 class OfferTransactionData {
-  final Buyer? buyer;
+  final User buyer;
   final Catch catchItem;
 
-  const OfferTransactionData({this.buyer, required this.catchItem});
+  const OfferTransactionData({required this.buyer, required this.catchItem});
 }
 
 class FisherOfferDetails extends StatefulWidget {
@@ -54,8 +53,6 @@ class FisherOfferDetails extends StatefulWidget {
 
 class _FisherOfferDetailsState extends State<FisherOfferDetails> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final UserRepository _userRepository = sl<UserRepository>();
-  final ICatchRepository _catchRepository = sl<ICatchRepository>();
   Future<OfferTransactionData>? _transactionDataFuture;
   bool _hasMarkedAsViewed = false;
 
@@ -64,23 +61,37 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
     super.dispose();
   }
 
-  Future<OfferTransactionData> _loadTransactionData(Offer offer) async {
-    final Map<String, dynamic>? buyerMap = await _userRepository.getUserMapById(
-      offer.buyerId,
-    );
+  Future<OfferTransactionData> _loadTransactionData(
+    Offer offer,
+    BuildContext context,
+  ) async {
+    final User? buyer = await context.read<UserCubit>().loadById(offer.buyerId);
 
-    Buyer? buyer;
-    if (buyerMap != null) {
-      buyer = Buyer.fromMap(buyerMap);
+    if (buyer == null) {
+      throw NotFoundException(
+        'Buyer not found',
+        entityId: offer.buyerId,
+        entityType: 'User',
+      );
     }
 
-    final Catch? catchItem = await _catchRepository.getById(offer.catchId);
+    final Catch? catchItem = await context.read<CatchesCubit>().loadById(
+      offer.catchId,
+    );
 
-    return OfferTransactionData(buyer: buyer, catchItem: catchItem!);
+    if (catchItem == null) {
+      throw NotFoundException(
+        'Catch not found',
+        entityId: offer.catchId,
+        entityType: 'Catch',
+      );
+    }
+
+    return OfferTransactionData(buyer: buyer, catchItem: catchItem);
   }
 
-  void _markOfferAsViewed(Offer offer, Role role) {
-    if (role == Role.fisher &&
+  void _markOfferAsViewed(Offer offer, UserRole role) {
+    if (role == UserRole.fisher &&
         offer.hasUpdateForFisher &&
         !_hasMarkedAsViewed) {
       context.read<OffersCubit>().markOfferAsViewed(offer.id, UserRole.fisher);
@@ -112,15 +123,15 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserBloc, UserState>(
+    return BlocBuilder<UserCubit, UserState>(
       builder: (context, userState) {
-        final Role? role = userState is UserLoaded ? userState.role : null;
-
-        if (role == null) {
+        if (userState is! UserLoaded) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
+
+        final UserRole role = userState.role;
 
         return BlocConsumer<OffersCubit, OffersState>(
           listenWhen: (prev, curr) =>
@@ -194,7 +205,10 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
             // Re-fetch transaction data if the underlying offer changed
             if (_transactionDataFuture == null ||
                 _transactionDataFuture!.hashCode != currentOffer.hashCode) {
-              _transactionDataFuture = _loadTransactionData(currentOffer);
+              _transactionDataFuture = _loadTransactionData(
+                currentOffer,
+                context,
+              );
             }
 
             return FutureBuilder<OfferTransactionData>(
@@ -207,16 +221,35 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
                   );
                 }
 
+                if (snapshot.hasError) {
+                  return Scaffold(
+                    appBar: AppBar(
+                      leading: BackButton(onPressed: () => context.pop()),
+                      title: const Text("Offer Details"),
+                    ),
+                    body: Center(child: Text(snapshot.error.toString())),
+                  );
+                }
+
+                if (snapshot.data == null) {
+                  return Scaffold(
+                    appBar: AppBar(
+                      leading: BackButton(onPressed: () => context.pop()),
+                      title: const Text("Offer Details"),
+                    ),
+                    body: Center(child: Text("Offer not found")),
+                  );
+                }
+
                 final transactionData = snapshot.data;
-                final Buyer? buyer = transactionData?.buyer;
-                final Catch catchSnapshot = transactionData!.catchItem;
+                final User buyer = transactionData!.buyer;
+                final Catch catchSnapshot = transactionData.catchItem;
 
                 // Get catch image and name
                 final catchImageUrl = catchSnapshot.images.isNotEmpty == true
                     ? catchSnapshot.images.first
                     : "assets/images/prawns.jpg";
-                final catchName =
-                    catchSnapshot?.species.name ?? "Unknown Catch";
+                final catchName = catchSnapshot.species.name;
 
                 return Scaffold(
                   appBar: AppBar(
@@ -480,23 +513,23 @@ class _FisherOfferDetailsState extends State<FisherOfferDetails> {
 /// Displays the buyer's name, rating, and avatar.
 class OfferHeader extends StatelessWidget {
   final Offer offer;
-  final Buyer? buyer;
+  final User buyer;
 
-  const OfferHeader({super.key, required this.offer, this.buyer});
+  const OfferHeader({super.key, required this.offer, required this.buyer});
 
   @override
   Widget build(BuildContext context) {
     // Safely access buyer data with fallbacks
-    final clientName = buyer?.name ?? 'Buyer (ID: ${offer.buyerId})';
-    final clientAvatar = buyer?.avatarUrl ?? "assets/images/user-profile.png";
-    final clientRating = buyer?.rating ?? 0.0;
-    final clientReviewCount = buyer?.reviewCount ?? 0;
+    final clientName = buyer.name;
+    final clientAvatar = buyer.avatarUrl;
+    final Rating clientRating = buyer.rating;
+    final clientReviewCount = buyer.reviewCount;
 
     return Material(
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: () {
-          context.push("/buyer/reviews/${buyer?.id}");
+          context.push("/buyer/reviews/${buyer.id}");
         },
         borderRadius: BorderRadius.circular(16),
         splashColor: AppColors.blue700.withValues(alpha: 0.1),
@@ -505,7 +538,7 @@ class OfferHeader extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ErrorHandlingCircleAvatar(avatarUrl: clientAvatar),
+              ErrorHandlingCircleAvatar(avatarUrl: clientAvatar!),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -528,7 +561,7 @@ class OfferHeader extends StatelessWidget {
                           size: 16,
                         ),
                         Text(
-                          clientRating.toStringAsFixed(1),
+                          clientRating.value.toStringAsFixed(1),
                           style: const TextStyle(
                             color: AppColors.textBlue,
                             fontWeight: FontWeight.w300,

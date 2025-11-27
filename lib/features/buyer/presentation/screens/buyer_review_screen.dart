@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/types/extensions.dart'; // Assuming you have .toFormattedDate()
 import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/rating_card.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/review_card.dart';
 
@@ -30,9 +30,12 @@ class _BuyerReviewScreenState extends State<BuyerReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserBloc, UserState>(
+    return BlocBuilder<UserCubit, UserState>(
       builder: (context, userState) {
         // Determine the user's name from the UserCubit's state
+        if (userState is! UserLoaded) {
+          return const Center(child: CircularProgressIndicator());
+        }
         return Scaffold(
           appBar: AppBar(
             title: Text(
@@ -60,7 +63,7 @@ class _BuyerReviewScreenState extends State<BuyerReviewScreen> {
 
                 if (data.totalReviews == 0) {
                   return Center(
-                    child: Text('No reviews yet for ${data.averageRating}.'),
+                    child: Text('No reviews yet for ${userState.user!.name}.'),
                   );
                 }
 

@@ -111,7 +111,11 @@ class OffersCubit extends Cubit<OffersState> {
       // Get the offer to determine user ID
       final offer = await repository.getById(offerId);
       if (offer == null) {
-        throw NotFoundException(entityType: 'Offer', entityId: offerId);
+        throw NotFoundException(
+          "Offer not found",
+          entityType: 'Offer',
+          entityId: offerId,
+        );
       }
 
       final userId = role == UserRole.fisher ? offer.fisherId : offer.buyerId;
@@ -159,7 +163,11 @@ class OffersCubit extends Cubit<OffersState> {
       // Get the offer to determine user ID
       final offer = await repository.getById(offerId);
       if (offer == null) {
-        throw NotFoundException(entityType: 'Offer', entityId: offerId);
+        throw NotFoundException(
+          "Offer not found",
+          entityType: 'Offer',
+          entityId: offerId,
+        );
       }
 
       final userId = role == UserRole.fisher ? offer.fisherId : offer.buyerId;
@@ -211,7 +219,11 @@ class OffersCubit extends Cubit<OffersState> {
       // Get the offer to determine user ID
       final offer = await repository.getById(offerId);
       if (offer == null) {
-        throw NotFoundException(entityType: 'Offer', entityId: offerId);
+        throw NotFoundException(
+          "Offer not found",
+          entityType: 'Offer',
+          entityId: offerId,
+        );
       }
 
       final userId = role == UserRole.fisher ? offer.fisherId : offer.buyerId;
@@ -301,7 +313,11 @@ class OffersCubit extends Cubit<OffersState> {
     try {
       final offer = await repository.getById(offerId);
       if (offer == null) {
-        throw NotFoundException(entityType: 'Offer', entityId: offerId);
+        throw NotFoundException(
+          "Offer not found",
+          entityType: 'Offer',
+          entityId: offerId,
+        );
       }
 
       // Update the viewed status based on role
