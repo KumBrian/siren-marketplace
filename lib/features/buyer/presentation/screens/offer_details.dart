@@ -4,13 +4,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/user.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
+import 'package:siren_marketplace/core/domain/value_objects/price.dart';
+import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/utils/phone_launcher.dart';
@@ -21,35 +25,17 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/offer_actions.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
-import 'package:siren_marketplace/features/fisher/data/catch_repository.dart';
-import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
-import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
-class PreviousOfferDetails {
-  final int price;
-  final int weight;
-  final int pricePerKg;
-
-  const PreviousOfferDetails({
-    required this.price,
-    required this.weight,
-    required this.pricePerKg,
-  });
-}
+import 'package:siren_marketplace/core/domain/services/session_service.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/users_bloc/users_cubit.dart';
 
 class OfferTransactionData {
-  final Fisher? fisher;
-  final Catch? catchSnapshot;
-  final PreviousOfferDetails? previousDetails;
+  final User? fisher;
+  final Catch? catchItem;
 
-  const OfferTransactionData({
-    this.fisher,
-    this.previousDetails,
-    this.catchSnapshot,
-  });
+  const OfferTransactionData({this.fisher, this.catchItem});
 }
 
 class BuyerOfferDetails extends StatefulWidget {
@@ -67,57 +53,54 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _pricePerKgController = TextEditingController();
-  final UserRepository _userRepository = sl<UserRepository>();
   bool _hasMarkedAsViewed = false;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
+    _loadCurrentUser();
     _dispatchGetOffer();
   }
 
+  Future<void> _loadCurrentUser() async {
+    final user = await sl<SessionService>().getCurrentUser();
+    if (user != null && mounted) {
+      setState(() {
+        _currentUserId = user.id;
+      });
+      context.read<UsersCubit>().loadById(user.id);
+    }
+  }
+
   Future<OfferTransactionData> _loadTransactionData(Offer offer) async {
-    final Map<String, dynamic>? fisherMap = await _userRepository
-        .getUserMapById(offer.fisherId);
-
-    Fisher? fisher;
-    if (fisherMap != null) {
-      fisher = Fisher.fromMap(fisherMap);
+    // Load Fisher
+    final usersCubit = context.read<UsersCubit>();
+    if (usersCubit.getUserFromCache(offer.fisherId) == null) {
+      await usersCubit.loadById(offer.fisherId);
     }
+    final fisher = usersCubit.getUserFromCache(offer.fisherId);
 
-    final Catch? catchSnapshot = await sl<CatchRepository>().getCatchById(
-      offer.catchId,
-    );
-
-    PreviousOfferDetails? previousDetails;
-    final hasPreviousNegotiation =
-        offer.previousPrice != null &&
-        offer.previousWeight != null &&
-        offer.previousPricePerKg != null;
-
-    if (hasPreviousNegotiation) {
-      previousDetails = PreviousOfferDetails(
-        price: offer.previousPrice!,
-        weight: offer.previousWeight!,
-        pricePerKg: offer.previousPricePerKg!,
-      );
+    // Load Catch
+    final catchesCubit = context.read<CatchesCubit>();
+    if (catchesCubit.getCatchFromCache(offer.catchId) == null) {
+      await catchesCubit.loadById(offer.catchId);
     }
+    final catchItem = catchesCubit.getCatchFromCache(offer.catchId);
 
-    return OfferTransactionData(
-      fisher: fisher,
-      catchSnapshot: catchSnapshot,
-      previousDetails: previousDetails,
-    );
+    return OfferTransactionData(fisher: fisher, catchItem: catchItem);
   }
 
   void _dispatchGetOffer() {
     if (widget.offerId.isEmpty) return;
-    context.read<OffersBloc>().add(GetOfferById(widget.offerId));
+    context.read<OffersCubit>().loadById(widget.offerId);
   }
 
-  void _markOfferAsViewed(Offer offer, Role role) {
-    if (role == Role.buyer && offer.hasUpdateForBuyer && !_hasMarkedAsViewed) {
-      context.read<OffersBloc>().add(MarkOfferAsViewed(offer, role));
+  void _markOfferAsViewed(Offer offer, UserRole role) {
+    if (role == UserRole.buyer &&
+        offer.hasUpdateForBuyer &&
+        !_hasMarkedAsViewed) {
+      context.read<OffersCubit>().markOfferAsViewed(offer.id, role);
       _hasMarkedAsViewed = true;
     }
   }
@@ -127,7 +110,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
     _priceController.clear();
     _pricePerKgController.clear();
 
-    final initialPricePerKg = c.pricePerKg;
+    final initialPricePerKg = c.pricePerKg.amountPerKg;
     _pricePerKgController.text = initialPricePerKg.toStringAsFixed(2);
 
     bool userEditingTotal = false;
@@ -226,7 +209,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                           NumberInputField(
                             controller: _weightController,
                             label: "Weight",
-                            role: Role.buyer,
+                            role: UserRole.buyer,
                             suffix: "Kg",
                             // Displaying Kg
                             onChanged: updateCalculations,
@@ -245,7 +228,7 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                                   .round();
 
                               // Compare Grams vs Grams
-                              if (weightInGrams > c.availableWeight) {
+                              if (weightInGrams > c.availableWeight.grams) {
                                 return "Cannot exceed available weight";
                               }
                               return null;
@@ -288,10 +271,10 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    BlocBuilder<UserBloc, UserState>(
-                      builder: (context, userState) {
-                        final user = userState is UserLoaded
-                            ? userState.user
+                    BlocBuilder<UsersCubit, UsersState>(
+                      builder: (context, usersState) {
+                        final user = _currentUserId != null
+                            ? usersState.users[_currentUserId]
                             : null;
                         return CustomButton(
                           title: "Send Offer",
@@ -316,18 +299,18 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                                 final weightInGrams = (weightInputKg * 1000)
                                     .round();
 
-                                context.read<OffersBloc>().add(
-                                  CreateOffer(
-                                    catchId: c.id,
-                                    buyerId: user.id,
-                                    fisherId: c.fisherId,
-                                    price: totalPrice,
-                                    weight: weightInGrams,
-                                    // Sending Int (Grams)
-                                    pricePerKg: pricePerKg,
+                                context.read<OffersCubit>().createOffer(
+                                  c.id,
+                                  user.id,
+                                  c.fisherId,
+                                  OfferTerms.create(
+                                    weight: Weight.fromGrams(weightInGrams),
+                                    totalPrice: Price.fromAmount(totalPrice),
                                   ),
                                 );
-                                context.read<CatchesBloc>().add(LoadCatches());
+                                context
+                                    .read<CatchesCubit>()
+                                    .loadAvailableCatches();
                                 Navigator.of(
                                   context,
                                 ).pop(); // Use Navigator for safer pop
@@ -399,9 +382,12 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserBloc, UserState>(
-      builder: (context, userState) {
-        final Role? role = userState is UserLoaded ? userState.role : null;
+    return BlocBuilder<UsersCubit, UsersState>(
+      builder: (context, usersState) {
+        final currentUser = _currentUserId != null
+            ? usersState.users[_currentUserId]
+            : null;
+        final UserRole? role = currentUser?.currentRole;
 
         if (role == null) {
           return const Scaffold(
@@ -409,80 +395,63 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
           );
         }
 
-        final buyerCubit = context.read<BuyerCubit>();
-
-        return BlocConsumer<OffersBloc, OffersState>(
-          listenWhen: (prev, curr) =>
-              curr is OfferActionSuccess || curr is OfferActionFailure,
-          listener: (context, offerState) {
+        return BlocConsumer<OffersCubit, OffersState>(
+          listenWhen: (prev, curr) => curr.action != null || curr.error != null,
+          listener: (context, offersState) {
             // Dismiss the loading dialog for ANY action completion (Success or Failure)
-            if (offerState is OfferActionSuccess ||
-                offerState is OfferActionFailure) {
+            if (offersState.action != null || offersState.error != null) {
               if (Navigator.of(context).canPop()) {
                 Navigator.of(context).pop();
               }
             }
 
             // Handle Accept success: Show final dialog and prepare navigation
-            if (offerState is OfferActionSuccess) {
-              if (offerState.action == 'Accept' &&
-                  offerState.orderId != null &&
-                  offerState.orderId!.isNotEmpty) {
-                final orderId = offerState.orderId!;
+            if (offersState.action == 'Accept' &&
+                offersState.order?.id != null &&
+                offersState.order!.id.isNotEmpty) {
+              final orderId = offersState.order!.id;
 
-                showActionSuccessDialog(
-                  context,
-                  message: "Offer Successfully Accepted.",
-                  actionTitle: "View Details",
-                  onAction: () async {
-                    buyerCubit.loadBuyerData(
-                      buyerId: offerState.updatedOffer.buyerId,
-                    );
-                    await Future.delayed(const Duration(milliseconds: 100));
-                    if (context.mounted) {
-                      context.pushReplacement("/buyer/order-details/$orderId");
-                    }
-                  },
-                );
-              }
+              showActionSuccessDialog(
+                context,
+                message: "Offer Successfully Accepted.",
+                actionTitle: "View Details",
+                onAction: () async {
+                  await Future.delayed(const Duration(milliseconds: 100));
+                  if (context.mounted) {
+                    context.pushReplacement("/buyer/order-details/$orderId");
+                  }
+                },
+              );
+            }
 
-              // Handle Reject/Counter success: Show dialog without navigation
-              String message = '';
-              if (offerState.action == 'Reject') {
-                message = 'Offer Rejected!';
-              } else if (offerState.action == 'Counter') {
-                message = 'Counter-Offer Sent!';
-              }
+            // Handle Reject/Counter success: Show dialog without navigation
+            String message = '';
+            if (offersState.action == 'Reject') {
+              message = 'Offer Rejected!';
+            } else if (offersState.action == 'Counter') {
+              message = 'Counter-Offer Sent!';
+            }
 
-              if (message.isNotEmpty && offerState.action != 'Accept') {
-                showActionSuccessDialog(
-                  context,
-                  message: message,
-                  autoCloseSeconds: 3,
-                );
-              }
+            if (message.isNotEmpty && offersState.action != 'Accept') {
+              showActionSuccessDialog(
+                context,
+                message: message,
+                autoCloseSeconds: 3,
+              );
             }
           },
           builder: (context, offersState) {
-            if (offersState is OffersLoading || offersState is OffersInitial) {
+            if (offersState.loading && offersState.selectedOffer == null) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
-            final Offer? selectedOffer;
-
-            if (offersState is OfferDetailsLoaded) {
-              selectedOffer = offersState.offer;
-            } else if (offersState is OfferActionSuccess) {
-              selectedOffer = offersState.updatedOffer;
-            } else {
-              selectedOffer = null;
-            }
+            final Offer? selectedOffer = offersState.selectedOffer;
 
             if (selectedOffer == null || selectedOffer.id != widget.offerId) {
-              final errorMessage = offersState is OffersError
-                  ? "Error loading offers: ${offersState.message}"
-                  : "Offer with ID ${widget.offerId} not found or mismatch.";
+              final errorMessage =
+                  offersState.error ??
+                  "Offer with ID ${widget.offerId} not found or mismatch.";
 
               return Scaffold(
                 appBar: AppBar(
@@ -511,10 +480,9 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                 }
 
                 final transactionData = asyncSnapshot.data;
-                final Fisher? fisher = transactionData?.fisher;
-                final Catch? catchSnapshot = transactionData?.catchSnapshot;
-                final PreviousOfferDetails? previous =
-                    transactionData?.previousDetails;
+                final User? fisher = transactionData?.fisher;
+                final Catch? catchItem = transactionData?.catchItem;
+                final OfferTerms? previous = currentOffer.previousTerms;
                 return Scaffold(
                   appBar: AppBar(
                     leading: BackButton(onPressed: () => context.pop()),
@@ -527,16 +495,16 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                       children: [
                         BuyerOfferHeader(
                           offer: currentOffer,
-                          catchName: currentOffer.catchName,
-                          catchImage: currentOffer.catchImageUrl,
+                          catchName: catchItem?.species.name ?? 'Unknown Catch',
+                          catchImage: catchItem?.images.first ?? '',
                         ),
                         const SizedBox(height: 16),
 
-                        if (currentOffer.waitingFor == Role.buyer) ...[
+                        if (currentOffer.waitingFor == UserRole.buyer) ...[
                           const SectionHeader("Fisherman's Offer"),
                         ],
 
-                        if (currentOffer.waitingFor == Role.fisher) ...[
+                        if (currentOffer.waitingFor == UserRole.fisher) ...[
                           const SectionHeader("Current Offer"),
                         ],
 
@@ -551,32 +519,34 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                             rows: [
                               InfoRow(
                                 label: "Weight",
-                                value: formatWeight(currentOffer.weight),
+                                value:
+                                    currentOffer.currentTerms.weight.kilograms,
                               ),
                               InfoRow(
                                 label: "Price Per Kg",
                                 value:
-                                    "${currentOffer.pricePerKg.toStringAsFixed(0)} CFA",
+                                    "${currentOffer.currentTerms.pricePerKg.amountPerKg.toStringAsFixed(0)} CFA",
                               ),
                               InfoRow(
                                 label: "Total",
                                 value:
-                                    "${currentOffer.price.toStringAsFixed(0)} CFA",
+                                    "${currentOffer.currentTerms.totalPrice.amount.toStringAsFixed(0)} CFA",
                               ),
                             ],
                           ),
                         ),
                         const SizedBox(height: 16),
 
-                        OfferActions(
-                          offer: currentOffer,
-                          formKey: _formKey,
-                          currentUserRole: Role.buyer,
-                          catchItem: catchSnapshot!,
-                          onNavigateToOrder: (offerId) {
-                            context.push("/buyer/order-details/$offerId");
-                          },
-                        ),
+                        if (catchItem != null)
+                          OfferActions(
+                            offer: currentOffer,
+                            formKey: _formKey,
+                            currentUserRole: UserRole.buyer,
+                            catchItem: catchItem,
+                            onNavigateToOrder: (offerId) {
+                              context.push("/buyer/order-details/$offerId");
+                            },
+                          ),
                         const SizedBox(height: 16),
 
                         if (previous != null) ...[
@@ -592,15 +562,19 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                               rows: [
                                 InfoRow(
                                   label: "Weight",
-                                  value: formatWeight(previous.weight),
+                                  value: previous.weight.kilograms,
                                 ),
                                 InfoRow(
                                   label: "Price",
-                                  value: formatPrice(previous.price),
+                                  value: formatPrice(
+                                    previous.totalPrice.amount,
+                                  ),
                                 ),
                                 InfoRow(
                                   label: "Price Per Kg",
-                                  value: formatPrice(previous.pricePerKg),
+                                  value: formatPrice(
+                                    previous.pricePerKg.amountPerKg,
+                                  ),
                                 ),
                               ],
                             ),
@@ -624,14 +598,15 @@ class _BuyerOfferDetailsState extends State<BuyerOfferDetails> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              title: "Make New Offer",
-                              onPressed: () =>
-                                  _showMakeOfferDialog(context, catchSnapshot),
+                          if (catchItem != null)
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                title: "Make New Offer",
+                                onPressed: () =>
+                                    _showMakeOfferDialog(context, catchItem),
+                              ),
                             ),
-                          ),
                         ],
 
                         if (currentOffer.status == OfferStatus.accepted) ...[
@@ -868,7 +843,7 @@ class BuyerOfferHeader extends StatelessWidget {
 }
 
 class FisherDetails extends StatelessWidget {
-  final Fisher? fisher;
+  final User? fisher;
 
   const FisherDetails({super.key, required this.fisher});
 
@@ -877,7 +852,7 @@ class FisherDetails extends StatelessWidget {
     final String avatarUrl =
         fisher?.avatarUrl ?? "assets/images/user-profile.png";
     final String name = fisher?.name ?? "";
-    final double rating = fisher?.rating ?? 0.0;
+    final double rating = fisher?.rating.value ?? 0.0;
     final int reviewCount = fisher?.reviewCount ?? 0;
 
     return Column(

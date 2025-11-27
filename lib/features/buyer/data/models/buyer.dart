@@ -1,6 +1,6 @@
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/order.dart';
 import 'package:siren_marketplace/core/models/app_user.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
-import 'package:siren_marketplace/core/models/order.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 
 class Buyer extends AppUser {

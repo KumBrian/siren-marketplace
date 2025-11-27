@@ -13,10 +13,7 @@ import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filte
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/data/services/seeder.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/offer_details_bloc.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_orders_bloc/buyer_orders_bloc.dart';
+
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
 import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
@@ -27,6 +24,7 @@ import 'package:siren_marketplace/router.dart';
 import 'features/fisher/new_logic/catches_bloc/catches_cubit.dart';
 import 'features/fisher/new_logic/offers_bloc/offers_cubit.dart';
 import 'features/fisher/new_logic/orders_bloc/orders_cubit.dart';
+import 'features/fisher/new_logic/users_bloc/users_cubit.dart';
 
 const String CURRENT_FISHER_ID = 'fisher_id_2';
 const String CURRENT_BUYER_ID = 'buyer_id_1';
@@ -57,6 +55,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => sl<CatchesCubit>()),
         BlocProvider(create: (_) => sl<OffersCubit>()),
         BlocProvider(create: (_) => sl<OrdersCubit>()),
+        BlocProvider(create: (_) => sl<UsersCubit>()),
         BlocProvider(create: (_) => sl<CatchFilterCubit>()),
         BlocProvider(create: (_) => sl<SpeciesFilterCubit>()),
         BlocProvider(create: (_) => sl<BottomNavCubit>()),
@@ -68,19 +67,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => sl<ReviewsCubit>()),
         BlocProvider(create: (_) => sl<ProductsCubit>()),
         BlocProvider(create: (context) => sl<FilteredProductsCubit>()),
-
-        BlocProvider(create: (_) => sl<OfferDetailsBloc>()),
-        BlocProvider(
-          create: (_) => sl<BuyerMarketBloc>()..add(LoadMarketCatches()),
-        ),
-        BlocProvider(
-          create: (_) =>
-              sl<BuyerOrdersBloc>()..add(LoadBuyerOrders(CURRENT_BUYER_ID)),
-        ),
-        BlocProvider(
-          create: (_) =>
-              sl<BuyerCubit>()..loadBuyerData(buyerId: CURRENT_BUYER_ID),
-        ),
       ],
       child: Builder(
         builder: (context) {

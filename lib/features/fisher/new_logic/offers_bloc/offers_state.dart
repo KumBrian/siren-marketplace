@@ -15,7 +15,12 @@ class OffersState extends Equatable {
     this.order,
     this.updatedOffer,
     this.markAsViewed,
+    this.action,
   });
+
+  final String? action;
+
+  Offer? get selectedOffer => updatedOffer;
 
   OffersState copyWith({
     bool? loading,
@@ -24,6 +29,7 @@ class OffersState extends Equatable {
     Order? order,
     Offer? updatedOffer,
     bool? markAsViewed,
+    String? action,
   }) {
     return OffersState(
       loading: loading ?? this.loading,
@@ -31,9 +37,17 @@ class OffersState extends Equatable {
       error: error,
       order: order,
       updatedOffer: updatedOffer,
+      action: action,
     );
   }
 
   @override
-  List<Object?> get props => [loading, offers, error, order];
+  List<Object?> get props => [
+    loading,
+    offers,
+    error,
+    order,
+    updatedOffer,
+    action,
+  ];
 }

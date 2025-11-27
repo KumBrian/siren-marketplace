@@ -54,6 +54,38 @@ class CatchesCubit extends Cubit<CatchesState> {
     }
   }
 
+  /// Load multiple catches by IDs
+  Future<void> loadRange(List<String> catchIds) async {
+    if (catchIds.isEmpty) return;
+
+    emit(state.copyWith(loading: true, error: null));
+
+    try {
+      final List<Catch> results = [];
+      // Note: In a real app, we should have a repository method for this
+      // to avoid N+1 queries. For now, we loop.
+      for (final id in catchIds) {
+        // Check if already in cache to avoid redundant calls?
+        // For now, refresh all to ensure up-to-date data.
+        final item = await repository.getById(id);
+        if (item != null) {
+          results.add(item);
+        }
+      }
+
+      emit(state.copyWith(loading: false, catches: results));
+    } on DomainException catch (e) {
+      emit(state.copyWith(loading: false, error: e.message));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          loading: false,
+          error: 'Failed to load catches: ${e.toString()}',
+        ),
+      );
+    }
+  }
+
   /// Update an existing catch
   Future<void> updateCatch(Catch catchItem) async {
     emit(state.copyWith(loading: true, error: null));
@@ -116,6 +148,34 @@ class CatchesCubit extends Cubit<CatchesState> {
           error: 'Failed to create catch: ${e.toString()}',
         ),
       );
+    }
+  }
+
+  /// Load all available catches on the marketplace (for buyers)
+  Future<void> loadAvailableCatches() async {
+    emit(state.copyWith(loading: true, error: null));
+
+    try {
+      final results = await repository.getAvailableCatches();
+      emit(state.copyWith(loading: false, catches: results));
+    } on DomainException catch (e) {
+      emit(state.copyWith(loading: false, error: e.message));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          loading: false,
+          error: 'Failed to load marketplace catches: ${e.toString()}',
+        ),
+      );
+    }
+  }
+
+  /// Get a catch from the current state cache
+  Catch? getCatchFromCache(String catchId) {
+    try {
+      return state.catches.firstWhere((c) => c.id == catchId);
+    } catch (_) {
+      return null;
     }
   }
 }

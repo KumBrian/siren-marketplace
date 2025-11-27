@@ -127,7 +127,14 @@ class OffersCubit extends Cubit<OffersState> {
           ? await repository.getByFisherId(userId)
           : await repository.getByBuyerId(userId);
 
-      emit(state.copyWith(loading: false, offers: results, order: order));
+      emit(
+        state.copyWith(
+          loading: false,
+          offers: results,
+          order: order,
+          action: 'Accept',
+        ),
+      );
     } on NotFoundException catch (e) {
       emit(state.copyWith(loading: false, error: e.message));
     } on BusinessRuleException catch (e) {
@@ -173,6 +180,7 @@ class OffersCubit extends Cubit<OffersState> {
           loading: false,
           offers: results,
           updatedOffer: updatedOffer,
+          action: 'Reject',
         ),
       );
     } on NotFoundException catch (e) {
@@ -225,6 +233,7 @@ class OffersCubit extends Cubit<OffersState> {
           loading: false,
           offers: results,
           updatedOffer: updatedOffer,
+          action: 'Counter',
         ),
       );
     } on NotFoundException catch (e) {
@@ -266,7 +275,7 @@ class OffersCubit extends Cubit<OffersState> {
       // Reload offers for the buyer
       final results = await repository.getByBuyerId(buyerId);
 
-      emit(state.copyWith(loading: false, offers: results));
+      emit(state.copyWith(loading: false, offers: results, action: 'Create'));
     } on NotFoundException catch (e) {
       emit(state.copyWith(loading: false, error: e.message));
     } on ValidationException catch (e) {

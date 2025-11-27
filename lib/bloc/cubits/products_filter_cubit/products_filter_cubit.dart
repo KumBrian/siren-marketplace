@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:siren_marketplace/core/models/species.dart';
+import 'package:siren_marketplace/core/domain/entities/species.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 
 part 'products_filter_state.dart';

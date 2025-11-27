@@ -8,6 +8,7 @@ import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price_per_kg.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
@@ -218,7 +219,7 @@ class _CatchDetailsState extends State<CatchDetails>
                             NumberInputField(
                               controller: weightController,
                               label: "Available Weight",
-                              role: Role.fisher,
+                              role: UserRole.fisher,
                               suffix: "Kg",
                               onChanged: updateStateOnChanged,
                             ),
@@ -226,7 +227,7 @@ class _CatchDetailsState extends State<CatchDetails>
                             NumberInputField(
                               controller: pricePerKgController,
                               label: "Price per Kg",
-                              role: Role.fisher,
+                              role: UserRole.fisher,
                               decimal: false,
                               suffix: "CFA",
                               validator: (value) {
@@ -245,7 +246,7 @@ class _CatchDetailsState extends State<CatchDetails>
                             NumberInputField(
                               controller: totalController,
                               label: "Total",
-                              role: Role.fisher,
+                              role: UserRole.fisher,
                               suffix: "CFA",
                               onChanged: null,
                               // Read-only
