@@ -3,18 +3,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/bloc/cubits/orders_filter_cubit/orders_filter_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/services/session_service.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
-import 'package:siren_marketplace/core/widgets/message_card.dart'; // 🔑 Key Import
+import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/offer_card.dart';
 import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/users_bloc/users_cubit.dart';
 
 class BuyerNotificationsScreen extends StatefulWidget {
   const BuyerNotificationsScreen({super.key});
@@ -26,9 +27,8 @@ class BuyerNotificationsScreen extends StatefulWidget {
 
 class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-  // 👈 Implement Observer
-
   late TabController _tabController;
+  String? _currentBuyerId;
 
   List<Offer> _applyOfferFilters(List<Offer> offers, OrdersFilterState state) {
     if (state.selectedStatuses.isEmpty) {
@@ -42,49 +42,50 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
   @override
   void initState() {
     super.initState();
-    // 🔑 Add the observer to listen for app state changes
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addObserver(this);
+    _loadBuyerData();
   }
 
-  @override
-  void dispose() {
-    // 🔑 Remove the observer when the widget is removed
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
+  Future<void> _loadBuyerData() async {
+    final sessionService = context.read<SessionService>();
+    final user = await sessionService.getCurrentUser();
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+    if (user != null && mounted) {
+      setState(() {
+        _currentBuyerId = user.id;
+      });
 
-    final buyerCubit = context.read<BuyerCubit>();
-    if (buyerCubit.state is BuyerLoaded) {
-      final buyerLoadedState = buyerCubit.state as BuyerLoaded;
-      final buyerId = buyerLoadedState.buyer.id;
+      // Load buyer-specific offers using OffersCubit
+      final offersCubit = context.read<OffersCubit>();
+      offersCubit.loadForBuyer(user.id);
 
-      // 🔑 Dispatch the new event to the OffersBloc to load buyer-specific offers
-      final offersBloc = context.read<OffersBloc>();
-      if (offersBloc.state is OffersInitial ||
-          offersBloc.state is OffersError) {
-        offersBloc.add(
-          LoadOffersForUser(userId: buyerId, role: buyerLoadedState.buyer.role),
-        );
+      // Load fisher users for the offers
+      final usersCubit = context.read<UsersCubit>();
+      final fisherIds = offersCubit.state.offers
+          .map((offer) => offer.fisherId)
+          .toSet()
+          .toList();
+      if (fisherIds.isNotEmpty) {
+        usersCubit.loadByIds(fisherIds);
       }
 
-      // Existing logic for loading conversations remains:
+      // Load conversations
       final conversationsBloc = context.read<ConversationsBloc>();
       if (conversationsBloc.state is ConversationsInitial) {
-        conversationsBloc.add(LoadConversations(buyerId: buyerId));
+        conversationsBloc.add(LoadConversations(buyerId: user.id));
       }
     }
   }
 
-  // ----------------------------------------------------------------------
-  // Messages Tab Build Method (No structural change needed)
-  // ----------------------------------------------------------------------
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _tabController.dispose();
+    super.dispose();
+  }
+
   Widget _buildMessagesTab() {
-    // ... (Implementation remains as shown previously) ...
     return BlocBuilder<ConversationsBloc, ConversationsState>(
       builder: (context, conversationState) {
         if (conversationState is ConversationsLoading) {
@@ -99,38 +100,39 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
         if (conversationState is ConversationsError) {
           return Center(
             child: Padding(
-              padding: const EdgeInsets.only(top: 64.0),
-              child: Text(
-                'Error: ${conversationState.message}',
-                style: const TextStyle(color: AppColors.fail500),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    conversationState.message,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16),
+                  CustomButton(
+                    title: "Retry",
+                    onPressed: () {
+                      if (_currentBuyerId != null) {
+                        context.read<ConversationsBloc>().add(
+                          LoadConversations(buyerId: _currentBuyerId!),
+                        );
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
           );
         }
 
-        final allMessages = (conversationState is ConversationsLoaded)
-            ? conversationState.conversations
-            : <ConversationPreview>[];
+        if (conversationState is ConversationsLoaded) {
+          final conversations = conversationState.conversations;
 
-        return SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: 80, top: 16),
-          child: Column(
-            children: [
-              // const SearchBar(
-              //   hintText: "Search",
-              //   scrollPadding: EdgeInsets.symmetric(vertical: 8),
-              //   textStyle: WidgetStatePropertyAll(
-              //     TextStyle(fontSize: 16, color: AppColors.textBlue),
-              //   ),
-              //   side: WidgetStatePropertyAll(
-              //     BorderSide(color: AppColors.gray200),
-              //   ),
-              //   leading: Icon(Icons.search, color: AppColors.textBlue),
-              //   elevation: WidgetStatePropertyAll(0),
-              // ),
-              // const SizedBox(height: 8),
-              if (allMessages.isEmpty)
-                Column(
+          if (conversations.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 64.0),
+                child: Column(
                   children: [
                     SizedBox(
                       height: 120,
@@ -154,32 +156,37 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
                       ),
                     ),
                   ],
-                )
-              else
-                ListView.separated(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: allMessages.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final msg = allMessages[index];
-                    return MessageCard(
-                      messageId: msg.id,
-                      name: msg.contactName,
-                      time: msg.lastMessageTime.toFormattedDate(),
-                      message: msg.lastMessage,
-                      unreadCount: msg.unreadCount,
-                      avatarPath: msg.contactAvatarPath,
-                      onPressed: () {
-                        context.push("/buyer/messages/${msg.id}");
-                      },
-                    );
-                  },
                 ),
-            ],
-          ),
-        );
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 80, top: 16),
+            child: ListView.separated(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: conversations.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final msg = conversations[index];
+                return MessageCard(
+                  messageId: msg.id,
+                  name: msg.contactName,
+                  time: msg.lastMessageTime.toFormattedDate(),
+                  message: msg.lastMessage,
+                  unreadCount: msg.unreadCount,
+                  avatarPath: msg.contactAvatarPath,
+                  onPressed: () {
+                    context.push("/buyer/messages/${msg.id}");
+                  },
+                );
+              },
+            ),
+          );
+        }
+
+        return const SizedBox.shrink();
       },
     );
   }
@@ -193,9 +200,7 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
         shape: BoxShape.circle,
         color: isSelected
             ? AppColors.textBlue
-            : AppColors.textBlue.withOpacity(
-                .6,
-              ), // Using withOpacity instead of withValues
+            : AppColors.textBlue.withOpacity(0.6),
       ),
       child: Text(
         "$count",
@@ -204,395 +209,282 @@ class _BuyerNotificationsScreenState extends State<BuyerNotificationsScreen>
     );
   }
 
-  // ----------------------------------------------------------------------
-  // Main Build Method (Only needs to observe BuyerCubit state)
-  // ----------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
-    // Outer BlocBuilder remains for fetching the BuyerID and Chat data
-    return BlocBuilder<BuyerCubit, BuyerState>(
-      builder: (context, buyerState) {
-        // --- 1. Handle Buyer State Loading/Error ---
-        if (buyerState is! BuyerLoaded) {
+    if (_currentBuyerId == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    return BlocBuilder<OffersCubit, OffersState>(
+      builder: (context, offersState) {
+        if (offersState.loading && offersState.offers.isEmpty) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        final buyerId =
-            buyerState.buyer.id; // Get the ID to pass to OfferDetails
+        if (offersState.error != null && offersState.offers.isEmpty) {
+          return Scaffold(
+            body: Center(
+              child: Text('Error loading offers: ${offersState.error}'),
+            ),
+          );
+        }
 
-        // --- 2. 🔑 Listen to OffersBloc for the Offers List ---
-        return BlocBuilder<OffersBloc, OffersState>(
-          builder: (context, offersState) {
-            // Check if offers are loading/error/initial
-            if (offersState is OffersLoading || offersState is OffersInitial) {
-              // ⚠️ Ensure the offers load starts if it's initial
-              if (offersState is OffersInitial) {
-                context.read<OffersBloc>().add(
-                  LoadOffersForUser(
-                    userId: buyerId,
-                    role: buyerState.buyer.role,
-                  ),
-                );
-              }
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
-            if (offersState is OffersError) {
-              return Scaffold(
-                body: Center(
-                  child: Text('Error loading offers: ${offersState.message}'),
-                ),
-              );
-            }
+        // Filter offers for this buyer
+        final allOffers = offersState.offers
+            .where((offer) => offer.buyerId == _currentBuyerId)
+            .toList();
 
-            // --- 3. Offers are Loaded ---
-            final allOffers = offersState is OffersLoaded
-                ? offersState.offers
-                      .where((offer) => offer.buyerId == buyerId)
-                      .toList()
-                : <Offer>[];
-            return Scaffold(
-              appBar: AppBar(
-                leading: const BackButton(),
-                actions: [
-                  IconButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        showDragHandle: true,
-                        builder: (context) {
-                          return BlocBuilder<
-                            OrdersFilterCubit,
-                            OrdersFilterState
-                          >(
-                            builder: (context, state) {
-                              final cubit = context.read<OrdersFilterCubit>();
-                              return Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+        return Scaffold(
+          appBar: AppBar(
+            leading: const BackButton(),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    showDragHandle: true,
+                    builder: (context) {
+                      return BlocBuilder<OrdersFilterCubit, OrdersFilterState>(
+                        builder: (context, state) {
+                          final cubit = context.read<OrdersFilterCubit>();
+                          return Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Filter by",
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                const SizedBox(height: 12),
+                                const Text("Status"),
+                                const SizedBox(height: 12),
+                                Text(
+                                  "Select all that apply",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textGray,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
                                   children: [
-                                    const Text(
-                                      "Filter by",
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    const Text("Status"),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      "Select all that apply",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textGray,
+                                    FilterButton(
+                                      title: "Pending",
+                                      color: AppColors.getStatusColor(
+                                        OfferStatus.pending,
+                                      ),
+                                      isSelected: state.selectedStatuses
+                                          .contains(OfferStatus.pending),
+                                      onPressed: () => cubit.toggleStatus(
+                                        OfferStatus.pending,
                                       ),
                                     ),
-                                    const SizedBox(height: 12),
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: [
-                                        FilterButton(
-                                          title: "Pending",
-                                          color: AppColors.shellOrange,
-                                          isSelected: state.selectedStatuses
-                                              .contains(OfferStatus.pending),
-                                          onPressed: () => cubit.toggleStatus(
-                                            OfferStatus.pending,
-                                          ),
-                                        ),
-                                        FilterButton(
-                                          title: "Accepted",
-                                          color: AppColors.blue400,
-                                          isSelected: state.selectedStatuses
-                                              .contains(OfferStatus.accepted),
-                                          onPressed: () => cubit.toggleStatus(
-                                            OfferStatus.accepted,
-                                          ),
-                                        ),
-                                        FilterButton(
-                                          title: "Completed",
-                                          color: AppColors.textGray,
-                                          isSelected: state.selectedStatuses
-                                              .contains(OfferStatus.completed),
-                                          onPressed: () => cubit.toggleStatus(
-                                            OfferStatus.completed,
-                                          ),
-                                        ),
-                                        FilterButton(
-                                          title: "Rejected",
-                                          color: AppColors.fail500,
-                                          isSelected: state.selectedStatuses
-                                              .contains(OfferStatus.rejected),
-                                          onPressed: () => cubit.toggleStatus(
-                                            OfferStatus.rejected,
-                                          ),
-                                        ),
-                                      ],
+                                    FilterButton(
+                                      title: "Accepted",
+                                      color: AppColors.getStatusColor(
+                                        OfferStatus.accepted,
+                                      ),
+                                      isSelected: state.selectedStatuses
+                                          .contains(OfferStatus.accepted),
+                                      onPressed: () => cubit.toggleStatus(
+                                        OfferStatus.accepted,
+                                      ),
                                     ),
-                                    const Divider(),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        TextButton(
-                                          onPressed: () {
-                                            cubit.clear();
-                                            context.pop();
-                                          },
-                                          child: const Text(
-                                            "Reset All",
-                                            style: TextStyle(
-                                              decoration:
-                                                  TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ),
-                                        CustomButton(
-                                          title: "Apply Filters",
-                                          onPressed: () => context.pop(),
-                                        ),
-                                      ],
+                                    FilterButton(
+                                      title: "Rejected",
+                                      color: AppColors.getStatusColor(
+                                        OfferStatus.rejected,
+                                      ),
+                                      isSelected: state.selectedStatuses
+                                          .contains(OfferStatus.rejected),
+                                      onPressed: () => cubit.toggleStatus(
+                                        OfferStatus.rejected,
+                                      ),
+                                    ),
+                                    FilterButton(
+                                      title: "Completed",
+                                      color: AppColors.getStatusColor(
+                                        OfferStatus.completed,
+                                      ),
+                                      isSelected: state.selectedStatuses
+                                          .contains(OfferStatus.completed),
+                                      onPressed: () => cubit.toggleStatus(
+                                        OfferStatus.completed,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              );
-                            },
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: CustomButton(
+                                        title: "Clear",
+                                        bordered: true,
+                                        onPressed: () {
+                                          cubit.clear();
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: CustomButton(
+                                        title: "Apply",
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           );
                         },
                       );
                     },
-                    icon: const Icon(Icons.filter_alt_outlined),
-                  ),
-                ],
-                title: PageTitle(title: "Notifications"),
+                  );
+                },
+                icon: const Icon(Icons.filter_list),
               ),
-              body: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
+            ],
+            title: const PageTitle(title: "Notifications"),
+            centerTitle: true,
+            bottom: TabBar(
+              controller: _tabController,
+              labelColor: AppColors.textBlue,
+              unselectedLabelColor: AppColors.textGray,
+              indicatorColor: AppColors.textBlue,
+              tabs: [
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Offers"),
+                      if (allOffers.isNotEmpty)
+                        _buildCountBadge(
+                          count: allOffers.length,
+                          isSelected: _tabController.index == 0,
                         ),
-                        child: DefaultTabController(
-                          length: 2,
-                          child: Column(
-                            children: [
-                              BlocBuilder<OffersBloc, OffersState>(
-                                builder: (context, offersState) {
-                                  int offersWithUpdateCount = 0;
-                                  if (offersState is OffersLoaded) {
-                                    offersWithUpdateCount = offersState.offers
-                                        .where(
-                                          (offer) =>
-                                              offer.hasUpdateForBuyer == true,
-                                        )
-                                        .length;
-                                  }
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Messages"),
+                      BlocBuilder<ConversationsBloc, ConversationsState>(
+                        builder: (context, conversationState) {
+                          final unreadCount =
+                              conversationState is ConversationsLoaded
+                              ? conversationState.conversations.fold<int>(
+                                  0,
+                                  (sum, c) => sum + c.unreadCount,
+                                )
+                              : 0;
+                          if (unreadCount > 0) {
+                            return _buildCountBadge(
+                              count: unreadCount,
+                              isSelected: _tabController.index == 1,
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              // Offers Tab
+              BlocBuilder<OrdersFilterCubit, OrdersFilterState>(
+                builder: (context, filterState) {
+                  final filteredOffers = _applyOfferFilters(
+                    allOffers,
+                    filterState,
+                  );
 
-                                  const int unreadMessageCount =
-                                      5; // Replace with actual Bloc select!
-                                  return AnimatedBuilder(
-                                    animation: _tabController,
-                                    builder: (context, __) {
-                                      return TabBar(
-                                        controller: _tabController,
-                                        dividerHeight: 0,
-                                        indicatorSize: TabBarIndicatorSize.tab,
-                                        indicatorColor: AppColors.textBlue,
-                                        labelColor: AppColors.textBlue,
-                                        unselectedLabelColor:
-                                            AppColors.textGray,
-                                        tabs: [
-                                          Tab(
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                const Text("Offers"),
-                                                if (offersWithUpdateCount > 0)
-                                                  Container(
-                                                    margin:
-                                                        const EdgeInsets.only(
-                                                          left: 8,
-                                                        ),
-                                                    padding:
-                                                        const EdgeInsets.all(6),
-                                                    decoration: BoxDecoration(
-                                                      shape: BoxShape.circle,
-                                                      color:
-                                                          _tabController
-                                                                  .index ==
-                                                              0
-                                                          ? AppColors.textBlue
-                                                          : AppColors.textBlue
-                                                                .withValues(
-                                                                  alpha: .6,
-                                                                ),
-                                                    ),
-                                                    child: Text(
-                                                      "$offersWithUpdateCount",
-                                                      style: const TextStyle(
-                                                        fontSize: 12,
-                                                        color:
-                                                            AppColors.textWhite,
-                                                      ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                          Tab(
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                const Text("Messages"),
-
-                                                Container(
-                                                  margin: const EdgeInsets.only(
-                                                    left: 8,
-                                                  ),
-                                                  padding: const EdgeInsets.all(
-                                                    6,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color:
-                                                        _tabController.index ==
-                                                            1
-                                                        ? AppColors.textBlue
-                                                        : AppColors.textBlue
-                                                              .withValues(
-                                                                alpha: .6,
-                                                              ),
-                                                  ),
-                                                  child: Text(
-                                                    "2",
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      color:
-                                                          AppColors.textWhite,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
+                  if (filteredOffers.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 64.0),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: 120,
+                              width: 120,
+                              child: Image.asset(
+                                "assets/images/no-notifications.png",
                               ),
-                              Expanded(
-                                child: TabBarView(
-                                  controller: _tabController,
-                                  physics: const BouncingScrollPhysics(),
-                                  children: [
-                                    // Offers Tab: Listens to Filter Cubit, uses data from BuyerCubit
-                                    BlocBuilder<
-                                      OrdersFilterCubit,
-                                      OrdersFilterState
-                                    >(
-                                      builder: (context, filterState) {
-                                        final filteredOffers =
-                                            _applyOfferFilters(
-                                              allOffers,
-                                              filterState,
-                                            );
-
-                                        return SingleChildScrollView(
-                                          padding: EdgeInsets.only(
-                                            bottom: 80,
-                                            top: filteredOffers.isEmpty
-                                                ? 32
-                                                : 0,
-                                          ),
-                                          child: filteredOffers.isEmpty
-                                              ? Column(
-                                                  children: [
-                                                    SizedBox(
-                                                      height: 120,
-                                                      width: 120,
-                                                      child: Image.asset(
-                                                        "assets/images/no-offers.png",
-                                                      ),
-                                                    ),
-                                                    const Text(
-                                                      "You have no offers yet.",
-                                                      style: TextStyle(
-                                                        color:
-                                                            AppColors.textGray,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 14,
-                                                      ),
-                                                    ),
-                                                    const Text(
-                                                      "Make an offer on a product.",
-                                                      style: TextStyle(
-                                                        color:
-                                                            AppColors.textGray,
-                                                        fontWeight:
-                                                            FontWeight.w300,
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                )
-                                              : Column(
-                                                  children: filteredOffers.map((
-                                                    offer,
-                                                  ) {
-                                                    return OfferCard(
-                                                      offer: offer,
-                                                      fisherRating:
-                                                          offer.fisherRating,
-                                                      fisherName:
-                                                          offer.fisherName,
-                                                      onPressed: () {
-                                                        offer.status ==
-                                                                    OfferStatus
-                                                                        .pending ||
-                                                                offer.status ==
-                                                                    OfferStatus
-                                                                        .rejected
-                                                            ? context.push(
-                                                                "/buyer/offer-details/${offer.id}",
-                                                              )
-                                                            : context.push(
-                                                                "/buyer/order-details/${offer.id}",
-                                                              );
-                                                      },
-                                                    );
-                                                  }).toList(),
-                                                ),
-                                        );
-                                      },
-                                    ),
-                                    // Messages Tab
-                                    _buildMessagesTab(),
-                                  ],
-                                ),
+                            ),
+                            const Text(
+                              "You have no offers yet.",
+                              style: TextStyle(
+                                color: AppColors.textGray,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
                               ),
-                            ],
-                          ),
+                            ),
+                            const Text(
+                              "Browse the marketplace and make an offer.",
+                              style: TextStyle(
+                                color: AppColors.textGray,
+                                fontWeight: FontWeight.w300,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: _loadBuyerData,
+                    child: BlocBuilder<UsersCubit, UsersState>(
+                      builder: (context, usersState) {
+                        return ListView.separated(
+                          padding: const EdgeInsets.only(bottom: 80, top: 16),
+                          itemCount: filteredOffers.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final offer = filteredOffers[index];
+                            final fisher = usersState.users[offer.fisherId];
+
+                            return OfferCard(
+                              offer: offer,
+                              onPressed: () {
+                                context.push(
+                                  "/buyer/offer-details/${offer.id}",
+                                );
+                              },
+                              fisherName: fisher?.name ?? 'Unknown Fisher',
+                              fisherRating: fisher?.rating.value ?? 0.0,
+                            );
+                          },
+                        );
+                      },
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
+              // Messages Tab
+              _buildMessagesTab(),
+            ],
+          ),
         );
       },
     );

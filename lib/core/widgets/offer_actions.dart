@@ -18,7 +18,6 @@ import 'package:siren_marketplace/core/widgets/counter_offer_dialog.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/features/fisher/data/models/fisher.dart';
 import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 void showLoadingDialog(BuildContext context, {String message = 'Please wait'}) {
   showDialog(
@@ -323,68 +322,48 @@ class _OfferActionsState extends State<OfferActions> {
                   if (widget.offer.waitingFor == widget.currentUserRole) ...[
                     const SizedBox(width: 16),
                     Expanded(
-                      child: BlocBuilder<UserBloc, UserState>(
-                        builder: (context, state) {
-                          if (state is UserLoaded) {
-                            final user = state.user;
-                            return CustomButton(
-                              title: "Counter-Offer",
-                              icon: Icons.autorenew_rounded,
-                              onPressed: () {
-                                showCounterOfferDialog(
-                                  context: context,
-                                  role: user!.role,
-                                  formKey: widget.formKey,
-                                  // UPDATED: Pass weight in Grams directly
-                                  initialWeight:
-                                      widget.offer.currentTerms.weight.grams,
-                                  initialPrice: widget
-                                      .offer
-                                      .currentTerms
-                                      .totalPrice
-                                      .amount,
-                                  onSubmit:
-                                      (newWeight, newPrice, dialogCtx) async {
-                                        if (Navigator.of(context).canPop()) {
-                                          Navigator.of(context).pop();
-                                        }
-                                        if (!context.mounted) return;
-                                        showLoadingDialog(
-                                          context,
-                                          message: 'Creating order...',
-                                        );
-                                        try {
-                                          context
-                                              .read<OffersCubit>()
-                                              .counterOffer(
-                                                widget.offer.id,
-                                                widget.currentUserRole,
-                                                OfferTerms.create(
-                                                  weight: Weight.fromGrams(
-                                                    newWeight,
-                                                  ),
-                                                  totalPrice: Price.fromAmount(
-                                                    newPrice,
-                                                  ),
-                                                ),
-                                              );
-                                        } catch (e) {
-                                          if (context.mounted) {
-                                            await showActionSuccessDialog(
-                                              context,
-                                              message: 'Counter failed: $e',
-                                              autoCloseSeconds: 3,
-                                            );
-                                          }
-                                        }
-                                      },
+                      child: CustomButton(
+                        title: "Counter-Offer",
+                        icon: Icons.autorenew_rounded,
+                        onPressed: () {
+                          showCounterOfferDialog(
+                            context: context,
+                            role: widget.currentUserRole,
+                            formKey: widget.formKey,
+                            // UPDATED: Pass weight in Grams directly
+                            initialWeight:
+                                widget.offer.currentTerms.weight.grams,
+                            initialPrice:
+                                widget.offer.currentTerms.totalPrice.amount,
+                            onSubmit: (newWeight, newPrice, dialogCtx) async {
+                              if (Navigator.of(context).canPop()) {
+                                Navigator.of(context).pop();
+                              }
+                              if (!context.mounted) return;
+                              showLoadingDialog(
+                                context,
+                                message: 'Creating order...',
+                              );
+                              try {
+                                context.read<OffersCubit>().counterOffer(
+                                  widget.offer.id,
+                                  widget.currentUserRole,
+                                  OfferTerms.create(
+                                    weight: Weight.fromGrams(newWeight),
+                                    totalPrice: Price.fromAmount(newPrice),
+                                  ),
                                 );
-                              },
-
-                              bordered: true,
-                            );
-                          }
-                          return Container();
+                              } catch (e) {
+                                if (context.mounted) {
+                                  await showActionSuccessDialog(
+                                    context,
+                                    message: 'Counter failed: $e',
+                                    autoCloseSeconds: 3,
+                                  );
+                                }
+                              }
+                            },
+                          );
                         },
                       ),
                     ),

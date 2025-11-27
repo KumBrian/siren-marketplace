@@ -5,17 +5,18 @@ import 'package:siren_marketplace/bloc/cubits/filtered_products_cubit/filtered_p
 import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_filter_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
-import 'package:siren_marketplace/core/models/species.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/species.dart';
+import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/multi_select_dropdown.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_card.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
 class BuyerHome extends StatefulWidget {
@@ -34,17 +35,13 @@ class _BuyerHomeState extends State<BuyerHome> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BuyerMarketBloc>().add(LoadMarketCatches());
+      context.read<CatchesCubit>().loadAvailableCatches();
     });
   }
 
   int _calculateNotificationCount(OffersState state) {
-    if (state is OffersLoaded) {
-      // Filter for offers where the buyer has an update
-      return state.offers.where((offer) => offer.hasUpdateForBuyer).length;
-    }
-    // Return 0 or null if the state is not loaded, loading, or an error
-    return 0;
+    // Filter for offers where the buyer has an update
+    return state.offers.where((offer) => offer.hasUpdateForBuyer).length;
   }
 
   @override
@@ -52,56 +49,50 @@ class _BuyerHomeState extends State<BuyerHome> {
     if (!_hasLoadedOffers) {
       final userState = context.read<UserBloc>().state;
       if (userState is UserLoaded) {
-        context.read<OffersBloc>().add(
-          LoadOffersForUser(userId: userState.user!.id, role: userState.role),
-        );
-        _hasLoadedOffers = true; // Mark as done immediately if already loaded
+        context.read<OffersCubit>().loadForBuyer(userState.user!.id);
+        _hasLoadedOffers = true;
       }
     }
     return BlocListener<UserBloc, UserState>(
       listenWhen: (prev, current) => !_hasLoadedOffers && current is UserLoaded,
       listener: (context, userState) {
         if (userState is UserLoaded) {
-          // This fires if UserBloc loads *after* BuyerHome mounts.
-          context.read<OffersBloc>().add(
-            LoadOffersForUser(userId: userState.user!.id, role: userState.role),
-          );
-          _hasLoadedOffers = true; // Mark as done when the listener fires
+          context.read<OffersCubit>().loadForBuyer(userState.user!.id);
+          _hasLoadedOffers = true;
         }
       },
-      child: BlocBuilder<OffersBloc, OffersState>(
+      child: BlocBuilder<OffersCubit, OffersState>(
         builder: (context, offersState) {
           final notificationCount = _calculateNotificationCount(offersState);
-          return BlocListener<BuyerMarketBloc, BuyerMarketState>(
-            listener: (context, marketState) {
-              if (marketState is BuyerMarketLoaded) {
+          return BlocListener<CatchesCubit, CatchesState>(
+            listener: (context, catchesState) {
+              if (catchesState.catches.isNotEmpty) {
                 context.read<FilteredProductsCubit>().setAllCatches(
-                  marketState.catches,
+                  catchesState.catches,
                 );
               }
             },
-            child: BlocBuilder<BuyerMarketBloc, BuyerMarketState>(
-              builder: (context, marketState) {
-                if (marketState is BuyerMarketLoading) {
+            child: BlocBuilder<CatchesCubit, CatchesState>(
+              builder: (context, catchesState) {
+                if (catchesState.loading && catchesState.catches.isEmpty) {
                   return const Scaffold(
                     body: Center(child: CircularProgressIndicator()),
                   );
                 }
 
-                if (marketState is BuyerMarketError) {
+                if (catchesState.error != null &&
+                    catchesState.catches.isEmpty) {
                   return Scaffold(
                     body: Center(
                       child: Text(
-                        'Error loading products: ${marketState.message}',
+                        'Error loading products: ${catchesState.error}',
                         style: const TextStyle(color: AppColors.fail500),
                       ),
                     ),
                   );
                 }
 
-                final allCatches = marketState is BuyerMarketLoaded
-                    ? marketState.catches
-                    : <Catch>[];
+                final allCatches = catchesState.catches;
 
                 return Scaffold(
                   backgroundColor: AppColors.gray50,
@@ -132,7 +123,7 @@ class _BuyerHomeState extends State<BuyerHome> {
                   ),
                   body: RefreshIndicator(
                     onRefresh: () async {
-                      context.read<BuyerMarketBloc>().add(LoadMarketCatches());
+                      context.read<CatchesCubit>().loadAvailableCatches();
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -371,10 +362,10 @@ class _BuyerHomeState extends State<BuyerHome> {
                         title: "Apply Filters",
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            final minWeight = double.tryParse(
-                              _weightController.text.trim(),
+                            final minWeight = Weight.fromKg(
+                              double.tryParse(_weightController.text.trim())!,
                             );
-                            filterCubit.setMinWeight(minWeight);
+                            filterCubit.setMinWeight(minWeight.grams);
                             filterCubit.applyFilters();
                             Navigator.pop(context);
                           }

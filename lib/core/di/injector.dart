@@ -16,11 +16,7 @@ import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filte
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
 import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
-import 'package:siren_marketplace/features/buyer/data/buyer_repository.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_offer_details_bloc/offer_details_bloc.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_orders_bloc/buyer_orders_bloc.dart';
+
 import 'package:siren_marketplace/features/chat/data/conversation_repository.dart';
 import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
 import 'package:siren_marketplace/features/fisher/data/fisher_repository.dart';
@@ -28,6 +24,7 @@ import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubi
 import 'package:siren_marketplace/features/fisher/new_logic/catches_bloc/catches_cubit.dart';
 import 'package:siren_marketplace/features/fisher/new_logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/fisher/new_logic/orders_bloc/orders_cubit.dart';
+import 'package:siren_marketplace/features/fisher/new_logic/users_bloc/users_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
@@ -165,7 +162,6 @@ void _initDemoMode() {
   sl.registerLazySingleton(() => UserRepository(dbHelper: sl()));
   sl.registerLazySingleton(() => FisherRepository(dbHelper: sl()));
   sl.registerLazySingleton(() => ConversationRepository(dbHelper: sl()));
-  sl.registerLazySingleton(() => BuyerRepository(dbHelper: sl()));
 }
 
 // ============================================================================
@@ -201,6 +197,8 @@ void _initCubitsAndBlocs() {
     ),
   );
 
+  sl.registerLazySingleton(() => UsersCubit(repository: sl<IUserRepository>()));
+
   // Factories (per view)
   sl.registerFactory(() => ProductsCubit(sl()));
   sl.registerFactory(
@@ -209,12 +207,6 @@ void _initCubitsAndBlocs() {
 
   sl.registerFactory(() => FisherCubit(repository: sl()));
   sl.registerFactory(() => ReviewsCubit(sl(), sl()));
-  sl.registerFactory(() => BuyerCubit(sl(), sl(), sl()));
-
   sl.registerFactory(() => UserBloc(userRepository: sl()));
-
-  sl.registerFactory(() => BuyerMarketBloc(sl()));
-  sl.registerFactory(() => OfferDetailsBloc(sl(), sl(), sl(), sl()));
-  sl.registerFactory(() => BuyerOrdersBloc(sl()));
   sl.registerFactory(() => ConversationsBloc(sl()));
 }

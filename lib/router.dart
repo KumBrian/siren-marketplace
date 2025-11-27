@@ -16,7 +16,6 @@ import 'package:siren_marketplace/features/user/presentation/screens/user_profil
 import 'core/di/injector.dart';
 import 'core/types/enum.dart';
 import 'features/buyer/presentation/screens/buyer.dart';
-import 'features/buyer/presentation/screens/congratulations_screen.dart';
 import 'features/buyer/presentation/screens/notifications_screen.dart';
 import 'features/buyer/presentation/screens/offer_details.dart';
 import 'features/buyer/presentation/screens/order_details.dart';
@@ -188,13 +187,7 @@ GoRouter createRouter(UserBloc userBloc) {
             },
           ),
           GoRoute(path: 'orders', builder: (_, __) => const BuyerOrders()),
-          GoRoute(
-            path: 'congratulations/:id',
-            builder: (context, state) {
-              final offerId = state.pathParameters['id']!;
-              return BuyerCongratulationsScreen(offerId: offerId);
-            },
-          ),
+
           GoRoute(
             path: 'notifications',
             builder: (_, __) => const BuyerNotificationsScreen(),

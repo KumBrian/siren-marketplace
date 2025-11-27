@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 
 class NumberInputField extends StatefulWidget {
   const NumberInputField({
     super.key,
     required this.label,
-    this.role = Role.fisher,
+    this.role = UserRole.fisher,
     this.value,
     required this.suffix,
     required this.controller,
@@ -17,7 +18,7 @@ class NumberInputField extends StatefulWidget {
   });
 
   final String label;
-  final Role role;
+  final UserRole role;
   final num? value;
   final String suffix;
   final TextEditingController controller;
