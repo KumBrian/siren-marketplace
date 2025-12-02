@@ -66,6 +66,14 @@ class Offer extends Equatable {
     return isPending && isUsersTurn(userId);
   }
 
+  bool hasUpdateFor(UserRole role) {
+    if (role == UserRole.fisher) {
+      return hasUpdateForFisher;
+    } else {
+      return hasUpdateForBuyer;
+    }
+  }
+
   // Domain Actions
   Offer accept() {
     if (!status.canBeAccepted) {

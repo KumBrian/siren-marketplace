@@ -65,10 +65,23 @@ class OffersCubit extends Cubit<OffersState> {
     try {
       final offer = await repository.getById(offerId);
 
+      if (offer == null) {
+        throw NotFoundException(
+          'Offer not found',
+          entityType: 'Offer',
+          entityId: offerId,
+        );
+      }
+
       // Update the offers list with this single offer
       // This ensures the state contains the loaded offer
       emit(
-        state.copyWith(loading: false, offers: [?offer], updatedOffer: offer),
+        state.copyWith(
+          loading: false,
+          offers: [offer],
+          updatedOffer: offer,
+          action: null,
+        ),
       );
     } on NotFoundException catch (e) {
       emit(state.copyWith(loading: false, error: e.message));

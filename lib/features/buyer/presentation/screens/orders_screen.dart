@@ -1,302 +1,119 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:siren_marketplace/bloc/cubits/offers_filter_cubit/offers_filter_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/domain/entities/catch.dart';
-import 'package:siren_marketplace/core/domain/entities/offer.dart';
-import 'package:siren_marketplace/core/domain/entities/order.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
-import 'package:siren_marketplace/core/domain/enums/order_status.dart';
-import 'package:siren_marketplace/core/domain/services/session_service.dart';
+import 'package:siren_marketplace/core/providers/buyer_orders_provider.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/order_filter_providers.dart';
+import 'package:siren_marketplace/core/providers/order_providers.dart';
 import 'package:siren_marketplace/core/types/enum.dart' hide OfferStatus;
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
+import 'package:siren_marketplace/features/buyer/presentation/models/display_item.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/order_card.dart';
-import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_cubit.dart';
 
-// Helper class to unify Offer and Order for display
-class DisplayItem {
-  final String id;
-  final String catchId;
-  final OfferStatus status;
-  final DateTime dateCreated;
-  final double weight;
-  final int price;
-  final bool hasUpdate;
-  final bool isOrder;
-
-  DisplayItem({
-    required this.id,
-    required this.catchId,
-    required this.status,
-    required this.dateCreated,
-    required this.weight,
-    required this.price,
-    required this.hasUpdate,
-    required this.isOrder,
-  });
-
-  factory DisplayItem.fromOffer(Offer offer) {
-    return DisplayItem(
-      id: offer.id,
-      catchId: offer.catchId,
-      status: offer.status,
-      dateCreated: offer.dateCreated,
-      weight: offer.currentTerms.weight.kilograms,
-      price: offer.currentTerms.totalPrice.amount,
-      hasUpdate: offer.hasUpdateForBuyer,
-      isOrder: false,
-    );
-  }
-
-  factory DisplayItem.fromOrder(Order order) {
-    // Map OrderStatus to OfferStatus for display consistency if needed,
-    // or use status.name directly. Here we map to OfferStatus for simplicity in UI.
-    OfferStatus mappedStatus;
-    switch (order.status) {
-      case OrderStatus.active:
-        mappedStatus = OfferStatus.accepted;
-        break;
-      case OrderStatus.completed:
-        mappedStatus = OfferStatus.completed;
-        break;
-      case OrderStatus.cancelled:
-        mappedStatus = OfferStatus.rejected;
-        break;
-    }
-
-    return DisplayItem(
-      id: order.id,
-      catchId: order.catchId,
-      status: mappedStatus,
-      dateCreated: order.dateCreated,
-      weight: (order.terms.weight.grams as num).toDouble(),
-      price: order.terms.totalPrice.amount,
-      hasUpdate:
-          false, // Orders might have updates (reviews), but for now false
-      isOrder: true,
-    );
-  }
-}
-
-class BuyerOrders extends StatefulWidget {
+class BuyerOrders extends ConsumerStatefulWidget {
   const BuyerOrders({super.key});
 
   @override
-  State<BuyerOrders> createState() => _BuyerOrdersState();
+  ConsumerState<BuyerOrders> createState() => _BuyerOrdersState();
 }
 
-class _BuyerOrdersState extends State<BuyerOrders> {
+class _BuyerOrdersState extends ConsumerState<BuyerOrders> {
   @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
+  Widget build(BuildContext context) {
+    final itemsAsync = ref.watch(filteredBuyerItemsProvider);
+    final notificationCount = ref.watch(buyerNotificationCountProvider);
 
-  Future<void> _loadData() async {
-    final sessionService = context.read<SessionService>();
-    final user = await sessionService.getCurrentUser();
-    if (user != null && mounted) {
-      context.read<OffersCubit>().loadForBuyer(user.id);
-      context.read<OrdersCubit>().loadForUser(user.id);
-    }
-  }
+    return Scaffold(
+      backgroundColor: AppColors.gray50,
+      appBar: AppBar(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: AppColors.white100,
+        actions: [
+          IconButton(
+            onPressed: () {
+              context.go("/buyer/notifications");
+            },
+            icon: Badge(
+              label: Text("$notificationCount"),
+              isLabelVisible: notificationCount > 0,
+              child: const Icon(
+                Icons.notifications_none,
+                color: AppColors.textBlue,
+              ),
+            ),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(24.0),
+          child: Column(
+            spacing: 16,
+            children: [
+              const SectionHeader("Offers", fontSize: 16),
+              Container(color: AppColors.textBlue, height: 2.0),
+            ],
+          ),
+        ),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh both offers and orders
+          ref.invalidate(buyerOffersProvider);
+          ref.invalidate(myOrdersProvider);
+          // Wait for them to reload
+          await Future.wait([
+            ref.read(buyerOffersProvider.future),
+            ref.read(myOrdersProvider.future),
+          ]);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 56, child: _buildSearchAndFilterRow(context)),
+              const SizedBox(height: 8),
+              Expanded(
+                child: itemsAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(
+                    child: Text(
+                      'Error loading orders: $error',
+                      style: const TextStyle(color: AppColors.fail500),
+                    ),
+                  ),
+                  data: (items) {
+                    if (items.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          "No orders found matching your criteria.",
+                          style: TextStyle(color: AppColors.textGray),
+                        ),
+                      );
+                    }
 
-  List<DisplayItem> _applyFilteringAndSorting(
-    List<DisplayItem> items,
-    OffersFilterState state,
-  ) {
-    List<DisplayItem> filteredList = items;
-
-    final selectedStatuses = state.activeStatuses
-        .map((statusName) {
-          try {
-            return OfferStatus.values.firstWhere(
-              (s) => s.name == statusName.toLowerCase(),
-            );
-          } catch (e) {
-            return null;
-          }
-        })
-        .whereType<OfferStatus>()
-        .toSet();
-
-    if (selectedStatuses.isNotEmpty) {
-      filteredList = filteredList.where((item) {
-        return selectedStatuses.contains(item.status);
-      }).toList();
-    }
-
-    // --- Sorting by Date (createdAt) ---
-    filteredList.sort((a, b) {
-      if (state.activeSortBy == SortBy.newOld) {
-        return b.dateCreated.compareTo(a.dateCreated);
-      } else if (state.activeSortBy == SortBy.oldNew) {
-        return a.dateCreated.compareTo(b.dateCreated);
-      }
-      return 0;
-    });
-
-    return filteredList;
-  }
-
-  void _showFilterModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (_) => BlocBuilder<OffersFilterCubit, OffersFilterState>(
-        builder: (context, filterState) {
-          final filterCubit = context.read<OffersFilterCubit>();
-          final filteredState = context.read<OffersFilterCubit>().state;
-          final height = MediaQuery.of(context).size.height * 0.35;
-
-          return Container(
-            height: height,
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 12,
-              children: [
-                const Text(
-                  "Filter by:",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-
-                const Text("Status", style: TextStyle(fontSize: 12)),
-
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: OfferStatus.values.map((status) {
-                    final title =
-                        status.name.substring(0, 1).toUpperCase() +
-                        status.name.substring(1);
-                    return FilterButton(
-                      title: title,
-                      color: AppColors.getStatusColor(status),
-                      isSelected: filteredState.pendingStatuses.contains(title),
-                      onPressed: () => filterCubit.toggleStatus(title),
+                    return ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 80),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return _OrderListItem(item: item);
+                      },
                     );
-                  }).toList(),
+                  },
                 ),
-                const Divider(),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        filterCubit.clearAllFilters();
-                        _loadData();
-                        context.pop();
-                      },
-                      child: const Text(
-                        "Reset All",
-                        style: TextStyle(decoration: TextDecoration.underline),
-                      ),
-                    ),
-                    CustomButton(
-                      title: "Apply Filters",
-                      onPressed: () {
-                        filterCubit.applyFilters();
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showSortModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (_) => BlocBuilder<OffersFilterCubit, OffersFilterState>(
-        builder: (context, filterState) {
-          final filterCubit = context.read<OffersFilterCubit>();
-          final height = MediaQuery.of(context).size.height * 0.3;
-
-          return Container(
-            height: height,
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 8,
-              children: [
-                const Text(
-                  "Sort by:",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                _buildDateSortOptions(filterCubit, filterState),
-                Divider(thickness: 2, color: AppColors.gray200),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        filterCubit.clearAllFilters();
-                        _loadData();
-                        context.pop();
-                      },
-                      child: const Text(
-                        "Reset All",
-                        style: TextStyle(decoration: TextDecoration.underline),
-                      ),
-                    ),
-                    CustomButton(
-                      title: "Apply",
-                      onPressed: () {
-                        filterCubit.applyFilters();
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildDateSortOptions(
-    OffersFilterCubit cubit,
-    OffersFilterState state,
-  ) {
-    return Column(
-      children: [
-        RadioListTile<SortBy>(
-          dense: true,
-          groupValue: state.pendingSortBy,
-          title: const Text('Oldest to Newest', style: TextStyle(fontSize: 14)),
-          value: SortBy.oldNew,
-          onChanged: (v) {
-            if (v != null) cubit.setSort(v);
-          },
+              ),
+            ],
+          ),
         ),
-        RadioListTile<SortBy>(
-          dense: true,
-          groupValue: state.pendingSortBy,
-          title: const Text('Newest to Oldest', style: TextStyle(fontSize: 14)),
-          value: SortBy.newOld,
-          onChanged: (v) {
-            if (v != null) cubit.setSort(v);
-          },
-        ),
-      ],
+      ),
     );
   }
 
@@ -322,13 +139,20 @@ class _BuyerOrdersState extends State<BuyerOrders> {
               Icon(CustomIcons.search, color: AppColors.textBlue),
             ],
             elevation: WidgetStateProperty.all(0),
+            onChanged: (value) {
+              ref
+                  .read(ordersFilterProvider.notifier)
+                  .update((state) => state.copyWith(searchQuery: value));
+            },
           ),
         ),
         Expanded(
           flex: 1,
-          child: BlocBuilder<OffersFilterCubit, OffersFilterState>(
-            builder: (context, state) {
-              final hasFilters = state.activeSortBy != SortBy.none;
+          child: Consumer(
+            builder: (context, ref, child) {
+              final filterState = ref.watch(ordersFilterProvider);
+              final hasFilters = filterState.sortBy != SortBy.newOld;
+
               return Badge(
                 isLabelVisible: hasFilters,
                 alignment: Alignment.topRight,
@@ -344,7 +168,7 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                       splashColor: AppColors.blue700.withAlpha(25),
                       borderRadius: BorderRadius.circular(16),
                       onTap: () => _showSortModal(context),
-                      child: Padding(
+                      child: const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Icon(
                           CustomIcons.sort,
@@ -360,13 +184,14 @@ class _BuyerOrdersState extends State<BuyerOrders> {
         ),
         Expanded(
           flex: 1,
-          child: BlocBuilder<OffersFilterCubit, OffersFilterState>(
-            builder: (context, state) {
-              final hasFilters = state.activeStatuses.isNotEmpty;
+          child: Consumer(
+            builder: (context, ref, child) {
+              final filterState = ref.watch(ordersFilterProvider);
+              final hasFilters = filterState.selectedStatuses.isNotEmpty;
 
               return Badge(
                 isLabelVisible: hasFilters,
-                label: Text("${state.totalFilters}"),
+                label: Text("${filterState.selectedStatuses.length}"),
                 alignment: Alignment.topRight,
                 backgroundColor: AppColors.blue800,
                 child: SizedBox(
@@ -396,193 +221,271 @@ class _BuyerOrdersState extends State<BuyerOrders> {
     );
   }
 
+  void _showFilterModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => const _FilterModalContent(),
+    );
+  }
+
+  void _showSortModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => const _SortModalContent(),
+    );
+  }
+}
+
+class _OrderListItem extends ConsumerWidget {
+  final DisplayItem item;
+
+  const _OrderListItem({required this.item});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final catchAsync = ref.watch(catchProvider(item.catchId));
+
+    return catchAsync.when(
+      loading: () => const SizedBox(
+        height: 100,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (catchItem) {
+        if (catchItem == null) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: OrderCard(
+            catchItem: catchItem,
+            status: item.status,
+            weight: item.weight,
+            price: item.price,
+            hasUpdate: item.hasUpdate,
+            onPressed: () {
+              // Navigation Logic:
+              // If status is NOT (pending or rejected) -> Order Details
+              // Else -> Shared Offers Screen
+
+              final isPendingOrRejected =
+                  item.status == OfferStatus.pending ||
+                  item.status == OfferStatus.rejected;
+
+              if (!isPendingOrRejected) {
+                // Navigate to Order Details
+                context.push("/buyer/order-details/${item.id}");
+              } else {
+                // Navigate to Shared Offer Details
+                // Assuming the route is /shared/offer-details/:id based on user request
+                // Or maybe /buyer/offer-details/:id if shared route doesn't exist yet
+                // The user said "to the shared offers screen".
+                // I'll check if I should use /shared/... or keep /buyer/...
+                // Previous code used /buyer/offer-details/${item.id}
+                // I'll stick to /buyer/offer-details/${item.id} for now as it likely maps to the shared screen
+                // or I can try /shared/offer-details/${item.id} if I'm sure.
+                // Let's use /buyer/offer-details/${item.id} to be safe, assuming it shows the shared screen.
+                context.push("/buyer/offer-details/${item.id}");
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FilterModalContent extends ConsumerStatefulWidget {
+  const _FilterModalContent();
+
+  @override
+  ConsumerState<_FilterModalContent> createState() =>
+      _FilterModalContentState();
+}
+
+class _FilterModalContentState extends ConsumerState<_FilterModalContent> {
+  late List<OfferStatus> _selectedStatuses;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedStatuses = List.from(
+      ref.read(ordersFilterProvider).selectedStatuses,
+    );
+  }
+
+  void _toggleStatus(OfferStatus status) {
+    setState(() {
+      if (_selectedStatuses.contains(status)) {
+        _selectedStatuses.remove(status);
+      } else {
+        _selectedStatuses.add(status);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.gray50,
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: AppColors.white100,
-        actions: [
-          IconButton(
-            onPressed: () {
-              context.go("/buyer/notifications");
-            },
-            icon: const Icon(
-              Icons.notifications_none,
-              color: AppColors.textBlue,
-            ),
+    final height = MediaQuery.of(context).size.height * 0.35;
+
+    return Container(
+      height: height,
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 12,
+        children: [
+          const Text(
+            "Filter by:",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(24.0),
-          child: Column(
-            spacing: 16,
+
+          const Text("Status", style: TextStyle(fontSize: 12)),
+
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: OfferStatus.values.map((status) {
+              final title =
+                  status.name.substring(0, 1).toUpperCase() +
+                  status.name.substring(1);
+              return FilterButton(
+                title: title,
+                color: AppColors.getStatusColor(status),
+                isSelected: _selectedStatuses.contains(status),
+                onPressed: () => _toggleStatus(status),
+              );
+            }).toList(),
+          ),
+          const Divider(),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SectionHeader("Offers", fontSize: 16),
-              Container(color: AppColors.textBlue, height: 2.0),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedStatuses = [];
+                  });
+                  ref
+                      .read(ordersFilterProvider.notifier)
+                      .update((state) => state.copyWith(selectedStatuses: []));
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  "Reset All",
+                  style: TextStyle(decoration: TextDecoration.underline),
+                ),
+              ),
+              CustomButton(
+                title: "Apply Filters",
+                onPressed: () {
+                  ref
+                      .read(ordersFilterProvider.notifier)
+                      .update(
+                        (state) =>
+                            state.copyWith(selectedStatuses: _selectedStatuses),
+                      );
+                  Navigator.pop(context);
+                },
+              ),
             ],
           ),
-        ),
+        ],
       ),
-      body: MultiBlocListener(
-        listeners: [
-          BlocListener<OffersCubit, OffersState>(
-            listener: (context, state) {
-              if (state.offers.isNotEmpty) {
-                final catchIds = state.offers.map((o) => o.catchId).toList();
-                context.read<CatchesCubit>().loadRange(catchIds);
-              }
-            },
+    );
+  }
+}
+
+class _SortModalContent extends ConsumerStatefulWidget {
+  const _SortModalContent();
+
+  @override
+  ConsumerState<_SortModalContent> createState() => _SortModalContentState();
+}
+
+class _SortModalContentState extends ConsumerState<_SortModalContent> {
+  late SortBy _sortBy;
+
+  @override
+  void initState() {
+    super.initState();
+    _sortBy = ref.read(ordersFilterProvider).sortBy;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height * 0.3;
+
+    return Container(
+      height: height,
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8,
+        children: [
+          const Text(
+            "Sort by:",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          BlocListener<OrdersCubit, OrdersState>(
-            listener: (context, state) {
-              if (state.orders.isNotEmpty) {
-                final catchIds = state.orders.map((o) => o.catchId).toList();
-                context.read<CatchesCubit>().loadRange(catchIds);
-              }
-            },
+          _buildDateSortOptions(),
+          const Divider(thickness: 2, color: AppColors.gray200),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  ref
+                      .read(ordersFilterProvider.notifier)
+                      .update((state) => state.copyWith(sortBy: SortBy.newOld));
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  "Reset All",
+                  style: TextStyle(decoration: TextDecoration.underline),
+                ),
+              ),
+              CustomButton(
+                title: "Apply",
+                onPressed: () {
+                  ref
+                      .read(ordersFilterProvider.notifier)
+                      .update((state) => state.copyWith(sortBy: _sortBy));
+                  Navigator.pop(context);
+                },
+              ),
+            ],
           ),
         ],
-        child: BlocBuilder<OffersCubit, OffersState>(
-          builder: (context, offersState) {
-            return BlocBuilder<OrdersCubit, OrdersState>(
-              builder: (context, ordersState) {
-                if (offersState.loading || ordersState.loading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      ),
+    );
+  }
 
-                if (offersState.error != null) {
-                  return Center(
-                    child: Text(
-                      'Error loading offers: ${offersState.error}',
-                      style: const TextStyle(color: AppColors.fail500),
-                    ),
-                  );
-                }
-
-                // Merge Offers and Orders
-                final List<DisplayItem> allItems = [];
-
-                // Add Orders
-                for (final order in ordersState.orders) {
-                  allItems.add(DisplayItem.fromOrder(order));
-                }
-
-                // Add Offers (exclude those that are already orders or completed)
-                for (final offer in offersState.offers) {
-                  // Check if this offer is already represented by an order
-                  final hasOrder = ordersState.orders.any(
-                    (o) => o.offerId == offer.id,
-                  );
-                  // Also exclude if status is accepted/completed as they should be orders
-                  // (unless data sync issue, but let's assume orders cover them)
-                  if (!hasOrder &&
-                      !offer.isAccepted &&
-                      !offer.isFinal &&
-                      offer.status != OfferStatus.completed) {
-                    allItems.add(DisplayItem.fromOffer(offer));
-                  }
-                }
-
-                return BlocBuilder<OffersFilterCubit, OffersFilterState>(
-                  builder: (context, filterState) {
-                    final filteredItems = _applyFilteringAndSorting(
-                      allItems,
-                      filterState,
-                    );
-
-                    return RefreshIndicator(
-                      onRefresh: _loadData,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 16,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SizedBox(
-                              height: 56,
-                              child: _buildSearchAndFilterRow(context),
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            Expanded(
-                              child: filteredItems.isEmpty
-                                  ? const Center(
-                                      child: Text(
-                                        "No orders found matching your criteria.",
-                                        style: TextStyle(
-                                          color: AppColors.textGray,
-                                        ),
-                                      ),
-                                    )
-                                  : BlocBuilder<CatchesCubit, CatchesState>(
-                                      builder: (context, catchesState) {
-                                        return ListView.builder(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 80,
-                                          ),
-                                          itemCount: filteredItems.length,
-                                          itemBuilder: (context, index) {
-                                            final item = filteredItems[index];
-
-                                            // Find catch details
-                                            final catchItem = catchesState
-                                                .catches
-                                                .where(
-                                                  (c) => c.id == item.catchId,
-                                                )
-                                                .firstOrNull;
-
-                                            if (catchItem == null) {
-                                              // Loading or error state for this card?
-                                              // Or just show placeholder
-                                              return const SizedBox.shrink();
-                                            }
-
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 8.0,
-                                              ),
-                                              child: OrderCard(
-                                                catchItem: catchItem,
-                                                status: item.status,
-                                                weight: item.weight,
-                                                price: item.price,
-                                                hasUpdate: item.hasUpdate,
-                                                onPressed: () {
-                                                  if (item.isOrder) {
-                                                    context.go(
-                                                      "/buyer/order-details/${item.id}",
-                                                    );
-                                                  } else {
-                                                    context.go(
-                                                      "/buyer/offer-details/${item.id}",
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            );
+  Widget _buildDateSortOptions() {
+    return Column(
+      children: [
+        RadioListTile<SortBy>(
+          dense: true,
+          groupValue: _sortBy,
+          title: const Text('Oldest to Newest', style: TextStyle(fontSize: 14)),
+          value: SortBy.oldNew,
+          onChanged: (v) {
+            if (v != null) setState(() => _sortBy = v);
           },
         ),
-      ),
+        RadioListTile<SortBy>(
+          dense: true,
+          groupValue: _sortBy,
+          title: const Text('Newest to Oldest', style: TextStyle(fontSize: 14)),
+          value: SortBy.newOld,
+          onChanged: (v) {
+            if (v != null) setState(() => _sortBy = v);
+          },
+        ),
+      ],
     );
   }
 }

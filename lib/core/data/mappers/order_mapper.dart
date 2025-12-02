@@ -50,7 +50,7 @@ class OrderMapper {
   static OrderStatus _parseStatus(String status) {
     return OrderStatus.values.firstWhere(
       (s) => s.name == status,
-      orElse: () => OrderStatus.active,
+      orElse: () => OrderStatus.accepted,
     );
   }
 }

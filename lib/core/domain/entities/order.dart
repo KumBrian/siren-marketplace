@@ -33,7 +33,7 @@ class Order extends Equatable {
   });
 
   // Business Logic
-  bool get isActive => status == OrderStatus.active;
+  bool get isActive => status == OrderStatus.accepted;
   bool get isCompleted => status == OrderStatus.completed;
   bool get isCancelled => status == OrderStatus.cancelled;
   bool get canBeReviewed => status.canBeReviewed;
@@ -67,7 +67,7 @@ class Order extends Equatable {
 
   // Domain Actions
   Order markAsCompleted() {
-    if (status != OrderStatus.active) {
+    if (status != OrderStatus.accepted) {
       throw StateError('Can only complete active orders');
     }
 
@@ -75,7 +75,7 @@ class Order extends Equatable {
   }
 
   Order markAsCancelled() {
-    if (status != OrderStatus.active) {
+    if (status != OrderStatus.accepted) {
       throw StateError('Can only cancel active orders');
     }
 

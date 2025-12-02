@@ -1,12 +1,12 @@
 enum OrderStatus {
-  active,
+  accepted,
   completed,
   cancelled;
 
   String get displayName {
     switch (this) {
-      case OrderStatus.active:
-        return 'Active';
+      case OrderStatus.accepted:
+        return 'Accepted';
       case OrderStatus.completed:
         return 'Completed';
       case OrderStatus.cancelled:
@@ -14,7 +14,7 @@ enum OrderStatus {
     }
   }
 
-  bool get isActive => this == OrderStatus.active;
+  bool get isAccepted => this == OrderStatus.accepted;
 
   bool get isCompleted => this == OrderStatus.completed;
 

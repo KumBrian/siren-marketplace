@@ -80,6 +80,7 @@ class LocalUserDataSource implements IUserDataSource {
 
   @override
   Future<UserModel?> getFirstFisher() async {
+    print('LocalUserDataSource.getFirstFisher - querying database');
     final db = await dbHelper.database;
     final result = await db.query(
       'users',
@@ -87,12 +88,23 @@ class LocalUserDataSource implements IUserDataSource {
       whereArgs: ['fisher'],
       limit: 1,
     );
-    if (result.isEmpty) return null;
-    return UserModel.fromMap(result.first);
+    print(
+      'LocalUserDataSource.getFirstFisher - found ${result.length} results',
+    );
+    if (result.isEmpty) {
+      print('LocalUserDataSource.getFirstFisher - no fisher found');
+      return null;
+    }
+    final user = UserModel.fromMap(result.first);
+    print(
+      'LocalUserDataSource.getFirstFisher - returning user: ${user.id}, role: ${user.currentRole}',
+    );
+    return user;
   }
 
   @override
   Future<UserModel?> getFirstBuyer() async {
+    print('LocalUserDataSource.getFirstBuyer - querying database');
     final db = await dbHelper.database;
     final result = await db.query(
       'users',
@@ -100,8 +112,16 @@ class LocalUserDataSource implements IUserDataSource {
       whereArgs: ['buyer'],
       limit: 1,
     );
-    if (result.isEmpty) return null;
-    return UserModel.fromMap(result.first);
+    print('LocalUserDataSource.getFirstBuyer - found ${result.length} results');
+    if (result.isEmpty) {
+      print('LocalUserDataSource.getFirstBuyer - no buyer found');
+      return null;
+    }
+    final user = UserModel.fromMap(result.first);
+    print(
+      'LocalUserDataSource.getFirstBuyer - returning user: ${user.id}, role: ${user.currentRole}',
+    );
+    return user;
   }
 
   // Additional methods needed for Seeder or specific queries

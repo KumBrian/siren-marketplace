@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:siren_marketplace/bloc/cubits/bottom_nav_cubit/bottom_nav_cubit.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/providers/navigation_providers.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/widgets/custom_nav_bar_tabs.dart';
-import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/user_profile.dart';
 
 import 'home_screen.dart';
 
-class Fisher extends StatefulWidget {
+class Fisher extends ConsumerStatefulWidget {
   const Fisher({super.key});
 
   @override
-  State<Fisher> createState() => _FisherState();
+  ConsumerState<Fisher> createState() => _FisherState();
 }
 
-class _FisherState extends State<Fisher> with SingleTickerProviderStateMixin {
+class _FisherState extends ConsumerState<Fisher>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -23,75 +24,77 @@ class _FisherState extends State<Fisher> with SingleTickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 4, vsync: this, initialIndex: 1);
 
-    // Keep Bloc and controller in sync both ways
+    // Sync tab controller with Riverpod provider
     _tabController.addListener(() {
       if (_tabController.indexIsChanging == false) {
-        context.read<BottomNavCubit>().changeIndex(_tabController.index);
+        ref.read(bottomNavIndexProvider.notifier).state = _tabController.index;
       }
     });
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final userAsync = ref.watch(currentUserProvider);
+    final selectedIndex = ref.watch(bottomNavIndexProvider);
+
+    // Sync provider changes back to tab controller
+    ref.listen(bottomNavIndexProvider, (previous, next) {
+      if (_tabController.index != next) {
+        _tabController.animateTo(next);
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.white100,
-      body: BlocListener<BottomNavCubit, int>(
-        listener: (context, state) {
-          if (_tabController.index != state) {
-            _tabController.animateTo(state);
-          }
-        },
-        child: Stack(
-          children: [
-            TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                const Center(child: Text("Placeholder 0")),
-                FisherHome(),
-                const Center(child: Text("Placeholder 2")),
-                BlocBuilder<UserCubit, UserState>(
-                  builder: (context, state) {
-                    if (state is UserLoaded) {
-                      return UserProfile(role: state.role.name);
-                    }
-                    return const Center(child: Text("Placeholder 4"));
-                  },
-                ),
-              ],
-            ),
-            Positioned(
-              bottom: 24,
-              left: 16,
-              right: 16,
-              child: BlocListener<UserCubit, UserState>(
-                listenWhen: (previous, current) => current != previous,
-                listener: (context, state) {
-                  if (state is UserLoaded) {
-                    final navCubit = context.read<BottomNavCubit>();
-                    navCubit.reset();
-                    _tabController.animateTo(1);
+      body: Stack(
+        children: [
+          TabBarView(
+            controller: _tabController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              const Center(child: Text("Placeholder 0")),
+              FisherHome(),
+              const Center(child: Text("Placeholder 2")),
+              userAsync.when(
+                data: (user) {
+                  if (user != null) {
+                    return UserProfile(role: user.currentRole.name);
                   }
+                  return const Center(child: Text("No user loaded"));
                 },
-                child: BlocBuilder<BottomNavCubit, int>(
-                  builder: (context, state) {
-                    if (context.read<UserCubit>().state is UserLoaded) {
-                      return CustomNavBarWithTabs(
-                        selectedIndex: state,
-                        role: (context.read<UserCubit>().state as UserLoaded)
-                            .role,
-                        onTabSelected: (value) {
-                          context.read<BottomNavCubit>().changeIndex(value);
-                        },
-                      );
-                    }
-                    return const SizedBox();
-                  },
-                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text("Error: $error")),
               ),
+            ],
+          ),
+          Positioned(
+            bottom: 24,
+            left: 16,
+            right: 16,
+            child: userAsync.when(
+              data: (user) {
+                if (user != null) {
+                  return CustomNavBarWithTabs(
+                    selectedIndex: selectedIndex,
+                    role: user.currentRole,
+                    onTabSelected: (value) {
+                      ref.read(bottomNavIndexProvider.notifier).state = value;
+                    },
+                  );
+                }
+                return const SizedBox();
+              },
+              loading: () => const SizedBox(),
+              error: (_, __) => const SizedBox(),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

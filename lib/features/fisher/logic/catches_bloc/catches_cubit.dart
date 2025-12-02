@@ -4,6 +4,7 @@ import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/exceptions/domain_exception.dart';
 import 'package:siren_marketplace/core/domain/exceptions/not_found_exception.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
+import 'package:collection/collection.dart';
 
 part 'catches_state.dart';
 
@@ -38,9 +39,25 @@ class CatchesCubit extends Cubit<CatchesState> {
     try {
       final catchItem = await repository.getById(catchId);
 
-      // Update the catches list with this single catch
-      emit(state.copyWith(loading: false, catches: [catchItem!]));
-      return catchItem;
+      if (catchItem != null) {
+        // Add or update the catch in the existing list
+        final updatedCatches = List<Catch>.from(state.catches);
+        final existingIndex = updatedCatches.indexWhere((c) => c.id == catchId);
+
+        if (existingIndex >= 0) {
+          // Update existing catch
+          updatedCatches[existingIndex] = catchItem;
+        } else {
+          // Add new catch
+          updatedCatches.add(catchItem);
+        }
+
+        emit(state.copyWith(loading: false, catches: updatedCatches));
+        return catchItem;
+      } else {
+        emit(state.copyWith(loading: false, error: 'Catch not found'));
+        return null;
+      }
     } on NotFoundException catch (e) {
       emit(state.copyWith(loading: false, error: e.message));
       return null;
@@ -77,7 +94,18 @@ class CatchesCubit extends Cubit<CatchesState> {
         }
       }
 
-      emit(state.copyWith(loading: false, catches: results));
+      // Merge results into existing state
+      final updatedCatches = List<Catch>.from(state.catches);
+      for (final newItem in results) {
+        final index = updatedCatches.indexWhere((c) => c.id == newItem.id);
+        if (index >= 0) {
+          updatedCatches[index] = newItem;
+        } else {
+          updatedCatches.add(newItem);
+        }
+      }
+
+      emit(state.copyWith(loading: false, catches: updatedCatches));
     } on DomainException catch (e) {
       emit(state.copyWith(loading: false, error: e.message));
     } catch (e) {
@@ -176,10 +204,6 @@ class CatchesCubit extends Cubit<CatchesState> {
 
   /// Get a catch from the current state cache
   Catch? getCatchFromCache(String catchId) {
-    try {
-      return state.catches.firstWhere((c) => c.id == catchId);
-    } catch (_) {
-      return null;
-    }
+    return state.catches.firstWhereOrNull((c) => c.id == catchId);
   }
 }

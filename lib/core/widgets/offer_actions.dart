@@ -9,6 +9,7 @@ import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
 import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price.dart';
@@ -106,7 +107,7 @@ class OfferActions extends StatefulWidget {
   final Offer offer;
   final GlobalKey<FormState> formKey;
   final UserRole currentUserRole;
-  final void Function(String offerId) onNavigateToOrder;
+  final void Function(String orderId) onNavigateToOrder;
   final Catch catchItem;
 
   @override
@@ -143,15 +144,23 @@ class _OfferActionsState extends State<OfferActions> {
         return;
       }
 
-      if (!context.mounted) return;
+      if (!mounted) return;
 
-      context.read<OffersCubit>().acceptOffer(
+      final navigator = Navigator.of(context);
+
+      // Await the action
+      await context.read<OffersCubit>().acceptOffer(
         widget.offer.id,
         widget.currentUserRole,
       );
+
+      // Dismiss loading dialog
+      if (navigator.mounted) {
+        navigator.pop();
+      }
     } catch (e) {
-      if (!context.mounted) return;
-      Navigator.of(context).pop();
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Dismiss loading dialog on error too
       await showActionSuccessDialog(
         context,
         message: 'Accept failed: ${e.toString()}',
@@ -162,17 +171,27 @@ class _OfferActionsState extends State<OfferActions> {
 
   Future<void> _handleReject(BuildContext outerContext) async {
     if (Navigator.of(outerContext).canPop()) Navigator.of(outerContext).pop();
-    if (!context.mounted) return;
+    if (!mounted) return;
     showLoadingDialog(context, message: 'Creating order...');
+
+    final navigator = Navigator.of(context);
+
     try {
-      context.read<OffersCubit>().rejectOffer(
+      // Await the action
+      await context.read<OffersCubit>().rejectOffer(
         widget.offer.id,
         widget.currentUserRole,
       );
+
+      // Dismiss loading dialog
+      if (navigator.mounted) {
+        navigator.pop();
+      }
     } catch (e) {
-      if (outerContext.mounted) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Dismiss loading dialog
         await showActionSuccessDialog(
-          outerContext,
+          context,
           message: 'Reject failed: $e',
           autoCloseSeconds: 3,
         );
@@ -329,6 +348,7 @@ class _OfferActionsState extends State<OfferActions> {
                       child: CustomButton(
                         title: "Counter-Offer",
                         icon: Icons.autorenew_rounded,
+                        bordered: true,
                         onPressed: () {
                           showCounterOfferDialog(
                             context: context,
@@ -343,13 +363,16 @@ class _OfferActionsState extends State<OfferActions> {
                               if (Navigator.of(context).canPop()) {
                                 Navigator.of(context).pop();
                               }
-                              if (!context.mounted) return;
+                              if (!mounted) return;
                               showLoadingDialog(
                                 context,
                                 message: 'Creating order...',
                               );
+
+                              final navigator = Navigator.of(context);
+
                               try {
-                                context.read<OffersCubit>().counterOffer(
+                                await context.read<OffersCubit>().counterOffer(
                                   widget.offer.id,
                                   widget.currentUserRole,
                                   OfferTerms.create(
@@ -357,8 +380,16 @@ class _OfferActionsState extends State<OfferActions> {
                                     totalPrice: Price.fromAmount(newPrice),
                                   ),
                                 );
+
+                                // Dismiss loading dialog
+                                if (navigator.mounted) {
+                                  navigator.pop();
+                                }
                               } catch (e) {
-                                if (context.mounted) {
+                                if (mounted) {
+                                  Navigator.of(
+                                    context,
+                                  ).pop(); // Dismiss loading dialog
                                   await showActionSuccessDialog(
                                     context,
                                     message: 'Counter failed: $e',
@@ -392,12 +423,24 @@ class _OfferActionsState extends State<OfferActions> {
               ],
             ],
           )
-        : widget.offer.status == OfferStatus.accepted ||
-              widget.offer.status == OfferStatus.completed
-        ? CustomButton(
-            title: "Order Details",
-            onPressed: () {
-              widget.onNavigateToOrder(widget.offer.id);
+        : (widget.offer.status == OfferStatus.accepted)
+        ? FutureBuilder<String?>(
+            future: sl<IOrderRepository>()
+                .getByOfferId(widget.offer.id)
+                .then((order) => order?.id),
+            builder: (context, snapshot) {
+              final orderId = snapshot.data;
+              final isLoading =
+                  snapshot.connectionState == ConnectionState.waiting;
+
+              return CustomButton(
+                title: isLoading ? "Loading..." : "View Order Details",
+                onPressed: orderId != null && !isLoading
+                    ? () {
+                        widget.onNavigateToOrder(orderId);
+                      }
+                    : () {}, // Disabled state
+              );
             },
           )
         : Container();

@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 
 class NumberInputField extends StatefulWidget {
   const NumberInputField({
     super.key,
     required this.label,
-    this.role = UserRole.fisher,
+    this.role, // Optional, kept for compatibility but not used for logic
     this.value,
     required this.suffix,
     required this.controller,
     this.onChanged,
     this.validator,
     this.decimal = true,
-    this.editable = false,
+    this.editable = true, // Default to true (editable)
   });
 
   final String label;
-  final UserRole role;
+  final UserRole? role;
   final num? value;
   final String suffix;
   final TextEditingController controller;
@@ -35,21 +34,6 @@ class _NumberInputFieldState extends State<NumberInputField> {
   @override
   void initState() {
     super.initState();
-
-    // --- NEW LOGIC: Initialize the read-only 'Weight' field ---
-    if (widget.label == "Weight" &&
-        widget.value != null &&
-        widget.role == Role.fisher) {
-      // Defer setting text to ensure controller is safely attached
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final newText = widget.value!.toStringAsFixed(2);
-        if (widget.controller.text.isEmpty ||
-            widget.controller.text != newText) {
-          widget.controller.text = newText;
-        }
-      });
-    }
   }
 
   @override
@@ -84,17 +68,14 @@ class _NumberInputFieldState extends State<NumberInputField> {
 
   @override
   Widget build(BuildContext context) {
-    // Check is updated to include 'Weight' as read-only.
-    final isReadOnly =
-        widget.label == "Price/Kg" ||
-        (widget.label == "Total" && !widget.editable!) ||
-        (widget.label == "Weight" && widget.role == Role.fisher);
+    // Simplified logic: rely on editable parameter
+    final isReadOnly = !(widget.editable ?? true);
 
     return TextFormField(
       controller: widget.controller,
       keyboardType: TextInputType.numberWithOptions(decimal: widget.decimal),
 
-      // Only attach onChanged for the input fields ("Total" is now the only one)
+      // Only attach onChanged if editable
       onChanged: isReadOnly ? null : widget.onChanged,
       readOnly: isReadOnly,
       style: TextStyle(

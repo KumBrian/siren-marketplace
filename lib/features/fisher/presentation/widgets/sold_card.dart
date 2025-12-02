@@ -3,7 +3,6 @@ import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/extensions.dart';
 
 class SoldCard extends StatelessWidget {
   const SoldCard({

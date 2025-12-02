@@ -1,18 +1,22 @@
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_state.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price_per_kg.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
+import 'package:siren_marketplace/core/providers/catch_filter_provider.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
@@ -23,13 +27,9 @@ import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/data/models/message.dart';
-import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
-import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 List<Message> PLACEHOLDER_MESSAGES = [
-  // Example data
   Message(
     messageId: 'm1',
     clientName: 'Jean Buyer',
@@ -48,16 +48,16 @@ List<Message> PLACEHOLDER_MESSAGES = [
   ),
 ];
 
-class CatchDetails extends StatefulWidget {
+class CatchDetails extends ConsumerStatefulWidget {
   const CatchDetails({super.key, required this.catchId});
 
   final String catchId;
 
   @override
-  State<CatchDetails> createState() => _CatchDetailsState();
+  ConsumerState<CatchDetails> createState() => _CatchDetailsState();
 }
 
-class _CatchDetailsState extends State<CatchDetails>
+class _CatchDetailsState extends ConsumerState<CatchDetails>
     with TickerProviderStateMixin {
   late TabController _tabController;
 
@@ -65,16 +65,12 @@ class _CatchDetailsState extends State<CatchDetails>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-
-    // Load catch and offers data
-    context.read<CatchesCubit>().loadById(widget.catchId);
-    context.read<OffersCubit>().loadByCatchId(widget.catchId);
   }
 
   @override
   void dispose() {
-    super.dispose();
     _tabController.dispose();
+    super.dispose();
   }
 
   void _showDeleteDialog(BuildContext context, Catch selectedCatch) {
@@ -111,28 +107,26 @@ class _CatchDetailsState extends State<CatchDetails>
               ),
             ),
             const SizedBox(height: 8),
-
             CustomButton(
               title: "Accept",
-              onPressed: () {
-                // Get fisher ID from user state
-                final userState = context.read<UserCubit>().state;
-                if (userState is UserLoaded) {
-                  context.read<CatchesCubit>().deleteCatch(
-                    selectedCatch.id,
-                    userState.user!.id,
-                  );
+              onPressed: () async {
+                final repository = sl<ICatchRepository>();
+                await repository.delete(selectedCatch.id);
+
+                // Invalidate providers to refresh data
+                ref.invalidate(catchByIdProvider(widget.catchId));
+                ref.invalidate(fisherCatchesProvider);
+
+                if (context.mounted) {
+                  context.pop(); // Close dialog
+                  context.pop(); // Go back to previous screen
                 }
-                context.pop();
               },
             ),
-
             CustomButton(
               title: "Reject",
               cancel: true,
-              onPressed: () {
-                context.pop();
-              },
+              onPressed: () => context.pop(),
             ),
           ],
         ),
@@ -140,172 +134,158 @@ class _CatchDetailsState extends State<CatchDetails>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  void _showEditCatchDialog(BuildContext context, Catch selectedCatch) {
     final editCatchFormKey = GlobalKey<FormState>();
     final TextEditingController weightController = TextEditingController();
     final TextEditingController pricePerKgController = TextEditingController();
     final TextEditingController totalController = TextEditingController();
 
-    void showEditCatchDialog(BuildContext context, Catch selectedCatch) {
-      // Initial setup: Display weight in Kg
-      final double initialWeightInKg = selectedCatch.availableWeight.kilograms;
-      weightController.text = initialWeightInKg.toString().replaceAll(
-        RegExp(r"([.]*0)(?!.*\d)"),
-        "",
-      );
+    // Initial setup
+    final double initialWeightInKg = selectedCatch.availableWeight.kilograms;
+    weightController.text = initialWeightInKg.toString().replaceAll(
+      RegExp(r"([.]*0)(?!.*\d)"),
+      "",
+    );
 
-      pricePerKgController.text = selectedCatch.pricePerKg.amountPerKg
-          .toString();
+    pricePerKgController.text = selectedCatch.pricePerKg.amountPerKg.toString();
+    final double initialTotal = selectedCatch.totalPrice.major;
+    totalController.text = initialTotal.toStringAsFixed(0);
 
-      // Initial calculation for the read-only field
-      final double initialTotal = selectedCatch.totalPrice.major;
-      totalController.text = initialTotal.toStringAsFixed(0);
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (stfCtx, setState) {
+            final double currentWeightInputKg =
+                double.tryParse(weightController.text) ?? 0.0;
+            final double currentPricePerKg =
+                double.tryParse(pricePerKgController.text) ?? 0;
+            final double currentTotal =
+                currentWeightInputKg * currentPricePerKg;
 
-      showDialog(
-        context: context,
-        builder: (dialogCtx) {
-          return StatefulBuilder(
-            builder: (stfCtx, setState) {
-              // Parse User Input (Kg)
-              final double currentWeightInputKg =
-                  double.tryParse(weightController.text) ?? 0.0;
+            totalController.text = currentTotal.toStringAsFixed(0);
 
-              // Parse Price
-              final double currentPricePerKg =
-                  double.tryParse(pricePerKgController.text) ?? 0;
+            void updateStateOnChanged(String _) {
+              setState(() {});
+            }
 
-              // Calculate Total
-              final double currentTotal =
-                  currentWeightInputKg * currentPricePerKg;
-
-              // Update the read-only controller's text
-              totalController.text = currentTotal.toStringAsFixed(0);
-
-              // Helper to trigger rebuild
-              void updateStateOnChanged(String _) {
-                setState(() {});
-              }
-
-              return AlertDialog(
-                contentPadding: const EdgeInsets.only(
-                  left: 24,
-                  right: 24,
-                  bottom: 24,
+            return AlertDialog(
+              contentPadding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                bottom: 24,
+              ),
+              constraints: const BoxConstraints(maxWidth: 500, minWidth: 450),
+              title: Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(dialogCtx).pop(),
                 ),
-                constraints: const BoxConstraints(maxWidth: 500, minWidth: 450),
-                title: Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(dialogCtx).pop(),
-                  ),
-                ),
-                content: Form(
-                  key: editCatchFormKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.textBlue),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          children: [
-                            NumberInputField(
-                              controller: weightController,
-                              label: "Available Weight",
-                              role: UserRole.fisher,
-                              suffix: "Kg",
-                              onChanged: updateStateOnChanged,
-                            ),
-                            const SizedBox(height: 16),
-                            NumberInputField(
-                              controller: pricePerKgController,
-                              label: "Price per Kg",
-                              role: UserRole.fisher,
-                              decimal: false,
-                              suffix: "CFA",
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a value';
-                                }
-                                final parsedValue = double.tryParse(value);
-                                if (parsedValue == null) {
-                                  return 'Enter a valid number';
-                                }
-                                return null;
-                              },
-                              onChanged: updateStateOnChanged,
-                            ),
-                            const SizedBox(height: 16),
-                            NumberInputField(
-                              controller: totalController,
-                              label: "Total",
-                              role: UserRole.fisher,
-                              suffix: "CFA",
-                              onChanged: null,
-                              // Read-only
-                              decimal: false,
-                            ),
-                          ],
-                        ),
+              ),
+              content: Form(
+                key: editCatchFormKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.textBlue),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-
-                      const SizedBox(height: 24),
-                      CustomButton(
-                        title: "Update Catch",
-                        onPressed: () async {
-                          if (editCatchFormKey.currentState!.validate()) {
-                            // Update using value objects
-                            final updatedCatch = selectedCatch.copyWith(
-                              availableWeight: Weight.fromKg(
-                                currentWeightInputKg,
-                              ),
-                              pricePerKg: PricePerKg.fromAmount(
-                                currentPricePerKg.floor(),
-                              ),
-                              totalPrice: Price.fromMajor(currentTotal),
-                            );
-
-                            context.read<CatchesCubit>().updateCatch(
-                              updatedCatch,
-                            );
-                            Navigator.of(dialogCtx).pop();
-                          }
-                        },
+                      child: Column(
+                        children: [
+                          NumberInputField(
+                            controller: weightController,
+                            label: "Available Weight",
+                            role: UserRole.fisher,
+                            suffix: "Kg",
+                            onChanged: updateStateOnChanged,
+                          ),
+                          const SizedBox(height: 16),
+                          NumberInputField(
+                            controller: pricePerKgController,
+                            label: "Price per Kg",
+                            role: UserRole.fisher,
+                            decimal: false,
+                            suffix: "CFA",
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a value';
+                              }
+                              final parsedValue = double.tryParse(value);
+                              if (parsedValue == null) {
+                                return 'Enter a valid number';
+                              }
+                              return null;
+                            },
+                            onChanged: updateStateOnChanged,
+                          ),
+                          const SizedBox(height: 16),
+                          NumberInputField(
+                            controller: totalController,
+                            label: "Total",
+                            role: UserRole.fisher,
+                            suffix: "CFA",
+                            onChanged: null,
+                            decimal: false,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 24),
+                    CustomButton(
+                      title: "Update Catch",
+                      onPressed: () async {
+                        if (editCatchFormKey.currentState!.validate()) {
+                          final updatedCatch = selectedCatch.copyWith(
+                            availableWeight: Weight.fromKg(
+                              currentWeightInputKg,
+                            ),
+                            pricePerKg: PricePerKg.fromAmount(
+                              currentPricePerKg.floor(),
+                            ),
+                            totalPrice: Price.fromMajor(currentTotal),
+                          );
+
+                          final repository = sl<ICatchRepository>();
+                          await repository.update(updatedCatch);
+
+                          // Invalidate providers to refresh data
+                          ref.invalidate(catchByIdProvider(widget.catchId));
+                          ref.invalidate(fisherCatchesProvider);
+
+                          Navigator.of(dialogCtx).pop();
+                        }
+                      },
+                    ),
+                  ],
                 ),
-              );
-            },
-          );
-        },
-      );
-    }
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final catchAsync = ref.watch(catchByIdProvider(widget.catchId));
+    final offersAsync = ref.watch(offersByCatchProvider(widget.catchId));
+    final filteredOffers = ref.watch(filteredOffersProvider(widget.catchId));
+    final filterState = ref.watch(catchFilterProvider);
+    final filterNotifier = ref.read(catchFilterProvider.notifier);
 
     return Scaffold(
-      body: BlocBuilder<CatchesCubit, CatchesState>(
-        builder: (context, catchesState) {
-          if (catchesState.loading && catchesState.catches.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (catchesState.error != null && catchesState.catches.isEmpty) {
-            return Center(
-              child: Text('Error loading catch: ${catchesState.error}'),
-            );
-          }
-
-          if (catchesState.catches.isEmpty) {
+      body: catchAsync.when(
+        data: (selectedCatch) {
+          if (selectedCatch == null) {
             return const Center(child: Text('Catch not found'));
           }
 
-          final selectedCatch = catchesState.catches.first;
           final messagesForCatch = PLACEHOLDER_MESSAGES;
 
           return Scaffold(
@@ -324,6 +304,7 @@ class _CatchDetailsState extends State<CatchDetails>
               child: Column(
                 spacing: 8,
                 children: [
+                  // Catch header
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -419,13 +400,15 @@ class _CatchDetailsState extends State<CatchDetails>
                           color: Color(0xFF0A2A45),
                         ),
                         onPressed: () {
-                          showEditCatchDialog(context, selectedCatch);
+                          _showEditCatchDialog(context, selectedCatch);
                         },
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 8),
+
+                  // Catch info table
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -466,194 +449,87 @@ class _CatchDetailsState extends State<CatchDetails>
                     ),
                   ),
 
+                  // Filter and sort controls
                   AnimatedBuilder(
                     animation: _tabController,
                     builder: (context, child) {
-                      return BlocBuilder<CatchFilterCubit, CatchFilterState>(
-                        builder: (context, state) {
-                          final cubit = context.read<CatchFilterCubit>();
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              if (_tabController.index == 0)
-                                TextButton(
-                                  onPressed: () {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      showDragHandle: true,
-                                      builder: (context) {
-                                        return BlocBuilder<
-                                          CatchFilterCubit,
-                                          CatchFilterState
-                                        >(
-                                          builder: (innerContext, innerState) {
-                                            final innerCubit = innerContext
-                                                .read<CatchFilterCubit>();
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 16,
-                                                right: 16,
-                                                top: 16,
-                                                bottom: 32,
-                                              ),
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  const Text(
-                                                    "Filter by",
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 12),
-                                                  const Text("Status"),
-                                                  Text(
-                                                    "Select all that apply",
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: AppColors.textGray,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 12),
-                                                  Wrap(
-                                                    spacing: 8,
-                                                    runSpacing: 8,
-                                                    children: OfferStatus.values.map((
-                                                      status,
-                                                    ) {
-                                                      final title =
-                                                          status.name
-                                                              .substring(0, 1)
-                                                              .toUpperCase() +
-                                                          status.name.substring(
-                                                            1,
-                                                          );
-                                                      return FilterButton(
-                                                        title: title,
-                                                        color:
-                                                            AppColors.getStatusColor(
-                                                              status,
-                                                            ),
-                                                        isSelected: innerState
-                                                            .pendingStatuses
-                                                            .contains(title),
-                                                        onPressed: () =>
-                                                            innerCubit
-                                                                .toggleStatus(
-                                                                  title,
-                                                                ),
-                                                      );
-                                                    }).toList(),
-                                                  ),
-                                                  const Divider(),
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          innerCubit
-                                                              .clearAllFilters();
-                                                          innerContext.pop();
-                                                        },
-                                                        child: const Text(
-                                                          "Reset All",
-                                                          style: TextStyle(
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .underline,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      CustomButton(
-                                                        title: "Apply Filters",
-                                                        onPressed: () {
-                                                          innerCubit
-                                                              .applyFilters();
-                                                          innerContext.pop();
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    );
-                                  },
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        CustomIcons.filter,
-                                        size: 20,
-                                        color: AppColors.textBlue,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        "Filter${state.totalFilters == 0 ? "" : "(${state.totalFilters})"}",
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 16,
-                                          color: AppColors.textBlue,
-                                        ),
-                                      ),
-                                    ],
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (_tabController.index == 0)
+                            TextButton(
+                              onPressed: () {
+                                _showFilterBottomSheet(
+                                  context,
+                                  filterState,
+                                  filterNotifier,
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    CustomIcons.filter,
+                                    size: 20,
+                                    color: AppColors.textBlue,
                                   ),
-                                ),
-                              if (_tabController.index == 0)
-                                const SizedBox(width: 10),
-                              TextButton(
-                                onPressed: () {
-                                  cubit.setSort(
-                                    state.activeSortBy == "ascending"
-                                        ? "descending"
-                                        : "ascending",
-                                  );
-                                },
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      state.activeSortBy == "ascending"
-                                          ? Icons.arrow_upward_outlined
-                                          : Icons.arrow_downward_outlined,
-                                      size: 20,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Filter${filterState.totalFilters == 0 ? "" : "(${filterState.totalFilters})"}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16,
                                       color: AppColors.textBlue,
                                     ),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      "Date",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16,
-                                        color: AppColors.textBlue,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          );
-                        },
+                            ),
+                          if (_tabController.index == 0)
+                            const SizedBox(width: 10),
+                          TextButton(
+                            onPressed: () {
+                              filterNotifier.setSort(
+                                filterState.activeSortBy == "ascending"
+                                    ? "descending"
+                                    : "ascending",
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Icon(
+                                  filterState.activeSortBy == "ascending"
+                                      ? Icons.arrow_upward_outlined
+                                      : Icons.arrow_downward_outlined,
+                                  size: 20,
+                                  color: AppColors.textBlue,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  "Date",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 16,
+                                    color: AppColors.textBlue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),
+
+                  // Tabs
                   Expanded(
                     child: Column(
                       children: [
                         AnimatedBuilder(
                           animation: _tabController,
                           builder: (context, _) {
-                            return BlocBuilder<OffersCubit, OffersState>(
-                              builder: (context, offersState) {
-                                final offersWithUpdates = offersState.offers
+                            return offersAsync.when(
+                              data: (offers) {
+                                final offersWithUpdates = offers
                                     .where((o) => o.hasUpdateForFisher)
                                     .length;
 
@@ -697,41 +573,24 @@ class _CatchDetailsState extends State<CatchDetails>
                                         ],
                                       ),
                                     ),
-                                    Tab(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Text("Messages"),
-                                          if (false)
-                                            Container(
-                                              margin: const EdgeInsets.only(
-                                                left: 8,
-                                              ),
-                                              padding: const EdgeInsets.all(6),
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: _tabController.index == 1
-                                                    ? AppColors.textBlue
-                                                    : AppColors.textBlue
-                                                          .withValues(
-                                                            alpha: .6,
-                                                          ),
-                                              ),
-                                              child: Text(
-                                                "${messagesForCatch.length}",
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  color: AppColors.textWhite,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
+                                    const Tab(text: "Messages"),
                                   ],
                                 );
                               },
+                              loading: () => TabBar(
+                                controller: _tabController,
+                                tabs: const [
+                                  Tab(text: "Offers"),
+                                  Tab(text: "Messages"),
+                                ],
+                              ),
+                              error: (_, __) => TabBar(
+                                controller: _tabController,
+                                tabs: const [
+                                  Tab(text: "Offers"),
+                                  Tab(text: "Messages"),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -740,19 +599,11 @@ class _CatchDetailsState extends State<CatchDetails>
                             controller: _tabController,
                             physics: const BouncingScrollPhysics(),
                             children: [
-                              BlocBuilder<OffersCubit, OffersState>(
-                                builder: (context, offerState) {
-                                  return _buildOffersList(
-                                    context,
-                                    offerState.offers,
-                                    context.watch<CatchFilterCubit>().state,
-                                  );
-                                },
-                              ),
+                              _buildOffersList(context, filteredOffers),
                               _buildMessagesList(
                                 context,
                                 messagesForCatch,
-                                context.watch<CatchFilterCubit>().state,
+                                filterState,
                               ),
                             ],
                           ),
@@ -765,43 +616,129 @@ class _CatchDetailsState extends State<CatchDetails>
             ),
           );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(child: Text('Error loading catch: $error')),
       ),
     );
   }
 
-  Widget _buildOffersList(
+  void _showFilterBottomSheet(
     BuildContext context,
-    List<Offer> offers,
-    CatchFilterState filters,
+    CatchFilterState filterState,
+    CatchFilterNotifier filterNotifier,
   ) {
-    final filteredOffers = offers.where((offer) {
-      if (filters.activeStatuses.isEmpty) return true;
-      final statusName = offer.status.name.capitalize();
-      return filters.activeStatuses.contains(statusName);
-    }).toList();
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final state = ref.watch(catchFilterProvider);
+            final notifier = ref.read(catchFilterProvider.notifier);
 
-    filteredOffers.sort((a, b) {
-      final dateA = a.dateCreated;
-      final dateB = b.dateCreated;
-      return filters.activeSortBy == "ascending"
-          ? dateA.compareTo(dateB)
-          : dateB.compareTo(dateA);
-    });
+            return Padding(
+              padding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 32,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Filter by", style: TextStyle(fontSize: 12)),
+                  const SizedBox(height: 12),
+                  const Text("Status"),
+                  Text(
+                    "Select all that apply",
+                    style: TextStyle(fontSize: 12, color: AppColors.textGray),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: OfferStatus.values.map((status) {
+                      final title =
+                          status.name.substring(0, 1).toUpperCase() +
+                          status.name.substring(1);
+                      return FilterButton(
+                        title: title,
+                        color: AppColors.getStatusColor(status),
+                        isSelected: state.pendingStatuses.contains(title),
+                        onPressed: () => notifier.toggleStatus(title),
+                      );
+                    }).toList(),
+                  ),
+                  const Divider(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          notifier.clearAllFilters();
+                          context.pop();
+                        },
+                        child: const Text(
+                          "Reset All",
+                          style: TextStyle(
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                      CustomButton(
+                        title: "Apply Filters",
+                        onPressed: () {
+                          notifier.applyFilters();
+                          context.pop();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
-    if (filteredOffers.isEmpty) {
+  Widget _buildOffersList(BuildContext context, List<Offer> offers) {
+    if (offers.isEmpty) {
       return _buildEmptyState("No matching offers.", "Try adjusting filters.");
     }
 
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 80, top: 16),
-      itemCount: filteredOffers.length,
+      itemCount: offers.length,
       itemBuilder: (context, index) {
-        final offer = filteredOffers[index];
-        return OfferCard(
-          offer: offer,
-          clientName: "Buyer", // TODO: Load buyer name separately
-          clientRating: 0.0, // TODO: Load buyer rating separately
-          onPressed: () => context.push("/fisher/offer-details/${offer.id}"),
+        final offer = offers[index];
+        final buyerAsync = ref.watch(buyerByIdProvider(offer.buyerId));
+
+        return buyerAsync.when(
+          data: (buyer) {
+            return OfferCard(
+              offer: offer,
+              clientName: buyer?.name ?? "Unknown",
+              clientRating: buyer?.rating.value ?? 0.0,
+              onPressed: () =>
+                  context.push("/fisher/offer-details/${offer.id}"),
+            );
+          },
+          loading: () => OfferCard(
+            offer: offer,
+            clientName: "Loading...",
+            clientRating: 0.0,
+            onPressed: () => context.push("/fisher/offer-details/${offer.id}"),
+          ),
+          error: (_, __) => OfferCard(
+            offer: offer,
+            clientName: "Error",
+            clientRating: 0.0,
+            onPressed: () => context.push("/fisher/offer-details/${offer.id}"),
+          ),
         );
       },
     );
