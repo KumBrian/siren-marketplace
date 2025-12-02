@@ -36,7 +36,7 @@ class OrderService {
       throw StateError('User is not part of this order');
     }
 
-    if (order.status != OrderStatus.active) {
+    if (order.status != OrderStatus.accepted) {
       throw StateError('Can only complete active orders');
     }
 
@@ -57,7 +57,7 @@ class OrderService {
       throw StateError('User is not part of this order');
     }
 
-    if (order.status != OrderStatus.active) {
+    if (order.status != OrderStatus.accepted) {
       throw StateError('Can only cancel active orders');
     }
 

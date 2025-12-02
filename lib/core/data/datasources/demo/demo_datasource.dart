@@ -9,7 +9,6 @@ import '../../models/order_model.dart';
 import '../../models/review_model.dart';
 import '../../models/species_model.dart';
 import '../../models/user_model.dart';
-import '../../../domain/enums/user_role.dart';
 import '../interfaces/i_catch_datasource.dart';
 import '../interfaces/i_offer_datasource.dart';
 import '../interfaces/i_order_datasource.dart';
@@ -83,7 +82,7 @@ class DemoUserDataSource implements IUserDataSource {
       Duration(milliseconds: 100),
     ); // Simulate async operation
     try {
-      return _users.values.firstWhere((u) => u.currentRole == UserRole.fisher);
+      return _users.values.firstWhere((u) => u.currentRole == 'fisher');
     } catch (e) {
       return null;
     }
@@ -95,7 +94,7 @@ class DemoUserDataSource implements IUserDataSource {
       Duration(milliseconds: 100),
     ); // Simulate async operation
     try {
-      return _users.values.firstWhere((u) => u.currentRole == UserRole.buyer);
+      return _users.values.firstWhere((u) => u.currentRole == 'buyer');
     } catch (e) {
       return null;
     }
@@ -489,20 +488,32 @@ class DemoDataSourceFactory {
     // Seed Species
     final species1 = SpeciesModel(
       id: 'species-1',
-      name: 'Tuna',
-      scientificName: 'Thunnus',
+      name: 'Large Prawns',
+      scientificName: 'Penaeus monodon',
     );
 
     final species2 = SpeciesModel(
       id: 'species-2',
-      name: 'Salmon',
-      scientificName: 'Salmo salar',
+      name: 'Small Prawns',
+      scientificName: 'Penaeus monodon',
     );
 
     final species3 = SpeciesModel(
       id: 'species-3',
-      name: 'Mackerel',
-      scientificName: 'Scomber',
+      name: 'Tiger Shrimp',
+      scientificName: 'Penaeus monodon',
+    );
+
+    final species4 = SpeciesModel(
+      id: 'species-4',
+      name: 'Grey Shrimp',
+      scientificName: 'Crangon crangon',
+    );
+
+    final species5 = SpeciesModel(
+      id: 'species-5',
+      name: 'Pink Shrimp',
+      scientificName: 'Pandalus borealis',
     );
 
     // Seed Catches
@@ -510,7 +521,7 @@ class DemoDataSourceFactory {
 
     final catch1 = CatchModel(
       id: 'catch-1',
-      name: 'Fresh Tuna',
+      name: 'Large Prawns',
       datePosted: now.subtract(Duration(days: 2)).toIso8601String(),
       initialWeightGrams: 5000,
       // 5kg
@@ -521,10 +532,7 @@ class DemoDataSourceFactory {
       // $75 total
       size: 'Large',
       market: 'Port Market',
-      images: [
-        'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=400',
-        'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400',
-      ],
+      images: ['assets/images/prawns.jpg'],
       species: species1,
       fisherId: fisher1.id,
       status: CatchStatus.available.name,
@@ -532,7 +540,7 @@ class DemoDataSourceFactory {
 
     final catch2 = CatchModel(
       id: 'catch-2',
-      name: 'Wild Salmon',
+      name: 'Tiger Shrimp',
       datePosted: now.subtract(Duration(days: 1)).toIso8601String(),
       initialWeightGrams: 3000,
       // 3kg
@@ -541,19 +549,17 @@ class DemoDataSourceFactory {
       // $20/kg
       totalPriceAmount: 6000,
       // $60 total
-      size: 'Medium',
+      size: '0',
       market: 'Coastal Market',
-      images: [
-        'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400',
-      ],
-      species: species2,
+      images: ['assets/images/prawns.jpg'],
+      species: species3,
       fisherId: fisher2.id,
       status: CatchStatus.available.name,
     );
 
     final catch3 = CatchModel(
       id: 'catch-3',
-      name: 'Mackerel Batch',
+      name: 'Grey Shrimp',
       datePosted: now.subtract(Duration(days: 5)).toIso8601String(),
       initialWeightGrams: 10000,
       // 10kg
@@ -563,42 +569,55 @@ class DemoDataSourceFactory {
       // $8/kg
       totalPriceAmount: 5600,
       // $56 for remaining
-      size: 'Bulk',
+      size: '00',
       market: 'Port Market',
-      images: [
-        'https://images.unsplash.com/photo-1534043464124-3be32fe000c9?w=400',
-      ],
-      species: species3,
+      images: ['assets/images/prawns.jpg'],
+      species: species4,
       fisherId: fisher1.id,
       status: CatchStatus.available.name,
     );
 
     final catch4 = CatchModel(
       id: 'catch-4',
-      name: 'Premium Tuna',
+      name: 'Small Prawns',
       datePosted: now.subtract(Duration(days: 8)).toIso8601String(),
       initialWeightGrams: 4000,
       availableWeightGrams: 4000,
-      pricePerKgAmount: 1800,
-      totalPriceAmount: 7200,
-      size: 'Large',
+      pricePerKgAmount: 1200,
+      totalPriceAmount: 4800,
+      size: 'Small',
       market: 'Port Market',
-      images: [
-        'https://images.unsplash.com/photo-1544943910-4c1dc44aab44?w=400',
-      ],
-      species: species1,
+      images: ['assets/images/prawns.jpg'],
+      species: species2,
       fisherId: fisher2.id,
       status: CatchStatus.expired.name, // Expired for testing
+    );
+
+    final catch5 = CatchModel(
+      id: 'catch-5',
+      name: 'Pink Shrimp',
+      datePosted: now.subtract(Duration(days: 3)).toIso8601String(),
+      initialWeightGrams: 2000,
+      availableWeightGrams: 2000,
+      pricePerKgAmount: 2500,
+      totalPriceAmount: 5000,
+      size: '000',
+      market: 'Coastal Market',
+      images: ['assets/images/prawns.jpg'],
+      species: species5,
+      fisherId: fisher1.id,
+      status: CatchStatus.available.name,
     );
 
     _catches[catch1.id] = catch1;
     _catches[catch2.id] = catch2;
     _catches[catch3.id] = catch3;
     _catches[catch4.id] = catch4;
+    _catches[catch5.id] = catch5;
 
     // Seed Offers
     final offer1 = OfferModel(
-      id: 'offer-1',
+      id: 'OFF12345678',
       catchId: catch1.id,
       fisherId: fisher1.id,
       buyerId: buyer1.id,
@@ -614,10 +633,12 @@ class DemoDataSourceFactory {
       dateCreated: now.subtract(Duration(hours: 3)).toIso8601String(),
       dateUpdated: now.subtract(Duration(hours: 1)).toIso8601String(),
       waitingFor: 'fisher', // Fisher's turn to respond
+      hasUpdateForFisher: true, // Fisher has an update to view
+      hasUpdateForBuyer: false, // Buyer already viewed (they sent the counter)
     );
 
     final offer2 = OfferModel(
-      id: 'offer-2',
+      id: 'OFF23456789',
       catchId: catch2.id,
       fisherId: fisher2.id,
       buyerId: buyer2.id,
@@ -633,10 +654,12 @@ class DemoDataSourceFactory {
       dateCreated: now.subtract(Duration(hours: 2)).toIso8601String(),
       dateUpdated: now.subtract(Duration(hours: 2)).toIso8601String(),
       waitingFor: 'fisher',
+      hasUpdateForFisher: true, // Fisher has new offer to view
+      hasUpdateForBuyer: false, // Buyer created it
     );
 
     final offer3 = OfferModel(
-      id: 'offer-3',
+      id: 'OFF34567890',
       catchId: catch3.id,
       fisherId: fisher1.id,
       buyerId: buyer1.id,
@@ -651,6 +674,8 @@ class DemoDataSourceFactory {
       dateCreated: now.subtract(Duration(days: 4)).toIso8601String(),
       dateUpdated: now.subtract(Duration(days: 4)).toIso8601String(),
       waitingFor: null,
+      hasUpdateForFisher: false, // Accepted, both viewed
+      hasUpdateForBuyer: false,
     );
 
     _offers[offer1.id] = offer1;
@@ -659,7 +684,7 @@ class DemoDataSourceFactory {
 
     // Seed Orders (from accepted offer3)
     final order1 = OrderModel(
-      id: 'order-1',
+      id: 'ODD12345678',
       offerId: offer3.id,
       catchId: catch3.id,
       fisherId: fisher1.id,

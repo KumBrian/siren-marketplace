@@ -2,7 +2,8 @@ enum OfferStatus {
   pending,
   accepted,
   rejected,
-  completed;
+  completed,
+  cancelled;
 
   String get displayName {
     switch (this) {
@@ -14,6 +15,8 @@ enum OfferStatus {
         return 'Rejected';
       case OfferStatus.completed:
         return 'Completed';
+      case OfferStatus.cancelled:
+        return 'Cancelled';
     }
   }
 

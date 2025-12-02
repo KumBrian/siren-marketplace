@@ -6,6 +6,7 @@ class ProfileRoute {
   final String? route;
   final Widget? trailing;
   final String? subRoute;
+  final String? userId;
 
   const ProfileRoute({
     this.icon,
@@ -13,5 +14,6 @@ class ProfileRoute {
     this.route,
     this.trailing,
     this.subRoute,
+    this.userId,
   });
 }

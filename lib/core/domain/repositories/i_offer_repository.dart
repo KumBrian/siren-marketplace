@@ -1,5 +1,7 @@
 import '../entities/offer.dart';
 import '../enums/offer_status.dart';
+import '../enums/user_role.dart';
+import '../value_objects/offer_terms.dart';
 
 abstract class IOfferRepository {
   /// Create a new offer
@@ -34,6 +36,10 @@ abstract class IOfferRepository {
 
   /// Delete offer
   Future<void> delete(String offerId);
+  Future<void> acceptOffer(String offerId, UserRole role);
+  Future<void> rejectOffer(String offerId, UserRole role);
+  Future<void> counterOffer(String offerId, UserRole role, OfferTerms terms);
+  Future<void> markAsViewed(String offerId, UserRole role);
 
   /// Execute multiple operations in a transaction
   Future<T> transaction<T>(Future<T> Function() action);

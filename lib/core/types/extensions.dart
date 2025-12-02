@@ -20,6 +20,16 @@ extension DateFormatting on String {
   }
 }
 
+extension DateTimeFormatting on DateTime {
+  String toFormattedDate() {
+    return DateFormat("MMM d, yyyy - H:mm").format(this);
+  }
+
+  String toShortFormattedDate() {
+    return DateFormat("MMM d, yyyy").format(this);
+  }
+}
+
 extension StringExtensions on String {
   String capitalize() {
     if (isEmpty) return '';

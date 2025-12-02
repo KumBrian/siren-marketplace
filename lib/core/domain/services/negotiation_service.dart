@@ -7,12 +7,14 @@ import '../repositories/i_catch_repository.dart';
 import '../repositories/i_offer_repository.dart';
 import '../repositories/i_order_repository.dart';
 import '../value_objects/offer_terms.dart';
+import 'package:uuid/uuid.dart';
 
 /// Service handling offer negotiation workflows and business rules
 class NegotiationService {
   final IOfferRepository _offerRepository;
   final IOrderRepository _orderRepository;
   final ICatchRepository _catchRepository;
+  static const _uuid = Uuid();
 
   NegotiationService({
     required IOfferRepository offerRepository,
@@ -50,7 +52,7 @@ class NegotiationService {
 
     // Create offer
     final offer = Offer(
-      id: _generateId(),
+      id: _generateOfferId(),
       catchId: catchId,
       fisherId: fisherId,
       buyerId: buyerId,
@@ -105,13 +107,13 @@ class NegotiationService {
 
       // Create order
       final order = Order(
-        id: _generateId(),
+        id: _generateOrderId(),
         offerId: acceptedOffer.id,
         catchId: acceptedOffer.catchId,
         fisherId: acceptedOffer.fisherId,
         buyerId: acceptedOffer.buyerId,
         terms: acceptedOffer.currentTerms,
-        status: OrderStatus.active,
+        status: OrderStatus.accepted,
         dateCreated: DateTime.now(),
         dateUpdated: DateTime.now(),
       );
@@ -181,7 +183,13 @@ class NegotiationService {
     return await _offerRepository.getPendingForUser(userId);
   }
 
-  String _generateId() {
-    return DateTime.now().millisecondsSinceEpoch.toString();
+  String _generateOfferId() {
+    // Generate OFF prefix + 8 UUID characters
+    return 'OFF${_uuid.v4().replaceAll('-', '').substring(0, 8).toUpperCase()}';
+  }
+
+  String _generateOrderId() {
+    // Generate ODD prefix + 8 UUID characters
+    return 'ODD${_uuid.v4().replaceAll('-', '').substring(0, 8).toUpperCase()}';
   }
 }

@@ -28,7 +28,9 @@ class AppColors {
   static const white100 = Color(0XFFFFFFFF);
 
   //SIREN FAIL
+  static const fail50 = Color(0XFFFFEBEB);
   static const fail100 = Color(0XFFFEE8E6);
+  static const fail200 = Color(0XFFFFAFAF);
   static const fail500 = Color(0XFFE70909);
   static const fail700 = Color(0XFF620404);
 
@@ -64,16 +66,17 @@ class AppColors {
         return AppColors.shellOrange;
       case OfferStatus.accepted:
         return AppColors.blue400;
+      case OfferStatus.rejected:
+      case OfferStatus.cancelled:
+        return AppColors.fail500;
       case OfferStatus.completed:
         return AppColors.textGray;
-      case OfferStatus.rejected:
-        return AppColors.fail500;
     }
   }
 
   static Color getOrderStatusColor(OrderStatus status) {
     switch (status) {
-      case OrderStatus.active:
+      case OrderStatus.accepted:
         return AppColors.blue400;
       case OrderStatus.completed:
         return AppColors.textGray;

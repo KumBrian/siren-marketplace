@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
-import 'package:siren_marketplace/core/domain/services/session_service.dart';
 import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
@@ -18,48 +20,23 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
-import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
+import 'package:siren_marketplace/features/shared/presentation/providers/offer_actions_provider.dart';
 
-class ProductDetails extends StatefulWidget {
+class ProductDetails extends ConsumerStatefulWidget {
   const ProductDetails({super.key, required this.productId});
 
   final String productId;
 
   @override
-  State<ProductDetails> createState() => _ProductDetailsState();
+  ConsumerState<ProductDetails> createState() => _ProductDetailsState();
 }
 
-class _ProductDetailsState extends State<ProductDetails> {
+class _ProductDetailsState extends ConsumerState<ProductDetails> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _pricePerKgController = TextEditingController();
-
-  String? _currentUserId;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    final sessionService = context.read<SessionService>();
-    final user = await sessionService.getCurrentUser();
-
-    if (user != null && mounted) {
-      setState(() {
-        _currentUserId = user.id;
-      });
-
-      // Load the catch and buyer's offers
-      context.read<CatchesCubit>().loadById(widget.productId);
-      context.read<OffersCubit>().loadForBuyer(user.id);
-    }
-  }
 
   @override
   void dispose() {
@@ -69,7 +46,11 @@ class _ProductDetailsState extends State<ProductDetails> {
     super.dispose();
   }
 
-  void _showMakeOfferDialog(BuildContext context, Catch catchItem) {
+  void _showMakeOfferDialog(
+    BuildContext context,
+    Catch catchItem,
+    String currentUserId,
+  ) {
     _weightController.clear();
     _priceController.clear();
     _pricePerKgController.clear();
@@ -221,85 +202,55 @@ class _ProductDetailsState extends State<ProductDetails> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    CustomButton(
-                      title: "Send Offer",
-                      onPressed: () {
-                        if (formKey.currentState!.validate() &&
-                            _currentUserId != null) {
-                          final weightInputKg = double.tryParse(
-                            _weightController.text,
-                          );
-                          final totalPrice = int.tryParse(
-                            _priceController.text,
-                          );
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final actionState = ref.watch(offerActionsProvider);
 
-                          if (weightInputKg != null && totalPrice != null) {
-                            final weightInGrams = (weightInputKg * 1000)
-                                .round();
+                        return CustomButton(
+                          title: "Send Offer",
+                          disabled: actionState.isLoading,
+                          onPressed: () {
+                            if (formKey.currentState!.validate()) {
+                              final weightInputKg = double.tryParse(
+                                _weightController.text,
+                              );
+                              final totalPrice = int.tryParse(
+                                _priceController.text,
+                              );
 
-                            // Create offer using domain entities
-                            final weight = Weight.fromGrams(weightInGrams);
-                            final price = Price.fromAmount(totalPrice);
-                            final terms = OfferTerms.create(
-                              totalPrice: price,
-                              weight: weight,
-                            );
+                              if (weightInputKg != null && totalPrice != null) {
+                                final weightInGrams = (weightInputKg * 1000)
+                                    .round();
 
-                            context.read<OffersCubit>().createOffer(
-                              catchItem.id,
-                              _currentUserId!,
-                              catchItem.fisherId,
-                              terms,
-                            );
-
-                            Navigator.of(dialogContext).pop();
-
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (ctx) {
-                                return AlertDialog(
-                                  title: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: AppColors.textBlue,
-                                      border: Border.all(
-                                        color: AppColors.textBlue,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.check,
-                                      color: AppColors.textWhite,
-                                    ),
-                                  ),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text(
-                                        "Offer sent successfully!",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: AppColors.textBlue,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      CustomButton(
-                                        title: "View Marketplace",
-                                        onPressed: () {
-                                          ctx.go("/buyer");
-                                        },
-                                      ),
-                                    ],
-                                  ),
+                                // Create offer using domain entities
+                                final weight = Weight.fromGrams(weightInGrams);
+                                final price = Price.fromAmount(totalPrice);
+                                final terms = OfferTerms.create(
+                                  totalPrice: price,
+                                  weight: weight,
                                 );
-                              },
-                            );
-                          }
-                        }
+
+                                ref
+                                    .read(offerActionsProvider.notifier)
+                                    .createOffer(
+                                      catchItem.id,
+                                      currentUserId,
+                                      catchItem.fisherId,
+                                      terms,
+                                    );
+
+                                // Close dialog immediately or wait for success?
+                                // Usually better to wait, but the dialog is blocking.
+                                // I'll listen to state changes in the parent widget to close/show success.
+                                // But here I'm inside a dialog.
+                                // I can listen here too if I use Consumer.
+                                // However, the success dialog is shown AFTER this one closes.
+                                // So I'll just trigger the action. The listener in the main build method will handle success.
+                                Navigator.of(dialogContext).pop();
+                              }
+                            }
+                          },
+                        );
                       },
                     ),
                   ],
@@ -314,40 +265,69 @@ class _ProductDetailsState extends State<ProductDetails> {
 
   @override
   Widget build(BuildContext context) {
-    if (_currentUserId == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    final catchAsync = ref.watch(catchProvider(widget.productId));
+    final currentUserAsync = ref.watch(currentUserProvider);
+    final buyerOffersAsync = ref.watch(buyerOffersProvider);
 
-    return BlocConsumer<CatchesCubit, CatchesState>(
-      listener: (context, state) {
-        final catchItem = state.catches
-            .where((c) => c.id == widget.productId)
-            .firstOrNull;
+    // Listen for offer action results
+    ref.listen(offerActionsProvider, (previous, next) {
+      if (next.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
+        );
+      } else if (next.successMessage != null) {
+        // Show success dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) {
+            return AlertDialog(
+              title: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.textBlue,
+                  border: Border.all(color: AppColors.textBlue, width: 2),
+                ),
+                child: const Icon(Icons.check, color: AppColors.textWhite),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    next.successMessage!,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: AppColors.textBlue,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  CustomButton(
+                    title: "View Marketplace",
+                    onPressed: () {
+                      ctx.go("/buyer");
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+        // Reset state after showing success
+        ref.read(offerActionsProvider.notifier).reset();
+      }
+    });
 
-        if (catchItem != null) {
-          context.read<UserCubit>().loadById(catchItem.fisherId);
-        }
-      },
-      builder: (context, catchesState) {
-        if (catchesState.loading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (catchesState.error != null) {
-          return Scaffold(
-            appBar: AppBar(leading: const BackButton()),
-            body: Center(
-              child: Text("Error loading product: ${catchesState.error}"),
-            ),
-          );
-        }
-
-        final catchItem = catchesState.catches
-            .where((c) => c.id == widget.productId)
-            .firstOrNull;
-
+    return catchAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stack) => Scaffold(
+        appBar: AppBar(leading: const BackButton()),
+        body: Center(child: Text("Error loading product: $error")),
+      ),
+      data: (catchItem) {
         if (catchItem == null) {
           return Scaffold(
             appBar: AppBar(
@@ -360,15 +340,31 @@ class _ProductDetailsState extends State<ProductDetails> {
           );
         }
 
-        return BlocBuilder<OffersCubit, OffersState>(
-          builder: (context, offersState) {
-            // Check if the current user has any pending offers on this catch
-            final bool hasPendingOffer = offersState.offers.any(
-              (offer) =>
-                  offer.status == OfferStatus.pending &&
-                  offer.catchId == catchItem.id &&
-                  offer.buyerId == _currentUserId,
+        return currentUserAsync.when(
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (error, stack) =>
+              Scaffold(body: Center(child: Text("Error loading user: $error"))),
+          data: (currentUser) {
+            if (currentUser == null) {
+              return const Scaffold(
+                body: Center(child: Text("User not logged in")),
+              );
+            }
+
+            // Check for pending offers
+            final hasPendingOffer = buyerOffersAsync.maybeWhen(
+              data: (offers) => offers.any(
+                (offer) =>
+                    offer.status == OfferStatus.pending &&
+                    offer.catchId == catchItem.id &&
+                    offer.buyerId == currentUser.id,
+              ),
+              orElse: () => false,
             );
+
+            // Fetch fisher details
+            final fisherAsync = ref.watch(userProvider(catchItem.fisherId));
 
             return Scaffold(
               appBar: AppBar(
@@ -377,7 +373,14 @@ class _ProductDetailsState extends State<ProductDetails> {
                 centerTitle: true,
               ),
               body: RefreshIndicator(
-                onRefresh: _loadData,
+                onRefresh: () async {
+                  ref.invalidate(catchProvider(widget.productId));
+                  ref.invalidate(buyerOffersProvider);
+                  await Future.wait([
+                    ref.read(catchProvider(widget.productId).future),
+                    ref.read(buyerOffersProvider.future),
+                  ]);
+                },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Padding(
@@ -460,7 +463,10 @@ class _ProductDetailsState extends State<ProductDetails> {
                             Expanded(
                               child: CustomButton(
                                 title: "Message",
-                                onPressed: () {},
+                                onPressed: () {
+                                  // Navigate to chat
+                                  // context.push("/chat/${catchItem.fisherId}"); // Assuming chat route
+                                },
                                 bordered: true,
                               ),
                             ),
@@ -475,6 +481,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                     : () => _showMakeOfferDialog(
                                         context,
                                         catchItem,
+                                        currentUser.id,
                                       ),
                                 disabled:
                                     catchItem.availableWeight.isZero ||
@@ -486,18 +493,12 @@ class _ProductDetailsState extends State<ProductDetails> {
 
                         const SectionHeader("Seller"),
 
-                        BlocBuilder<UserCubit, UserState>(
-                          builder: (context, usersState) {
-                            if (usersState is! UserLoaded) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                            final fisher = usersState.user;
-
-                            if (fisher == null) {
-                              return const CircularProgressIndicator();
-                            }
+                        fisherAsync.when(
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (fisher) {
+                            if (fisher == null) return const SizedBox.shrink();
 
                             return Material(
                               borderRadius: BorderRadius.circular(16),

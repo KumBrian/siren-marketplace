@@ -80,6 +80,11 @@ class UserCubit extends Cubit<UserState> {
 
   User? getUserFromCache(String userId) {
     if (state is! UserLoaded) return null;
-    return (state as UserLoaded).user;
+    final loadedUser = (state as UserLoaded).user;
+    // Only return the user if the ID matches
+    if (loadedUser?.id == userId) {
+      return loadedUser;
+    }
+    return null;
   }
 }

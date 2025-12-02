@@ -3,15 +3,8 @@
 // ============================================================================
 import 'package:get_it/get_it.dart';
 // Cubits / Blocs (Second file)
-import 'package:siren_marketplace/bloc/cubits/bottom_nav_cubit/bottom_nav_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/catch_filter_cubit/catch_filter_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/filtered_products_cubit/filtered_products_cubit.dart';
 import 'package:siren_marketplace/bloc/cubits/offers_filter_cubit/offers_filter_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/orders_filter_cubit/orders_filter_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_filter_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/species_filter_cubit/species_filter_cubit.dart';
 // DB, Notifier, Feature Repos
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
 // import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
@@ -22,7 +15,7 @@ import 'package:siren_marketplace/features/chat/logic/conversations_bloc/convers
 import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
 import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
+
 import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
 import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
@@ -169,10 +162,6 @@ void _initLocalMode(DatabaseHelper dbHelper) {
   sl.registerLazySingleton<IUserDataSource>(() => local.userDataSource);
 
   // Register Repositories
-  sl.registerLazySingleton<IUserRepository>(
-    () => UserRepositoryImpl(dataSource: sl()),
-  );
-
   // For now, other repositories might still need direct DB access or legacy impls
   // until they are refactored to use DataSources.
   // We can temporarily register legacy repos here if needed, or throw Unimplemented
@@ -190,14 +179,8 @@ void _initLocalMode(DatabaseHelper dbHelper) {
 // ============================================================================
 void _initCubitsAndBlocs() {
   // Global Singletons
-  sl.registerLazySingleton(() => BottomNavCubit());
-  sl.registerLazySingleton(() => CatchFilterCubit());
-  sl.registerLazySingleton(() => SpeciesFilterCubit());
-  sl.registerLazySingleton(() => OrdersFilterCubit());
-  sl.registerLazySingleton(() => ProductsFilterCubit());
   sl.registerLazySingleton(() => OffersFilterCubit());
   sl.registerLazySingleton(() => FailedTransactionCubit());
-  sl.registerLazySingleton(() => NotificationsCubit());
 
   sl.registerLazySingleton(
     () => CatchesCubit(repository: sl<ICatchRepository>()),
@@ -214,16 +197,12 @@ void _initCubitsAndBlocs() {
     () => OrdersCubit(
       orderRepository: sl<IOrderRepository>(),
       offerRepository: sl<IOfferRepository>(),
+      catchRepository: sl<ICatchRepository>(),
       ratingService: sl<RatingService>(),
     ),
   );
 
   // Factories (per view)
-  sl.registerFactory(() => ProductsCubit(sl()));
-  sl.registerFactory(
-    () => FilteredProductsCubit(catchRepository: sl(), filterCubit: sl()),
-  );
-
   sl.registerFactory(() => ReviewsCubit(sl(), sl()));
   sl.registerFactory(
     () => UserCubit(userRepository: sl(), reviewRepository: sl()),

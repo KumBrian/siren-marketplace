@@ -5,6 +5,7 @@ import 'package:siren_marketplace/core/domain/entities/order.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/exceptions/domain_exception.dart';
 import 'package:siren_marketplace/core/domain/exceptions/not_found_exception.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
 import 'package:siren_marketplace/core/domain/services/rating_service.dart';
@@ -15,11 +16,13 @@ part 'orders_state.dart';
 class OrdersCubit extends Cubit<OrdersState> {
   final IOrderRepository orderRepository;
   final IOfferRepository offerRepository;
+  final ICatchRepository catchRepository;
   final RatingService ratingService;
 
   OrdersCubit({
     required this.orderRepository,
     required this.offerRepository,
+    required this.catchRepository,
     required this.ratingService,
   }) : super(const OrdersState());
 
@@ -49,9 +52,23 @@ class OrdersCubit extends Cubit<OrdersState> {
     try {
       final order = await orderRepository.getById(orderId);
 
+      // Update the orders list: replace if exists, append if not
+      final List<Order> updatedOrders = List.from(state.orders);
+      final index = updatedOrders.indexWhere((o) => o.id == order.id);
+
+      if (index != -1) {
+        updatedOrders[index] = order;
+      } else {
+        updatedOrders.add(order);
+      }
+
       // Update both selectedOrder and orders list
       emit(
-        state.copyWith(loading: false, selectedOrder: order, orders: [order]),
+        state.copyWith(
+          loading: false,
+          selectedOrder: order,
+          orders: updatedOrders,
+        ),
       );
     } on NotFoundException catch (e) {
       emit(state.copyWith(loading: false, error: e.message));
@@ -84,6 +101,10 @@ class OrdersCubit extends Cubit<OrdersState> {
       // Update the offer repository (this will trigger transaction notifier)
       await offerRepository.update(completedOffer!);
 
+      // Update the order status explicitly
+      final completedOrder = order.markAsCompleted();
+      await orderRepository.update(completedOrder);
+
       // Reload the order to get updated state
       await loadById(order.id);
     } on NotFoundException catch (e) {
@@ -95,6 +116,48 @@ class OrdersCubit extends Cubit<OrdersState> {
         state.copyWith(
           loading: false,
           error: 'Failed to complete order: ${e.toString()}',
+        ),
+      );
+    }
+  }
+
+  /// Cancel an order
+  Future<void> cancelOrder(Order order) async {
+    emit(state.copyWith(loading: true, error: null));
+
+    try {
+      // 1. Update Offer status to cancelled
+      final Offer? offerToUpdate = await offerRepository.getById(order.offerId);
+      final cancelledOffer = offerToUpdate?.copyWith(
+        status: OfferStatus.cancelled,
+        waitingFor: null,
+      );
+      await offerRepository.update(cancelledOffer!);
+
+      // 2. Update Order status to cancelled
+      final cancelledOrder = order.markAsCancelled();
+      await orderRepository.update(cancelledOrder);
+
+      // 3. Restore Catch weight
+      final catchItem = await catchRepository.getById(order.catchId);
+      if (catchItem != null) {
+        final restoredCatch = catchItem.copyWith(
+          availableWeight: catchItem.availableWeight + order.terms.weight,
+        );
+        await catchRepository.update(restoredCatch);
+      }
+
+      // Reload the order to get updated state
+      await loadById(order.id);
+    } on NotFoundException catch (e) {
+      emit(state.copyWith(loading: false, error: e.message));
+    } on DomainException catch (e) {
+      emit(state.copyWith(loading: false, error: e.message));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          loading: false,
+          error: 'Failed to cancel order: ${e.toString()}',
         ),
       );
     }

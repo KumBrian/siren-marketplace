@@ -1,123 +1,136 @@
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/order_status.dart';
-import 'package:siren_marketplace/core/models/info_row.dart'; // Added to ensure InfoRow is defined
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/services/rating_service.dart';
+import 'package:siren_marketplace/core/domain/value_objects/rating.dart';
+import 'package:siren_marketplace/core/models/info_row.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/failed_transaction_provider.dart';
+import 'package:siren_marketplace/core/providers/order_providers.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
-import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
-import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
+import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
 
-class BuyerOrderDetails extends StatefulWidget {
+class BuyerOrderDetails extends ConsumerWidget {
   const BuyerOrderDetails({super.key, required this.orderId});
 
   final String orderId;
 
-  @override
-  State<BuyerOrderDetails> createState() => _BuyerOrderDetailsState();
-}
-
-class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
+  Future<void> _cancelOrder(WidgetRef ref, BuildContext context) async {
+    try {
+      await ref.read(cancelOrderProvider(orderId).future);
+      ref.invalidate(orderProvider(orderId));
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to cancel order: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
-  void _loadData() {
-    context.read<OrdersCubit>().loadById(widget.orderId);
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<OrdersCubit, OrdersState>(
-      listener: (context, state) {
-        if (state.selectedOrder != null) {
-          final order = state.selectedOrder!;
-          context.read<CatchesCubit>().loadById(order.catchId);
-          context.read<UserCubit>().loadById(order.fisherId);
-        }
-      },
-      builder: (context, ordersState) {
-        if (ordersState.loading) {
-          return Scaffold(
-            appBar: AppBar(leading: const BackButton()),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderAsync = ref.watch(orderProvider(orderId));
 
-        if (ordersState.error != null) {
-          return Scaffold(
-            appBar: AppBar(leading: const BackButton()),
-            body: Center(
-              child: Text(
-                'Error: ${ordersState.error}',
-                style: const TextStyle(color: AppColors.fail500),
-              ),
-            ),
-          );
-        }
+    // Listen for failed transactions
+    ref.listen(failedTransactionProvider, (previous, next) {
+      if (next != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next), backgroundColor: Colors.red),
+        );
+        ref.read(failedTransactionProvider.notifier).state = null;
+      }
+    });
 
-        final order = ordersState.selectedOrder;
-
+    return orderAsync.when(
+      loading: () => Scaffold(
+        appBar: AppBar(leading: const BackButton()),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Scaffold(
+        appBar: AppBar(leading: const BackButton()),
+        body: Center(
+          child: Text(
+            'Error: $error',
+            style: const TextStyle(color: AppColors.fail500),
+          ),
+        ),
+      ),
+      data: (order) {
         if (order == null) {
           return Scaffold(
-            appBar: AppBar(
-              leading: const BackButton(),
-              title: const Text("Order Details"),
-            ),
-            body: const Center(
-              child: Text(
-                "Order not found.",
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
+            appBar: AppBar(leading: const BackButton()),
+            body: const Center(child: Text("Order not found")),
           );
         }
 
-        return BlocBuilder<CatchesCubit, CatchesState>(
-          builder: (context, catchesState) {
-            final catchItem = catchesState.catches
-                .where((c) => c.id == order.catchId)
-                .firstOrNull;
+        // Watch catch and fisher data using Riverpod providers
+        final catchAsync = ref.watch(catchProvider(order.catchId));
+        final fisherAsync = ref.watch(userProvider(order.fisherId));
 
-            return BlocBuilder<UserCubit, UserState>(
-              builder: (context, usersState) {
-                if (usersState is! UserLoaded) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final fisher = usersState.user;
+        return catchAsync.when(
+          loading: () => Scaffold(
+            appBar: AppBar(leading: const BackButton()),
+            body: const Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, stack) => Scaffold(
+            appBar: AppBar(leading: const BackButton()),
+            body: Center(child: Text("Error loading catch: $error")),
+          ),
+          data: (catchItem) {
+            if (catchItem == null) {
+              return Scaffold(
+                appBar: AppBar(leading: const BackButton()),
+                body: const Center(child: Text("Catch not found")),
+              );
+            }
 
-                if (catchItem == null || fisher == null) {
+            return fisherAsync.when(
+              loading: () => Scaffold(
+                appBar: AppBar(leading: const BackButton()),
+                body: const Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, stack) => Scaffold(
+                appBar: AppBar(leading: const BackButton()),
+                body: Center(child: Text("Error loading fisher: $error")),
+              ),
+              data: (fisher) {
+                if (fisher == null) {
                   return Scaffold(
                     appBar: AppBar(leading: const BackButton()),
-                    body: const Center(child: CircularProgressIndicator()),
+                    body: const Center(child: Text("Fisher not found")),
                   );
                 }
 
                 return Scaffold(
                   appBar: AppBar(
                     leading: BackButton(onPressed: () => context.pop()),
-                    title: PageTitle(title: "Order Details"),
+                    title: const PageTitle(title: "Order Details"),
                   ),
                   body: SingleChildScrollView(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Order Header
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -135,7 +148,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                               order.dateCreated
                                   .toIso8601String()
                                   .toFormattedDate(),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.gray650,
                               ),
@@ -144,6 +157,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                         ),
                         const SizedBox(height: 16),
 
+                        // Catch Image and Status
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -157,19 +171,15 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                     })
                                     .toList();
 
-                                final multiImageProvider = MultiImageProvider(
-                                  providers,
-                                );
-
                                 showImageViewerPager(
                                   context,
-                                  multiImageProvider,
+                                  MultiImageProvider(providers),
                                   swipeDismissible: true,
                                   immersive: true,
                                   useSafeArea: true,
                                   doubleTapZoomable: true,
-                                  backgroundColor: Colors.black.withOpacity(
-                                    0.4,
+                                  backgroundColor: Colors.black.withValues(
+                                    alpha: 0.4,
                                   ),
                                 );
                               },
@@ -187,6 +197,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                                   "assets/images/shrimp.jpg",
                                                   height: 60,
                                                   width: 60,
+                                                  fit: BoxFit.cover,
                                                 ),
                                       )
                                     : Image.asset(
@@ -198,8 +209,9 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                             (context, error, stackTrace) =>
                                                 Image.asset(
                                                   "assets/images/shrimp.jpg",
-                                                  height: 120,
-                                                  width: 120,
+                                                  height: 60,
+                                                  width: 60,
+                                                  fit: BoxFit.cover,
                                                 ),
                                       ),
                               ),
@@ -264,6 +276,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                         ),
                         const SizedBox(height: 16),
 
+                        // Order Details Table
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -287,7 +300,6 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                   label: "Average Size",
                                   value: catchItem.size,
                                 ),
-
                               InfoRow(
                                 label: "Weight",
                                 value: order.terms.weight.kilograms,
@@ -302,111 +314,31 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        const SectionHeader("Seller"),
-                        const SizedBox(height: 8),
 
                         // Fisher Details
-                        Material(
-                          borderRadius: BorderRadius.circular(16),
-                          child: InkWell(
-                            onTap: () {
-                              context.push("/buyer/reviews/${order.fisherId}");
-                            },
-                            borderRadius: BorderRadius.circular(16),
-                            splashColor: AppColors.blue700.withValues(
-                              alpha: 0.1,
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ErrorHandlingCircleAvatar(
-                                    avatarUrl: fisher.avatarUrl!,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          fisher.name,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 16,
-                                            color: AppColors.textBlue,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.star,
-                                              color: AppColors.shellOrange,
-                                              size: 16,
-                                            ),
-                                            Text(
-                                              fisher.rating.value
-                                                  .toStringAsFixed(1),
-                                              style: const TextStyle(
-                                                color: AppColors.textBlue,
-                                                fontWeight: FontWeight.w300,
-                                              ),
-                                            ),
-                                            Text(
-                                              " (${fisher.reviewCount} Reviews)",
-                                              style: const TextStyle(
-                                                color: AppColors.textBlue,
-                                                fontWeight: FontWeight.w300,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                        PartnerCard(partner: fisher, myRole: UserRole.buyer),
                         const SizedBox(height: 16),
 
-                        // --- ACTION BUTTONS SECTION ---
+                        // Action Buttons
                         if (order.status == OrderStatus.cancelled) ...[
                           SizedBox(
                             width: double.infinity,
                             child: CustomButton(
                               title: "Marketplace",
-                              onPressed: () {
-                                // Implement navigation to marketplace
-                              },
+                              onPressed: () => context.go("/buyer"),
                               icon: Icons.storefront,
                               bordered: true,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              title: "Make New Offer",
-                              onPressed: () {
-                                // Implement navigation to make a new offer
-                              },
-                            ),
-                          ),
                         ],
 
-                        if (order.status == OrderStatus.active) ...[
-                          const SizedBox(height: 16),
+                        if (order.status == OrderStatus.accepted) ...[
                           SizedBox(
                             width: double.infinity,
                             child: CustomButton(
                               title: "Call Seller",
-                              onPressed: () {
-                                makePhoneCall("651204966", context);
-                              },
+                              onPressed: () =>
+                                  makePhoneCall("651204966", context),
                               hugeIcon: HugeIcons.strokeRoundedCall02,
                               bordered: true,
                             ),
@@ -416,28 +348,32 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                             width: double.infinity,
                             child: CustomButton(
                               title: "Message Seller",
-                              onPressed: () {
-                                context.push("/buyer/chat");
-                              },
+                              onPressed: () => context.push("/buyer/chat"),
                               icon: CustomIcons.chatbubble,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: CustomButton(
+                              title: "Cancel Order",
+                              onPressed: () => _cancelOrder(ref, context),
+                              cancel: true,
                             ),
                           ),
                         ],
 
-                        // 🌟 RATING LOGIC FOR COMPLETED ORDERS 🌟
+                        // Rating Section
                         if (order.status == OrderStatus.completed) ...[
                           const SizedBox(height: 16),
 
-                          // 1. BUYER RATING STATUS (Has the Buyer rated the Fisher?)
+                          // Buyer Rating Status
                           if (order.hasReviewFromBuyer == false)
                             SizedBox(
                               width: double.infinity,
                               child: CustomButton(
                                 title: "Rate the Fisher",
                                 onPressed: () {
-                                  final ordersCubit = context
-                                      .read<OrdersCubit>();
-
                                   showModalBottomSheet(
                                     context: context,
                                     isScrollControlled: true,
@@ -445,31 +381,56 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
                                     useSafeArea: true,
                                     showDragHandle: true,
                                     builder: (context) {
-                                      return BlocProvider.value(
-                                        value: ordersCubit,
-                                        child: RatingModalContent(
-                                          orderId: order.id,
-                                          raterId: order.buyerId,
-                                          ratedUserId: fisher.id,
-                                          ratedUserName: fisher.name,
-                                          onSubmitRating:
-                                              ({
-                                                required String orderId,
-                                                required String raterId,
-                                                required String ratedUserId,
-                                                required double ratingValue,
-                                                String? message,
-                                              }) async {
-                                                ordersCubit.submitRating(
-                                                  orderId: orderId,
-                                                  reviewerId: order.buyerId,
-                                                  reviewedUserId: fisher.id,
-                                                  ratingValue: ratingValue
-                                                      .floor(),
-                                                  comment: message ?? "",
+                                      return RatingModalContent(
+                                        orderId: order.id,
+                                        raterId: order.buyerId,
+                                        ratedUserId: fisher.id,
+                                        ratedUserName: fisher.name,
+                                        onSubmitRating:
+                                            ({
+                                              required String orderId,
+                                              required String raterId,
+                                              required String ratedUserId,
+                                              required double ratingValue,
+                                              String? message,
+                                            }) async {
+                                              try {
+                                                await sl<RatingService>()
+                                                    .submitReview(
+                                                      orderId: orderId,
+                                                      reviewerId: raterId,
+                                                      reviewedUserId:
+                                                          ratedUserId,
+                                                      rating: Rating.fromValue(
+                                                        ratingValue,
+                                                      ),
+                                                      comment: message,
+                                                    );
+
+                                                // Invalidate order to refresh UI
+                                                ref.invalidate(
+                                                  orderProvider(orderId),
                                                 );
-                                              },
-                                        ),
+
+                                                // Show success message
+                                                if (context.mounted) {
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        'Rating submitted successfully!',
+                                                      ),
+                                                      backgroundColor:
+                                                          AppColors.success500,
+                                                    ),
+                                                  );
+                                                }
+                                              } catch (e) {
+                                                // Error will be shown by RatingModalContent
+                                                rethrow;
+                                              }
+                                            },
                                       );
                                     },
                                   );
@@ -503,7 +464,7 @@ class _BuyerOrderDetailsState extends State<BuyerOrderDetails> {
 
                           const SizedBox(height: 16),
 
-                          // 2. FISHER RATING STATUS (Has the Fisher rated the Buyer?)
+                          // Fisher Rating Status
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Row(
