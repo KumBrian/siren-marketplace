@@ -211,7 +211,12 @@ class FisherHome extends ConsumerWidget {
     Set<String> catchesWithUnviewedOffers,
     BuildContext context,
   ) {
-    if (forSaleCatches.isEmpty) {
+    // Sort catches by date posted descending (effectively by expiry date descending)
+    // "7 days all the way down to expired"
+    final sortedCatches = List<Catch>.from(forSaleCatches)
+      ..sort((a, b) => b.datePosted.compareTo(a.datePosted));
+
+    if (sortedCatches.isEmpty) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -243,10 +248,10 @@ class FisherHome extends ConsumerWidget {
 
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: 80, top: 16),
-      itemCount: forSaleCatches.length,
+      itemCount: sortedCatches.length,
       separatorBuilder: (context, index) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
-        final item = forSaleCatches[index];
+        final item = sortedCatches[index];
         final hasUnviewedOffer = catchesWithUnviewedOffers.contains(item.id);
 
         return ForSaleCard(
@@ -270,9 +275,29 @@ class FisherHome extends ConsumerWidget {
             .where(
               (o) =>
                   o.status == OrderStatus.accepted ||
-                  o.status == OrderStatus.completed,
+                  o.status == OrderStatus.completed ||
+                  o.status == OrderStatus.cancelled,
             )
             .toList();
+
+        // Sort orders: Accepted -> Completed -> Cancelled
+        completedOrders.sort((a, b) {
+          final statusPriority = {
+            OrderStatus.accepted: 0,
+            OrderStatus.completed: 1,
+            OrderStatus.cancelled: 2,
+          };
+
+          final priorityA = statusPriority[a.status] ?? 99;
+          final priorityB = statusPriority[b.status] ?? 99;
+
+          if (priorityA != priorityB) {
+            return priorityA.compareTo(priorityB);
+          }
+
+          // Secondary sort by date updated (newest first)
+          return b.dateUpdated.compareTo(a.dateUpdated);
+        });
 
         if (completedOrders.isEmpty) {
           return Column(
@@ -340,6 +365,7 @@ class FisherHome extends ConsumerWidget {
               offer: offer,
               catchImageUrl: catchImageUrl,
               catchTitle: catchTitle,
+              orderStatus: order.status,
               onPressed: () =>
                   context.push("/fisher/order-details/${order.id}"),
             );

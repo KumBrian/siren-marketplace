@@ -12,6 +12,7 @@ class OrderModel {
   final String dateUpdated; // ISO8601
   final bool hasReviewFromFisher;
   final bool hasReviewFromBuyer;
+  final String? cancellationReason;
 
   const OrderModel({
     required this.id,
@@ -27,6 +28,7 @@ class OrderModel {
     required this.dateUpdated,
     required this.hasReviewFromFisher,
     required this.hasReviewFromBuyer,
+    this.cancellationReason,
   });
 
   Map<String, dynamic> toJson() => {
@@ -43,6 +45,7 @@ class OrderModel {
     'date_updated': dateUpdated,
     'has_review_from_fisher': hasReviewFromFisher,
     'has_review_from_buyer': hasReviewFromBuyer,
+    'cancellation_reason': cancellationReason,
   };
 
   factory OrderModel.fromJson(Map<String, dynamic> json) => OrderModel(
@@ -59,6 +62,7 @@ class OrderModel {
     dateUpdated: json['date_updated'] as String,
     hasReviewFromFisher: json['has_review_from_fisher'] as bool? ?? false,
     hasReviewFromBuyer: json['has_review_from_buyer'] as bool? ?? false,
+    cancellationReason: json['cancellation_reason'] as String?,
   );
 
   // SQLite mapping
@@ -76,6 +80,7 @@ class OrderModel {
     'date_updated': dateUpdated,
     'has_review_from_fisher': hasReviewFromFisher ? 1 : 0,
     'has_review_from_buyer': hasReviewFromBuyer ? 1 : 0,
+    'cancellation_reason': cancellationReason,
   };
 
   factory OrderModel.fromMap(Map<String, dynamic> map) => OrderModel(
@@ -92,5 +97,6 @@ class OrderModel {
     dateUpdated: map['date_updated'] as String,
     hasReviewFromFisher: (map['has_review_from_fisher'] as int?) == 1,
     hasReviewFromBuyer: (map['has_review_from_buyer'] as int?) == 1,
+    cancellationReason: map['cancellation_reason'] as String?,
   );
 }

@@ -5,7 +5,7 @@ enum DataSourceMode {
 }
 
 class AppConfig {
-  static DataSourceMode mode = DataSourceMode.demo;
+  static DataSourceMode mode = DataSourceMode.local;
 
   static bool get isDemoMode => mode == DataSourceMode.demo;
 

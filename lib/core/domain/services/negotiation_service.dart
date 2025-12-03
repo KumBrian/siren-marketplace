@@ -93,34 +93,31 @@ class NegotiationService {
       throw StateError('Catch is no longer available');
     }
 
-    // Execute in transaction
-    return await _offerRepository.transaction(() async {
-      // Accept offer
-      final acceptedOffer = offer.accept();
-      await _offerRepository.update(acceptedOffer);
+    // Accept offer (no transaction wrapper - individual operations are atomic)
+    final acceptedOffer = offer.accept();
+    await _offerRepository.update(acceptedOffer);
 
-      // Reduce catch available weight
-      final updatedCatch = catchItem.reduceAvailableWeight(
-        offer.currentTerms.weight,
-      );
-      await _catchRepository.update(updatedCatch);
+    // Reduce catch available weight
+    final updatedCatch = catchItem.reduceAvailableWeight(
+      offer.currentTerms.weight,
+    );
+    await _catchRepository.update(updatedCatch);
 
-      // Create order
-      final order = Order(
-        id: _generateOrderId(),
-        offerId: acceptedOffer.id,
-        catchId: acceptedOffer.catchId,
-        fisherId: acceptedOffer.fisherId,
-        buyerId: acceptedOffer.buyerId,
-        terms: acceptedOffer.currentTerms,
-        status: OrderStatus.accepted,
-        dateCreated: DateTime.now(),
-        dateUpdated: DateTime.now(),
-      );
+    // Create order
+    final order = Order(
+      id: _generateOrderId(),
+      offerId: acceptedOffer.id,
+      catchId: acceptedOffer.catchId,
+      fisherId: acceptedOffer.fisherId,
+      buyerId: acceptedOffer.buyerId,
+      terms: acceptedOffer.currentTerms,
+      status: OrderStatus.accepted,
+      dateCreated: DateTime.now(),
+      dateUpdated: DateTime.now(),
+    );
 
-      await _orderRepository.create(order);
-      return order;
-    });
+    await _orderRepository.create(order);
+    return order;
   }
 
   /// Reject an offer
@@ -176,6 +173,43 @@ class NegotiationService {
 
     await _offerRepository.update(counteredOffer);
     return counteredOffer;
+  }
+
+  /// Relist an order to the marketplace
+  /// Cancels the order, rejects the offer, and restores catch weight
+  Future<void> relistOrder({
+    required String orderId,
+    required String reason,
+  }) async {
+    final order = await _orderRepository.getById(orderId);
+
+    // Validate order can be cancelled
+    if (order.status != OrderStatus.accepted) {
+      throw StateError('Can only relist active orders');
+    }
+
+    // 1. Cancel order with reason
+    final cancelledOrder = order.markAsCancelled(reason: reason);
+    await _orderRepository.update(cancelledOrder);
+
+    // 2. Reject the related offer
+    final offer = await _offerRepository.getById(order.offerId);
+    if (offer != null) {
+      final rejectedOffer = offer.copyWith(
+        status: OfferStatus.rejected,
+        waitingFor: null,
+      );
+      await _offerRepository.update(rejectedOffer);
+    }
+
+    // 3. Restore catch weight
+    final catchItem = await _catchRepository.getById(order.catchId);
+    if (catchItem != null) {
+      final restoredCatch = catchItem.copyWith(
+        availableWeight: catchItem.availableWeight + order.terms.weight,
+      );
+      await _catchRepository.update(restoredCatch);
+    }
   }
 
   /// Get pending offers requiring user's action

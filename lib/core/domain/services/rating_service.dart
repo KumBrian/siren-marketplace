@@ -48,30 +48,27 @@ class RatingService {
       throw StateError('Review already submitted for this order');
     }
 
-    // Execute in transaction
-    return await _reviewRepository.transaction(() async {
-      // Create review
-      final review = Review(
-        id: _generateId(),
-        orderId: orderId,
-        reviewerId: reviewerId,
-        reviewedUserId: reviewedUserId,
-        rating: rating,
-        comment: comment,
-        timestamp: DateTime.now(),
-      );
+    // Create review (no transaction needed - individual operations are atomic)
+    final review = Review(
+      id: _generateId(),
+      orderId: orderId,
+      reviewerId: reviewerId,
+      reviewedUserId: reviewedUserId,
+      rating: rating,
+      comment: comment,
+      timestamp: DateTime.now(),
+    );
 
-      await _reviewRepository.create(review);
+    await _reviewRepository.create(review);
 
-      // Update order review status
-      final updatedOrder = order.markAsReviewedBy(reviewerId);
-      await _orderRepository.update(updatedOrder);
+    // Update order review status
+    final updatedOrder = order.markAsReviewedBy(reviewerId);
+    await _orderRepository.update(updatedOrder);
 
-      // Recalculate user's aggregate rating
-      await _updateUserAggregateRating(reviewedUserId);
+    // Recalculate user's aggregate rating
+    await _updateUserAggregateRating(reviewedUserId);
 
-      return review;
-    });
+    return review;
   }
 
   /// Get all reviews for a user

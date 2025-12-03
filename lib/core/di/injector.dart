@@ -21,7 +21,6 @@ import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart
 
 import '../config/app_config.dart';
 import '../data/datasources/demo/demo_datasource.dart';
-import '../data/datasources/interfaces/i_user_datasource.dart';
 import '../data/datasources/local/local_datasource_factory.dart';
 import '../data/repositories/catch_repository_impl.dart';
 import '../data/repositories/offer_repository_impl.dart';
@@ -155,20 +154,36 @@ void _initDemoMode() {
 // ============================================================================
 // LOCAL MODE
 // ============================================================================
+// ============================================================================
+// LOCAL MODE
+// ============================================================================
 void _initLocalMode(DatabaseHelper dbHelper) {
   final local = LocalDataSourceFactory.create(dbHelper);
 
-  // Register Data Sources
-  sl.registerLazySingleton<IUserDataSource>(() => local.userDataSource);
+  // Register Repositories with Local Data Sources
+  sl.registerLazySingleton<IUserRepository>(
+    () => UserRepositoryImpl(dataSource: local.userDataSource),
+  );
 
-  // Register Repositories
-  // For now, other repositories might still need direct DB access or legacy impls
-  // until they are refactored to use DataSources.
-  // We can temporarily register legacy repos here if needed, or throw Unimplemented
-  // for parts not yet refactored.
+  sl.registerLazySingleton<ICatchRepository>(
+    () => CatchRepositoryImpl(dataSource: local.catchDataSource),
+  );
 
-  // Example placeholders for not-yet-refactored repos:
-  // sl.registerLazySingleton<ICatchRepository>(() => CatchRepositoryImpl(dataSource: ...));
+  sl.registerLazySingleton<IOfferRepository>(
+    () => OfferRepositoryImpl(dataSource: local.offerDataSource),
+  );
+
+  sl.registerLazySingleton<IOrderRepository>(
+    () => OrderRepositoryImpl(dataSource: local.orderDataSource),
+  );
+
+  sl.registerLazySingleton<IReviewRepository>(
+    () => ReviewRepositoryImpl(dataSource: local.reviewDataSource),
+  );
+
+  sl.registerLazySingleton<ISessionRepository>(
+    () => SessionRepositoryImpl(dataSource: local.sessionDataSource),
+  );
 
   // Feature-layer repos
   sl.registerLazySingleton(() => ConversationRepository(dbHelper: sl()));

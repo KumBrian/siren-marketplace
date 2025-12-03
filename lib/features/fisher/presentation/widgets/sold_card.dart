@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/enums/order_status.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 
 class SoldCard extends StatelessWidget {
@@ -11,11 +12,13 @@ class SoldCard extends StatelessWidget {
     required this.offer,
     required this.catchImageUrl, // 🆕 The primary image URL, derived from the Catch
     required this.catchTitle, // 🆕 The catch name/title, derived from the Catch
+    this.orderStatus,
   });
 
   final Offer offer;
   final String catchImageUrl; // New required field
   final String catchTitle; // New required field
+  final OrderStatus? orderStatus;
   final VoidCallback onPressed;
 
   @override
@@ -102,8 +105,8 @@ class SoldCard extends StatelessWidget {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: offer.currentTerms.weight.kilograms
-                                        .toString(),
+                                    text:
+                                        "${offer.currentTerms.weight.kilograms} kg",
                                     // Use toStringAsFixed
                                     style: const TextStyle(
                                       fontSize: 14,
@@ -140,8 +143,29 @@ class SoldCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        // Assuming this notification icon indicates a new/unhandled status
-                        if (offer.status != OfferStatus.completed) ...[
+                        // Status Icon
+                        if (orderStatus != null) ...[
+                          if (orderStatus == OrderStatus.accepted)
+                            const Icon(
+                              Icons.notifications,
+                              color:
+                                  AppColors.fail500, // Kept as requested (Bell)
+                              size: 20,
+                            )
+                          else if (orderStatus == OrderStatus.completed)
+                            const Icon(
+                              Icons.check_circle_outline,
+                              color: AppColors.success500,
+                              size: 16,
+                            )
+                          else if (orderStatus == OrderStatus.cancelled)
+                            const Icon(
+                              Icons.cancel_outlined,
+                              color: AppColors.fail500,
+                              size: 16,
+                            ),
+                        ] else if (offer.status != OfferStatus.completed) ...[
+                          // Fallback for legacy usage if any
                           const Icon(
                             Icons.notifications,
                             color: AppColors.fail500,

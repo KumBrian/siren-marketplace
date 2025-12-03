@@ -18,6 +18,9 @@ class Order extends Equatable {
   final bool hasReviewFromFisher;
   final bool hasReviewFromBuyer;
 
+  // Cancellation tracking
+  final String? cancellationReason;
+
   const Order({
     required this.id,
     required this.offerId,
@@ -30,6 +33,7 @@ class Order extends Equatable {
     required this.dateUpdated,
     this.hasReviewFromFisher = false,
     this.hasReviewFromBuyer = false,
+    this.cancellationReason,
   });
 
   // Business Logic
@@ -74,12 +78,16 @@ class Order extends Equatable {
     return copyWith(status: OrderStatus.completed, dateUpdated: DateTime.now());
   }
 
-  Order markAsCancelled() {
+  Order markAsCancelled({String? reason}) {
     if (status != OrderStatus.accepted) {
       throw StateError('Can only cancel active orders');
     }
 
-    return copyWith(status: OrderStatus.cancelled, dateUpdated: DateTime.now());
+    return copyWith(
+      status: OrderStatus.cancelled,
+      dateUpdated: DateTime.now(),
+      cancellationReason: reason,
+    );
   }
 
   Order markAsReviewedBy(String userId) {
@@ -98,6 +106,7 @@ class Order extends Equatable {
     DateTime? dateUpdated,
     bool? hasReviewFromFisher,
     bool? hasReviewFromBuyer,
+    String? cancellationReason,
   }) {
     return Order(
       id: id,
@@ -111,6 +120,7 @@ class Order extends Equatable {
       dateUpdated: dateUpdated ?? this.dateUpdated,
       hasReviewFromFisher: hasReviewFromFisher ?? this.hasReviewFromFisher,
       hasReviewFromBuyer: hasReviewFromBuyer ?? this.hasReviewFromBuyer,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
     );
   }
 
@@ -127,5 +137,6 @@ class Order extends Equatable {
     dateUpdated,
     hasReviewFromFisher,
     hasReviewFromBuyer,
+    cancellationReason,
   ];
 }

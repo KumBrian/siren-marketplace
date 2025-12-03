@@ -690,6 +690,22 @@ class _SharedOfferDetailsScreenState
   ) {
     return Column(
       children: [
+        if (state.orderId != null) ...[
+          SizedBox(
+            width: double.infinity,
+            child: CustomButton(
+              title: "View Order",
+              onPressed: () {
+                final prefix = state.currentUserRole == UserRole.buyer
+                    ? 'buyer'
+                    : 'fisher';
+                context.push("/$prefix/order-details/${state.orderId}");
+              },
+              icon: Icons.receipt_long,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
         SizedBox(
           width: double.infinity,
           child: CustomButton(
@@ -712,6 +728,7 @@ class _SharedOfferDetailsScreenState
               context.push("/$prefix/chat");
             },
             icon: CustomIcons.chatbubble,
+            bordered: true,
           ),
         ),
       ],

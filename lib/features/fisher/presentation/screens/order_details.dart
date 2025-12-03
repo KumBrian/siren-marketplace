@@ -9,6 +9,7 @@ import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/enums/order_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/services/rating_service.dart';
+import 'package:siren_marketplace/core/domain/services/negotiation_service.dart';
 import 'package:siren_marketplace/core/domain/value_objects/rating.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
@@ -26,6 +27,7 @@ import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
+import 'package:siren_marketplace/features/shared/presentation/providers/shared_offer_details_provider.dart';
 
 class OrderDetails extends ConsumerWidget {
   const OrderDetails({super.key, required this.orderId});
@@ -224,20 +226,24 @@ class OrderDetails extends ConsumerWidget {
                           ),
                         ),
                         actions: [
-                          IconButton(
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.white,
-                                useSafeArea: true,
-                                showDragHandle: true,
-                                builder: (context) =>
-                                    _buildFailedTransactionModal(ref),
-                              );
-                            },
-                            icon: const Icon(Icons.autorenew),
-                          ),
+                          if (orderStatus == OrderStatus.accepted)
+                            IconButton(
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.white,
+                                  useSafeArea: true,
+                                  showDragHandle: true,
+                                  builder: (context) =>
+                                      _buildFailedTransactionModal(
+                                        ref,
+                                        orderId,
+                                      ),
+                                );
+                              },
+                              icon: const Icon(Icons.autorenew),
+                            ),
                         ],
                       ),
                       body: SingleChildScrollView(
@@ -424,8 +430,54 @@ class OrderDetails extends ConsumerWidget {
                                 myRole: UserRole.fisher,
                               ),
 
+                            // Cancellation Reason Display
+                            if (orderStatus == OrderStatus.cancelled &&
+                                selectedOrder.cancellationReason != null) ...[
+                              const SizedBox(height: 16),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.fail50.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.fail200),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline,
+                                          color: AppColors.fail500,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          "Order Cancelled",
+                                          style: TextStyle(
+                                            color: AppColors.fail500,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      "Reason: ${selectedOrder.cancellationReason}",
+                                      style: const TextStyle(
+                                        color: AppColors.fail500,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+
                             // Action Buttons
-                            if (orderStatus != OrderStatus.completed) ...[
+                            if (orderStatus == OrderStatus.accepted) ...[
                               const SizedBox(height: 16),
                               Column(
                                 spacing: 8,
@@ -497,6 +549,10 @@ class OrderDetails extends ConsumerWidget {
                                                   );
                                               ref.invalidate(
                                                 orderProvider(orderId),
+                                              );
+                                              // Invalidate user to refresh partner card
+                                              ref.invalidate(
+                                                userProvider(ratedUserId),
                                               );
                                             },
                                       );
@@ -575,7 +631,9 @@ class OrderDetails extends ConsumerWidget {
     );
   }
 
-  Widget _buildFailedTransactionModal(WidgetRef ref) {
+  Widget _buildFailedTransactionModal(WidgetRef ref, String orderId) {
+    final customReasonController = TextEditingController();
+
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.6,
@@ -666,6 +724,7 @@ class OrderDetails extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: customReasonController,
                 maxLines: 3,
                 decoration: InputDecoration(
                   hintText: "Enter the reason here...",
@@ -675,7 +734,78 @@ class OrderDetails extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              CustomButton(title: "Confirm", onPressed: () {}),
+              CustomButton(
+                title: "Confirm & Relist",
+                onPressed: () async {
+                  final selectedReason = ref.read(failedTransactionProvider);
+                  final customReason = customReasonController.text.trim();
+
+                  final reason = customReason.isNotEmpty
+                      ? customReason
+                      : selectedReason;
+
+                  if (reason == null || reason.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please select or enter a reason'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    final negotiationService = sl<NegotiationService>();
+                    await negotiationService.relistOrder(
+                      orderId: orderId,
+                      reason: reason,
+                    );
+
+                    // Reset provider and close modal
+                    ref.read(failedTransactionProvider.notifier).state = null;
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+
+                      // Refresh order data
+                      ref.invalidate(orderProvider(orderId));
+
+                      // Refresh offer data (to show rejected status)
+                      // We need to find the offer ID first, but since we don't have it easily here
+                      // we can invalidate the shared provider if we knew the ID.
+                      // However, the order has the offerId.
+                      final order = await ref.read(
+                        orderProvider(orderId).future,
+                      );
+                      if (order != null) {
+                        ref.invalidate(offerProvider(order.offerId));
+                        ref.invalidate(
+                          sharedOfferDetailsProvider(order.offerId),
+                        );
+
+                        // Refresh catch data (to show restored weight)
+                        ref.invalidate(catchByIdProvider(order.catchId));
+                        ref.invalidate(offersByCatchProvider(order.catchId));
+                      }
+
+                      // Refresh lists
+                      ref.invalidate(fisherOrdersProvider);
+                      ref.invalidate(fisherOffersProvider);
+                      ref.invalidate(fisherCatchesProvider);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Order relisted successfully'),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: ${e.toString()}')),
+                      );
+                    }
+                  }
+                },
+              ),
               const SizedBox(height: 16),
             ],
           ),

@@ -9,7 +9,7 @@ extension CatchStatusExtension on CatchStatus {
 
 class DatabaseHelper {
   static const _databaseName = "SirenMarketplaceDB.db";
-  static const _databaseVersion = 4;
+  static const _databaseVersion = 13;
 
   // Table Names
   static const _usersTable = 'users';
@@ -115,20 +115,13 @@ class DatabaseHelper {
         price REAL NOT NULL,
         weight REAL NOT NULL,
         status TEXT NOT NULL,
-        has_update_buyer INTEGER NOT NULL DEFAULT 1,
-        has_update_fisher INTEGER NOT NULL DEFAULT 1,
+        has_update_for_buyer INTEGER NOT NULL DEFAULT 1,
+        has_update_for_fisher INTEGER NOT NULL DEFAULT 1,
         date_created TEXT NOT NULL,
+        date_updated TEXT NOT NULL,
         previous_price_per_kg REAL,
         previous_price REAL,
         previous_weight REAL,
-        catch_name TEXT NOT NULL,
-        catch_image_url TEXT NOT NULL,
-        fisher_name TEXT NOT NULL,
-        fisher_rating REAL NOT NULL,
-        fisher_avatar_url TEXT NOT NULL,
-        buyer_name TEXT NOT NULL,
-        buyer_rating REAL NOT NULL,
-        buyer_avatar_url TEXT NOT NULL,
         waiting_for TEXT
       )
     ''');
@@ -138,16 +131,18 @@ class DatabaseHelper {
       CREATE TABLE $_ordersTable (
         order_id TEXT PRIMARY KEY,
         offer_id TEXT NOT NULL,
+        catch_id TEXT NOT NULL,
         fisher_id TEXT NOT NULL,
         buyer_id TEXT NOT NULL,
-        catch_snapshot TEXT NOT NULL,
+        terms_price INTEGER NOT NULL,
+        terms_weight INTEGER NOT NULL,
+        terms_price_per_kg INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        date_created TEXT NOT NULL,
         date_updated TEXT NOT NULL,
-        hasRatedBuyer INTEGER NOT NULL DEFAULT 0,
-        hasRatedFisher INTEGER NOT NULL DEFAULT 0,
-        buyer_rating_value REAL,
-        buyer_rating_message TEXT,
-        fisher_rating_value REAL,
-        fisher_rating_message TEXT
+        has_review_from_fisher INTEGER NOT NULL DEFAULT 0,
+        has_review_from_buyer INTEGER NOT NULL DEFAULT 0,
+        cancellation_reason TEXT
       )
     ''');
 
@@ -188,6 +183,26 @@ class DatabaseHelper {
   // FETCH CATCHES & OFFERS (Existing Selects)
   // --------------------------------------------------------------------------
 
+  // --------------------------------------------------------------------------
+  // OFFER METHODS
+  // --------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>?> getOfferMapById(String offerId) async {
+    final db = await database;
+    final maps = await db.query(
+      _offersTable,
+      where: 'offer_id = ?',
+      whereArgs: [offerId],
+      limit: 1,
+    );
+    return maps.isNotEmpty ? maps.first : null;
+  }
+
+  Future<List<Map<String, dynamic>>> getAllOfferMaps() async {
+    final db = await database;
+    return await db.query(_offersTable, orderBy: 'date_created DESC');
+  }
+
   Future<List<Map<String, dynamic>>> getOfferMapsByCatchId(
     String catchId,
   ) async {
@@ -196,6 +211,23 @@ class DatabaseHelper {
       _offersTable,
       where: 'catch_id = ?',
       whereArgs: [catchId],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getOfferMapsByBuyerId(
+    String buyerId,
+  ) async {
+    final db = await database;
+    // Join with catch info for display
+    return await db.rawQuery(
+      '''
+      SELECT o.*, c.name AS catch_name, c.images AS catch_images
+      FROM $_offersTable o
+      INNER JOIN $_catchesTable c ON o.catch_id = c.catch_id
+      WHERE o.buyer_id = ?
+      ORDER BY o.date_created DESC
+      ''',
+      [buyerId],
     );
   }
 
@@ -211,8 +243,18 @@ class DatabaseHelper {
       INNER JOIN $_catchesTable c ON o.catch_id = c.catch_id
       INNER JOIN $_usersTable f ON o.fisher_id = f.id
       WHERE o.fisher_id = ?
+      ORDER BY o.date_created DESC
       ''',
       [fisherId],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getOfferMapsByStatus(String status) async {
+    final db = await database;
+    return await db.query(
+      _offersTable,
+      where: 'status = ?',
+      whereArgs: [status],
     );
   }
 
@@ -325,17 +367,15 @@ class DatabaseHelper {
   }) async {
     final db = await database;
 
-    // Determine which columns to update based on who is being rated
+    // Only update the review flags - rating values are stored in ratings table
     final Map<String, dynamic> data = {};
 
     if (isRatingBuyer) {
-      data['hasRatedBuyer'] = 1;
-      data['buyer_rating_value'] = ratingValue;
-      if (message != null) data['buyer_rating_message'] = message;
+      // If rating the buyer, the review is FROM the fisher
+      data['has_review_from_fisher'] = 1;
     } else {
-      data['hasRatedFisher'] = 1;
-      data['fisher_rating_value'] = ratingValue;
-      if (message != null) data['fisher_rating_message'] = message;
+      // If rating the fisher, the review is FROM the buyer
+      data['has_review_from_buyer'] = 1;
     }
 
     try {
@@ -355,12 +395,66 @@ class DatabaseHelper {
   // OTHER SELECTS (Existing Selects)
   // --------------------------------------------------------------------------
 
+  // --------------------------------------------------------------------------
+  // ORDER METHODS
+  // --------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>?> getOrderMapById(String orderId) async {
+    final db = await database;
+    final maps = await db.query(
+      _ordersTable,
+      where: 'order_id = ?',
+      whereArgs: [orderId],
+      limit: 1,
+    );
+    return maps.isNotEmpty ? maps.first : null;
+  }
+
+  Future<Map<String, dynamic>?> getOrderMapByOfferId(String offerId) async {
+    final db = await database;
+    final maps = await db.query(
+      _ordersTable,
+      where: 'offer_id = ?',
+      whereArgs: [offerId],
+      limit: 1,
+    );
+    return maps.isNotEmpty ? maps.first : null;
+  }
+
+  Future<List<Map<String, dynamic>>> getAllOrderMaps() async {
+    final db = await database;
+    return await db.query(_ordersTable, orderBy: 'date_updated DESC');
+  }
+
   Future<List<Map<String, dynamic>>> getOrdersByUserId(String userId) async {
     final db = await database;
     return await db.query(
       _ordersTable,
       where: 'buyer_id = ? OR fisher_id = ?',
       whereArgs: [userId, userId],
+      orderBy: 'date_updated DESC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getOrdersByFisherId(
+    String fisherId,
+  ) async {
+    final db = await database;
+    return await db.query(
+      _ordersTable,
+      where: 'fisher_id = ?',
+      whereArgs: [fisherId],
+      orderBy: 'date_updated DESC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getOrdersByStatus(String status) async {
+    final db = await database;
+    return await db.query(
+      _ordersTable,
+      where: 'status = ?',
+      whereArgs: [status],
+      orderBy: 'date_updated DESC',
     );
   }
 
@@ -449,6 +543,80 @@ class DatabaseHelper {
     );
     if (maps.isNotEmpty) return maps.first;
     return null;
+  }
+
+  // --------------------------------------------------------------------------
+  // CLEAR TABLES
+  // --------------------------------------------------------------------------
+
+  // --------------------------------------------------------------------------
+  // REVIEW METHODS
+  // --------------------------------------------------------------------------
+
+  Future<Map<String, dynamic>?> getReviewMapById(String reviewId) async {
+    final db = await database;
+    final maps = await db.query(
+      _ratingsTable,
+      where: 'rating_id = ?',
+      whereArgs: [reviewId],
+      limit: 1,
+    );
+    return maps.isNotEmpty ? maps.first : null;
+  }
+
+  Future<List<Map<String, dynamic>>> getReviewsByReviewerId(
+    String reviewerId,
+  ) async {
+    final db = await database;
+    return await db.query(
+      _ratingsTable,
+      where: 'rater_id = ?',
+      whereArgs: [reviewerId],
+      orderBy: 'timestamp DESC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getReviewsForOrder(String orderId) async {
+    final db = await database;
+    return await db.query(
+      _ratingsTable,
+      where: 'order_id = ?',
+      whereArgs: [orderId],
+      orderBy: 'timestamp DESC',
+    );
+  }
+
+  Future<bool> hasReview({
+    required String orderId,
+    required String reviewerId,
+    required String reviewedUserId,
+  }) async {
+    final db = await database;
+    final maps = await db.query(
+      _ratingsTable,
+      where: 'order_id = ? AND rater_id = ? AND rated_user_id = ?',
+      whereArgs: [orderId, reviewerId, reviewedUserId],
+      limit: 1,
+    );
+    return maps.isNotEmpty;
+  }
+
+  Future<int> deleteReview(String reviewId) async {
+    final db = await database;
+    return await db.delete(
+      _ratingsTable,
+      where: 'rating_id = ?',
+      whereArgs: [reviewId],
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // TRANSACTION SUPPORT
+  // --------------------------------------------------------------------------
+
+  Future<T> transaction<T>(Future<T> Function() action) async {
+    final db = await database;
+    return await db.transaction((txn) async => await action());
   }
 
   // --------------------------------------------------------------------------

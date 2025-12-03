@@ -139,7 +139,7 @@ class OrderCard extends StatelessWidget {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: weight.toString(),
+                                    text: "$weight kg",
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: AppColors.textBlue,

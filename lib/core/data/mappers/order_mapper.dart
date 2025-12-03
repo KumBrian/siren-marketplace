@@ -22,6 +22,7 @@ class OrderMapper {
       dateUpdated: entity.dateUpdated.toIso8601String(),
       hasReviewFromFisher: entity.hasReviewFromFisher,
       hasReviewFromBuyer: entity.hasReviewFromBuyer,
+      cancellationReason: entity.cancellationReason,
     );
   }
 
@@ -44,6 +45,7 @@ class OrderMapper {
       dateUpdated: DateTime.parse(model.dateUpdated),
       hasReviewFromFisher: model.hasReviewFromFisher,
       hasReviewFromBuyer: model.hasReviewFromBuyer,
+      cancellationReason: model.cancellationReason,
     );
   }
 

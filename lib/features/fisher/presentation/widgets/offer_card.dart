@@ -138,7 +138,7 @@ class OfferCard extends StatelessWidget {
         Row(
           children: [
             // Weight and Price are on the offer
-            _pill(offer.currentTerms.weight.kilograms.toString()),
+            _pill("${offer.currentTerms.weight.kilograms.toString()} kg"),
 
             const SizedBox(width: 8),
             _pill(formatPrice(offer.currentTerms.totalPrice.amount)),
