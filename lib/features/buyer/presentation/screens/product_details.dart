@@ -446,7 +446,8 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                                 ),
                               InfoRow(
                                 label: "Available",
-                                value: catchItem.availableWeight.kilograms,
+                                value:
+                                    "${catchItem.availableWeight.kilograms} kg",
                               ),
                               InfoRow(
                                 label: "Date Posted",

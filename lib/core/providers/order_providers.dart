@@ -7,6 +7,8 @@ import 'package:siren_marketplace/core/domain/repositories/i_order_repository.da
 import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/domain/services/order_service.dart';
 
 /// Provider to fetch an Order by ID
 final orderProvider = FutureProvider.family<Order?, String>((ref, id) async {
@@ -66,9 +68,21 @@ final completeOrderProvider = FutureProvider.family<Order, String>((
   final completedOrder = order.copyWith(status: OrderStatus.completed);
   await repository.update(completedOrder);
 
+  // Update related offer status to completed
+  final offerRepository = sl<IOfferRepository>();
+  final offer = await offerRepository.getById(order.offerId);
+  if (offer != null) {
+    final completedOffer = offer.copyWith(
+      status: OfferStatus.completed,
+      waitingFor: null,
+    );
+    await offerRepository.update(completedOffer);
+  }
+
   // Invalidate related providers to refresh data
   ref.invalidate(orderProvider(orderId));
   ref.invalidate(fisherOrdersProvider);
+  ref.invalidate(offerProvider(order.offerId));
 
   return completedOrder;
 });
@@ -78,34 +92,14 @@ final cancelOrderProvider = FutureProvider.family<Order, String>((
   ref,
   orderId,
 ) async {
-  final orderRepository = sl<IOrderRepository>();
-  final offerRepository = sl<IOfferRepository>();
-  final catchRepository = sl<ICatchRepository>();
+  final user = await ref.watch(currentUserProvider.future);
+  if (user == null) throw Exception('User not logged in');
 
-  final order = await orderRepository.getById(orderId);
-
-  // 1. Update Offer status to cancelled
-  final offerToUpdate = await offerRepository.getById(order.offerId);
-  if (offerToUpdate != null) {
-    final cancelledOffer = offerToUpdate.copyWith(
-      status: OfferStatus.cancelled,
-      waitingFor: null,
-    );
-    await offerRepository.update(cancelledOffer);
-  }
-
-  // 2. Update Order status to cancelled
-  final cancelledOrder = order.markAsCancelled();
-  await orderRepository.update(cancelledOrder);
-
-  // 3. Restore Catch weight
-  final catchItem = await catchRepository.getById(order.catchId);
-  if (catchItem != null) {
-    final restoredCatch = catchItem.copyWith(
-      availableWeight: catchItem.availableWeight + order.terms.weight,
-    );
-    await catchRepository.update(restoredCatch);
-  }
+  final orderService = sl<OrderService>();
+  final cancelledOrder = await orderService.cancelOrder(
+    orderId: orderId,
+    userId: user.id,
+  );
 
   // Invalidate related providers to refresh data
   ref.invalidate(orderProvider(orderId));

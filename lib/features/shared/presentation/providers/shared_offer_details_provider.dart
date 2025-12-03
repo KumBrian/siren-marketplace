@@ -6,8 +6,11 @@ import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/exceptions/not_found_exception.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
+
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 
 class SharedOfferDetailsState {
@@ -16,6 +19,7 @@ class SharedOfferDetailsState {
   final User otherParty;
   final bool isUserTurn;
   final UserRole currentUserRole;
+  final String? orderId;
 
   SharedOfferDetailsState({
     required this.offer,
@@ -23,6 +27,7 @@ class SharedOfferDetailsState {
     required this.otherParty,
     required this.isUserTurn,
     required this.currentUserRole,
+    this.orderId,
   });
 }
 
@@ -35,8 +40,7 @@ final sharedOfferDetailsProvider = FutureProvider.family
       }
 
       // 2. Fetch Offer
-      final offerRepo = sl<IOfferRepository>();
-      final offer = await offerRepo.getById(offerId);
+      final offer = await ref.watch(offerProvider(offerId).future);
 
       if (offer == null) {
         throw NotFoundException(
@@ -81,11 +85,21 @@ final sharedOfferDetailsProvider = FutureProvider.family
       // 5. Determine Turn
       final isUserTurn = offer.waitingFor == currentUser.currentRole;
 
+      // 6. Fetch Order ID if accepted/completed
+      String? orderId;
+      if (offer.status == OfferStatus.accepted ||
+          offer.status == OfferStatus.completed) {
+        final orderRepo = sl<IOrderRepository>();
+        final order = await orderRepo.getByOfferId(offerId);
+        orderId = order?.id;
+      }
+
       return SharedOfferDetailsState(
         offer: offer,
         catchItem: catchItem,
         otherParty: otherParty,
         isUserTurn: isUserTurn,
         currentUserRole: currentUser.currentRole,
+        orderId: orderId,
       );
     });

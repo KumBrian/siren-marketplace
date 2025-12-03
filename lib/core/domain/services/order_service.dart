@@ -52,9 +52,9 @@ class OrderService {
   }) async {
     final order = await _orderRepository.getById(orderId);
 
-    // Validate user is part of the order
-    if (order.fisherId != userId && order.buyerId != userId) {
-      throw StateError('User is not part of this order');
+    // Validate user is the fisher (Buyers cannot cancel orders)
+    if (order.fisherId != userId) {
+      throw StateError('Only fishers can cancel orders');
     }
 
     if (order.status != OrderStatus.accepted) {

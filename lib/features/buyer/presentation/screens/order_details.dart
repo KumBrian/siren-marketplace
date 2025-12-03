@@ -30,22 +30,6 @@ class BuyerOrderDetails extends ConsumerWidget {
 
   final String orderId;
 
-  Future<void> _cancelOrder(WidgetRef ref, BuildContext context) async {
-    try {
-      await ref.read(cancelOrderProvider(orderId).future);
-      ref.invalidate(orderProvider(orderId));
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to cancel order: $e"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orderAsync = ref.watch(orderProvider(orderId));
@@ -302,7 +286,7 @@ class BuyerOrderDetails extends ConsumerWidget {
                                 ),
                               InfoRow(
                                 label: "Weight",
-                                value: order.terms.weight.kilograms,
+                                value: "${order.terms.weight.kilograms} kg",
                               ),
                               InfoRow(
                                 label: "Total Price",
@@ -353,14 +337,6 @@ class BuyerOrderDetails extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              title: "Cancel Order",
-                              onPressed: () => _cancelOrder(ref, context),
-                              cancel: true,
-                            ),
-                          ),
                         ],
 
                         // Rating Section
@@ -410,6 +386,10 @@ class BuyerOrderDetails extends ConsumerWidget {
                                                 // Invalidate order to refresh UI
                                                 ref.invalidate(
                                                   orderProvider(orderId),
+                                                );
+                                                // Invalidate user to refresh partner card
+                                                ref.invalidate(
+                                                  userProvider(ratedUserId),
                                                 );
 
                                                 // Show success message

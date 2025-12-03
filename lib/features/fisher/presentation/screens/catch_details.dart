@@ -203,6 +203,20 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                             role: UserRole.fisher,
                             suffix: "Kg",
                             onChanged: updateStateOnChanged,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a value';
+                              }
+                              final parsedValue = double.tryParse(value);
+                              if (parsedValue == null) {
+                                return 'Enter a valid number';
+                              }
+                              if (parsedValue >
+                                  selectedCatch.initialWeight.kilograms) {
+                                return 'Cannot exceed initial weight (${selectedCatch.initialWeight.kilograms} kg)';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 16),
                           NumberInputField(
@@ -247,7 +261,7 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                             pricePerKg: PricePerKg.fromAmount(
                               currentPricePerKg.floor(),
                             ),
-                            totalPrice: Price.fromMajor(currentTotal),
+                            totalPrice: Price.fromAmount(currentTotal.round()),
                           );
 
                           final repository = sl<ICatchRepository>();
@@ -423,7 +437,7 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                         ?selectedCatch.species.id != "prawns"
                             ? InfoRow(
                                 label: "Average Size",
-                                value: "${selectedCatch.size} cm",
+                                value: selectedCatch.size,
                               )
                             : null,
                         InfoRow(

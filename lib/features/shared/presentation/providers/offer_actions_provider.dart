@@ -3,10 +3,10 @@ import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/entities/order.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
 import 'package:siren_marketplace/core/domain/services/negotiation_service.dart';
 import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/shared_offer_details_provider.dart';
 
 class OfferActionState {
@@ -40,22 +40,25 @@ class OfferActionState {
 class OfferActionsNotifier extends StateNotifier<OfferActionState> {
   final Ref ref;
   final IOfferRepository _offerRepository;
-  final IOrderRepository _orderRepository;
   final NegotiationService _negotiationService;
 
   OfferActionsNotifier(this.ref)
     : _offerRepository = sl<IOfferRepository>(),
-      _orderRepository = sl<IOrderRepository>(),
       _negotiationService = sl<NegotiationService>(),
       super(const OfferActionState());
 
   Future<void> acceptOffer(String offerId, UserRole role) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _offerRepository.acceptOffer(offerId, role);
-
-      // Fetch the created order
-      final order = await _orderRepository.getByOfferId(offerId);
+      // Use NegotiationService to handle business logic (weight reduction, order creation)
+      final order = await _negotiationService.acceptOffer(
+        offerId: offerId,
+        userId: role == UserRole.fisher
+            ? (await ref.read(currentUserProvider.future))!.id
+            : (await ref.read(
+                currentUserProvider.future,
+              ))!.id, // Simplified, assumes current user
+      );
 
       // Get the offer to find catchId for invalidation
       final offer = await _offerRepository.getById(offerId);
@@ -67,6 +70,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       );
 
       // Invalidate both offer detail and offer list providers
+      ref.invalidate(offerProvider(offerId));
       ref.invalidate(sharedOfferDetailsProvider(offerId));
       if (offer != null) {
         ref.invalidate(offersByCatchProvider(offer.catchId));
@@ -96,6 +100,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       );
 
       // Invalidate both offer detail and offer list providers
+      ref.invalidate(offerProvider(offerId));
       ref.invalidate(sharedOfferDetailsProvider(offerId));
       if (offer != null) {
         ref.invalidate(offersByCatchProvider(offer.catchId));
@@ -129,6 +134,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       );
 
       // Invalidate both offer detail and offer list providers
+      ref.invalidate(offerProvider(offerId));
       ref.invalidate(sharedOfferDetailsProvider(offerId));
       if (offer != null) {
         ref.invalidate(offersByCatchProvider(offer.catchId));
@@ -153,6 +159,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       await _offerRepository.markAsViewed(offerId, role);
 
       // Invalidate both offer detail and offer list providers
+      ref.invalidate(offerProvider(offerId));
       ref.invalidate(sharedOfferDetailsProvider(offerId));
       if (offer != null) {
         ref.invalidate(offersByCatchProvider(offer.catchId));
