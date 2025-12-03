@@ -1,476 +1,380 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
-import 'package:siren_marketplace/core/models/order.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/order.dart';
+import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
+
+import 'package:siren_marketplace/core/domain/enums/order_status.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/order_providers.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
-import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_bloc.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/for_sale_card.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/sold_card.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
-// Professional data structure for the list view
-class SoldItemData {
-  final Catch parentCatch;
-  final Offer acceptedOffer;
-
-  SoldItemData({required this.parentCatch, required this.acceptedOffer});
-}
-
-class FisherHome extends StatefulWidget {
+class FisherHome extends ConsumerWidget {
   const FisherHome({super.key});
 
   @override
-  State<FisherHome> createState() => _FisherHomeState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentUserProvider);
+    final catchesAsync = ref.watch(fisherCatchesProvider);
+    final offersAsync = ref.watch(fisherOffersProvider);
+    final ordersAsync = ref.watch(fisherOrdersProvider);
+    final turnover = ref.watch(fisherTurnoverProvider);
+    final pendingOffersCount = ref.watch(fisherPendingOffersCountProvider);
 
-class _FisherHomeState extends State<FisherHome> {
-  @override
-  @override
-  void initState() {
-    super.initState();
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => context.go("/fisher/market-trends"),
+          icon: Icon(CustomIcons.markettrends, color: AppColors.textBlue),
+        ),
+        title: Image.asset(
+          "assets/icons/siren_logo.png",
+          width: 100,
+          height: 100,
+        ),
+        actions: [
+          userAsync.when(
+            data: (user) {
+              if (user == null) {
+                return IconButton(
+                  onPressed: () {},
+                  icon: Icon(
+                    CustomIcons.notificationbell,
+                    color: AppColors.textBlue,
+                  ),
+                );
+              }
 
-    final userState = context.read<UserBloc>().state;
-    if (userState is UserLoaded && userState.role == Role.fisher) {
-      final fisherId = userState.user!.id;
-      final ordersBloc = context.read<OrdersBloc>();
-      final catchesBloc = context.read<CatchesBloc>();
-      if (ordersBloc.state is OrdersInitial) {
-        ordersBloc.add(LoadOrdersForUser(userId: fisherId));
-      }
-
-      // Note: CatchesBloc assumes similar logic, though its events aren't fully confirmed.
-      if (catchesBloc.state is! CatchesLoaded) {
-        catchesBloc.add(LoadCatchesByFisher(fisherId: fisherId));
-      }
-    }
-  }
-
-  double _calculateTurnover(List<Order> orders) {
-    return orders
-        .where((order) => order.offer.status == OfferStatus.completed)
-        .fold<double>(0, (sum, order) => sum + order.offer.price);
-  }
-
-  int _totalOffersWithUpdates(List<Catch> allCatches) {
-    int total = 0;
-    for (final c in allCatches) {
-      total += c.offers.where((o) => o.hasUpdateForFisher).length;
-    }
-    return total;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<UserBloc, UserState>(
-      listenWhen: (prev, curr) => prev != curr && curr is UserLoaded,
-      listener: (context, userState) {
-        if (userState is UserLoaded && userState.role == Role.fisher) {
-          final fisherId = userState.user!.id;
-
-          final ordersBloc = context.read<OrdersBloc>();
-          final catchesBloc = context.read<CatchesBloc>();
-          if (ordersBloc.state is OrdersInitial) {
-            ordersBloc.add(LoadOrdersForUser(userId: fisherId));
-          }
-
-          if (catchesBloc.state is! CatchesLoaded) {
-            catchesBloc.add(LoadCatchesByFisher(fisherId: fisherId));
-          }
-        }
-      },
-
-      child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            onPressed: () => context.go("/fisher/market-trends"),
-            icon: Icon(CustomIcons.markettrends, color: AppColors.textBlue),
-          ),
-          title: Image.asset(
-            "assets/icons/siren_logo.png",
-            width: 100,
-            height: 100,
-          ),
-          actions: [
-            BlocBuilder<CatchesBloc, CatchesState>(
-              builder: (context, cState) {
-                if (cState is! CatchesLoaded) return const SizedBox.shrink();
-                return BlocBuilder<UserBloc, UserState>(
-                  builder: (context, userState) {
-                    if (userState is! UserLoaded) {
-                      return IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          CustomIcons.notificationbell,
-                          color: AppColors.textBlue,
-                        ),
-                      );
-                    }
-
-                    final allCatches = cState.catches
-                        .where((c) => c.fisherId == userState.user!.id)
-                        .toList();
-                    return IconButton(
-                      onPressed: () => context.go(
-                        "/fisher/notifications/${userState.user!.id}",
-                      ),
-                      icon: Badge(
-                        label: Text("${_totalOffersWithUpdates(allCatches)}"),
+              return IconButton(
+                onPressed: () => context.go("/fisher/notifications"),
+                icon: pendingOffersCount > 0
+                    ? Badge(
+                        label: Text("$pendingOffersCount"),
                         child: Icon(
                           CustomIcons.notificationbell,
                           color: AppColors.textBlue,
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-        body: BlocBuilder<UserBloc, UserState>(
-          builder: (context, userState) {
-            if (userState is UserLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (userState is UserError) {
-              return Center(
-                child: Text("Error loading user: ${userState.message}"),
-              );
-            }
-            if (userState is! UserLoaded || userState.role != Role.fisher) {
-              return const Center(child: Text("Access Denied: Not a Fisher."));
-            }
-
-            return BlocBuilder<CatchesBloc, CatchesState>(
-              builder: (context, catchesState) {
-                if (catchesState is CatchesLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (catchesState is CatchesLoaded) {
-                  final allCatches = catchesState.catches;
-
-                  final forSaleCatches = allCatches
-                      .where((c) => c.status == CatchStatus.available)
-                      .where(
-                        (c) =>
-                            c.availableWeight > 0 ||
-                            c.offers.any(
-                              (o) => o.status == OfferStatus.pending,
-                            ),
                       )
-                      .toList();
+                    : Icon(
+                        CustomIcons.notificationbell,
+                        color: AppColors.textBlue,
+                      ),
+              );
+            },
+            loading: () => IconButton(
+              onPressed: () {},
+              icon: Icon(
+                CustomIcons.notificationbell,
+                color: AppColors.textBlue,
+              ),
+            ),
+            error: (_, __) => IconButton(
+              onPressed: () {},
+              icon: Icon(
+                CustomIcons.notificationbell,
+                color: AppColors.textBlue,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: catchesAsync.when(
+        data: (catches) {
+          return offersAsync.when(
+            data: (offers) {
+              // Filter for sale catches - those that are available
+              final forSaleCatches = catches
+                  .where((c) => c.status == CatchStatus.available)
+                  .where((c) => c.availableWeight.kilograms > 0)
+                  .toList();
 
-                  return Stack(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
+              // Check which catches have unviewed offers
+              final catchesWithUnviewedOffers = <String>{};
+              for (final offer in offers) {
+                if (offer.hasUpdateForFisher) {
+                  catchesWithUnviewedOffers.add(offer.catchId);
+                }
+              }
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                child: Column(
+                  children: [
+                    // Turnover Card
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: AppColors.gray300,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Column(
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: AppColors.gray300,
-                                    width: 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text("Turnover"),
-
-                                      BlocBuilder<OrdersBloc, OrdersState>(
-                                        builder: (context, orderState) {
-                                          // --- ✅ CORRECTED IMPLEMENTATION ---
-                                          if (orderState is OrdersLoaded) {
-                                            final total = _calculateTurnover(
-                                              orderState.orders,
-                                            );
-                                            return Text(
-                                              formatPrice(total),
-                                              style: const TextStyle(
-                                                fontSize: 32,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppColors.blue700,
-                                              ),
-                                            );
-                                          }
-                                          // Handle Loading, Initial, or Error states
-                                          return const Text(
-                                            "--",
-                                            style: TextStyle(
-                                              fontSize: 32,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.blue700,
-                                            ),
-                                          );
-                                          // --- END CORRECTED IMPLEMENTATION ---
-                                        },
-                                      ),
-                                    ],
-                                  ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text("Turnover"),
+                              Text(
+                                formatPrice(turnover),
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.blue700,
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Tabs
+                    Expanded(
+                      flex: 4,
+                      child: DefaultTabController(
+                        length: 2,
+                        child: Column(
+                          children: [
+                            const TabBar(
+                              dividerHeight: 0,
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              tabs: [
+                                Tab(text: "For Sale"),
+                                Tab(text: "Sold"),
+                              ],
                             ),
                             Expanded(
-                              flex: 4,
-                              child: DefaultTabController(
-                                length: 2,
-                                child: Column(
-                                  children: [
-                                    const TabBar(
-                                      dividerHeight: 0,
-                                      indicatorSize: TabBarIndicatorSize.tab,
-                                      tabs: [
-                                        Tab(text: "For Sale"),
-                                        Tab(text: "Sold"),
-                                      ],
-                                    ),
-                                    Expanded(
-                                      child: TabBarView(
-                                        physics: const BouncingScrollPhysics(),
-                                        children: [
-                                          // For Sale
-                                          forSaleCatches.isEmpty
-                                              ? Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    SizedBox(
-                                                      height: 120,
-                                                      width: 120,
-                                                      child: Image.asset(
-                                                        "assets/images/no-offers.png",
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    const Text(
-                                                      "Your shop is empty for now.",
-                                                      style: TextStyle(
-                                                        color:
-                                                            AppColors.textBlue,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                    const Text(
-                                                      "Add your first item to start selling.",
-                                                      style: TextStyle(
-                                                        color:
-                                                            AppColors.textGray,
-                                                        fontWeight:
-                                                            FontWeight.w300,
-                                                        fontSize: 12,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                )
-                                              : ListView.separated(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        bottom: 80,
-                                                        top: 16,
-                                                      ),
-                                                  itemCount:
-                                                      forSaleCatches.length,
-                                                  separatorBuilder:
-                                                      (context, index) =>
-                                                          const SizedBox(
-                                                            height: 8,
-                                                          ),
-                                                  itemBuilder: (context, index) {
-                                                    final item =
-                                                        forSaleCatches[index];
-                                                    final hasPendingOffer = item
-                                                        .offers
-                                                        .any(
-                                                          (o) =>
-                                                              o.status ==
-                                                              OfferStatus
-                                                                  .pending,
-                                                        );
-
-                                                    return ForSaleCard(
-                                                      catchData: item,
-                                                      hasPendingOffers:
-                                                          hasPendingOffer,
-                                                      onPressed: () => context.go(
-                                                        '/fisher/catch-details/${item.id}',
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                          // Sold
-                                          BlocBuilder<OrdersBloc, OrdersState>(
-                                            builder: (context, orderState) {
-                                              if (orderState is OrdersLoading) {
-                                                return const Center(
-                                                  child:
-                                                      CircularProgressIndicator(),
-                                                );
-                                              }
-                                              if (orderState is OrdersError) {
-                                                return Center(
-                                                  child: Text(
-                                                    "Error loading sales data: ${orderState.message}",
-                                                  ),
-                                                );
-                                              }
-                                              if (orderState is OrdersLoaded) {
-                                                final completedOrders = orderState
-                                                    .orders
-                                                    .where(
-                                                      (o) =>
-                                                          o.offer.status ==
-                                                              OfferStatus
-                                                                  .accepted ||
-                                                          o.offer.status ==
-                                                              OfferStatus
-                                                                  .completed,
-                                                    )
-                                                    .toList();
-
-                                                if (completedOrders.isEmpty) {
-                                                  return Column(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      SizedBox(
-                                                        height: 120,
-                                                        width: 120,
-                                                        child: Image.asset(
-                                                          "assets/images/no-offers.png",
-                                                        ),
-                                                      ),
-                                                      const SizedBox(height: 8),
-                                                      const Text(
-                                                        "No sales recorded yet.",
-                                                        style: TextStyle(
-                                                          color: AppColors
-                                                              .textBlue,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 16,
-                                                        ),
-                                                      ),
-                                                      const Text(
-                                                        "Complete an accepted offer to see your turnover.",
-                                                        style: TextStyle(
-                                                          color: AppColors
-                                                              .textGray,
-                                                          fontWeight:
-                                                              FontWeight.w300,
-                                                          fontSize: 12,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                }
-
-                                                return ListView.separated(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        bottom: 80,
-                                                        top: 16,
-                                                      ),
-                                                  itemCount:
-                                                      completedOrders.length,
-                                                  separatorBuilder:
-                                                      (context, index) =>
-                                                          const SizedBox(
-                                                            height: 8,
-                                                          ),
-                                                  itemBuilder: (context, index) {
-                                                    final order =
-                                                        completedOrders[index];
-                                                    final catchImageUrl =
-                                                        order
-                                                            .catchModel
-                                                            .images
-                                                            .isNotEmpty
-                                                        ? order
-                                                              .catchModel
-                                                              .images
-                                                              .first
-                                                        : "";
-                                                    final catchTitle =
-                                                        order.catchModel.name;
-
-                                                    return SoldCard(
-                                                      offer: order.offer,
-                                                      catchImageUrl:
-                                                          catchImageUrl,
-                                                      catchTitle: catchTitle,
-                                                      onPressed: () => context.push(
-                                                        "/fisher/order-details/${order.id}",
-                                                      ),
-                                                    );
-                                                  },
-                                                );
-                                              }
-                                              return const Center(
-                                                child: Text(
-                                                  "Awaiting sales data...",
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              child: TabBarView(
+                                physics: const BouncingScrollPhysics(),
+                                children: [
+                                  // For Sale Tab
+                                  _buildForSaleTab(
+                                    forSaleCatches,
+                                    catchesWithUnviewedOffers,
+                                    context,
+                                  ),
+                                  // Sold Tab
+                                  _buildSoldTab(
+                                    ordersAsync,
+                                    catches,
+                                    offers,
+                                    context,
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                      // Positioned(
-                      //   bottom: 24,
-                      //   right: 0,
-                      //   left: 0,
-                      //   child: CustomNavBar(role: Role.fisher),
-                      // ),
-                    ],
-                  );
-                }
-
-                return const Center(
-                  child: Text(
-                    "Loading catches data or initialization pending...",
-                  ),
-                );
-              },
-            );
-          },
-        ),
-        floatingActionButton: Padding(
-          padding: const EdgeInsets.only(bottom: 50.0),
-          child: FloatingActionButton(
-            onPressed: () {
-              // Navigate to Catch Creation Screen
+                    ),
+                  ],
+                ),
+              );
             },
-            backgroundColor: AppColors.blue850,
-            shape: const CircleBorder(),
-            child: const Icon(Icons.add, color: AppColors.white100),
-          ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) =>
+                Center(child: Text("Error loading offers: $error")),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) =>
+            Center(child: Text("Error loading catches: $error")),
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 50.0),
+        child: FloatingActionButton(
+          onPressed: () {
+            // Navigate to Catch Creation Screen
+          },
+          backgroundColor: AppColors.blue850,
+          shape: const CircleBorder(),
+          child: const Icon(Icons.add, color: AppColors.white100),
         ),
       ),
+    );
+  }
+
+  Widget _buildForSaleTab(
+    List<Catch> forSaleCatches,
+    Set<String> catchesWithUnviewedOffers,
+    BuildContext context,
+  ) {
+    // Sort catches by date posted descending (effectively by expiry date descending)
+    // "7 days all the way down to expired"
+    final sortedCatches = List<Catch>.from(forSaleCatches)
+      ..sort((a, b) => b.datePosted.compareTo(a.datePosted));
+
+    if (sortedCatches.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 120,
+            width: 120,
+            child: Image.asset("assets/images/no-offers.png"),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Your shop is empty for now.",
+            style: TextStyle(
+              color: AppColors.textBlue,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const Text(
+            "Add your first item to start selling.",
+            style: TextStyle(
+              color: AppColors.textGray,
+              fontWeight: FontWeight.w300,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.only(bottom: 80, top: 16),
+      itemCount: sortedCatches.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final item = sortedCatches[index];
+        final hasUnviewedOffer = catchesWithUnviewedOffers.contains(item.id);
+
+        return ForSaleCard(
+          catchData: item,
+          hasPendingOffers: hasUnviewedOffer,
+          onPressed: () => context.go('/fisher/catch-details/${item.id}'),
+        );
+      },
+    );
+  }
+
+  Widget _buildSoldTab(
+    AsyncValue<List<Order>> ordersAsync,
+    List<Catch> allCatches,
+    List<Offer> offers,
+    BuildContext context,
+  ) {
+    return ordersAsync.when(
+      data: (List<Order> orders) {
+        final completedOrders = orders
+            .where(
+              (o) =>
+                  o.status == OrderStatus.accepted ||
+                  o.status == OrderStatus.completed ||
+                  o.status == OrderStatus.cancelled,
+            )
+            .toList();
+
+        // Sort orders: Accepted -> Completed -> Cancelled
+        completedOrders.sort((a, b) {
+          final statusPriority = {
+            OrderStatus.accepted: 0,
+            OrderStatus.completed: 1,
+            OrderStatus.cancelled: 2,
+          };
+
+          final priorityA = statusPriority[a.status] ?? 99;
+          final priorityB = statusPriority[b.status] ?? 99;
+
+          if (priorityA != priorityB) {
+            return priorityA.compareTo(priorityB);
+          }
+
+          // Secondary sort by date updated (newest first)
+          return b.dateUpdated.compareTo(a.dateUpdated);
+        });
+
+        if (completedOrders.isEmpty) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 120,
+                width: 120,
+                child: Image.asset("assets/images/no-offers.png"),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "No sales recorded yet.",
+                style: TextStyle(
+                  color: AppColors.textBlue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const Text(
+                "Complete an accepted offer to see your turnover.",
+                style: TextStyle(
+                  color: AppColors.textGray,
+                  fontWeight: FontWeight.w300,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.only(bottom: 80, top: 16),
+          itemCount: completedOrders.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
+            final order = completedOrders[index];
+
+            // Find the corresponding catch (with safe fallback)
+            Catch catchItem;
+            try {
+              catchItem = allCatches.firstWhere((c) => c.id == order.catchId);
+            } catch (_) {
+              // If catch not found, skip this order
+              if (allCatches.isEmpty) return const SizedBox.shrink();
+              catchItem = allCatches.first;
+            }
+
+            // Find the corresponding offer (with safe fallback)
+            Offer offer;
+            try {
+              offer = offers.firstWhere((o) => o.id == order.offerId);
+            } catch (_) {
+              // If offer not found, skip this order
+              if (offers.isEmpty) return const SizedBox.shrink();
+              offer = offers.first;
+            }
+
+            final catchImageUrl = catchItem.images.isNotEmpty
+                ? catchItem.images.first
+                : "";
+            final catchTitle = catchItem.species.name;
+
+            return SoldCard(
+              offer: offer,
+              catchImageUrl: catchImageUrl,
+              catchTitle: catchTitle,
+              orderStatus: order.status,
+              onPressed: () =>
+                  context.push("/fisher/order-details/${order.id}"),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) =>
+          Center(child: Text("Error loading sales data: $error")),
     );
   }
 }

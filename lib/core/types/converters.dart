@@ -1,11 +1,14 @@
 import 'package:intl/intl.dart';
+import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 
-import 'enum.dart';
+UserRole roleFromString(String s) => UserRole.values.firstWhere(
+  (e) => e.name == s,
+  orElse: () => UserRole.unknown,
+);
 
-Role roleFromString(String s) =>
-    Role.values.firstWhere((e) => e.name == s, orElse: () => Role.unknown);
-
-String roleToString(Role r) => r.name;
+String roleToString(UserRole r) => r.name;
 
 OfferStatus offerStatusFromString(String status) {
   switch (status.toLowerCase()) {
@@ -29,13 +32,13 @@ CatchStatus catchStatusFromString(String status) {
     case 'available':
       return CatchStatus.available;
     case 'sold':
-      return CatchStatus.sold;
-    case 'draft':
-      return CatchStatus.draft;
-    case 'processing':
-      return CatchStatus.processing;
+      return CatchStatus.soldOut;
+    case 'expired':
+      return CatchStatus.expired;
+    case 'removed':
+      return CatchStatus.removed;
     default:
-      return CatchStatus.draft;
+      return CatchStatus.available;
   }
 }
 

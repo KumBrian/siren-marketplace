@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 
@@ -31,7 +31,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final priceDisplay = catchModel.pricePerKg.toInt();
+    final priceDisplay = catchModel.pricePerKg.amountPerKg.toInt();
     final imageUrl = catchModel.images.isNotEmpty
         ? catchModel.images.first
         // Use the local placeholder path if no image URL is provided initially

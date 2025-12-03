@@ -1,26 +1,58 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/presentation/providers/role_selection_provider.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/role_button.dart';
 
-class RoleScreen extends StatefulWidget {
+// Provider for the currently selected role
+final selectedRoleProvider = StateProvider<UserRole>((ref) => UserRole.unknown);
+
+class RoleScreen extends ConsumerWidget {
   const RoleScreen({super.key});
 
   @override
-  State<RoleScreen> createState() => _RoleScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedRole = ref.watch(selectedRoleProvider);
 
-class _RoleScreenState extends State<RoleScreen> {
-  // Local state to hold the currently selected role for UI
-  Role _selectedRole = Role.unknown;
+    // Listen to the controller state for side effects (navigation/error)
+    ref.listen<AsyncValue<void>>(roleSelectionControllerProvider, (
+      previous,
+      next,
+    ) {
+      print('RoleScreen listener: next state = $next');
+      if (next.hasError) {
+        print('RoleScreen listener: Error - ${next.error}');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
+        ref.read(selectedRoleProvider.notifier).state = UserRole.unknown;
+      } else if (!next.isLoading && !next.hasError && next.hasValue) {
+        // We read the provider here to get the LATEST value
+        // even if the widget rebuilt.
+        final currentSelectedRole = ref.read(selectedRoleProvider);
+        print(
+          'RoleScreen listener: Success! Navigating to $currentSelectedRole',
+        );
 
-  @override
-  Widget build(BuildContext context) {
+        // Success! Navigate based on selected role
+        if (currentSelectedRole == UserRole.buyer) {
+          context.go('/buyer');
+        } else if (currentSelectedRole == UserRole.fisher) {
+          context.go('/fisher');
+        }
+      }
+    });
+
+    final state = ref.watch(roleSelectionControllerProvider);
+    final bool isLoading = state.isLoading;
+
+    // Disable button if loading or unknown selection
+    final buttonDisabled = isLoading || selectedRole == UserRole.unknown;
+
     return Scaffold(
       appBar: AppBar(
         title: Image.asset(
@@ -33,120 +65,74 @@ class _RoleScreenState extends State<RoleScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: BlocConsumer<UserBloc, UserState>(
-            listener: (context, state) {
-              // Initialize selection on first load
-              if (state is UserLoaded && _selectedRole == Role.unknown) {
-                setState(() {
-                  _selectedRole = state.role;
-                });
-              }
-
-              // If there's an error, reset selection on the next frame (safe)
-              if (state is UserError) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (!mounted) return;
-                  setState(() {
-                    _selectedRole = Role.unknown;
-                  });
-                });
-              }
-
-              if (state is UserLoaded) {
-                // safe navigation after state settled
-                if (state.role == Role.buyer) {
-                  // use addPostFrame to be extra safe
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted) return;
-                    context.go('/buyer');
-                  });
-                } else if (state.role == Role.fisher) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted) return;
-                    context.go('/fisher');
-                  });
-                }
-              }
-            },
-            builder: (context, state) {
-              final bool isLoading = state is UserLoading;
-              final bool isError = state is UserError;
-
-              // Disable button if loading or unknown selection
-              final buttonDisabled =
-                  isLoading || _selectedRole == Role.unknown || isError;
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 60.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.max,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 60.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Column(
-                      spacing: 40,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Welcome",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textBlue,
-                          ),
-                        ),
-                        Text(
-                          "Please, select your role to continue.",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                    Text(
+                      "Welcome",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textBlue,
+                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        RoleButton(
-                          title: "Fisher",
-                          icon: "assets/icons/fisher.png",
-                          isActive: _selectedRole == Role.fisher,
-                          onPressed: () =>
-                              setState(() => _selectedRole = Role.fisher),
-                        ),
-                        const SizedBox(height: 20),
-                        RoleButton(
-                          title: "Buyer",
-                          icon: "assets/icons/buyer.png",
-                          isActive: _selectedRole == Role.buyer,
-                          onPressed: () =>
-                              setState(() => _selectedRole = Role.buyer),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-
-                    // Continue Button (Finalize selection and navigate)
-                    CustomButton(
-                      title: "Continue",
-                      // Disable if role is unknown, or if BLoC is currently loading
-                      disabled:
-                          buttonDisabled ||
-                          _selectedRole == Role.unknown ||
-                          state is UserLoading,
-                      suffixIcon: CupertinoIcons.chevron_forward,
-                      onPressed: () {
-                        // 1. Emit the Finalize event to load the user profile
-                        context.read<UserBloc>().add(
-                          FinalizeRoleSelection(_selectedRole),
-                        );
-                      },
+                    SizedBox(height: 40),
+                    Text(
+                      "Please, select your role to continue.",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
-              );
-            },
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    RoleButton(
+                      title: "Fisher",
+                      icon: "assets/icons/fisher.png",
+                      isActive: selectedRole == UserRole.fisher,
+                      onPressed: () =>
+                          ref.read(selectedRoleProvider.notifier).state =
+                              UserRole.fisher,
+                    ),
+                    const SizedBox(height: 20),
+                    RoleButton(
+                      title: "Buyer",
+                      icon: "assets/icons/buyer.png",
+                      isActive: selectedRole == UserRole.buyer,
+                      onPressed: () =>
+                          ref.read(selectedRoleProvider.notifier).state =
+                              UserRole.buyer,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+
+                // Continue Button (Finalize selection and navigate)
+                CustomButton(
+                  title: "Continue",
+                  disabled: buttonDisabled,
+                  suffixIcon: CupertinoIcons.chevron_forward,
+                  onPressed: () {
+                    if (selectedRole != UserRole.unknown) {
+                      ref
+                          .read(roleSelectionControllerProvider.notifier)
+                          .selectRole(selectedRole);
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

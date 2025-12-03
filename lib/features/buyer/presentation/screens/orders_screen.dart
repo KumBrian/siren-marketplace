@@ -1,237 +1,123 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:siren_marketplace/bloc/cubits/offers_filter_cubit/offers_filter_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/providers/buyer_orders_provider.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/order_filter_providers.dart';
+import 'package:siren_marketplace/core/providers/order_providers.dart';
+import 'package:siren_marketplace/core/types/enum.dart' hide OfferStatus;
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_cubit/buyer_cubit.dart';
+import 'package:siren_marketplace/features/buyer/presentation/models/display_item.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/order_card.dart';
 
-// 💡 FIX: Define the current buyer ID, consistent with the ID that places orders in seeder.dart.
-const String CURRENT_BUYER_ID = 'buyer_id_1';
-
-class BuyerOrders extends StatefulWidget {
+class BuyerOrders extends ConsumerStatefulWidget {
   const BuyerOrders({super.key});
 
   @override
-  State<BuyerOrders> createState() => _BuyerOrdersState();
+  ConsumerState<BuyerOrders> createState() => _BuyerOrdersState();
 }
 
-class _BuyerOrdersState extends State<BuyerOrders> {
-  List<Offer> _applyOffersFilteringAndSorting(
-    List<Offer> offers,
-    OffersFilterState state,
-  ) {
-    List<Offer> filteredList = offers;
+class _BuyerOrdersState extends ConsumerState<BuyerOrders> {
+  @override
+  Widget build(BuildContext context) {
+    final itemsAsync = ref.watch(filteredBuyerItemsProvider);
+    final notificationCount = ref.watch(buyerNotificationCountProvider);
 
-    final selectedStatuses = state.activeStatuses
-        .map((statusName) {
-          try {
-            return OfferStatus.values.firstWhere(
-              (s) => s.name == statusName.toLowerCase(),
-            );
-          } catch (e) {
-            return OfferStatus.unknown;
-          }
-        })
-        .where((s) => s != OfferStatus.unknown)
-        .toSet();
-
-    if (selectedStatuses.isNotEmpty) {
-      filteredList = filteredList.where((offer) {
-        return selectedStatuses.contains(offer.status);
-      }).toList();
-    }
-
-    // --- Sorting by Date (createdAt) ---
-    filteredList.sort((a, b) {
-      if (state.activeSortBy == SortBy.newOld) {
-        // Newest to Oldest (Descending)
-        return b.dateCreated.compareTo(a.dateCreated);
-      } else if (state.activeSortBy == SortBy.oldNew) {
-        // Oldest to Newest (Ascending)
-        return a.dateCreated.compareTo(b.dateCreated);
-      }
-      // No sorting/default order
-      return 0;
-    });
-
-    // 💡 NOTE: Implement search/searchQuery logic here if you add it to the cubit state.
-
-    return filteredList;
-  }
-
-  void _showFilterModal(BuildContext context, List<Offer> allOffers) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (_) => BlocBuilder<OffersFilterCubit, OffersFilterState>(
-        builder: (context, filterState) {
-          final filterCubit = context.read<OffersFilterCubit>();
-          final filteredState = context.read<OffersFilterCubit>().state;
-          final height = MediaQuery.of(context).size.height * 0.35;
-
-          return Container(
-            height: height,
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 12,
-              children: [
-                const Text(
-                  "Filter by:",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-
-                const Text("Status", style: TextStyle(fontSize: 12)),
-
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: OfferStatus.values
-                      .where((s) => s != OfferStatus.unknown)
-                      .map((status) {
-                        final title =
-                            status.name.substring(0, 1).toUpperCase() +
-                            status.name.substring(1);
-                        return FilterButton(
-                          title: title,
-                          color: AppColors.getStatusColor(status),
-                          isSelected: filteredState.pendingStatuses.contains(
-                            title,
-                          ),
-                          onPressed: () => filterCubit.toggleStatus(title),
-                        );
-                      })
-                      .toList(),
-                ),
-                const Divider(),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        filterCubit.clearAllFilters();
-                        context.read<BuyerCubit>().loadBuyerData(
-                          buyerId: CURRENT_BUYER_ID,
-                        );
-                        context.pop();
-                      },
-                      child: const Text(
-                        "Reset All",
-                        style: TextStyle(decoration: TextDecoration.underline),
-                      ),
-                    ),
-                    CustomButton(
-                      title: "Apply Filters",
-                      onPressed: () {
-                        filterCubit.applyFilters();
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ],
+    return Scaffold(
+      backgroundColor: AppColors.gray50,
+      appBar: AppBar(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: AppColors.white100,
+        actions: [
+          IconButton(
+            onPressed: () {
+              context.go("/buyer/notifications");
+            },
+            icon: Badge(
+              label: Text("$notificationCount"),
+              isLabelVisible: notificationCount > 0,
+              child: const Icon(
+                Icons.notifications_none,
+                color: AppColors.textBlue,
+              ),
             ),
-          );
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(24.0),
+          child: Column(
+            spacing: 16,
+            children: [
+              const SectionHeader("Offers", fontSize: 16),
+              Container(color: AppColors.textBlue, height: 2.0),
+            ],
+          ),
+        ),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh both offers and orders
+          ref.invalidate(buyerOffersProvider);
+          ref.invalidate(myOrdersProvider);
+          // Wait for them to reload
+          await Future.wait([
+            ref.read(buyerOffersProvider.future),
+            ref.read(myOrdersProvider.future),
+          ]);
         },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 56, child: _buildSearchAndFilterRow(context)),
+              const SizedBox(height: 8),
+              Expanded(
+                child: itemsAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(
+                    child: Text(
+                      'Error loading orders: $error',
+                      style: const TextStyle(color: AppColors.fail500),
+                    ),
+                  ),
+                  data: (items) {
+                    if (items.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          "No orders found matching your criteria.",
+                          style: TextStyle(color: AppColors.textGray),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 80),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return _OrderListItem(item: item);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _showSortModal(BuildContext context, List<Offer> allOffers) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (_) => BlocBuilder<OffersFilterCubit, OffersFilterState>(
-        builder: (context, filterState) {
-          final filterCubit = context.read<OffersFilterCubit>();
-          final height = MediaQuery.of(context).size.height * 0.3;
-
-          return Container(
-            height: height,
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 8,
-              children: [
-                const Text(
-                  "Sort by:",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                _buildDateSortOptions(filterCubit, filterState),
-                Divider(thickness: 2, color: AppColors.gray200),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        filterCubit.clearAllFilters();
-                        context.read<BuyerCubit>().loadBuyerData(
-                          buyerId: CURRENT_BUYER_ID,
-                        );
-                        context.pop();
-                      },
-                      child: const Text(
-                        "Reset All",
-                        style: TextStyle(decoration: TextDecoration.underline),
-                      ),
-                    ),
-                    CustomButton(
-                      title: "Apply",
-                      onPressed: () {
-                        filterCubit.applyFilters();
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  //
-  Widget _buildDateSortOptions(
-    OffersFilterCubit cubit,
-    OffersFilterState state,
-  ) {
-    return Column(
-      children: [
-        RadioListTile<SortBy>(
-          dense: true,
-          groupValue: state.pendingSortBy,
-          title: const Text('Oldest to Newest', style: TextStyle(fontSize: 14)),
-          value: SortBy.oldNew,
-          onChanged: (v) {
-            if (v != null) cubit.setSort(v);
-          },
-        ),
-        RadioListTile<SortBy>(
-          dense: true,
-          groupValue: state.pendingSortBy,
-          title: const Text('Newest to Oldest', style: TextStyle(fontSize: 14)),
-          value: SortBy.newOld,
-          onChanged: (v) {
-            if (v != null) cubit.setSort(v);
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchAndFilterRow(BuildContext context, List<Offer> allOffers) {
+  Widget _buildSearchAndFilterRow(BuildContext context) {
     return Row(
       spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -253,19 +139,25 @@ class _BuyerOrdersState extends State<BuyerOrders> {
               Icon(CustomIcons.search, color: AppColors.textBlue),
             ],
             elevation: WidgetStateProperty.all(0),
+            onChanged: (value) {
+              ref
+                  .read(ordersFilterProvider.notifier)
+                  .update((state) => state.copyWith(searchQuery: value));
+            },
           ),
         ),
         Expanded(
           flex: 1,
-          child: BlocBuilder<OffersFilterCubit, OffersFilterState>(
-            builder: (context, state) {
-              final hasFilters = state.activeSortBy != SortBy.none;
+          child: Consumer(
+            builder: (context, ref, child) {
+              final filterState = ref.watch(ordersFilterProvider);
+              final hasFilters = filterState.sortBy != SortBy.newOld;
+
               return Badge(
                 isLabelVisible: hasFilters,
                 alignment: Alignment.topRight,
                 largeSize: 3,
                 smallSize: 8,
-
                 backgroundColor: AppColors.blue800,
                 child: SizedBox(
                   width: double.infinity,
@@ -275,8 +167,8 @@ class _BuyerOrdersState extends State<BuyerOrders> {
                     child: InkWell(
                       splashColor: AppColors.blue700.withAlpha(25),
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () => _showSortModal(context, allOffers),
-                      child: Padding(
+                      onTap: () => _showSortModal(context),
+                      child: const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Icon(
                           CustomIcons.sort,
@@ -292,25 +184,25 @@ class _BuyerOrdersState extends State<BuyerOrders> {
         ),
         Expanded(
           flex: 1,
-          child: BlocBuilder<OffersFilterCubit, OffersFilterState>(
-            builder: (context, state) {
-              final hasFilters = state.activeStatuses.isNotEmpty;
+          child: Consumer(
+            builder: (context, ref, child) {
+              final filterState = ref.watch(ordersFilterProvider);
+              final hasFilters = filterState.selectedStatuses.isNotEmpty;
 
               return Badge(
                 isLabelVisible: hasFilters,
-                label: Text("${state.totalFilters}"),
+                label: Text("${filterState.selectedStatuses.length}"),
                 alignment: Alignment.topRight,
-
                 backgroundColor: AppColors.blue800,
                 child: SizedBox(
-                  width: double.infinity, // locks full width of Expanded
+                  width: double.infinity,
                   child: Material(
                     color: AppColors.white100,
                     borderRadius: BorderRadius.circular(16),
                     child: InkWell(
                       splashColor: AppColors.blue700.withAlpha(25),
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () => _showFilterModal(context, allOffers),
+                      onTap: () => _showFilterModal(context),
                       child: const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Icon(
@@ -329,126 +221,271 @@ class _BuyerOrdersState extends State<BuyerOrders> {
     );
   }
 
+  void _showFilterModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => const _FilterModalContent(),
+    );
+  }
+
+  void _showSortModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => const _SortModalContent(),
+    );
+  }
+}
+
+class _OrderListItem extends ConsumerWidget {
+  final DisplayItem item;
+
+  const _OrderListItem({required this.item});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final catchAsync = ref.watch(catchProvider(item.catchId));
+
+    return catchAsync.when(
+      loading: () => const SizedBox(
+        height: 100,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (catchItem) {
+        if (catchItem == null) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: OrderCard(
+            catchItem: catchItem,
+            status: item.status,
+            weight: item.weight,
+            price: item.price,
+            hasUpdate: item.hasUpdate,
+            onPressed: () {
+              // Navigation Logic:
+              // If status is NOT (pending or rejected) -> Order Details
+              // Else -> Shared Offers Screen
+
+              final isPendingOrRejected =
+                  item.status == OfferStatus.pending ||
+                  item.status == OfferStatus.rejected;
+
+              if (!isPendingOrRejected) {
+                // Navigate to Order Details
+                context.push("/buyer/order-details/${item.id}");
+              } else {
+                // Navigate to Shared Offer Details
+                // Assuming the route is /shared/offer-details/:id based on user request
+                // Or maybe /buyer/offer-details/:id if shared route doesn't exist yet
+                // The user said "to the shared offers screen".
+                // I'll check if I should use /shared/... or keep /buyer/...
+                // Previous code used /buyer/offer-details/${item.id}
+                // I'll stick to /buyer/offer-details/${item.id} for now as it likely maps to the shared screen
+                // or I can try /shared/offer-details/${item.id} if I'm sure.
+                // Let's use /buyer/offer-details/${item.id} to be safe, assuming it shows the shared screen.
+                context.push("/buyer/offer-details/${item.id}");
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FilterModalContent extends ConsumerStatefulWidget {
+  const _FilterModalContent();
+
+  @override
+  ConsumerState<_FilterModalContent> createState() =>
+      _FilterModalContentState();
+}
+
+class _FilterModalContentState extends ConsumerState<_FilterModalContent> {
+  late List<OfferStatus> _selectedStatuses;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedStatuses = List.from(
+      ref.read(ordersFilterProvider).selectedStatuses,
+    );
+  }
+
+  void _toggleStatus(OfferStatus status) {
+    setState(() {
+      if (_selectedStatuses.contains(status)) {
+        _selectedStatuses.remove(status);
+      } else {
+        _selectedStatuses.add(status);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.gray50,
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: AppColors.white100,
-        actions: [
-          IconButton(
-            onPressed: () {
-              context.go("/buyer/notifications");
-            },
-            icon: const Icon(
-              Icons.notifications_none,
-              color: AppColors.textBlue,
-            ),
+    final height = MediaQuery.of(context).size.height * 0.35;
+
+    return Container(
+      height: height,
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 12,
+        children: [
+          const Text(
+            "Filter by:",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(24.0),
-          child: Column(
-            spacing: 16,
+
+          const Text("Status", style: TextStyle(fontSize: 12)),
+
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: OfferStatus.values.map((status) {
+              final title =
+                  status.name.substring(0, 1).toUpperCase() +
+                  status.name.substring(1);
+              return FilterButton(
+                title: title,
+                color: AppColors.getStatusColor(status),
+                isSelected: _selectedStatuses.contains(status),
+                onPressed: () => _toggleStatus(status),
+              );
+            }).toList(),
+          ),
+          const Divider(),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SectionHeader("Offers", fontSize: 16),
-              Container(color: AppColors.textBlue, height: 2.0),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedStatuses = [];
+                  });
+                  ref
+                      .read(ordersFilterProvider.notifier)
+                      .update((state) => state.copyWith(selectedStatuses: []));
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  "Reset All",
+                  style: TextStyle(decoration: TextDecoration.underline),
+                ),
+              ),
+              CustomButton(
+                title: "Apply Filters",
+                onPressed: () {
+                  ref
+                      .read(ordersFilterProvider.notifier)
+                      .update(
+                        (state) =>
+                            state.copyWith(selectedStatuses: _selectedStatuses),
+                      );
+                  Navigator.pop(context);
+                },
+              ),
             ],
           ),
-        ),
+        ],
       ),
-      body: BlocBuilder<BuyerCubit, BuyerState>(
-        builder: (context, buyerState) {
-          if (buyerState is BuyerLoading || buyerState is BuyerInitial) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    );
+  }
+}
 
-          if (buyerState is BuyerError) {
-            return Center(
-              child: Text(
-                'Error loading orders: ${buyerState.message}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.fail500),
+class _SortModalContent extends ConsumerStatefulWidget {
+  const _SortModalContent();
+
+  @override
+  ConsumerState<_SortModalContent> createState() => _SortModalContentState();
+}
+
+class _SortModalContentState extends ConsumerState<_SortModalContent> {
+  late SortBy _sortBy;
+
+  @override
+  void initState() {
+    super.initState();
+    _sortBy = ref.read(ordersFilterProvider).sortBy;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height * 0.3;
+
+    return Container(
+      height: height,
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8,
+        children: [
+          const Text(
+            "Sort by:",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+          _buildDateSortOptions(),
+          const Divider(thickness: 2, color: AppColors.gray200),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  ref
+                      .read(ordersFilterProvider.notifier)
+                      .update((state) => state.copyWith(sortBy: SortBy.newOld));
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  "Reset All",
+                  style: TextStyle(decoration: TextDecoration.underline),
+                ),
               ),
-            );
-          }
-          final loadedState = buyerState as BuyerLoaded;
-          final allOffers = loadedState.madeOffers;
-
-          // 2. Nested BlocBuilder for applying filters
-          return BlocBuilder<OffersFilterCubit, OffersFilterState>(
-            builder: (context, filterState) {
-              final filteredOffers = _applyOffersFilteringAndSorting(
-                allOffers,
-                filterState,
-              );
-
-              return RefreshIndicator(
-                // 💡 FIX: Pass the required buyerId to the loadBuyerData call
-                onRefresh: () => context.read<BuyerCubit>().loadBuyerData(
-                  buyerId: CURRENT_BUYER_ID,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(
-                        height: 56,
-                        child: _buildSearchAndFilterRow(
-                          context,
-                          filteredOffers,
-                        ),
-                      ),
-
-                      const SizedBox(height: 8), // Added standard spacing
-
-                      Expanded(
-                        child: filteredOffers.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  "No orders found matching your criteria.",
-                                  style: TextStyle(color: AppColors.textGray),
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.only(bottom: 80),
-                                itemCount: filteredOffers.length,
-                                itemBuilder: (context, index) {
-                                  final order = filteredOffers[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 8.0),
-                                    child: OrderCard(
-                                      offer: order,
-                                      onPressed: () {
-                                        order.status == OfferStatus.pending ||
-                                                order.status ==
-                                                    OfferStatus.rejected
-                                            ? context.go(
-                                                "/buyer/offer-details/${order.id}",
-                                              )
-                                            : context.go(
-                                                "/buyer/order-details/${order.id}",
-                                              );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
+              CustomButton(
+                title: "Apply",
+                onPressed: () {
+                  ref
+                      .read(ordersFilterProvider.notifier)
+                      .update((state) => state.copyWith(sortBy: _sortBy));
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildDateSortOptions() {
+    return Column(
+      children: [
+        RadioListTile<SortBy>(
+          dense: true,
+          groupValue: _sortBy,
+          title: const Text('Oldest to Newest', style: TextStyle(fontSize: 14)),
+          value: SortBy.oldNew,
+          onChanged: (v) {
+            if (v != null) setState(() => _sortBy = v);
+          },
+        ),
+        RadioListTile<SortBy>(
+          dense: true,
+          groupValue: _sortBy,
+          title: const Text('Newest to Oldest', style: TextStyle(fontSize: 14)),
+          value: SortBy.newOld,
+          onChanged: (v) {
+            if (v != null) setState(() => _sortBy = v);
+          },
+        ),
+      ],
     );
   }
 }

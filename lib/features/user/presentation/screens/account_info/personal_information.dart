@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/core/widgets/text_input_field.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
-class PersonalInformation extends StatefulWidget {
+class PersonalInformation extends ConsumerStatefulWidget {
   const PersonalInformation({super.key});
 
   @override
-  State<PersonalInformation> createState() => _PersonalInformationState();
+  ConsumerState<PersonalInformation> createState() =>
+      _PersonalInformationState();
 }
 
-class _PersonalInformationState extends State<PersonalInformation> {
+class _PersonalInformationState extends ConsumerState<PersonalInformation> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final userAsync = ref.watch(currentUserProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -28,12 +33,11 @@ class _PersonalInformationState extends State<PersonalInformation> {
         ),
         centerTitle: true,
       ),
-      body: BlocBuilder<UserBloc, UserState>(
-        builder: (context, userState) {
-          if (userState is! UserLoaded) return const SizedBox();
-
-          final user = userState.user!;
-          final role = userState.role;
+      body: userAsync.when(
+        data: (user) {
+          if (user == null) {
+            return const Center(child: Text("User not found"));
+          }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
@@ -58,8 +62,8 @@ class _PersonalInformationState extends State<PersonalInformation> {
                         keyboardType: TextInputType.name,
                       ),
                       const SizedBox(height: 24),
-                      DropdownButtonFormField<Role>(
-                        initialValue: role,
+                      DropdownButtonFormField<UserRole>(
+                        initialValue: user.currentRole,
                         decoration: InputDecoration(
                           border: const UnderlineInputBorder(),
                           labelText: "Role",
@@ -71,17 +75,17 @@ class _PersonalInformationState extends State<PersonalInformation> {
                         ),
                         items: const [
                           DropdownMenuItem(
-                            value: Role.fisher,
+                            value: UserRole.fisher,
                             child: Text("Fisher"),
                           ),
                           DropdownMenuItem(
-                            value: Role.buyer,
+                            value: UserRole.buyer,
                             child: Text("Buyer"),
                           ),
                         ],
                         onChanged: (v) {
                           if (v != null) {
-                            // context.read<UserBloc>().add(FinalizeRoleSelection(v));
+                            context.read<UserCubit>().finalizeRoleSelection(v);
                           }
                         },
                       ),
@@ -124,6 +128,8 @@ class _PersonalInformationState extends State<PersonalInformation> {
             ),
           );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
       ),
     );
   }

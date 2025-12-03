@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:hugeicons/styles/stroke_rounded.dart';
+import 'package:intl/intl.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
@@ -109,7 +110,7 @@ class OfferCard extends StatelessWidget {
           ],
         ),
         Text(
-          offer.dateCreated.toFormattedDate(),
+          offer.dateCreated.toIso8601String().toFormattedDate(),
           style: TextStyle(
             color: offer.hasUpdateForBuyer
                 ? AppColors.textBlue
@@ -132,10 +133,13 @@ class OfferCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            // ✅ Use toStringAsFixed for double values
-            _pill(formatWeight(offer.weight)),
+            // Convert grams to kg for display
+            _pill(
+              formatWeight((offer.currentTerms.weight.grams / 1000.0).toInt()),
+            ),
             const SizedBox(width: 8),
-            _pill(formatPrice(offer.price)),
+            // Convert minor currency units to major for display
+            _pill(formatPrice(offer.currentTerms.totalPrice.amount / 100.0)),
           ],
         ),
         Row(

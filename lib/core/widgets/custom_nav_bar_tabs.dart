@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 
 class CustomNavBarWithTabs extends StatelessWidget {
@@ -13,7 +13,7 @@ class CustomNavBarWithTabs extends StatelessWidget {
 
   final int selectedIndex;
   final ValueChanged<int> onTabSelected;
-  final Role role;
+  final UserRole role;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class CustomNavBarWithTabs extends StatelessWidget {
             selectedIndex == 1 ? Icons.storefront_rounded : Icons.storefront,
             1,
           ),
-          if (role == Role.buyer) ...[
+          if (role == UserRole.buyer) ...[
             _buildNavItem(
               selectedIndex == 2
                   ? Icons.shopping_bag
@@ -45,7 +45,7 @@ class CustomNavBarWithTabs extends StatelessWidget {
               2,
             ),
           ],
-          if (role == Role.fisher) ...[
+          if (role == UserRole.fisher) ...[
             _buildNavItem(
               selectedIndex == 2
                   ? CustomIcons.observation

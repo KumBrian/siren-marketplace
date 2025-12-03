@@ -1,52 +1,42 @@
-part of 'orders_bloc.dart';
+part of 'orders_cubit.dart';
 
-abstract class OrdersState extends Equatable {
-  const OrdersState();
-
-  @override
-  List<Object> get props => [];
-}
-
-class OrdersInitial extends OrdersState {}
-
-class OrdersLoading extends OrdersState {}
-
-class MarkedAsCompleted extends OrdersState {}
-
-/// State for when the list of all orders is loaded.
-class OrdersLoaded extends OrdersState {
+class OrdersState extends Equatable {
   final List<Order> orders;
+  final Order? selectedOrder;
+  final bool loading;
+  final String? error;
+  final String? ratingSubmittedFor; // User ID that was just rated
 
-  const OrdersLoaded(this.orders);
+  const OrdersState({
+    this.orders = const [],
+    this.selectedOrder,
+    this.loading = false,
+    this.error,
+    this.ratingSubmittedFor,
+  });
 
-  @override
-  List<Object> get props => [orders];
-}
-
-/// 🆕 NEW STATE: For when a single order's details are loaded.
-class OrderDetailsLoaded extends OrdersState {
-  final Order order;
-
-  const OrderDetailsLoaded(this.order);
-
-  @override
-  List<Object> get props => [order];
-}
-
-class OrdersError extends OrdersState {
-  final String message;
-
-  const OrdersError(this.message);
-
-  @override
-  List<Object> get props => [message];
-}
-
-class RatingSubmissionSuccess extends OrdersState {
-  final String ratedUserId;
-
-  const RatingSubmissionSuccess(this.ratedUserId);
+  OrdersState copyWith({
+    List<Order>? orders,
+    Order? selectedOrder,
+    bool? loading,
+    String? error,
+    String? ratingSubmittedFor,
+  }) {
+    return OrdersState(
+      orders: orders ?? this.orders,
+      selectedOrder: selectedOrder ?? this.selectedOrder,
+      loading: loading ?? this.loading,
+      error: error,
+      ratingSubmittedFor: ratingSubmittedFor,
+    );
+  }
 
   @override
-  List<Object> get props => [ratedUserId];
+  List<Object?> get props => [
+    orders,
+    selectedOrder,
+    loading,
+    error,
+    ratingSubmittedFor,
+  ];
 }

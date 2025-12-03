@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/providers/notification_providers.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/user/data/models/profile_route.dart';
-import 'package:siren_marketplace/features/user/logic/notifications_cubit/notifications_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/profile_route_widget.dart';
 
-List<ProfileRoute> profileRoutes = [
+List<ProfileRoute> getProfileRoutes(String? userId) => [
   ProfileRoute(
     title: "Personal Information",
     route: "account-info",
@@ -21,6 +21,7 @@ List<ProfileRoute> profileRoutes = [
     title: "Reviews & Ratings",
     route: "account-info",
     subRoute: "reviews",
+    userId: userId,
   ),
   ProfileRoute(
     title: "Notifications",
@@ -28,12 +29,15 @@ List<ProfileRoute> profileRoutes = [
       height: 24,
       child: Transform.scale(
         scale: 0.7,
-        child: BlocBuilder<NotificationsCubit, bool>(
-          builder: (context, notificationState) {
+        child: Consumer(
+          builder: (context, ref, _) {
+            final notificationsEnabled = ref.watch(
+              notificationSettingsProvider,
+            );
             return Switch.adaptive(
-              value: notificationState,
+              value: notificationsEnabled,
               onChanged: (v) {
-                context.read<NotificationsCubit>().toggle();
+                ref.read(notificationSettingsProvider.notifier).state = v;
               },
               activeTrackColor: AppColors.textBlue,
             );
@@ -44,88 +48,89 @@ List<ProfileRoute> profileRoutes = [
   ),
 ];
 
-class AccountInfo extends StatelessWidget {
+class AccountInfo extends ConsumerWidget {
   const AccountInfo({super.key, required this.role});
 
   final String role;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentUserProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: PageTitle(title: "Account Info"),
         centerTitle: true,
       ),
-      body: BlocBuilder<UserBloc, UserState>(
-        builder: (context, userState) {
-          if (userState is UserLoaded) {
-            final user = userState.user;
-            return Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      ClipOval(
-                        child: Image.network(
-                          user!.avatarUrl,
-                          fit: BoxFit.cover,
-                          height: 150,
-                          width: 150,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Image.asset(
-                                "assets/images/user-profile.png",
-                                fit: BoxFit.cover,
-                                height: 150,
-                                width: 150,
-                              ),
-                        ),
-                      ),
-
-                      SectionHeader(user.name.capitalize(), fontSize: 22),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            roleToString(user.role).capitalize(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                              color: AppColors.textGray,
+      body: userAsync.when(
+        data: (user) {
+          if (user == null) return const Center(child: Text("User not found"));
+          return Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ClipOval(
+                      child: Image.network(
+                        user.avatarUrl ?? "",
+                        fit: BoxFit.cover,
+                        height: 150,
+                        width: 150,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Image.asset(
+                              "assets/images/user-profile.png",
+                              fit: BoxFit.cover,
+                              height: 150,
+                              width: 150,
                             ),
-                          ),
-                          SvgPicture.asset(
-                            "assets/svgs/medallion.svg",
-                            height: 24,
-                            width: 24,
-                            fit: BoxFit.cover,
-                          ),
-                        ],
                       ),
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      children: List.generate(
-                        profileRoutes.length,
-                        (index) => ProfileRouteWidget(
-                          profileRoute: profileRoutes[index],
-                          role: user.role,
+                    ),
+
+                    SectionHeader(user.name.capitalize(), fontSize: 22),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          roleToString(user.currentRole).capitalize(),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.textGray,
+                          ),
                         ),
+                        SvgPicture.asset(
+                          "assets/svgs/medallion.svg",
+                          height: 24,
+                          width: 24,
+                          fit: BoxFit.cover,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: List.generate(
+                      getProfileRoutes(user.id).length,
+                      (index) => ProfileRouteWidget(
+                        profileRoute: getProfileRoutes(user.id)[index],
+                        role: user.currentRole,
                       ),
                     ),
                   ),
-                ],
-              ),
-            );
-          }
-          return const Center(child: CircularProgressIndicator());
+                ),
+              ],
+            ),
+          );
         },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
       ),
     );
   }

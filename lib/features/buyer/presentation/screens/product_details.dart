@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
+import 'package:siren_marketplace/core/domain/value_objects/price.dart';
+import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
@@ -15,31 +20,18 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
-import 'package:siren_marketplace/features/fisher/logic/catch_bloc/catch_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/fisher_cubit/fisher_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
+import 'package:siren_marketplace/features/shared/presentation/providers/offer_actions_provider.dart';
 
-// Helper extension
-extension IterableExtensions<T> on Iterable<T> {
-  T? firstWhereOrNull(bool Function(T element) test) {
-    for (final element in this) {
-      if (test(element)) return element;
-    }
-    return null;
-  }
-}
-
-class ProductDetails extends StatefulWidget {
+class ProductDetails extends ConsumerStatefulWidget {
   const ProductDetails({super.key, required this.productId});
 
   final String productId;
 
   @override
-  State<ProductDetails> createState() => _ProductDetailsState();
+  ConsumerState<ProductDetails> createState() => _ProductDetailsState();
 }
 
-class _ProductDetailsState extends State<ProductDetails> {
+class _ProductDetailsState extends ConsumerState<ProductDetails> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   final TextEditingController _weightController = TextEditingController();
@@ -47,47 +39,30 @@ class _ProductDetailsState extends State<ProductDetails> {
   final TextEditingController _pricePerKgController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    final productsCubit = context.read<ProductsCubit>();
-    if (productsCubit.state is! ProductsLoaded) {
-      productsCubit.loadMarketCatches();
-    } else {
-      _fetchFisherFromProduct(productsCubit);
-    }
-
-    // Listen for updates after ProductsCubit loads
-    productsCubit.stream.listen((state) {
-      if (state is ProductsLoaded) {
-        _fetchFisherFromProduct(productsCubit);
-      }
-    });
+  void dispose() {
+    _weightController.dispose();
+    _priceController.dispose();
+    _pricePerKgController.dispose();
+    super.dispose();
   }
 
-  void _fetchFisherFromProduct(ProductsCubit productsCubit) {
-    final catchItem = productsCubit.state is ProductsLoaded
-        ? (productsCubit.state as ProductsLoaded).availableCatches
-              .firstWhereOrNull((c) => c.id == widget.productId)
-        : null;
-
-    if (catchItem != null) {
-      context.read<FisherCubit>().fetchFisher(catchItem.fisherId);
-    }
-  }
-
-  void _showMakeOfferDialog(BuildContext context, Catch c) {
+  void _showMakeOfferDialog(
+    BuildContext context,
+    Catch catchItem,
+    String currentUserId,
+  ) {
     _weightController.clear();
     _priceController.clear();
     _pricePerKgController.clear();
 
     // Prefill with the catch's current price per kg
-    final initialPricePerKg = c.pricePerKg; // must exist in your Catch model
+    final initialPricePerKg = catchItem.pricePerKg.amountPerKg;
     _pricePerKgController.text = initialPricePerKg.toStringAsFixed(0);
 
     bool userEditingTotal = false;
 
     void updateTotalFromWeight() {
-      if (userEditingTotal) return; // prevent loop
+      if (userEditingTotal) return;
       final weight = double.tryParse(_weightController.text);
       final pricePerKg = int.tryParse(_pricePerKgController.text);
       if (weight != null && pricePerKg != null) {
@@ -110,10 +85,8 @@ class _ProductDetailsState extends State<ProductDetails> {
     });
 
     _priceController.addListener(() {
-      // mark manual edit of total
       userEditingTotal = true;
       updatePricePerKgFromTotal();
-      // short delay to reset flag after editing burst
       Future.delayed(const Duration(milliseconds: 200), () {
         userEditingTotal = false;
       });
@@ -121,13 +94,12 @@ class _ProductDetailsState extends State<ProductDetails> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         contentPadding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         constraints: BoxConstraints(
-          // Make it stretch proportionally on mobile and desktop
           maxWidth: MediaQuery.of(context).size.width * 0.9,
           minWidth: MediaQuery.of(context).size.width * 0.8,
         ),
@@ -135,22 +107,19 @@ class _ProductDetailsState extends State<ProductDetails> {
           alignment: Alignment.centerRight,
           child: IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () => context.pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
           ),
         ),
         content: StatefulBuilder(
           builder: (context, setState) {
-            // 1. Calculation Logic: Convert input (Kg) to Logic (Grams)
             void updateCalculations(String _) {
               final weightInputKg =
                   double.tryParse(_weightController.text) ?? 0.0;
               final totalPrice = int.tryParse(_priceController.text) ?? 0;
 
-              // Precision conversion
               final weightInGrams = (weightInputKg * 1000).round();
 
               if (weightInGrams > 0 && totalPrice > 0) {
-                // Formula: (Total * 1000) / Grams = PricePerKg
                 final calculatedPricePerKg =
                     ((totalPrice * 1000) / weightInGrams).round();
 
@@ -179,9 +148,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                           NumberInputField(
                             controller: _weightController,
                             label: "Weight",
-                            role: Role.buyer,
                             suffix: "Kg",
-                            // 2. Trigger calculation on change
                             onChanged: updateCalculations,
                             validator: (value) {
                               final weightInputKg = double.tryParse(
@@ -192,11 +159,11 @@ class _ProductDetailsState extends State<ProductDetails> {
                                 return "Enter valid weight";
                               }
 
-                              // Convert to Grams for comparison against available weight
                               final weightInGrams = (weightInputKg * 1000)
                                   .round();
 
-                              if (weightInGrams > c.availableWeight) {
+                              if (weightInGrams >
+                                  catchItem.availableWeight.grams) {
                                 return "Cannot exceed available weight";
                               }
                               return null;
@@ -208,7 +175,6 @@ class _ProductDetailsState extends State<ProductDetails> {
                             label: "Total Price",
                             suffix: "CFA",
                             decimal: false,
-                            // 2. Trigger calculation on change
                             onChanged: updateCalculations,
                             validator: (value) {
                               final price = int.tryParse(value ?? "");
@@ -224,7 +190,6 @@ class _ProductDetailsState extends State<ProductDetails> {
                             label: "Price/Kg",
                             suffix: "CFA",
                             decimal: false,
-                            // Typically read-only if auto-calculated, but editable if needed
                             validator: (value) {
                               final pricePerKg = int.tryParse(value ?? "");
                               if (pricePerKg == null || pricePerKg <= 0) {
@@ -237,96 +202,51 @@ class _ProductDetailsState extends State<ProductDetails> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    BlocBuilder<UserBloc, UserState>(
-                      builder: (context, userState) {
-                        final user = userState is UserLoaded
-                            ? userState.user
-                            : null;
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final actionState = ref.watch(offerActionsProvider);
+
                         return CustomButton(
                           title: "Send Offer",
+                          disabled: actionState.isLoading,
                           onPressed: () {
                             if (formKey.currentState!.validate()) {
-                              // 3. Final Parsing
                               final weightInputKg = double.tryParse(
                                 _weightController.text,
                               );
                               final totalPrice = int.tryParse(
                                 _priceController.text,
                               );
-                              final pricePerKg = int.tryParse(
-                                _pricePerKgController.text,
-                              );
 
-                              if (weightInputKg != null &&
-                                  totalPrice != null &&
-                                  pricePerKg != null) {
-                                // 4. Convert to Grams before sending
+                              if (weightInputKg != null && totalPrice != null) {
                                 final weightInGrams = (weightInputKg * 1000)
                                     .round();
 
-                                context.read<OffersBloc>().add(
-                                  CreateOffer(
-                                    catchId: c.id,
-                                    buyerId: user!.id,
-                                    fisherId: c.fisherId,
-                                    price: totalPrice,
-                                    weight: weightInGrams,
-                                    // Sending INT (Grams)
-                                    pricePerKg: pricePerKg,
-                                  ),
+                                // Create offer using domain entities
+                                final weight = Weight.fromGrams(weightInGrams);
+                                final price = Price.fromAmount(totalPrice);
+                                final terms = OfferTerms.create(
+                                  totalPrice: price,
+                                  weight: weight,
                                 );
-                                context.read<CatchesBloc>().add(LoadCatches());
-                                context
-                                    .read<ProductsCubit>()
-                                    .loadMarketCatches();
 
-                                Navigator.of(context).pop();
-
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (ctx) {
-                                    return AlertDialog(
-                                      title: Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: AppColors.textBlue,
-                                          border: Border.all(
-                                            color: AppColors.textBlue,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.check,
-                                          color: AppColors.textWhite,
-                                        ),
-                                      ),
-                                      content: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Text(
-                                            "Offer sent successfully!",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: AppColors.textBlue,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          CustomButton(
-                                            title: "View Marketplace",
-                                            onPressed: () {
-                                              // Import GoRouter or use Navigator based on your setup
-                                              ctx.go("/buyer");
-                                            },
-                                          ),
-                                        ],
-                                      ),
+                                ref
+                                    .read(offerActionsProvider.notifier)
+                                    .createOffer(
+                                      catchItem.id,
+                                      currentUserId,
+                                      catchItem.fisherId,
+                                      terms,
                                     );
-                                  },
-                                );
+
+                                // Close dialog immediately or wait for success?
+                                // Usually better to wait, but the dialog is blocking.
+                                // I'll listen to state changes in the parent widget to close/show success.
+                                // But here I'm inside a dialog.
+                                // I can listen here too if I use Consumer.
+                                // However, the success dialog is shown AFTER this one closes.
+                                // So I'll just trigger the action. The listener in the main build method will handle success.
+                                Navigator.of(dialogContext).pop();
                               }
                             }
                           },
@@ -345,78 +265,124 @@ class _ProductDetailsState extends State<ProductDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<UserBloc, UserState>(
-      builder: (context, userState) {
-        if (userState is! UserLoaded) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+    final catchAsync = ref.watch(catchProvider(widget.productId));
+    final currentUserAsync = ref.watch(currentUserProvider);
+    final buyerOffersAsync = ref.watch(buyerOffersProvider);
+
+    // Listen for offer action results
+    ref.listen(offerActionsProvider, (previous, next) {
+      if (next.error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
+        );
+      } else if (next.successMessage != null) {
+        // Show success dialog
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) {
+            return AlertDialog(
+              title: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.textBlue,
+                  border: Border.all(color: AppColors.textBlue, width: 2),
+                ),
+                child: const Icon(Icons.check, color: AppColors.textWhite),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    next.successMessage!,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: AppColors.textBlue,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  CustomButton(
+                    title: "View Marketplace",
+                    onPressed: () {
+                      ctx.go("/buyer");
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+        // Reset state after showing success
+        ref.read(offerActionsProvider.notifier).reset();
+      }
+    });
+
+    return catchAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stack) => Scaffold(
+        appBar: AppBar(leading: const BackButton()),
+        body: Center(child: Text("Error loading product: $error")),
+      ),
+      data: (catchItem) {
+        if (catchItem == null) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: const BackButton(),
+              title: const Text("Details"),
+            ),
+            body: const Center(
+              child: Text("Catch not found in marketplace listings."),
+            ),
           );
         }
-        final user = userState.user;
-        return BlocListener<ProductsCubit, ProductsState>(
-          listener: (context, state) {
-            if (state is ProductsLoaded) {
-              final catchItem = state.availableCatches.firstWhereOrNull(
-                (c) => c.id == widget.productId,
+
+        return currentUserAsync.when(
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (error, stack) =>
+              Scaffold(body: Center(child: Text("Error loading user: $error"))),
+          data: (currentUser) {
+            if (currentUser == null) {
+              return const Scaffold(
+                body: Center(child: Text("User not logged in")),
               );
-
-              if (catchItem != null) {
-                context.read<FisherCubit>().fetchFisher(catchItem.fisherId);
-              }
             }
-          },
-          child: BlocBuilder<ProductsCubit, ProductsState>(
-            builder: (context, productsState) {
-              if (productsState is ProductsLoading ||
-                  productsState is ProductsInitial) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
 
-              if (productsState is ProductsError) {
-                return Scaffold(
-                  appBar: AppBar(leading: const BackButton()),
-                  body: Center(
-                    child: Text(
-                      "Error loading products: ${productsState.message}",
-                    ),
-                  ),
-                );
-              }
-
-              final loadedProducts = productsState as ProductsLoaded;
-              final catchItem = loadedProducts.availableCatches
-                  .firstWhereOrNull((c) => c.id == widget.productId);
-
-              if (catchItem == null) {
-                return Scaffold(
-                  appBar: AppBar(
-                    leading: const BackButton(),
-                    title: const Text("Details"),
-                  ),
-                  body: const Center(
-                    child: Text("Catch not found in marketplace listings."),
-                  ),
-                );
-              }
-
-              final c = catchItem;
-
-              // Check if the current user has any pending offers on this catch
-              final bool hasPendingOffer = c.offers.any(
+            // Check for pending offers
+            final hasPendingOffer = buyerOffersAsync.maybeWhen(
+              data: (offers) => offers.any(
                 (offer) =>
                     offer.status == OfferStatus.pending &&
-                    offer.buyerId == user!.id,
-              );
+                    offer.catchId == catchItem.id &&
+                    offer.buyerId == currentUser.id,
+              ),
+              orElse: () => false,
+            );
 
-              return Scaffold(
-                appBar: AppBar(
-                  leading: const BackButton(),
-                  title: PageTitle(title: "Product Details"),
-                  centerTitle: true,
-                ),
-                body: SingleChildScrollView(
+            // Fetch fisher details
+            final fisherAsync = ref.watch(userProvider(catchItem.fisherId));
+
+            return Scaffold(
+              appBar: AppBar(
+                leading: const BackButton(),
+                title: PageTitle(title: "Product Details"),
+                centerTitle: true,
+              ),
+              body: RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(catchProvider(widget.productId));
+                  ref.invalidate(buyerOffersProvider);
+                  await Future.wait([
+                    ref.read(catchProvider(widget.productId).future),
+                    ref.read(buyerOffersProvider.future),
+                  ]);
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -427,9 +393,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                       spacing: 8,
                       children: [
                         // Images
-                        ProductImagesCarousel(images: c.images),
+                        ProductImagesCarousel(images: catchItem.images),
 
-                        SectionHeader(c.name),
+                        SectionHeader(catchItem.name),
                         Row(
                           children: [
                             Container(
@@ -444,8 +410,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                               ),
                               child: Center(
                                 child: Text(
-                                  // Using the price from the Catch model
-                                  formatPrice(c.pricePerKg.toDouble()),
+                                  formatPrice(catchItem.pricePerKg.amountPerKg),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
@@ -470,26 +435,27 @@ class _ProductDetailsState extends State<ProductDetails> {
                             rows: [
                               InfoRow(
                                 label: "Market",
-                                value: c.market.capitalize(),
+                                value: catchItem.market.capitalize(),
                               ),
-                              c.species.id == "prawns"
-                                  ? InfoRow(label: "Size", value: c.size)
-                                  : null,
-                              c.species.id != "prawns"
-                                  ? InfoRow(
-                                      label: "Average Size",
-                                      value: "${c.size} cm",
-                                    )
-                                  : null,
+                              if (catchItem.species.id == "prawns")
+                                InfoRow(label: "Size", value: catchItem.size)
+                              else
+                                InfoRow(
+                                  label: "Average Size",
+                                  value: catchItem.size,
+                                ),
                               InfoRow(
                                 label: "Available",
-                                value: formatWeight(c.availableWeight),
+                                value:
+                                    "${catchItem.availableWeight.kilograms} kg",
                               ),
                               InfoRow(
                                 label: "Date Posted",
-                                value: c.datePosted.toFormattedDate(),
+                                value: catchItem.datePosted
+                                    .toIso8601String()
+                                    .toFormattedDate(),
                               ),
-                            ].whereType<InfoRow>().toList(), // Filter out nulls
+                            ],
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -498,7 +464,10 @@ class _ProductDetailsState extends State<ProductDetails> {
                             Expanded(
                               child: CustomButton(
                                 title: "Message",
-                                onPressed: () {},
+                                onPressed: () {
+                                  // Navigate to chat
+                                  // context.push("/chat/${catchItem.fisherId}"); // Assuming chat route
+                                },
                                 bordered: true,
                               ),
                             ),
@@ -510,10 +479,14 @@ class _ProductDetailsState extends State<ProductDetails> {
                                     : "Make Offer",
                                 onPressed: hasPendingOffer
                                     ? () {}
-                                    : () => _showMakeOfferDialog(context, c),
-                                // Consolidated disable logic:
+                                    : () => _showMakeOfferDialog(
+                                        context,
+                                        catchItem,
+                                        currentUser.id,
+                                      ),
                                 disabled:
-                                    c.availableWeight <= 0 || hasPendingOffer,
+                                    catchItem.availableWeight.isZero ||
+                                    hasPendingOffer,
                               ),
                             ),
                           ],
@@ -521,90 +494,82 @@ class _ProductDetailsState extends State<ProductDetails> {
 
                         const SectionHeader("Seller"),
 
-                        // ... (FisherCubit Builder)
-                        BlocBuilder<FisherCubit, FisherState>(
-                          builder: (context, state) {
-                            if (state is FisherLoading ||
-                                state is FisherInitial) {
-                              return const CircularProgressIndicator();
-                            } else if (state is FisherError) {
-                              return Text(
-                                "Error loading seller: ${state.message}",
-                              );
-                            } else if (state is FisherLoaded) {
-                              final fisher = state.fisher;
-                              return Material(
+                        fisherAsync.when(
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (fisher) {
+                            if (fisher == null) return const SizedBox.shrink();
+
+                            return Material(
+                              borderRadius: BorderRadius.circular(16),
+                              child: InkWell(
+                                onTap: () {
+                                  context.push("/buyer/reviews/${fisher.id}");
+                                },
                                 borderRadius: BorderRadius.circular(16),
-                                child: InkWell(
-                                  onTap: () {
-                                    context.push("/buyer/reviews/${fisher.id}");
-                                  },
-                                  borderRadius: BorderRadius.circular(16),
-                                  splashColor: AppColors.blue700.withValues(
-                                    alpha: 0.1,
+                                splashColor: AppColors.blue700.withValues(
+                                  alpha: 0.1,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
                                   ),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        ErrorHandlingCircleAvatar(
-                                          avatarUrl: fisher.avatarUrl,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                fisher.name,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 16,
-                                                  color: AppColors.textBlue,
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ErrorHandlingCircleAvatar(
+                                        avatarUrl: fisher.avatarUrl!,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              fisher.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 16,
+                                                color: AppColors.textBlue,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.star,
+                                                  color: AppColors.shellOrange,
+                                                  size: 16,
                                                 ),
-                                              ),
-                                              const SizedBox(height: 6),
-                                              Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.star,
-                                                    color:
-                                                        AppColors.shellOrange,
-                                                    size: 16,
-                                                  ),
-                                                  Text(
-                                                    fisher.rating
-                                                        .toStringAsFixed(1),
-                                                  ),
-                                                  Text(
-                                                    " (${fisher.reviewCount} Reviews)",
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
+                                                Text(
+                                                  fisher.rating.value
+                                                      .toStringAsFixed(1),
+                                                ),
+                                                Text(
+                                                  " (${fisher.reviewCount} Reviews)",
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              );
-                            }
-                            return const SizedBox.shrink();
+                              ),
+                            );
                           },
                         ),
                       ],
                     ),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         );
       },
     );

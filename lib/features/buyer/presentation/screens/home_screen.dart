@@ -1,219 +1,148 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:siren_marketplace/bloc/cubits/filtered_products_cubit/filtered_products_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/products_cubit/products_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/products_filter_cubit/products_filter_cubit.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/models/catch.dart';
-import 'package:siren_marketplace/core/models/species.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/species.dart';
+import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/product_filter_providers.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/multi_select_dropdown.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
-import 'package:siren_marketplace/features/buyer/logic/buyer_market_bloc/buyer_market_bloc.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_card.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_bloc.dart';
-import 'package:siren_marketplace/features/user/logic/user_bloc/user_bloc.dart';
 
-class BuyerHome extends StatefulWidget {
+class BuyerHome extends ConsumerStatefulWidget {
   const BuyerHome({super.key});
 
   @override
-  State<BuyerHome> createState() => _BuyerHomeState();
+  ConsumerState<BuyerHome> createState() => _BuyerHomeState();
 }
 
-class _BuyerHomeState extends State<BuyerHome> {
-  final TextEditingController _weightController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _hasLoadedOffers = false;
+class _BuyerHomeState extends ConsumerState<BuyerHome> {
+  Timer? _debounce;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<BuyerMarketBloc>().add(LoadMarketCatches());
-    });
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
   }
 
-  int _calculateNotificationCount(OffersState state) {
-    if (state is OffersLoaded) {
-      // Filter for offers where the buyer has an update
-      return state.offers.where((offer) => offer.hasUpdateForBuyer).length;
-    }
-    // Return 0 or null if the state is not loaded, loading, or an error
-    return 0;
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      ref
+          .read(productsFilterProvider.notifier)
+          .update((state) => state.copyWith(searchQuery: query));
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_hasLoadedOffers) {
-      final userState = context.read<UserBloc>().state;
-      if (userState is UserLoaded) {
-        context.read<OffersBloc>().add(
-          LoadOffersForUser(userId: userState.user!.id, role: userState.role),
-        );
-        _hasLoadedOffers = true; // Mark as done immediately if already loaded
-      }
-    }
-    return BlocListener<UserBloc, UserState>(
-      listenWhen: (prev, current) => !_hasLoadedOffers && current is UserLoaded,
-      listener: (context, userState) {
-        if (userState is UserLoaded) {
-          // This fires if UserBloc loads *after* BuyerHome mounts.
-          context.read<OffersBloc>().add(
-            LoadOffersForUser(userId: userState.user!.id, role: userState.role),
-          );
-          _hasLoadedOffers = true; // Mark as done when the listener fires
-        }
-      },
-      child: BlocBuilder<OffersBloc, OffersState>(
-        builder: (context, offersState) {
-          final notificationCount = _calculateNotificationCount(offersState);
-          return BlocListener<BuyerMarketBloc, BuyerMarketState>(
-            listener: (context, marketState) {
-              if (marketState is BuyerMarketLoaded) {
-                context.read<FilteredProductsCubit>().setAllCatches(
-                  marketState.catches,
-                );
-              }
-            },
-            child: BlocBuilder<BuyerMarketBloc, BuyerMarketState>(
-              builder: (context, marketState) {
-                if (marketState is BuyerMarketLoading) {
-                  return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
-                  );
-                }
+    final filteredCatchesAsync = ref.watch(filteredCatchesProvider);
+    final notificationCount = ref.watch(buyerNotificationCountProvider);
 
-                if (marketState is BuyerMarketError) {
-                  return Scaffold(
-                    body: Center(
-                      child: Text(
-                        'Error loading products: ${marketState.message}',
-                        style: const TextStyle(color: AppColors.fail500),
-                      ),
-                    ),
-                  );
-                }
-
-                final allCatches = marketState is BuyerMarketLoaded
-                    ? marketState.catches
-                    : <Catch>[];
-
-                return Scaffold(
-                  backgroundColor: AppColors.gray50,
-                  appBar: AppBar(
-                    elevation: 0,
-                    centerTitle: true,
-                    scrolledUnderElevation: 0,
-                    shadowColor: Colors.transparent,
-                    title: Image.asset(
-                      "assets/icons/siren_logo.png",
-                      width: 100,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Text("SIREN");
-                      },
-                    ),
-                    actions: [
-                      IconButton(
-                        onPressed: () => context.go("/buyer/notifications"),
-                        icon: Badge(
-                          label: Text("$notificationCount"),
-                          child: Icon(
-                            CustomIcons.notificationbell,
-                            color: AppColors.textBlue,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  body: RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<BuyerMarketBloc>().add(LoadMarketCatches());
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: 56,
-                            child: _buildSearchAndFilterRow(
-                              context,
-                              allCatches,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child:
-                                BlocBuilder<
-                                  FilteredProductsCubit,
-                                  FilteredProductsState
-                                >(
-                                  builder: (context, filteredState) {
-                                    final filteredCatches =
-                                        filteredState.displayedCatches;
-                                    if (filteredCatches.isEmpty &&
-                                        allCatches.isNotEmpty) {
-                                      return const Center(
-                                        child: Text(
-                                          "No products match your filters.",
-                                        ),
-                                      );
-                                    }
-
-                                    return GridView.builder(
-                                      padding: const EdgeInsets.only(
-                                        bottom: 100,
-                                      ),
-                                      gridDelegate:
-                                          const SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 2,
-                                            crossAxisSpacing: 8,
-                                            mainAxisSpacing: 8,
-                                            mainAxisExtent: 250,
-                                          ),
-                                      itemCount: filteredCatches.length,
-                                      itemBuilder: (context, index) {
-                                        final c = filteredCatches[index];
-                                        return ProductCard(
-                                          onTap: () {
-                                            context
-                                                .read<ProductsCubit>()
-                                                .loadMarketCatches();
-                                            context.go(
-                                              "/buyer/product-details/${c.id}",
-                                            );
-                                          },
-                                          catchModel: c,
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
+    return Scaffold(
+      backgroundColor: AppColors.gray50,
+      appBar: AppBar(
+        elevation: 0,
+        centerTitle: true,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
+        title: Image.asset(
+          "assets/icons/siren_logo.png",
+          width: 100,
+          errorBuilder: (context, error, stackTrace) {
+            return const Text("SIREN");
+          },
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => context.go("/buyer/notifications"),
+            icon: Badge(
+              label: Text("$notificationCount"),
+              isLabelVisible: notificationCount > 0,
+              child: const Icon(
+                CustomIcons.notificationbell,
+                color: AppColors.textBlue,
+              ),
             ),
-          );
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(availableCatchesProvider);
+          await ref.read(availableCatchesProvider.future);
         },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              SizedBox(height: 56, child: _buildSearchAndFilterRow(context)),
+              const SizedBox(height: 8),
+              Expanded(
+                child: filteredCatchesAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(
+                    child: Text(
+                      'Error loading products: $error',
+                      style: const TextStyle(color: AppColors.fail500),
+                    ),
+                  ),
+                  data: (filteredCatches) {
+                    if (filteredCatches.isEmpty) {
+                      final allCatches =
+                          ref.read(availableCatchesProvider).valueOrNull ?? [];
+                      if (allCatches.isNotEmpty) {
+                        return const Center(
+                          child: Text("No products match your filters."),
+                        );
+                      } else {
+                        return const Center(
+                          child: Text("No products available in the market."),
+                        );
+                      }
+                    }
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.only(bottom: 100),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            mainAxisExtent: 250,
+                          ),
+                      itemCount: filteredCatches.length,
+                      itemBuilder: (context, index) {
+                        final c = filteredCatches[index];
+                        return ProductCard(
+                          onTap: () {
+                            context.go("/buyer/product-details/${c.id}");
+                          },
+                          catchModel: c,
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildSearchAndFilterRow(
-    BuildContext context,
-    List<Catch> allCatches,
-  ) {
+  Widget _buildSearchAndFilterRow(BuildContext context) {
     return Row(
       spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -235,6 +164,7 @@ class _BuyerHomeState extends State<BuyerHome> {
               Icon(CustomIcons.search, color: AppColors.textBlue),
             ],
             elevation: WidgetStateProperty.all(0),
+            onChanged: _onSearchChanged,
           ),
         ),
         Expanded(
@@ -245,8 +175,8 @@ class _BuyerHomeState extends State<BuyerHome> {
             child: InkWell(
               splashColor: AppColors.blue700.withAlpha(25),
               borderRadius: BorderRadius.circular(16),
-              onTap: () => _showSortModal(context, allCatches),
-              child: Padding(
+              onTap: () => _showSortModal(context),
+              child: const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Icon(CustomIcons.sort, color: AppColors.textBlue),
               ),
@@ -255,25 +185,25 @@ class _BuyerHomeState extends State<BuyerHome> {
         ),
         Expanded(
           flex: 1,
-          child: BlocBuilder<ProductsFilterCubit, ProductsFilterState>(
-            builder: (context, state) {
-              final hasFilters = state.totalFilters > 0;
+          child: Consumer(
+            builder: (context, ref, child) {
+              final filterState = ref.watch(productsFilterProvider);
+              final hasFilters = filterState.totalFilters > 0;
 
               return Badge(
                 isLabelVisible: hasFilters,
-                label: Text("${state.totalFilters}"),
+                label: Text("${filterState.totalFilters}"),
                 alignment: Alignment.topRight,
-
                 backgroundColor: AppColors.blue800,
                 child: SizedBox(
-                  width: double.infinity, // locks full width of Expanded
+                  width: double.infinity,
                   child: Material(
                     color: AppColors.white100,
                     borderRadius: BorderRadius.circular(16),
                     child: InkWell(
                       splashColor: AppColors.blue700.withAlpha(25),
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () => _showFilterModal(context, allCatches),
+                      onTap: () => _showFilterModal(context),
                       child: const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Icon(
@@ -292,217 +222,319 @@ class _BuyerHomeState extends State<BuyerHome> {
     );
   }
 
-  void _showFilterModal(BuildContext context, List<Catch> allCatches) {
+  void _showFilterModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (_) => BlocBuilder<ProductsFilterCubit, ProductsFilterState>(
-        builder: (context, filterState) {
-          final filterCubit = context.read<ProductsFilterCubit>();
-          final filteredState = context.read<FilteredProductsCubit>().state;
-          final height = MediaQuery.of(context).size.height * 0.45;
-
-          return Form(
-            key: _formKey,
-            child: Container(
-              height: height,
-              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 12,
-                children: [
-                  const Text(
-                    "Filter by:",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-
-                  const Text("Species", style: TextStyle(fontSize: 12)),
-                  MultiSelectDropdown<Species>(
-                    label: "Species",
-                    options: filteredState.uniqueSpecies,
-                    selectedValues: filterState.selectedSpecies,
-                    optionLabel: (s) => s.name.capitalize(),
-                    onChanged: filterCubit.setSpecies,
-                  ),
-
-                  const Text("Location", style: TextStyle(fontSize: 12)),
-                  MultiSelectDropdown<String>(
-                    label: "Location",
-                    options: filteredState.uniqueLocations,
-                    selectedValues: filterState.selectedLocations,
-                    optionLabel: (s) => s,
-                    onChanged: filterCubit.setLocations,
-                  ),
-
-                  NumberInputField(
-                    label: "Min Weight",
-                    suffix: "(kg)",
-                    controller: _weightController,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) return null;
-                      final numValue = double.tryParse(value);
-                      if (numValue == null || numValue < 0) {
-                        return 'Enter a valid number';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          filterCubit.clear();
-                          filterCubit.applyFilters();
-                          _weightController.clear();
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          "Reset All",
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                      CustomButton(
-                        title: "Apply Filters",
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            final minWeight = double.tryParse(
-                              _weightController.text.trim(),
-                            );
-                            filterCubit.setMinWeight(minWeight);
-                            filterCubit.applyFilters();
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+      builder: (_) => const _FilterModalContent(),
     );
   }
 
-  void _showSortModal(BuildContext context, List<Catch> allCatches) {
+  void _showSortModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (_) => BlocBuilder<ProductsFilterCubit, ProductsFilterState>(
-        builder: (context, filterState) {
-          final filterCubit = context.read<ProductsFilterCubit>();
-          final height = MediaQuery.of(context).size.height * 0.45;
+      builder: (_) => const _SortModalContent(),
+    );
+  }
+}
 
-          return Container(
-            height: height,
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 8,
+class _FilterModalContent extends ConsumerStatefulWidget {
+  const _FilterModalContent();
+
+  @override
+  ConsumerState<_FilterModalContent> createState() =>
+      _FilterModalContentState();
+}
+
+class _FilterModalContentState extends ConsumerState<_FilterModalContent> {
+  late List<Species> _selectedSpecies;
+  late List<String> _selectedLocations;
+  late TextEditingController _weightController;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    final currentFilters = ref.read(productsFilterProvider);
+    _selectedSpecies = List.from(currentFilters.selectedSpecies);
+    _selectedLocations = List.from(currentFilters.selectedLocations);
+    _weightController = TextEditingController(
+      text: currentFilters.minWeightGrams > 0
+          ? (currentFilters.minWeightGrams / 1000).toString()
+          : '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _weightController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final uniqueSpecies = ref.watch(uniqueSpeciesProvider);
+    final uniqueLocations = ref.watch(uniqueLocationsProvider);
+    final height = MediaQuery.of(context).size.height * 0.45;
+
+    return Form(
+      key: _formKey,
+      child: Container(
+        height: height,
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 12,
+          children: [
+            const Text(
+              "Filter by:",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+
+            const Text("Species", style: TextStyle(fontSize: 12)),
+            MultiSelectDropdown<Species>(
+              label: "Species",
+              options: uniqueSpecies,
+              selectedValues: _selectedSpecies,
+              optionLabel: (s) => s.name.capitalize(),
+              onChanged: (values) {
+                setState(() {
+                  _selectedSpecies = values;
+                });
+              },
+            ),
+
+            const Text("Location", style: TextStyle(fontSize: 12)),
+            MultiSelectDropdown<String>(
+              label: "Location",
+              options: uniqueLocations,
+              selectedValues: _selectedLocations,
+              optionLabel: (s) => s,
+              onChanged: (values) {
+                setState(() {
+                  _selectedLocations = values;
+                });
+              },
+            ),
+
+            NumberInputField(
+              label: "Min Weight",
+              suffix: "(kg)",
+              controller: _weightController,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return null;
+                final numValue = double.tryParse(value);
+                if (numValue == null || numValue < 0) {
+                  return 'Enter a valid number';
+                }
+                return null;
+              },
+            ),
+
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  "Sort by:",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                TextButton(
+                  onPressed: () {
+                    // Reset local state
+                    setState(() {
+                      _selectedSpecies = [];
+                      _selectedLocations = [];
+                      _weightController.clear();
+                    });
+                    // Also reset global state immediately or wait for Apply?
+                    // User expects "Apply" to confirm. So "Reset All" should probably just clear local form.
+                    // But typically Reset All also applies the reset.
+                    // Let's clear local state and let user click Apply, OR apply reset immediately.
+                    // Usually Reset All applies immediately or clears form.
+                    // I'll make it clear form and auto-apply for Reset.
+                    ref
+                        .read(productsFilterProvider.notifier)
+                        .update(
+                          (state) => state.copyWith(
+                            selectedSpecies: [],
+                            selectedLocations: [],
+                            minWeightGrams: 0,
+                          ),
+                        );
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "Reset All",
+                    style: TextStyle(decoration: TextDecoration.underline),
+                  ),
                 ),
-                _buildDateSortOptions(filterCubit, filterState),
-                Divider(thickness: 2, color: AppColors.gray200),
-                _buildPriceSortOptions(filterCubit, filterState),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        filterCubit.clear();
-                        filterCubit.applyFilters();
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        "Reset All",
-                        style: TextStyle(decoration: TextDecoration.underline),
-                      ),
-                    ),
-                    CustomButton(
-                      title: "Apply",
-                      onPressed: () {
-                        filterCubit.applyFilters();
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
+                CustomButton(
+                  title: "Apply Filters",
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      final minWeight = Weight.fromKg(
+                        double.tryParse(_weightController.text.trim()) ?? 0.0,
+                      );
+
+                      ref
+                          .read(productsFilterProvider.notifier)
+                          .update(
+                            (state) => state.copyWith(
+                              selectedSpecies: _selectedSpecies,
+                              selectedLocations: _selectedLocations,
+                              minWeightGrams: minWeight.grams,
+                            ),
+                          );
+                      Navigator.pop(context);
+                    }
+                  },
                 ),
               ],
             ),
-          );
-        },
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SortModalContent extends ConsumerStatefulWidget {
+  const _SortModalContent();
+
+  @override
+  ConsumerState<_SortModalContent> createState() => _SortModalContentState();
+}
+
+class _SortModalContentState extends ConsumerState<_SortModalContent> {
+  late SortBy _sortByDate;
+  late SortBy _sortByPrice;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentFilters = ref.read(productsFilterProvider);
+    _sortByDate = currentFilters.sortByDate;
+    _sortByPrice = currentFilters.sortByPrice;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height * 0.45;
+
+    return Container(
+      height: height,
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8,
+        children: [
+          const Text(
+            "Sort by:",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+          _buildDateSortOptions(),
+          const Divider(thickness: 2, color: AppColors.gray200),
+          _buildPriceSortOptions(),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  ref
+                      .read(productsFilterProvider.notifier)
+                      .update(
+                        (state) => state.copyWith(
+                          sortByDate: SortBy.none,
+                          sortByPrice: SortBy.none,
+                        ),
+                      );
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  "Reset All",
+                  style: TextStyle(decoration: TextDecoration.underline),
+                ),
+              ),
+              CustomButton(
+                title: "Apply",
+                onPressed: () {
+                  ref
+                      .read(productsFilterProvider.notifier)
+                      .update(
+                        (state) => state.copyWith(
+                          sortByDate: _sortByDate,
+                          sortByPrice: _sortByPrice,
+                        ),
+                      );
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildDateSortOptions(
-    ProductsFilterCubit cubit,
-    ProductsFilterState state,
-  ) {
+  Widget _buildDateSortOptions() {
     return Column(
       children: [
         RadioListTile<SortBy>(
           dense: true,
-          groupValue: state.sortByDate,
+          groupValue: _sortByDate,
           title: const Text('Oldest to Newest', style: TextStyle(fontSize: 14)),
           value: SortBy.oldNew,
           onChanged: (v) {
-            if (v != null) cubit.setSortDate(v);
+            if (v != null) {
+              setState(() => _sortByDate = v);
+            }
           },
         ),
         RadioListTile<SortBy>(
           dense: true,
-          groupValue: state.sortByDate,
+          groupValue: _sortByDate,
           title: const Text('Newest to Oldest', style: TextStyle(fontSize: 14)),
           value: SortBy.newOld,
           onChanged: (v) {
-            if (v != null) cubit.setSortDate(v);
+            if (v != null) {
+              setState(() => _sortByDate = v);
+            }
           },
         ),
       ],
     );
   }
 
-  Widget _buildPriceSortOptions(
-    ProductsFilterCubit cubit,
-    ProductsFilterState state,
-  ) {
+  Widget _buildPriceSortOptions() {
     return Column(
       children: [
         RadioListTile<SortBy>(
           dense: true,
-          groupValue: state.sortByPrice,
+          groupValue: _sortByPrice,
           title: const Text(
             'Price: Low to High',
             style: TextStyle(fontSize: 14),
           ),
           value: SortBy.lowHigh,
           onChanged: (v) {
-            if (v != null) cubit.setSortPrice(v);
+            if (v != null) {
+              setState(() => _sortByPrice = v);
+            }
           },
         ),
         RadioListTile<SortBy>(
           dense: true,
-          groupValue: state.sortByPrice,
+          groupValue: _sortByPrice,
           title: const Text(
             'Price: High to Low',
             style: TextStyle(fontSize: 14),
           ),
           value: SortBy.highLow,
           onChanged: (v) {
-            if (v != null) cubit.setSortPrice(v);
+            if (v != null) {
+              setState(() => _sortByPrice = v);
+            }
           },
         ),
       ],
