@@ -2,22 +2,9 @@
 // UNIFIED DEPENDENCY INJECTION USING GET_IT
 // ============================================================================
 import 'package:get_it/get_it.dart';
-// Cubits / Blocs (Second file)
-import 'package:siren_marketplace/bloc/cubits/failed_transaction_cubit/failed_transaction_cubit.dart';
-import 'package:siren_marketplace/bloc/cubits/offers_filter_cubit/offers_filter_cubit.dart';
 // DB, Notifier, Feature Repos
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
-// import 'package:siren_marketplace/core/data/repositories/user_repository.dart';
 import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
-
-import 'package:siren_marketplace/features/chat/data/conversation_repository.dart';
-import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
-import 'package:siren_marketplace/features/fisher/logic/catches_bloc/catches_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/offers_bloc/offers_cubit.dart';
-import 'package:siren_marketplace/features/fisher/logic/orders_bloc/orders_cubit.dart';
-
-import 'package:siren_marketplace/features/user/logic/reviews_cubit/reviews_cubit.dart';
-import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 import '../config/app_config.dart';
 import '../data/datasources/demo/demo_datasource.dart';
@@ -108,11 +95,6 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(
     () => SessionService(sessionRepository: sl(), userRepository: sl()),
   );
-
-  // --------------------------------------------------
-  // Register UIs: Cubits & Blocs From Second File
-  // --------------------------------------------------
-  _initCubitsAndBlocs();
 }
 
 // ============================================================================
@@ -145,10 +127,6 @@ void _initDemoMode() {
   sl.registerLazySingleton<ISessionRepository>(
     () => SessionRepositoryImpl(dataSource: demo.sessionDataSource),
   );
-
-  // Feature-layer repos (from second DI file)
-  // Note: In a full refactor, these should also use IRepository interfaces
-  sl.registerLazySingleton(() => ConversationRepository(dbHelper: sl()));
 }
 
 // ============================================================================
@@ -184,43 +162,4 @@ void _initLocalMode(DatabaseHelper dbHelper) {
   sl.registerLazySingleton<ISessionRepository>(
     () => SessionRepositoryImpl(dataSource: local.sessionDataSource),
   );
-
-  // Feature-layer repos
-  sl.registerLazySingleton(() => ConversationRepository(dbHelper: sl()));
-}
-
-// ============================================================================
-// CUBITS & BLOCS FROM SECOND FILE
-// ============================================================================
-void _initCubitsAndBlocs() {
-  // Global Singletons
-  sl.registerLazySingleton(() => OffersFilterCubit());
-  sl.registerLazySingleton(() => FailedTransactionCubit());
-
-  sl.registerLazySingleton(
-    () => CatchesCubit(repository: sl<ICatchRepository>()),
-  );
-
-  sl.registerLazySingleton(
-    () => OffersCubit(
-      repository: sl<IOfferRepository>(),
-      negotiationService: sl<NegotiationService>(),
-    ),
-  );
-
-  sl.registerLazySingleton(
-    () => OrdersCubit(
-      orderRepository: sl<IOrderRepository>(),
-      offerRepository: sl<IOfferRepository>(),
-      catchRepository: sl<ICatchRepository>(),
-      ratingService: sl<RatingService>(),
-    ),
-  );
-
-  // Factories (per view)
-  sl.registerFactory(() => ReviewsCubit(sl(), sl()));
-  sl.registerFactory(
-    () => UserCubit(userRepository: sl(), reviewRepository: sl()),
-  );
-  sl.registerFactory(() => ConversationsBloc(sl()));
 }

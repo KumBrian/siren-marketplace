@@ -18,10 +18,7 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
-import 'package:siren_marketplace/features/chat/data/models/conversation_preview.dart';
-import 'package:siren_marketplace/features/chat/logic/conversations_bloc/conversations_bloc.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SharedNotificationsScreen extends ConsumerStatefulWidget {
   const SharedNotificationsScreen({super.key});
@@ -463,98 +460,28 @@ class _SharedNotificationsScreenState
   }
 
   Widget _buildMessagesTab(UserRole role) {
-    return BlocBuilder<ConversationsBloc, ConversationsState>(
-      builder: (context, conversationState) {
-        if (conversationState is ConversationsLoading) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.only(top: 64.0),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (conversationState is ConversationsError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    conversationState.message,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        final conversations = conversationState is ConversationsLoaded
-            ? conversationState.conversations
-            : <ConversationPreview>[];
-
-        if (conversations.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 64.0),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 120,
-                    width: 120,
-                    child: Image.asset("assets/images/no-messages.png"),
-                  ),
-                  const Text(
-                    "You have no messages yet.",
-                    style: TextStyle(
-                      color: AppColors.textGray,
-                      fontWeight: FontWeight.w300,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Text(
-                    role == UserRole.fisher
-                        ? "You will receive messages shortly"
-                        : "You can start a chat after an offer is accepted.",
-                    style: const TextStyle(
-                      color: AppColors.textGray,
-                      fontWeight: FontWeight.w300,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 80, top: 16),
-          child: ListView.separated(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: conversations.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final msg = conversations[index];
-              final roleSlug = role == UserRole.fisher ? "fisher" : "buyer";
-              return MessageCard(
-                messageId: msg.id,
-                name: msg.contactName,
-                time: msg.lastMessageTime.toFormattedDate(),
-                message: msg.lastMessage,
-                unreadCount: msg.unreadCount,
-                avatarPath: msg.contactAvatarPath,
-                onPressed: () {
-                  context.push("/$roleSlug/chat/${msg.id}");
-                },
-              );
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 80, top: 16),
+      child: ListView.separated(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: 5,
+        separatorBuilder: (context, index) => const SizedBox(height: 8),
+        itemBuilder: (context, index) {
+          final roleSlug = role == UserRole.fisher ? "fisher" : "buyer";
+          return MessageCard(
+            messageId: "1",
+            name: "John Doe",
+            time: "2 days ago",
+            message: "Hello, how are you?",
+            unreadCount: 0,
+            avatarPath: "assets/images/user-profile.png",
+            onPressed: () {
+              context.push("/$roleSlug/chat/1");
             },
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

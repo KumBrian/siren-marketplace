@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/core/widgets/text_input_field.dart';
-import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 
 class PersonalInformation extends ConsumerStatefulWidget {
   const PersonalInformation({super.key});
@@ -85,7 +83,7 @@ class _PersonalInformationState extends ConsumerState<PersonalInformation> {
                         ],
                         onChanged: (v) {
                           if (v != null) {
-                            context.read<UserCubit>().finalizeRoleSelection(v);
+                            // TODO: update user role
                           }
                         },
                       ),

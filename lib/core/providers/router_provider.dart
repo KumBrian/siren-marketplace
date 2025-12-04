@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/features/buyer/presentation/screens/buyer.dart';
@@ -18,7 +16,6 @@ import 'package:siren_marketplace/features/shared/presentation/screens/shared_no
 import 'package:siren_marketplace/features/fisher/presentation/screens/order_details.dart';
 import 'package:siren_marketplace/features/shared/presentation/screens/offer_details_screen.dart';
 import 'package:siren_marketplace/features/shared/presentation/screens/shared_review_screen.dart';
-import 'package:siren_marketplace/features/user/logic/user_cubit/user_cubit.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/about.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/account_info.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/account_info/personal_information.dart';
@@ -199,10 +196,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/user-profile/:role',
         builder: (context, state) {
           final role = state.pathParameters['role']!;
-          return BlocProvider(
-            create: (context) => sl<UserCubit>(),
-            child: UserProfile(role: role),
-          );
+          return UserProfile(role: role);
         },
         routes: [
           GoRoute(

@@ -14,6 +14,7 @@ import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
@@ -21,7 +22,6 @@ import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/core/widgets/offer_actions.dart'; // Add import
 import 'package:siren_marketplace/features/shared/presentation/providers/offer_actions_provider.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/shared_offer_details_provider.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
