@@ -1,0 +1,354 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/order.dart';
+import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+import 'package:siren_marketplace/core/domain/enums/order_status.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/services/negotiation_service.dart';
+import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
+import '../../../helpers/mocks.mocks.dart';
+import '../../../helpers/test_data.dart';
+
+void main() {
+  late NegotiationService service;
+  late MockIOfferRepository mockOfferRepository;
+  late MockIOrderRepository mockOrderRepository;
+  late MockICatchRepository mockCatchRepository;
+
+  setUp(() {
+    mockOfferRepository = MockIOfferRepository();
+    mockOrderRepository = MockIOrderRepository();
+    mockCatchRepository = MockICatchRepository();
+    service = NegotiationService(
+      offerRepository: mockOfferRepository,
+      orderRepository: mockOrderRepository,
+      catchRepository: mockCatchRepository,
+    );
+  });
+
+  group('NegotiationService', () {
+    final testCatch = TestData.createCatch(
+      availableWeight: Weight.fromKg(100),
+      status: CatchStatus.available,
+    );
+    final testTerms = TestData.createOfferTerms(weight: Weight.fromKg(10));
+    final fisherId = 'fisher-1';
+    final buyerId = 'buyer-1';
+
+    group('createOffer', () {
+      test('creates offer when valid', () async {
+        when(
+          mockCatchRepository.getById(testCatch.id),
+        ).thenAnswer((_) async => testCatch);
+        when(mockOfferRepository.create(any)).thenAnswer((_) async => 'new-id');
+
+        final result = await service.createOffer(
+          catchId: testCatch.id,
+          buyerId: buyerId,
+          fisherId: fisherId,
+          terms: testTerms,
+        );
+
+        expect(result.catchId, testCatch.id);
+        expect(result.buyerId, buyerId);
+        expect(result.fisherId, fisherId);
+        expect(result.currentTerms, testTerms);
+        expect(result.status, OfferStatus.pending);
+        verify(mockOfferRepository.create(any)).called(1);
+      });
+
+      test('throws ArgumentError when catch not found', () async {
+        when(
+          mockCatchRepository.getById('unknown'),
+        ).thenAnswer((_) async => null);
+
+        expect(
+          () => service.createOffer(
+            catchId: 'unknown',
+            buyerId: buyerId,
+            fisherId: fisherId,
+            terms: testTerms,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test('throws StateError when catch cannot receive offers', () async {
+        final soldCatch = testCatch.copyWith(status: CatchStatus.soldOut);
+        when(
+          mockCatchRepository.getById(soldCatch.id),
+        ).thenAnswer((_) async => soldCatch);
+
+        expect(
+          () => service.createOffer(
+            catchId: soldCatch.id,
+            buyerId: buyerId,
+            fisherId: fisherId,
+            terms: testTerms,
+          ),
+          throwsA(isA<StateError>()),
+        );
+      });
+
+      test('throws ArgumentError when weight exceeds available', () async {
+        final heavyTerms = TestData.createOfferTerms(
+          weight: Weight.fromKg(200),
+        );
+        when(
+          mockCatchRepository.getById(testCatch.id),
+        ).thenAnswer((_) async => testCatch);
+
+        expect(
+          () => service.createOffer(
+            catchId: testCatch.id,
+            buyerId: buyerId,
+            fisherId: fisherId,
+            terms: heavyTerms,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+    });
+
+    group('acceptOffer', () {
+      final pendingOffer = TestData.createOffer(
+        status: OfferStatus.pending,
+        waitingFor: UserRole.fisher,
+        catchId: testCatch.id,
+        currentTerms: testTerms,
+      );
+
+      test('accepts offer, updates catch, creates order', () async {
+        when(
+          mockOfferRepository.getById(pendingOffer.id),
+        ).thenAnswer((_) async => pendingOffer);
+        when(
+          mockCatchRepository.getById(testCatch.id),
+        ).thenAnswer((_) async => testCatch);
+        when(mockOfferRepository.update(any)).thenAnswer((_) async => {});
+        when(mockCatchRepository.update(any)).thenAnswer((_) async => {});
+        when(
+          mockOrderRepository.create(any),
+        ).thenAnswer((_) async => 'order-id');
+
+        final result = await service.acceptOffer(
+          offerId: pendingOffer.id,
+          userId: pendingOffer.fisherId,
+        );
+
+        expect(result.status, OrderStatus.accepted);
+
+        // Verify offer updated
+        final capturedOffer =
+            verify(mockOfferRepository.update(captureAny)).captured.first
+                as Offer;
+        expect(capturedOffer.status, OfferStatus.accepted);
+
+        // Verify catch weight reduced
+        final capturedCatch =
+            verify(mockCatchRepository.update(captureAny)).captured.first
+                as Catch;
+        expect(
+          capturedCatch.availableWeight.grams,
+          testCatch.availableWeight.grams - testTerms.weight.grams,
+        );
+
+        // Verify order created
+        verify(mockOrderRepository.create(any)).called(1);
+      });
+
+      test('throws ArgumentError when offer not found', () async {
+        when(
+          mockOfferRepository.getById('unknown'),
+        ).thenAnswer((_) async => null);
+
+        expect(
+          () => service.acceptOffer(offerId: 'unknown', userId: fisherId),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test('throws StateError when user cannot accept', () async {
+        when(
+          mockOfferRepository.getById(pendingOffer.id),
+        ).thenAnswer((_) async => pendingOffer);
+
+        // Buyer cannot accept when waiting for fisher
+        expect(
+          () => service.acceptOffer(offerId: pendingOffer.id, userId: buyerId),
+          throwsA(isA<StateError>()),
+        );
+      });
+    });
+
+    group('rejectOffer', () {
+      final pendingOffer = TestData.createOffer(
+        status: OfferStatus.pending,
+        waitingFor: UserRole.fisher,
+      );
+
+      test('rejects offer', () async {
+        when(
+          mockOfferRepository.getById(pendingOffer.id),
+        ).thenAnswer((_) async => pendingOffer);
+        when(mockOfferRepository.update(any)).thenAnswer((_) async => {});
+
+        final result = await service.rejectOffer(
+          offerId: pendingOffer.id,
+          userId: pendingOffer.fisherId,
+        );
+
+        expect(result.status, OfferStatus.rejected);
+        verify(mockOfferRepository.update(any)).called(1);
+      });
+
+      test('throws StateError when user cannot reject', () async {
+        when(
+          mockOfferRepository.getById(pendingOffer.id),
+        ).thenAnswer((_) async => pendingOffer);
+
+        expect(
+          () => service.rejectOffer(offerId: pendingOffer.id, userId: buyerId),
+          throwsA(isA<StateError>()),
+        );
+      });
+    });
+
+    group('counterOffer', () {
+      final pendingOffer = TestData.createOffer(
+        status: OfferStatus.pending,
+        waitingFor: UserRole.fisher,
+        catchId: testCatch.id,
+        currentTerms: testTerms,
+      );
+      final newTerms = TestData.createOfferTerms(weight: Weight.fromKg(20));
+
+      test('counters offer', () async {
+        when(
+          mockOfferRepository.getById(pendingOffer.id),
+        ).thenAnswer((_) async => pendingOffer);
+        when(
+          mockCatchRepository.getById(testCatch.id),
+        ).thenAnswer((_) async => testCatch);
+        when(mockOfferRepository.update(any)).thenAnswer((_) async => {});
+
+        final result = await service.counterOffer(
+          offerId: pendingOffer.id,
+          userId: pendingOffer.fisherId,
+          newTerms: newTerms,
+        );
+
+        expect(result.currentTerms, newTerms);
+        expect(result.waitingFor, UserRole.buyer); // Switched
+        verify(mockOfferRepository.update(any)).called(1);
+      });
+
+      test('throws ArgumentError when new terms are same', () async {
+        when(
+          mockOfferRepository.getById(pendingOffer.id),
+        ).thenAnswer((_) async => pendingOffer);
+
+        expect(
+          () => service.counterOffer(
+            offerId: pendingOffer.id,
+            userId: pendingOffer.fisherId,
+            newTerms: testTerms, // Same terms
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test('throws ArgumentError when weight exceeds available', () async {
+        final heavyTerms = TestData.createOfferTerms(
+          weight: Weight.fromKg(200),
+        );
+        when(
+          mockOfferRepository.getById(pendingOffer.id),
+        ).thenAnswer((_) async => pendingOffer);
+        when(
+          mockCatchRepository.getById(testCatch.id),
+        ).thenAnswer((_) async => testCatch);
+
+        expect(
+          () => service.counterOffer(
+            offerId: pendingOffer.id,
+            userId: pendingOffer.fisherId,
+            newTerms: heavyTerms,
+          ),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+    });
+
+    group('relistOrder', () {
+      final acceptedOrder = TestData.createOrder(
+        status: OrderStatus.accepted,
+        catchId: testCatch.id,
+        offerId: 'offer-1',
+        terms: testTerms,
+      );
+      final relatedOffer = TestData.createOffer(id: 'offer-1');
+
+      test('cancels order, rejects offer, restores catch weight', () async {
+        when(
+          mockOrderRepository.getById(acceptedOrder.id),
+        ).thenAnswer((_) async => acceptedOrder);
+        when(
+          mockOfferRepository.getById(acceptedOrder.offerId),
+        ).thenAnswer((_) async => relatedOffer);
+        when(
+          mockCatchRepository.getById(acceptedOrder.catchId),
+        ).thenAnswer((_) async => testCatch);
+
+        when(mockOrderRepository.update(any)).thenAnswer((_) async => {});
+        when(mockOfferRepository.update(any)).thenAnswer((_) async => {});
+        when(mockCatchRepository.update(any)).thenAnswer((_) async => {});
+
+        await service.relistOrder(
+          orderId: acceptedOrder.id,
+          reason: 'Test reason',
+        );
+
+        // Verify order cancelled
+        final capturedOrder =
+            verify(mockOrderRepository.update(captureAny)).captured.first
+                as Order;
+        expect(capturedOrder.status, OrderStatus.cancelled);
+        expect(capturedOrder.cancellationReason, 'Test reason');
+
+        // Verify offer rejected
+        final capturedOffer =
+            verify(mockOfferRepository.update(captureAny)).captured.first
+                as Offer;
+        expect(capturedOffer.status, OfferStatus.rejected);
+
+        // Verify catch restored
+        final capturedCatch =
+            verify(mockCatchRepository.update(captureAny)).captured.first
+                as Catch;
+        expect(
+          capturedCatch.availableWeight.grams,
+          testCatch.availableWeight.grams + testTerms.weight.grams,
+        );
+      });
+
+      test('throws StateError when order not active', () async {
+        final completedOrder = acceptedOrder.copyWith(
+          status: OrderStatus.completed,
+        );
+        when(
+          mockOrderRepository.getById(completedOrder.id),
+        ).thenAnswer((_) async => completedOrder);
+
+        expect(
+          () =>
+              service.relistOrder(orderId: completedOrder.id, reason: 'reason'),
+          throwsA(isA<StateError>()),
+        );
+      });
+    });
+  });
+}

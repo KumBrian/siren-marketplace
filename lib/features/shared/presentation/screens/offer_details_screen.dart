@@ -40,6 +40,13 @@ class _SharedOfferDetailsScreenState
     extends ConsumerState<SharedOfferDetailsScreen> {
   bool _hasMarkedAsViewed = false;
 
+  /// Generate conversation ID from buyer and fisher IDs
+  /// This matches the logic in Conversation.generateId()
+  String _generateConversationId(String buyerId, String fisherId) {
+    final ids = [buyerId, fisherId]..sort();
+    return '${ids[0]}_${ids[1]}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final detailsAsync = ref.watch(sharedOfferDetailsProvider(widget.offerId));
@@ -725,7 +732,12 @@ class _SharedOfferDetailsScreenState
               final prefix = state.currentUserRole == UserRole.buyer
                   ? 'buyer'
                   : 'fisher';
-              context.push("/$prefix/chat");
+              // Generate conversation ID from buyer and fisher IDs
+              final conversationId = _generateConversationId(
+                state.offer.buyerId,
+                state.offer.fisherId,
+              );
+              context.push("/$prefix/chat/$conversationId");
             },
             icon: CustomIcons.chatbubble,
             bordered: true,

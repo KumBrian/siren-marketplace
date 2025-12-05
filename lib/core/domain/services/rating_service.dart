@@ -29,9 +29,6 @@ class RatingService {
   }) async {
     // Validate order exists and is completed
     final order = await _orderRepository.getById(orderId);
-    if (order == null) {
-      throw ArgumentError('Order not found');
-    }
 
     if (!order.canBeReviewedBy(reviewerId)) {
       throw StateError('Order cannot be reviewed by this user');

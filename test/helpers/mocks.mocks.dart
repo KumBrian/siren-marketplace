@@ -7,6 +7,23 @@ import 'dart:async' as _i2;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i8;
+import 'package:siren_marketplace/core/data/datasources/interfaces/i_catch_datasource.dart'
+    as _i24;
+import 'package:siren_marketplace/core/data/datasources/interfaces/i_offer_datasource.dart'
+    as _i26;
+import 'package:siren_marketplace/core/data/datasources/interfaces/i_order_datasource.dart'
+    as _i28;
+import 'package:siren_marketplace/core/data/datasources/interfaces/i_review_datasource.dart'
+    as _i30;
+import 'package:siren_marketplace/core/data/datasources/interfaces/i_session_datasource.dart'
+    as _i32;
+import 'package:siren_marketplace/core/data/datasources/interfaces/i_user_datasource.dart'
+    as _i34;
+import 'package:siren_marketplace/core/data/models/catch_model.dart' as _i25;
+import 'package:siren_marketplace/core/data/models/offer_model.dart' as _i27;
+import 'package:siren_marketplace/core/data/models/order_model.dart' as _i29;
+import 'package:siren_marketplace/core/data/models/review_model.dart' as _i31;
+import 'package:siren_marketplace/core/data/models/user_model.dart' as _i33;
 import 'package:siren_marketplace/core/domain/entities/catch.dart' as _i7;
 import 'package:siren_marketplace/core/domain/entities/offer.dart' as _i4;
 import 'package:siren_marketplace/core/domain/entities/order.dart' as _i3;
@@ -966,4 +983,597 @@ class MockSessionService extends _i1.Mock implements _i23.SessionService {
             returnValue: _i2.Future<bool>.value(false),
           )
           as _i2.Future<bool>);
+}
+
+/// A class which mocks [ICatchDataSource].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockICatchDataSource extends _i1.Mock implements _i24.ICatchDataSource {
+  MockICatchDataSource() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i2.Future<String> create(_i25.CatchModel? catchItem) =>
+      (super.noSuchMethod(
+            Invocation.method(#create, [catchItem]),
+            returnValue: _i2.Future<String>.value(
+              _i8.dummyValue<String>(
+                this,
+                Invocation.method(#create, [catchItem]),
+              ),
+            ),
+          )
+          as _i2.Future<String>);
+
+  @override
+  _i2.Future<_i25.CatchModel?> getById(String? catchId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getById, [catchId]),
+            returnValue: _i2.Future<_i25.CatchModel?>.value(),
+          )
+          as _i2.Future<_i25.CatchModel?>);
+
+  @override
+  _i2.Future<List<_i25.CatchModel>> getByFisherId(String? fisherId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByFisherId, [fisherId]),
+            returnValue: _i2.Future<List<_i25.CatchModel>>.value(
+              <_i25.CatchModel>[],
+            ),
+          )
+          as _i2.Future<List<_i25.CatchModel>>);
+
+  @override
+  _i2.Future<List<_i25.CatchModel>> getByStatus(_i9.CatchStatus? status) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByStatus, [status]),
+            returnValue: _i2.Future<List<_i25.CatchModel>>.value(
+              <_i25.CatchModel>[],
+            ),
+          )
+          as _i2.Future<List<_i25.CatchModel>>);
+
+  @override
+  _i2.Future<List<_i25.CatchModel>> getAll() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAll, []),
+            returnValue: _i2.Future<List<_i25.CatchModel>>.value(
+              <_i25.CatchModel>[],
+            ),
+          )
+          as _i2.Future<List<_i25.CatchModel>>);
+
+  @override
+  _i2.Future<void> update(_i25.CatchModel? catchItem) =>
+      (super.noSuchMethod(
+            Invocation.method(#update, [catchItem]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> delete(String? catchId) =>
+      (super.noSuchMethod(
+            Invocation.method(#delete, [catchId]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> updateBatch(List<_i25.CatchModel>? catches) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateBatch, [catches]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> deleteBatch(List<String>? catchIds) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteBatch, [catchIds]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+}
+
+/// A class which mocks [IOfferDataSource].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockIOfferDataSource extends _i1.Mock implements _i26.IOfferDataSource {
+  MockIOfferDataSource() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i2.Future<String> create(_i27.OfferModel? offer) =>
+      (super.noSuchMethod(
+            Invocation.method(#create, [offer]),
+            returnValue: _i2.Future<String>.value(
+              _i8.dummyValue<String>(this, Invocation.method(#create, [offer])),
+            ),
+          )
+          as _i2.Future<String>);
+
+  @override
+  _i2.Future<List<_i27.OfferModel>> getAllOffers() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllOffers, []),
+            returnValue: _i2.Future<List<_i27.OfferModel>>.value(
+              <_i27.OfferModel>[],
+            ),
+          )
+          as _i2.Future<List<_i27.OfferModel>>);
+
+  @override
+  _i2.Future<_i27.OfferModel?> getById(String? offerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getById, [offerId]),
+            returnValue: _i2.Future<_i27.OfferModel?>.value(),
+          )
+          as _i2.Future<_i27.OfferModel?>);
+
+  @override
+  _i2.Future<List<_i27.OfferModel>> getByCatchId(String? catchId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByCatchId, [catchId]),
+            returnValue: _i2.Future<List<_i27.OfferModel>>.value(
+              <_i27.OfferModel>[],
+            ),
+          )
+          as _i2.Future<List<_i27.OfferModel>>);
+
+  @override
+  _i2.Future<List<_i27.OfferModel>> getByBuyerId(String? buyerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByBuyerId, [buyerId]),
+            returnValue: _i2.Future<List<_i27.OfferModel>>.value(
+              <_i27.OfferModel>[],
+            ),
+          )
+          as _i2.Future<List<_i27.OfferModel>>);
+
+  @override
+  _i2.Future<List<_i27.OfferModel>> getByFisherId(String? fisherId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByFisherId, [fisherId]),
+            returnValue: _i2.Future<List<_i27.OfferModel>>.value(
+              <_i27.OfferModel>[],
+            ),
+          )
+          as _i2.Future<List<_i27.OfferModel>>);
+
+  @override
+  _i2.Future<List<_i27.OfferModel>> getByCatchIds(List<String>? catchIds) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByCatchIds, [catchIds]),
+            returnValue: _i2.Future<List<_i27.OfferModel>>.value(
+              <_i27.OfferModel>[],
+            ),
+          )
+          as _i2.Future<List<_i27.OfferModel>>);
+
+  @override
+  _i2.Future<List<_i27.OfferModel>> getByStatus(_i11.OfferStatus? status) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByStatus, [status]),
+            returnValue: _i2.Future<List<_i27.OfferModel>>.value(
+              <_i27.OfferModel>[],
+            ),
+          )
+          as _i2.Future<List<_i27.OfferModel>>);
+
+  @override
+  _i2.Future<void> update(_i27.OfferModel? offer) =>
+      (super.noSuchMethod(
+            Invocation.method(#update, [offer]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> delete(String? offerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#delete, [offerId]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<T> transaction<T>(_i2.Future<T> Function()? action) =>
+      (super.noSuchMethod(
+            Invocation.method(#transaction, [action]),
+            returnValue:
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(#transaction, [action]),
+                  ),
+                  (T v) => _i2.Future<T>.value(v),
+                ) ??
+                _FakeFuture_0<T>(
+                  this,
+                  Invocation.method(#transaction, [action]),
+                ),
+          )
+          as _i2.Future<T>);
+}
+
+/// A class which mocks [IOrderDataSource].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockIOrderDataSource extends _i1.Mock implements _i28.IOrderDataSource {
+  MockIOrderDataSource() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i2.Future<String> create(_i29.OrderModel? order) =>
+      (super.noSuchMethod(
+            Invocation.method(#create, [order]),
+            returnValue: _i2.Future<String>.value(
+              _i8.dummyValue<String>(this, Invocation.method(#create, [order])),
+            ),
+          )
+          as _i2.Future<String>);
+
+  @override
+  _i2.Future<List<_i29.OrderModel>> getAllOrders() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAllOrders, []),
+            returnValue: _i2.Future<List<_i29.OrderModel>>.value(
+              <_i29.OrderModel>[],
+            ),
+          )
+          as _i2.Future<List<_i29.OrderModel>>);
+
+  @override
+  _i2.Future<_i29.OrderModel?> getById(String? orderId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getById, [orderId]),
+            returnValue: _i2.Future<_i29.OrderModel?>.value(),
+          )
+          as _i2.Future<_i29.OrderModel?>);
+
+  @override
+  _i2.Future<_i29.OrderModel?> getByOfferId(String? offerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByOfferId, [offerId]),
+            returnValue: _i2.Future<_i29.OrderModel?>.value(),
+          )
+          as _i2.Future<_i29.OrderModel?>);
+
+  @override
+  _i2.Future<List<_i29.OrderModel>> getByUserId(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByUserId, [userId]),
+            returnValue: _i2.Future<List<_i29.OrderModel>>.value(
+              <_i29.OrderModel>[],
+            ),
+          )
+          as _i2.Future<List<_i29.OrderModel>>);
+
+  @override
+  _i2.Future<List<_i29.OrderModel>> getByFisherId(String? fisherId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByFisherId, [fisherId]),
+            returnValue: _i2.Future<List<_i29.OrderModel>>.value(
+              <_i29.OrderModel>[],
+            ),
+          )
+          as _i2.Future<List<_i29.OrderModel>>);
+
+  @override
+  _i2.Future<List<_i29.OrderModel>> getByBuyerId(String? buyerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByBuyerId, [buyerId]),
+            returnValue: _i2.Future<List<_i29.OrderModel>>.value(
+              <_i29.OrderModel>[],
+            ),
+          )
+          as _i2.Future<List<_i29.OrderModel>>);
+
+  @override
+  _i2.Future<List<_i29.OrderModel>> getByStatus(_i15.OrderStatus? status) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByStatus, [status]),
+            returnValue: _i2.Future<List<_i29.OrderModel>>.value(
+              <_i29.OrderModel>[],
+            ),
+          )
+          as _i2.Future<List<_i29.OrderModel>>);
+
+  @override
+  _i2.Future<void> update(_i29.OrderModel? order) =>
+      (super.noSuchMethod(
+            Invocation.method(#update, [order]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> delete(String? orderId) =>
+      (super.noSuchMethod(
+            Invocation.method(#delete, [orderId]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<T> transaction<T>(_i2.Future<T> Function()? action) =>
+      (super.noSuchMethod(
+            Invocation.method(#transaction, [action]),
+            returnValue:
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(#transaction, [action]),
+                  ),
+                  (T v) => _i2.Future<T>.value(v),
+                ) ??
+                _FakeFuture_0<T>(
+                  this,
+                  Invocation.method(#transaction, [action]),
+                ),
+          )
+          as _i2.Future<T>);
+}
+
+/// A class which mocks [IReviewDataSource].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockIReviewDataSource extends _i1.Mock implements _i30.IReviewDataSource {
+  MockIReviewDataSource() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i2.Future<String> create(_i31.ReviewModel? review) =>
+      (super.noSuchMethod(
+            Invocation.method(#create, [review]),
+            returnValue: _i2.Future<String>.value(
+              _i8.dummyValue<String>(
+                this,
+                Invocation.method(#create, [review]),
+              ),
+            ),
+          )
+          as _i2.Future<String>);
+
+  @override
+  _i2.Future<_i31.ReviewModel?> getById(String? reviewId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getById, [reviewId]),
+            returnValue: _i2.Future<_i31.ReviewModel?>.value(),
+          )
+          as _i2.Future<_i31.ReviewModel?>);
+
+  @override
+  _i2.Future<List<_i31.ReviewModel>> getReviewsForUser(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getReviewsForUser, [userId]),
+            returnValue: _i2.Future<List<_i31.ReviewModel>>.value(
+              <_i31.ReviewModel>[],
+            ),
+          )
+          as _i2.Future<List<_i31.ReviewModel>>);
+
+  @override
+  _i2.Future<List<_i31.ReviewModel>> getReviewsByUser(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getReviewsByUser, [userId]),
+            returnValue: _i2.Future<List<_i31.ReviewModel>>.value(
+              <_i31.ReviewModel>[],
+            ),
+          )
+          as _i2.Future<List<_i31.ReviewModel>>);
+
+  @override
+  _i2.Future<List<_i31.ReviewModel>> getReviewsForOrder(String? orderId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getReviewsForOrder, [orderId]),
+            returnValue: _i2.Future<List<_i31.ReviewModel>>.value(
+              <_i31.ReviewModel>[],
+            ),
+          )
+          as _i2.Future<List<_i31.ReviewModel>>);
+
+  @override
+  _i2.Future<bool> hasReview({
+    required String? orderId,
+    required String? reviewerId,
+    required String? reviewedUserId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#hasReview, [], {
+              #orderId: orderId,
+              #reviewerId: reviewerId,
+              #reviewedUserId: reviewedUserId,
+            }),
+            returnValue: _i2.Future<bool>.value(false),
+          )
+          as _i2.Future<bool>);
+
+  @override
+  _i2.Future<void> delete(String? reviewId) =>
+      (super.noSuchMethod(
+            Invocation.method(#delete, [reviewId]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<T> transaction<T>(_i2.Future<T> Function()? action) =>
+      (super.noSuchMethod(
+            Invocation.method(#transaction, [action]),
+            returnValue:
+                _i8.ifNotNull(
+                  _i8.dummyValueOrNull<T>(
+                    this,
+                    Invocation.method(#transaction, [action]),
+                  ),
+                  (T v) => _i2.Future<T>.value(v),
+                ) ??
+                _FakeFuture_0<T>(
+                  this,
+                  Invocation.method(#transaction, [action]),
+                ),
+          )
+          as _i2.Future<T>);
+}
+
+/// A class which mocks [ISessionDataSource].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockISessionDataSource extends _i1.Mock
+    implements _i32.ISessionDataSource {
+  MockISessionDataSource() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i2.Future<_i33.UserModel?> getCurrentUser() =>
+      (super.noSuchMethod(
+            Invocation.method(#getCurrentUser, []),
+            returnValue: _i2.Future<_i33.UserModel?>.value(),
+          )
+          as _i2.Future<_i33.UserModel?>);
+
+  @override
+  _i2.Future<String?> getCurrentRole() =>
+      (super.noSuchMethod(
+            Invocation.method(#getCurrentRole, []),
+            returnValue: _i2.Future<String?>.value(),
+          )
+          as _i2.Future<String?>);
+
+  @override
+  _i2.Future<void> saveCurrentUser(_i33.UserModel? user) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveCurrentUser, [user]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> saveCurrentRole(String? role) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveCurrentRole, [role]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> clearSession() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearSession, []),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<bool> isLoggedIn() =>
+      (super.noSuchMethod(
+            Invocation.method(#isLoggedIn, []),
+            returnValue: _i2.Future<bool>.value(false),
+          )
+          as _i2.Future<bool>);
+}
+
+/// A class which mocks [IUserDataSource].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockIUserDataSource extends _i1.Mock implements _i34.IUserDataSource {
+  MockIUserDataSource() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i2.Future<_i33.UserModel?> getById(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getById, [userId]),
+            returnValue: _i2.Future<_i33.UserModel?>.value(),
+          )
+          as _i2.Future<_i33.UserModel?>);
+
+  @override
+  _i2.Future<List<_i33.UserModel>> getByIds(List<String>? userIds) =>
+      (super.noSuchMethod(
+            Invocation.method(#getByIds, [userIds]),
+            returnValue: _i2.Future<List<_i33.UserModel>>.value(
+              <_i33.UserModel>[],
+            ),
+          )
+          as _i2.Future<List<_i33.UserModel>>);
+
+  @override
+  _i2.Future<void> create(_i33.UserModel? user) =>
+      (super.noSuchMethod(
+            Invocation.method(#create, [user]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> update(_i33.UserModel? user) =>
+      (super.noSuchMethod(
+            Invocation.method(#update, [user]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<void> updateRating({
+    required String? userId,
+    required double? rating,
+    required int? reviewCount,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateRating, [], {
+              #userId: userId,
+              #rating: rating,
+              #reviewCount: reviewCount,
+            }),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
+  _i2.Future<bool> exists(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#exists, [userId]),
+            returnValue: _i2.Future<bool>.value(false),
+          )
+          as _i2.Future<bool>);
+
+  @override
+  _i2.Future<_i33.UserModel?> getFirstFisher() =>
+      (super.noSuchMethod(
+            Invocation.method(#getFirstFisher, []),
+            returnValue: _i2.Future<_i33.UserModel?>.value(),
+          )
+          as _i2.Future<_i33.UserModel?>);
+
+  @override
+  _i2.Future<_i33.UserModel?> getFirstBuyer() =>
+      (super.noSuchMethod(
+            Invocation.method(#getFirstBuyer, []),
+            returnValue: _i2.Future<_i33.UserModel?>.value(),
+          )
+          as _i2.Future<_i33.UserModel?>);
 }

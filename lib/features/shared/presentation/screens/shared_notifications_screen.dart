@@ -9,6 +9,7 @@ import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
+import 'package:siren_marketplace/core/providers/conversation_providers.dart';
 import 'package:siren_marketplace/core/providers/notification_filter_provider.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
@@ -16,8 +17,8 @@ import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
-import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
+import 'package:siren_marketplace/features/chat/presentation/widgets/conversation_card.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 
 class SharedNotificationsScreen extends ConsumerStatefulWidget {
@@ -459,29 +460,69 @@ class _SharedNotificationsScreenState
     );
   }
 
-  Widget _buildMessagesTab(UserRole role) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 80, top: 16),
-      child: ListView.separated(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: 5,
-        separatorBuilder: (context, index) => const SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          final roleSlug = role == UserRole.fisher ? "fisher" : "buyer";
-          return MessageCard(
-            messageId: "1",
-            name: "John Doe",
-            time: "2 days ago",
-            message: "Hello, how are you?",
-            unreadCount: 0,
-            avatarPath: "assets/images/user-profile.png",
-            onPressed: () {
-              context.push("/$roleSlug/chat/1");
-            },
+  Widget _buildMessagesTab(UserRole role, String userId) {
+    final conversationsAsync = ref.watch(userConversationsProvider(userId));
+
+    return conversationsAsync.when(
+      data: (conversations) {
+        if (conversations.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 64.0),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 120,
+                    width: 120,
+                    child: Image.asset("assets/images/no-notifications.png"),
+                  ),
+                  const Text(
+                    "No messages yet.",
+                    style: TextStyle(
+                      color: AppColors.textGray,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const Text(
+                    "Start a conversation with a buyer or fisher.",
+                    style: TextStyle(
+                      color: AppColors.textGray,
+                      fontWeight: FontWeight.w300,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
-        },
-      ),
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 80, top: 16),
+          child: ListView.separated(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: conversations.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 0),
+            itemBuilder: (context, index) {
+              final conversation = conversations[index];
+              final roleSlug = role == UserRole.fisher ? "fisher" : "buyer";
+
+              return ConversationCard(
+                conversation: conversation,
+                currentUserId: userId,
+                onTap: () {
+                  context.push("/$roleSlug/chat/${conversation.id}");
+                },
+              );
+            },
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) =>
+          Center(child: Text('Error loading conversations: $error')),
     );
   }
 
@@ -629,6 +670,21 @@ class _SharedNotificationsScreenState
                             error: (_, __) => 0,
                           );
 
+                          // Get unread conversations count
+                          final conversationsAsync = ref.watch(
+                            userConversationsProvider(user.id),
+                          );
+                          final unreadConversationsCount = conversationsAsync
+                              .when(
+                                data: (conversations) => conversations
+                                    .where(
+                                      (c) => c.hasUnreadMessagesFor(user.id),
+                                    )
+                                    .length,
+                                loading: () => 0,
+                                error: (_, __) => 0,
+                              );
+
                           return TabBar(
                             controller: _tabController,
                             dividerHeight: 0,
@@ -665,10 +721,32 @@ class _SharedNotificationsScreenState
                                   ],
                                 ),
                               ),
-                              const Tab(
+                              Tab(
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [Text("Messages")],
+                                  children: [
+                                    const Text("Messages"),
+                                    if (unreadConversationsCount > 0)
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 8),
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: _tabController.index == 1
+                                              ? AppColors.textBlue
+                                              : AppColors.textBlue.withValues(
+                                                  alpha: 0.6,
+                                                ),
+                                        ),
+                                        child: Text(
+                                          "$unreadConversationsCount",
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.textWhite,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -681,7 +759,7 @@ class _SharedNotificationsScreenState
                           physics: const BouncingScrollPhysics(),
                           children: [
                             _buildOffersTab(role),
-                            _buildMessagesTab(role),
+                            _buildMessagesTab(role, user.id),
                           ],
                         ),
                       ),

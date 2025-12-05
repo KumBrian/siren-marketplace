@@ -9,7 +9,7 @@ extension CatchStatusExtension on CatchStatus {
 
 class DatabaseHelper {
   static const _databaseName = "SirenMarketplaceDB.db";
-  static const _databaseVersion = 13;
+  static const _databaseVersion = 14;
 
   // Table Names
   static const _usersTable = 'users';
@@ -17,6 +17,7 @@ class DatabaseHelper {
   static const _offersTable = 'offers';
   static const _ordersTable = 'orders';
   static const _conversationsTable = 'conversations';
+  static const _messagesTable = 'messages';
   static const _ratingsTable = 'ratings';
 
   Database? _database;
@@ -55,6 +56,7 @@ class DatabaseHelper {
     batch.execute('DROP TABLE IF EXISTS $_offersTable');
     batch.execute('DROP TABLE IF EXISTS $_ordersTable');
     batch.execute('DROP TABLE IF EXISTS $_conversationsTable');
+    batch.execute('DROP TABLE IF EXISTS $_messagesTable');
     batch.execute('DROP TABLE IF EXISTS $_ratingsTable');
     await batch.commit();
 
@@ -165,11 +167,25 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         buyer_id TEXT NOT NULL,
         fisher_id TEXT NOT NULL,
-        contact_name TEXT NOT NULL,
-        contact_avatar_path TEXT NOT NULL,
         last_message TEXT NOT NULL,
         last_message_time TEXT NOT NULL,
-        unread_count INTEGER NOT NULL
+        unread_count_buyer INTEGER NOT NULL DEFAULT 0,
+        unread_count_fisher INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+
+    // 7. MESSAGES
+    batch.execute('''
+      CREATE TABLE $_messagesTable (
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL,
+        sender_id TEXT NOT NULL,
+        receiver_id TEXT NOT NULL,
+        content TEXT NOT NULL,
+        timestamp TEXT NOT NULL,
+        is_read INTEGER NOT NULL DEFAULT 0,
+        is_system_message INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (conversation_id) REFERENCES $_conversationsTable (id)
       )
     ''');
 

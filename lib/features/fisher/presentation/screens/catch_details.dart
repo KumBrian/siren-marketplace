@@ -15,6 +15,7 @@ import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/providers/catch_filter_provider.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/conversation_providers.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
@@ -23,30 +24,10 @@ import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
-import 'package:siren_marketplace/core/widgets/message_card.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
-import 'package:siren_marketplace/features/chat/data/models/message.dart';
+import 'package:siren_marketplace/features/chat/presentation/widgets/conversation_card.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
-
-List<Message> PLACEHOLDER_MESSAGES = [
-  Message(
-    messageId: 'm1',
-    clientName: 'Jean Buyer',
-    lastMessageTime: '2025-10-09T10:00:00',
-    lastMessage: 'I can take 50kg at that price.',
-    unreadCount: 1,
-    avatarPath: 'https://i.pravatar.cc/150?img=8',
-  ),
-  Message(
-    messageId: 'm2',
-    clientName: 'Alice Corp',
-    lastMessageTime: '2025-10-08T15:30:00',
-    lastMessage: 'Check your email for the contract.',
-    unreadCount: 0,
-    avatarPath: 'https://i.pravatar.cc/150?img=40',
-  ),
-];
 
 class CatchDetails extends ConsumerStatefulWidget {
   const CatchDetails({super.key, required this.catchId});
@@ -299,8 +280,6 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
           if (selectedCatch == null) {
             return const Center(child: Text('Catch not found'));
           }
-
-          final messagesForCatch = PLACEHOLDER_MESSAGES;
 
           return Scaffold(
             appBar: AppBar(
@@ -614,11 +593,7 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                             physics: const BouncingScrollPhysics(),
                             children: [
                               _buildOffersList(context, filteredOffers),
-                              _buildMessagesList(
-                                context,
-                                messagesForCatch,
-                                filterState,
-                              ),
+                              _buildMessagesList(context, filterState),
                             ],
                           ),
                         ),
@@ -758,45 +733,94 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
     );
   }
 
-  Widget _buildMessagesList(
-    BuildContext context,
-    List<Message> messages,
-    CatchFilterState filters,
-  ) {
-    if (messages.isEmpty) {
-      return _buildEmptyState(
-        "You have no messages yet.",
-        "You will receive messages shortly",
-      );
-    }
+  Widget _buildMessagesList(BuildContext context, CatchFilterState filters) {
+    // Get current user to fetch their conversations
+    final currentUserAsync = ref.watch(currentUserProvider);
 
-    final sortedMessages = messages
-      ..sort((a, b) {
-        final dateA = DateTime.parse(a.lastMessageTime);
-        final dateB = DateTime.parse(b.lastMessageTime);
-
-        if (filters.activeSortBy == "ascending") {
-          return dateA.compareTo(dateB);
-        } else {
-          return dateB.compareTo(dateA);
+    return currentUserAsync.when(
+      data: (currentUser) {
+        if (currentUser == null) {
+          return _buildEmptyState(
+            "Unable to load messages",
+            "Please try again later",
+          );
         }
-      });
 
-    return ListView.builder(
-      padding: EdgeInsets.only(bottom: 80, top: messages.isEmpty ? 16 : 0),
-      itemCount: sortedMessages.length,
-      itemBuilder: (context, index) {
-        final msg = sortedMessages[index];
-        return MessageCard(
-          messageId: msg.messageId,
-          name: msg.clientName,
-          time: msg.lastMessageTime.toFormattedDate(),
-          message: msg.lastMessage,
-          unreadCount: msg.unreadCount,
-          avatarPath: msg.avatarPath,
-          onPressed: () => context.go('/fisher/chat'),
+        // Get all conversations for the current user (fisher)
+        final conversationsAsync = ref.watch(
+          userConversationsProvider(currentUser.id),
+        );
+
+        return conversationsAsync.when(
+          data: (allConversations) {
+            // Get offers for this catch to find relevant buyer IDs
+            final offersAsync = ref.watch(
+              offersByCatchProvider(widget.catchId),
+            );
+
+            return offersAsync.when(
+              data: (offers) {
+                // Get unique buyer IDs from offers
+                final buyerIds = offers.map((o) => o.buyerId).toSet();
+
+                // Filter conversations to only those with buyers who made offers
+                final relevantConversations = allConversations.where((conv) {
+                  final otherUserId = conv.getOtherParticipantId(
+                    currentUser.id,
+                  );
+                  return buyerIds.contains(otherUserId);
+                }).toList();
+
+                if (relevantConversations.isEmpty) {
+                  return _buildEmptyState(
+                    "No messages yet",
+                    "Buyers will appear here after making offers",
+                  );
+                }
+
+                // Sort conversations by last message time
+                relevantConversations.sort((a, b) {
+                  if (filters.activeSortBy == "ascending") {
+                    return a.lastMessageTime.compareTo(b.lastMessageTime);
+                  } else {
+                    return b.lastMessageTime.compareTo(a.lastMessageTime);
+                  }
+                });
+
+                return ListView.separated(
+                  padding: const EdgeInsets.only(bottom: 80, top: 16),
+                  itemCount: relevantConversations.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 0),
+                  itemBuilder: (context, index) {
+                    final conversation = relevantConversations[index];
+                    return ConversationCard(
+                      conversation: conversation,
+                      currentUserId: currentUser.id,
+                      onTap: () {
+                        context.push("/fisher/chat/${conversation.id}");
+                      },
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => _buildEmptyState(
+                "Error loading offers",
+                "Please try again later",
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => _buildEmptyState(
+            "Error loading conversations",
+            "Please try again later",
+          ),
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) =>
+          _buildEmptyState("Error loading user", "Please try again later"),
     );
   }
 

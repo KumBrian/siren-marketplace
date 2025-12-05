@@ -30,6 +30,12 @@ class BuyerOrderDetails extends ConsumerWidget {
 
   final String orderId;
 
+  /// Generate conversation ID from buyer and fisher IDs
+  String _generateConversationId(String buyerId, String fisherId) {
+    final ids = [buyerId, fisherId]..sort();
+    return '${ids[0]}_${ids[1]}';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orderAsync = ref.watch(orderProvider(orderId));
@@ -332,7 +338,13 @@ class BuyerOrderDetails extends ConsumerWidget {
                             width: double.infinity,
                             child: CustomButton(
                               title: "Message Seller",
-                              onPressed: () => context.push("/buyer/chat"),
+                              onPressed: () {
+                                final conversationId = _generateConversationId(
+                                  order.buyerId,
+                                  order.fisherId,
+                                );
+                                context.push("/buyer/chat/$conversationId");
+                              },
                               icon: CustomIcons.chatbubble,
                             ),
                           ),

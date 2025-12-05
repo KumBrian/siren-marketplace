@@ -47,9 +47,7 @@ class DioClient {
         // const String? token = await _storage.read(key: 'auth_token');
         const String? token = "YOUR_MOCK_TOKEN";
 
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
+        options.headers['Authorization'] = 'Bearer $token';
         return handler.next(options);
       },
       onError: (DioException e, handler) async {

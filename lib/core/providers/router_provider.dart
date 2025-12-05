@@ -126,7 +126,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'notifications',
             builder: (_, __) => const SharedNotificationsScreen(),
           ),
-          GoRoute(path: 'chat', builder: (_, __) => const ChatPage()),
+          GoRoute(
+            path: 'chat/:conversationId',
+            builder: (context, state) {
+              final conversationId = state.pathParameters['conversationId']!;
+              return ChatPage(conversationId: conversationId);
+            },
+          ),
           GoRoute(
             path: "reviews/:userId",
             builder: (context, state) {
@@ -175,7 +181,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'notifications',
             builder: (_, __) => const SharedNotificationsScreen(),
           ),
-          GoRoute(path: 'chat', builder: (_, __) => const ChatPage()),
+          GoRoute(
+            path: 'chat/:conversationId',
+            builder: (context, state) {
+              final conversationId = state.pathParameters['conversationId']!;
+              return ChatPage(conversationId: conversationId);
+            },
+          ),
           GoRoute(
             path: "reviews/:userId",
             builder: (context, state) {

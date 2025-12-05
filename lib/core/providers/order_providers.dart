@@ -5,7 +5,6 @@ import 'package:siren_marketplace/core/domain/enums/order_status.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/domain/services/order_service.dart';

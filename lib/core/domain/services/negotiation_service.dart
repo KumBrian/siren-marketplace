@@ -7,6 +7,7 @@ import '../repositories/i_catch_repository.dart';
 import '../repositories/i_offer_repository.dart';
 import '../repositories/i_order_repository.dart';
 import '../value_objects/offer_terms.dart';
+import 'message_service.dart';
 import 'package:uuid/uuid.dart';
 
 /// Service handling offer negotiation workflows and business rules
@@ -14,15 +15,19 @@ class NegotiationService {
   final IOfferRepository _offerRepository;
   final IOrderRepository _orderRepository;
   final ICatchRepository _catchRepository;
+  final MessageService?
+  _messageService; // Optional for now to avoid breaking changes
   static const _uuid = Uuid();
 
   NegotiationService({
     required IOfferRepository offerRepository,
     required IOrderRepository orderRepository,
     required ICatchRepository catchRepository,
+    MessageService? messageService,
   }) : _offerRepository = offerRepository,
        _orderRepository = orderRepository,
-       _catchRepository = catchRepository;
+       _catchRepository = catchRepository,
+       _messageService = messageService;
 
   /// Create a new offer for a catch
   Future<Offer> createOffer({
@@ -117,6 +122,15 @@ class NegotiationService {
     );
 
     await _orderRepository.create(order);
+
+    // Send automatic message to both users
+    try {
+      await _messageService?.sendOfferAcceptedMessage(order);
+    } catch (e) {
+      // Log error but don't fail the order creation
+      print('Failed to send offer accepted message: $e');
+    }
+
     return order;
   }
 

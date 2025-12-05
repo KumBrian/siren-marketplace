@@ -1,92 +1,205 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/types/enum.dart';
+import 'package:siren_marketplace/core/di/injector.dart';
+import 'package:siren_marketplace/core/domain/entities/message.dart';
+import 'package:siren_marketplace/core/domain/services/message_service.dart';
+import 'package:siren_marketplace/core/providers/conversation_providers.dart';
+import 'package:siren_marketplace/core/providers/message_providers.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
-import 'package:siren_marketplace/features/chat/data/models/message_card_prop.dart';
 
-class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+class ChatPage extends ConsumerStatefulWidget {
+  final String conversationId;
+
+  const ChatPage({super.key, required this.conversationId});
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends ConsumerState<ChatPage> {
+  final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool showSend = false;
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendMessage() async {
+    final content = _messageController.text.trim();
+    if (content.isEmpty) return;
+
+    final currentUser = await ref.read(currentUserProvider.future);
+    if (currentUser == null) return;
+
+    final conversation = await ref.read(
+      conversationProvider(widget.conversationId).future,
+    );
+    if (conversation == null) return;
+
+    final receiverId = conversation.getOtherParticipantId(currentUser.id);
+
+    try {
+      final messageService = sl<MessageService>();
+      await messageService.sendMessage(
+        senderId: currentUser.id,
+        receiverId: receiverId,
+        content: content,
+      );
+
+      // Clear the text field
+      _messageController.clear();
+      setState(() {
+        showSend = false;
+      });
+
+      // Invalidate providers to refresh the conversation data
+      ref.invalidate(conversationMessagesProvider(widget.conversationId));
+      ref.invalidate(conversationProvider(widget.conversationId));
+      ref.invalidate(userConversationsProvider(currentUser.id));
+
+      // Scroll to bottom
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(context),
-      body: Column(
-        children: [
-          Expanded(child: _ChatView()),
-          _buildMessageComposer(),
-        ],
+    final conversationAsync = ref.watch(
+      conversationProvider(widget.conversationId),
+    );
+    final currentUserAsync = ref.watch(currentUserProvider);
+
+    return conversationAsync.when(
+      data: (conversation) {
+        if (conversation == null) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: const BackButton(),
+              title: const Text('Conversation not found'),
+            ),
+            body: const Center(
+              child: Text('This conversation does not exist.'),
+            ),
+          );
+        }
+
+        return currentUserAsync.when(
+          data: (currentUser) {
+            if (currentUser == null) {
+              return const Scaffold(
+                body: Center(child: Text('User not found')),
+              );
+            }
+
+            final otherUserId = conversation.getOtherParticipantId(
+              currentUser.id,
+            );
+
+            return Scaffold(
+              appBar: _buildAppBar(context, otherUserId),
+              body: Column(
+                children: [
+                  Expanded(
+                    child: _ChatView(
+                      conversationId: widget.conversationId,
+                      currentUserId: currentUser.id,
+                      scrollController: _scrollController,
+                    ),
+                  ),
+                  _buildMessageComposer(),
+                ],
+              ),
+            );
+          },
+          loading: () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+          error: (error, _) =>
+              Scaffold(body: Center(child: Text('Error: $error'))),
+        );
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, _) => Scaffold(
+        appBar: AppBar(leading: const BackButton()),
+        body: Center(child: Text('Error loading conversation: $error')),
       ),
     );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
+  AppBar _buildAppBar(BuildContext context, String otherUserId) {
+    final userAsync = ref.watch(userProvider(otherUserId));
+
     return AppBar(
       leading: const BackButton(),
-      title: Row(
-        children: [
-          // 🔹 Profile Image with Status Indicator
-          Stack(
+      title: userAsync.when(
+        data: (user) {
+          if (user == null) {
+            return const Text('Loading...');
+          }
+
+          return Row(
             children: [
-              const ErrorHandlingCircleAvatar(
-                // Replace with actual image asset
-                avatarUrl: 'assets/images/user-profile.png',
+              ErrorHandlingCircleAvatar(
+                avatarUrl: user.avatarUrl ?? 'assets/images/user-profile.png',
+                radius: 18,
               ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: Colors.green, // Online indicator color
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.white100, width: 1.5),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 12),
-          // 🔹 User Info
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Ethan Carter",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: Colors.black,
-                ),
-              ),
-              Row(
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 14),
                   Text(
-                    "4.8 (254 Reviews)",
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    user.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
                   ),
+                  if (user.hasRatings)
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 14),
+                        Text(
+                          user.displayRating,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ],
-          ),
-        ],
+          );
+        },
+        loading: () => const Text('Loading...'),
+        error: (_, __) => const Text('Error'),
       ),
       actions: [
         IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
       ],
     );
   }
-
-  final TextEditingController _messageController = TextEditingController();
-  bool showSend = false;
 
   // 🔹 Message Input Field
   Widget _buildMessageComposer() {
@@ -156,7 +269,7 @@ class _ChatPageState extends State<ChatPage> {
                                   Icons.send,
                                   color: AppColors.textBlue,
                                 ),
-                                onPressed: () {},
+                                onPressed: _sendMessage,
                               )
                             : Container(),
                         const SizedBox(width: 8),
@@ -174,87 +287,51 @@ class _ChatPageState extends State<ChatPage> {
 }
 
 // ----------------------------------------------------------------------
-// 🔹 Message Data and View Logic
+// 🔹 Message View Logic
 // ----------------------------------------------------------------------
 
-class _ChatView extends StatefulWidget {
+class _ChatView extends ConsumerStatefulWidget {
+  final String conversationId;
+  final String currentUserId;
+  final ScrollController scrollController;
+
+  const _ChatView({
+    required this.conversationId,
+    required this.currentUserId,
+    required this.scrollController,
+  });
+
   @override
-  _ChatViewState createState() => _ChatViewState();
+  ConsumerState<_ChatView> createState() => _ChatViewState();
 }
 
-class _ChatViewState extends State<_ChatView> {
-  // Mock Messages based on the screenshot, using the current date/time as a reference
-  // We offset the date to simulate a conversation that started "yesterday" and continued "today"
-
-  final DateTime today = DateTime.now();
-  late final DateTime yesterday;
-
-  late final List<MessageCardProp> _messages;
-
+class _ChatViewState extends ConsumerState<_ChatView> {
   @override
   void initState() {
     super.initState();
-    yesterday = today.subtract(const Duration(days: 1));
+    // Mark messages as read when opening the conversation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _markMessagesAsRead();
+    });
+  }
 
-    // Convert screenshot times (15:18, 15:20) into full DateTime objects
-    _messages = [
-      // --- YESTERDAY'S MESSAGES (Simulating date change) ---
-      MessageCardProp(
-        text: "Hi! Are you still selling the fish?",
-        timestamp: DateTime(
-          yesterday.year,
-          yesterday.month,
-          yesterday.day,
-          14,
-          00,
-        ),
-        sender: Sender.me,
-      ),
-      MessageCardProp(
-        text: "Yes, I have some fresh catch. What quantity do you need?",
-        timestamp: DateTime(
-          yesterday.year,
-          yesterday.month,
-          yesterday.day,
-          14,
-          05,
-        ),
-        sender: Sender.other,
-      ),
+  Future<void> _markMessagesAsRead() async {
+    try {
+      final currentUser = await ref.read(currentUserProvider.future);
+      if (currentUser == null) return;
 
-      // --- TODAY'S MESSAGES (Matching screenshot times) ---
-      MessageCardProp(
-        text: "Hello, Transaction confirmed for 6 kg of fish at 15,000 CFA",
-        timestamp: DateTime(today.year, today.month, today.day, 15, 18),
-        sender: Sender.other,
-      ),
-      MessageCardProp(
-        text: "Great, thank you! Is the fish fresh from today?",
-        timestamp: DateTime(today.year, today.month, today.day, 15, 20),
-        sender: Sender.me,
-      ),
-      MessageCardProp(
-        text: "Yes, it was caught this morning. Very fresh.",
-        timestamp: DateTime(today.year, today.month, today.day, 15, 20, 5),
-        // Slight offset
-        sender: Sender.other,
-      ),
-      MessageCardProp(
-        text: "Perfect. When can we meet for the exchange?",
-        timestamp: DateTime(today.year, today.month, today.day, 15, 20, 10),
-        sender: Sender.me,
-      ),
-      MessageCardProp(
-        text: "I am available this afternoon.",
-        timestamp: DateTime(today.year, today.month, today.day, 15, 20, 15),
-        sender: Sender.other,
-      ),
-      MessageCardProp(
-        text: "Could we meet around 4 PM?",
-        timestamp: DateTime(today.year, today.month, today.day, 16, 00), // 4 PM
-        sender: Sender.me,
-      ),
-    ];
+      final messageService = sl<MessageService>();
+      await messageService.markConversationAsRead(
+        widget.conversationId,
+        currentUser.id,
+      );
+
+      // Refresh conversation and conversation list to update unread count
+      ref.invalidate(conversationProvider(widget.conversationId));
+      ref.invalidate(userConversationsProvider(currentUser.id));
+    } catch (e) {
+      debugPrint('Error marking messages as read: $e');
+    }
   }
 
   // Helper function to format the date banner (e.g., "TODAY, JULY 15")
@@ -275,39 +352,63 @@ class _ChatViewState extends State<_ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    // ScrollView reversed to show latest messages at the bottom
-    return ListView.builder(
-      reverse: true, // Display messages from bottom up
-      itemCount: _messages.length,
-      itemBuilder: (context, index) {
-        final reversedIndex = _messages.length - 1 - index;
-        final message = _messages[reversedIndex];
+    final messagesAsync = ref.watch(
+      conversationMessagesProvider(widget.conversationId),
+    );
 
-        // Determine if a date divider should be shown before this message
-        bool showDateDivider = false;
-        if (reversedIndex == 0) {
-          // Always show divider for the very first message
-          showDateDivider = true;
-        } else {
-          final previousMessage = _messages[reversedIndex - 1];
-          // Check if the day of the current message is different from the previous one
-          if (message.timestamp.day != previousMessage.timestamp.day) {
-            showDateDivider = true;
-          }
+    return messagesAsync.when(
+      data: (messages) {
+        if (messages.isEmpty) {
+          return const Center(
+            child: Text(
+              'No messages yet. Start the conversation!',
+              style: TextStyle(color: AppColors.textGray),
+            ),
+          );
         }
 
-        // Build the list item
-        return Column(
-          children: [
-            if (showDateDivider)
-              _DateDivider(
-                date: message.timestamp,
-                formatter: _formatDateDivider,
-              ),
-            _MessageBubble(message: message),
-          ],
+        // ScrollView reversed to show latest messages at the bottom
+        return ListView.builder(
+          controller: widget.scrollController,
+          reverse: true, // Display messages from bottom up
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            final reversedIndex = messages.length - 1 - index;
+            final message = messages[reversedIndex];
+
+            // Determine if a date divider should be shown before this message
+            bool showDateDivider = false;
+            if (reversedIndex == 0) {
+              // Always show divider for the very first message
+              showDateDivider = true;
+            } else {
+              final previousMessage = messages[reversedIndex - 1];
+              // Check if the day of the current message is different from the previous one
+              if (message.timestamp.day != previousMessage.timestamp.day) {
+                showDateDivider = true;
+              }
+            }
+
+            // Build the list item
+            return Column(
+              children: [
+                if (showDateDivider)
+                  _DateDivider(
+                    date: message.timestamp,
+                    formatter: _formatDateDivider,
+                  ),
+                _MessageBubble(
+                  message: message,
+                  currentUserId: widget.currentUserId,
+                ),
+              ],
+            );
+          },
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) =>
+          Center(child: Text('Error loading messages: $error')),
     );
   }
 }
@@ -317,18 +418,42 @@ class _ChatViewState extends State<_ChatView> {
 // ----------------------------------------------------------------------
 
 class _MessageBubble extends StatelessWidget {
-  final MessageCardProp message;
+  final Message message;
+  final String currentUserId;
 
-  const _MessageBubble({required this.message});
+  const _MessageBubble({required this.message, required this.currentUserId});
 
   @override
   Widget build(BuildContext context) {
-    final bool isMe = message.sender == Sender.me;
+    final bool isMe = message.isSentBy(currentUserId);
+    final bool isSystemMessage = message.isSystemMessage;
+
+    // System messages are centered
+    if (isSystemMessage) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        alignment: Alignment.center,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.gray300.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            message.content,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textGray,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
 
     // Alignment (right for me, left for other)
     final alignment = isMe ? Alignment.centerRight : Alignment.centerLeft;
-    // Main Axis Alignment for Row (end for me, start for other)
-    final _ = isMe ? MainAxisAlignment.end : MainAxisAlignment.start;
     // Bubble color
     final color = isMe ? AppColors.textBlue : AppColors.gray300;
     // Text color
@@ -362,7 +487,7 @@ class _MessageBubble extends StatelessWidget {
                 borderRadius: borderRadius,
               ),
               child: Text(
-                message.text,
+                message.content,
                 style: TextStyle(color: textColor, fontSize: 16),
               ),
             ),
