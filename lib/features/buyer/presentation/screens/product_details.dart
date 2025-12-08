@@ -20,6 +20,8 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
+import 'package:siren_marketplace/core/di/injector.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_conversation_repository.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/offer_actions_provider.dart';
 
 class ProductDetails extends ConsumerStatefulWidget {
@@ -464,9 +466,32 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                             Expanded(
                               child: CustomButton(
                                 title: "Message",
-                                onPressed: () {
-                                  // Navigate to chat
-                                  // context.push("/chat/${catchItem.fisherId}"); // Assuming chat route
+                                onPressed: () async {
+                                  try {
+                                    final repo = sl<IConversationRepository>();
+                                    final conversation = await repo
+                                        .getOrCreateConversation(
+                                          currentUser.id,
+                                          catchItem.fisherId,
+                                        );
+                                    if (context.mounted) {
+                                      context.push(
+                                        '/buyer/chat/${conversation.id}',
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Failed to open chat: $e',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  }
                                 },
                                 bordered: true,
                               ),

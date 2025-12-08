@@ -4,13 +4,15 @@ import '../../database/database_helper.dart';
 import '../../models/conversation_model.dart';
 import '../../models/message_model.dart';
 
+import 'package:siren_marketplace/core/domain/entities/order.dart';
+
 class MessageSeeder {
   final DatabaseHelper dbHelper;
   static const _uuid = Uuid();
 
   MessageSeeder({required this.dbHelper});
 
-  Future<void> seed() async {
+  Future<void> seed([List<Order> orders = const []]) async {
     print('Seeding messages and conversations...');
 
     // Get existing users from the database to create realistic conversations
@@ -67,7 +69,59 @@ class MessageSeeder {
       unreadCountForFisher: 1,
     );
 
-    await db.insert('conversations', conversation.toMap());
+    // Create conversations for existing orders
+    for (final order in orders) {
+      final orderConversationId = _generateConversationId(
+        order.buyerId,
+        order.fisherId,
+      );
+
+      // Check existence
+      final exists = await db.query(
+        'conversations',
+        where: 'id = ?',
+        whereArgs: [orderConversationId],
+      );
+
+      if (exists.isEmpty) {
+        final orderConversation = ConversationModel(
+          id: orderConversationId,
+          buyerId: order.buyerId,
+          fisherId: order.fisherId,
+          lastMessage: 'Order accepted! ${order.terms.weight.kilograms}kg',
+          lastMessageTime: order.dateCreated.toIso8601String(),
+          unreadCountForBuyer: 0,
+          unreadCountForFisher: 0,
+        );
+        await db.insert('conversations', orderConversation.toMap());
+
+        // Add system message
+        final msg = MessageModel(
+          id: _uuid.v4(),
+          conversationId: orderConversationId,
+          senderId: order.fisherId,
+          receiverId: order.buyerId,
+          content:
+              'Order accepted! ${order.terms.weight.kilograms}kg at ${order.terms.pricePerKg.amountPerKg} CFA/kg',
+          timestamp: order.dateCreated.toIso8601String(),
+          isRead: 1,
+          isSystemMessage: 1,
+        );
+        await db.insert('messages', msg.toMap());
+      }
+    }
+
+    // Verify existence of default conversation before inserting
+    // (It might have been created by the orders loop above)
+    final existingDefault = await db.query(
+      'conversations',
+      where: 'id = ?',
+      whereArgs: [conversationId],
+    );
+
+    if (existingDefault.isEmpty) {
+      await db.insert('conversations', conversation.toMap());
+    }
 
     // Create some sample messages
     final messages = [

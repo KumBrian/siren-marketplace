@@ -8,6 +8,7 @@ import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/shared_offer_details_provider.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
 
 class OfferActionState {
   final bool isLoading;
@@ -74,6 +75,10 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       ref.invalidate(sharedOfferDetailsProvider(offerId));
       if (offer != null) {
         ref.invalidate(offersByCatchProvider(offer.catchId));
+        // Invalidate catch details and lists
+        ref.invalidate(catchByIdProvider(offer.catchId));
+        ref.invalidate(availableCatchesProvider);
+        ref.invalidate(fisherCatchesProvider);
       }
 
       // Invalidate role-specific providers to update UI

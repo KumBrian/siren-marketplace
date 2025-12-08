@@ -27,7 +27,7 @@ class Seeder {
     final _ = await _offerSeeder.seed(catches);
     final orders = await _orderSeeder.seed();
     await _reviewSeeder.seed(orders);
-    await _messageSeeder.seed();
+    await _messageSeeder.seed(orders);
 
     print('Database seeding complete.');
   }
