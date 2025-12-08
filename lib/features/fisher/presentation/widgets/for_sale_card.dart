@@ -16,6 +16,7 @@ class ForSaleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(catchData.images[0]);
     return Material(
       color: AppColors.white100,
       borderRadius: BorderRadius.circular(16),
@@ -35,20 +36,33 @@ class ForSaleCard extends StatelessWidget {
                   ? Image.network(
                       catchData.images[0],
                       width: 120,
-
                       height: 120,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Image.asset(
                         "assets/images/shrimp.jpg",
                         height: 120,
                         width: 120,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : (catchData.images[0].length <
+                        500) // Basic validation for asset path length
+                  ? Image.asset(
+                      catchData.images[0],
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        "assets/images/shrimp.jpg",
+                        height: 120,
+                        width: 120,
+                        fit: BoxFit.cover,
                       ),
                     )
                   : Image.asset(
-                      catchData.images[0],
-                      width: 120,
-
+                      "assets/images/shrimp.jpg",
                       height: 120,
+                      width: 120,
                       fit: BoxFit.cover,
                     ),
             ),

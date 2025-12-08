@@ -9,6 +9,7 @@ import 'package:siren_marketplace/features/buyer/presentation/screens/order_deta
 import 'package:siren_marketplace/features/buyer/presentation/screens/orders_screen.dart';
 import 'package:siren_marketplace/features/buyer/presentation/screens/product_details.dart';
 import 'package:siren_marketplace/features/chat/presentation/screens/chat_page.dart';
+import 'package:siren_marketplace/features/fisher/presentation/screens/add_catch.dart';
 import 'package:siren_marketplace/features/fisher/presentation/screens/catch_details.dart';
 import 'package:siren_marketplace/features/fisher/presentation/screens/fisher.dart';
 import 'package:siren_marketplace/features/fisher/presentation/screens/market_trends.dart';
@@ -102,6 +103,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final catchId = state.pathParameters['id']!;
               return CatchDetails(catchId: catchId);
+            },
+          ),
+          GoRoute(
+            path: 'add-catch',
+            builder: (context, state) {
+              return const AddCatchScreen();
             },
           ),
           GoRoute(
