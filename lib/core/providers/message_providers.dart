@@ -9,7 +9,7 @@ import '../domain/repositories/i_message_repository.dart';
 
 // Database Helper Provider
 final _databaseHelperProvider = Provider<DatabaseHelper>((ref) {
-  return DatabaseHelper();
+  return DatabaseHelper.instance;
 });
 
 // Message Data Source Provider

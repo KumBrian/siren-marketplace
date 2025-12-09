@@ -1,126 +1,135 @@
+import 'dart:io';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 
 class ProductImagesCarousel extends StatefulWidget {
-  final List<String> images;
+  const ProductImagesCarousel({
+    super.key,
+    required this.images,
+    this.height = 250,
+  });
 
-  const ProductImagesCarousel({required this.images, super.key});
+  final List<String> images;
+  final double height;
 
   @override
   State<ProductImagesCarousel> createState() => _ProductImagesCarouselState();
 }
 
 class _ProductImagesCarouselState extends State<ProductImagesCarousel> {
-  late final CarouselController _controller;
-  int _currentIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = CarouselController();
-    _controller.addListener(_onScrollChanged);
-  }
-
-  void _onScrollChanged() {
-    // Protect from layout not being ready yet
-    if (!_controller.hasClients || !_controller.position.hasPixels) return;
-
-    // Estimate which item is currently visible
-    final position = _controller.position;
-    final viewport = position.viewportDimension;
-    if (viewport == 0) return;
-
-    // Approximate index from scroll offset
-    final index = (position.pixels / viewport).round();
-
-    if (index != _currentIndex && mounted) {
-      setState(() {
-        _currentIndex = index;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_onScrollChanged);
-    _controller.dispose();
-    super.dispose();
-  }
+  int _current = 0;
+  final CarouselSliderController _controller = CarouselSliderController();
 
   @override
   Widget build(BuildContext context) {
-    final images = widget.images;
-
-    final int imageCount = images.length;
+    // Handle empty images list
+    if (widget.images.isEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.asset(
+          'assets/images/shrimp.jpg',
+          width: double.infinity,
+          height: widget.height,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
 
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          height: 250,
-          child: CarouselView.weighted(
-            controller: _controller,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+        GestureDetector(
+          onTap: () {
+            final providers = widget.images.map<ImageProvider>((img) {
+              if (img.startsWith("http")) {
+                return NetworkImage(img);
+              } else if (img.startsWith("assets/")) {
+                return AssetImage(img);
+              } else {
+                return FileImage(File(img));
+              }
+            }).toList();
+
+            final multiImageProvider = MultiImageProvider(
+              providers,
+              initialIndex: _current,
+            );
+            showImageViewerPager(
+              context,
+              multiImageProvider,
+              swipeDismissible: true,
+              immersive: true,
+              useSafeArea: true,
+              doubleTapZoomable: true,
+              backgroundColor: Colors.black.withOpacity(0.4),
+            );
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: CarouselSlider(
+              items: widget.images.map((item) {
+                return Builder(
+                  builder: (BuildContext context) {
+                    return SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      child: item.contains("http")
+                          ? Image.network(
+                              item,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Image.asset(
+                                    'assets/images/shrimp.jpg',
+                                    fit: BoxFit.cover,
+                                  ),
+                            )
+                          : (item.startsWith("assets/")
+                                ? Image.asset(item, fit: BoxFit.cover)
+                                : Image.file(File(item), fit: BoxFit.cover)),
+                    );
+                  },
+                );
+              }).toList(),
+              carouselController: _controller,
+              options: CarouselOptions(
+                height: widget.height,
+                enableInfiniteScroll: widget.images.length > 1,
+                autoPlay: widget.images.length > 1,
+                viewportFraction: 1.0,
+                onPageChanged: (index, reason) {
+                  setState(() {
+                    _current = index;
+                  });
+                },
+              ),
             ),
-            flexWeights: imageCount > 1 ? const <int>[5, 1] : <int>[6],
-            enableSplash: true,
-            itemSnapping: true,
-            children: images.map((img) {
-              return img.contains("http")
-                  ? Image.network(
-                      img,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Image.asset(
-                        "assets/images/shrimp.jpg",
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : Image.asset(img, fit: BoxFit.cover);
-            }).toList(),
-            onTap: (index) {
-              final rotatedImages = [
-                ...widget.images.sublist(index),
-                ...widget.images.sublist(0, index),
-              ];
-              final providers = rotatedImages.map<ImageProvider>((img) {
-                return img.contains("http")
-                    ? NetworkImage(img)
-                    : AssetImage(img);
-              }).toList();
-              showImageViewerPager(
-                context,
-                MultiImageProvider(providers),
-                swipeDismissible: true,
-                immersive: true,
-                useSafeArea: true,
-                doubleTapZoomable: true,
-                backgroundColor: Colors.black.withValues(alpha: .4),
-              );
-            },
           ),
         ),
-        const SizedBox(height: 8),
-        if (images.length > 1)
+        if (widget.images.length > 1) ...[
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(images.length, (index) {
-              final isActive = index == _currentIndex;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: isActive ? 20 : 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? AppColors.textBlue
-                      : AppColors.textBlue.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(99),
+            children: widget.images.asMap().entries.map((entry) {
+              return GestureDetector(
+                onTap: () => _controller.animateToPage(entry.key),
+                child: Container(
+                  width: 8.0,
+                  height: 8.0,
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 4.0,
+                  ),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _current == entry.key
+                        ? AppColors.textBlue
+                        : AppColors.gray300,
+                  ),
                 ),
               );
-            }),
+            }).toList(),
           ),
+        ],
       ],
     );
   }

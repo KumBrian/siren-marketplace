@@ -2,7 +2,8 @@ enum CatchStatus {
   available,
   soldOut,
   expired,
-  removed;
+  removed,
+  draft;
 
   String get displayName {
     switch (this) {
@@ -14,6 +15,8 @@ enum CatchStatus {
         return 'Expired';
       case CatchStatus.removed:
         return 'Removed';
+      case CatchStatus.draft:
+        return 'Draft';
     }
   }
 

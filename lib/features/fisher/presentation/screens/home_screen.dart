@@ -196,7 +196,7 @@ class FisherHome extends ConsumerWidget {
         padding: const EdgeInsets.only(bottom: 50.0),
         child: FloatingActionButton(
           onPressed: () {
-            // Navigate to Catch Creation Screen
+            context.go("/fisher/add-catch");
           },
           backgroundColor: AppColors.blue850,
           shape: const CircleBorder(),

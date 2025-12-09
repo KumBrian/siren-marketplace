@@ -4,6 +4,7 @@ import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/providers/navigation_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/widgets/custom_nav_bar_tabs.dart';
+import 'package:siren_marketplace/features/fisher/presentation/screens/catches_screen.dart';
 import 'package:siren_marketplace/features/user/presentation/screens/user_profile.dart';
 
 import 'home_screen.dart';
@@ -60,7 +61,7 @@ class _FisherState extends ConsumerState<Fisher>
             children: [
               const Center(child: Text("Placeholder 0")),
               FisherHome(),
-              const Center(child: Text("Placeholder 2")),
+              CatchesScreen(),
               userAsync.when(
                 data: (user) {
                   if (user != null) {

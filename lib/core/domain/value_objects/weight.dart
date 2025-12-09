@@ -51,4 +51,6 @@ class Weight extends Equatable {
 
   @override
   String toString() => '${kilograms.toStringAsFixed(2)} kg';
+
+  String toNormalString() => kilograms.toStringAsFixed(2);
 }

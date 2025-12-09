@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
@@ -52,6 +54,7 @@ class ProductCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min, // Use min size for column
           children: [
             // --- Image Display Block with Error Handling ---
+            // --- Image Display Block with Error Handling ---
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: isNetworkImage
@@ -61,16 +64,11 @@ class ProductCard extends StatelessWidget {
                       child: Image.network(
                         imageUrl,
                         fit: BoxFit.cover,
-                        // 1. Display the local asset if the network image fails
                         errorBuilder: (context, error, stackTrace) {
-                          // Optionally print(error) for debugging purposes
                           return _buildLocalPlaceholder(cardImageHeight);
                         },
-                        // 2. Display a loading indicator while fetching the network image
                         loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          }
+                          if (loadingProgress == null) return child;
                           return Container(
                             height: cardImageHeight,
                             color: AppColors.gray100,
@@ -89,8 +87,24 @@ class ProductCard extends StatelessWidget {
                         },
                       ),
                     )
-                  // 3. If the URL was a local asset path to begin with, use Image.asset directly
-                  : _buildLocalPlaceholder(cardImageHeight),
+                  // Handle Assets vs Files
+                  : (imageUrl.startsWith('assets/')
+                        ? Image.asset(
+                            imageUrl,
+                            height: cardImageHeight,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildLocalPlaceholder(cardImageHeight),
+                          )
+                        : Image.file(
+                            File(imageUrl),
+                            height: cardImageHeight,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildLocalPlaceholder(cardImageHeight),
+                          )),
             ),
 
             // --- End Image Display Block ---

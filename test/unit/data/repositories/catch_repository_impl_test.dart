@@ -33,9 +33,18 @@ void main() {
         size: entity.size,
         market: entity.market,
         images: entity.images,
-        species: SpeciesModel(id: entity.species.id, name: entity.species.name),
+        species: SpeciesModel(
+          id: entity.species.id,
+          name: entity.species.name,
+          image: entity.species.image,
+          scientificName: entity.species.scientificName,
+        ),
         fisherId: entity.fisherId,
         status: entity.status.name,
+        observationId: entity.observationId,
+        locationName: entity.locationName,
+        latitude: entity.latitude,
+        longitude: entity.longitude,
       );
     }
 

@@ -13,6 +13,7 @@ class CustomButton extends StatelessWidget {
     this.hugeIcon,
     this.suffixIcon,
     this.disabled = false,
+    this.loading = false,
   });
 
   final String title;
@@ -23,6 +24,7 @@ class CustomButton extends StatelessWidget {
   final dynamic hugeIcon; // fix type later, not List<List<dynamic>>
   final IconData? suffixIcon;
   final bool disabled;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +39,7 @@ class CustomButton extends StatelessWidget {
       color: bgColor,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
-        onTap: disabled ? null : onPressed,
+        onTap: (disabled || loading) ? null : onPressed,
         borderRadius: BorderRadius.circular(8),
         splashColor: (cancel == true || bordered == true)
             ? AppColors.textBlue.withValues(alpha: .1)
@@ -55,10 +57,22 @@ class CustomButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (icon != null) Icon(icon, size: 16, color: textColor),
-              if (hugeIcon != null)
-                HugeIcon(icon: hugeIcon!, size: 16, color: textColor),
-              if (icon != null || hugeIcon != null) const SizedBox(width: 8),
+              if (loading) ...[
+                SizedBox(
+                  height: 16,
+                  width: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(textColor),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ] else ...[
+                if (icon != null) Icon(icon, size: 16, color: textColor),
+                if (hugeIcon != null)
+                  HugeIcon(icon: hugeIcon!, size: 16, color: textColor),
+                if (icon != null || hugeIcon != null) const SizedBox(width: 8),
+              ],
               Text(
                 title,
                 textAlign: TextAlign.center,

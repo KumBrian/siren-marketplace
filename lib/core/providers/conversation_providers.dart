@@ -9,7 +9,7 @@ import '../domain/repositories/i_conversation_repository.dart';
 
 // Database Helper Provider (reuse from message_providers if needed)
 final _databaseHelperProvider = Provider<DatabaseHelper>((ref) {
-  return DatabaseHelper();
+  return DatabaseHelper.instance;
 });
 
 // Conversation Data Source Provider

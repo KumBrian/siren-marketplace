@@ -258,32 +258,6 @@ class _MarketTrendsState extends State<MarketTrends> {
     );
   }
 
-  Widget _buildStatBlock(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        spacing: 8,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w400,
-              color: AppColors.textGray,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: AppColors.textBlue,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _getSpeciesDisplayName(String key) {
     switch (key) {
       case 'pink-shrimp':

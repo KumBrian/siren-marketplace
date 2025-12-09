@@ -489,30 +489,35 @@ class DemoDataSourceFactory {
     final species1 = SpeciesModel(
       id: 'species-1',
       name: 'Large Prawns',
+      image: "assets/shrimp-species/prawn.png",
       scientificName: 'Penaeus monodon',
     );
 
     final species2 = SpeciesModel(
       id: 'species-2',
       name: 'Small Prawns',
+      image: "assets/shrimp-species/prawn.png",
       scientificName: 'Penaeus monodon',
     );
 
     final species3 = SpeciesModel(
       id: 'species-3',
       name: 'Tiger Shrimp',
+      image: "assets/shrimp-species/tiger-shrimp.png",
       scientificName: 'Penaeus monodon',
     );
 
     final species4 = SpeciesModel(
       id: 'species-4',
       name: 'Grey Shrimp',
+      image: "assets/shrimp-species/grey-shrimp.png",
       scientificName: 'Crangon crangon',
     );
 
     final species5 = SpeciesModel(
       id: 'species-5',
       name: 'Pink Shrimp',
+      image: "assets/shrimp-species/pink-shrimp.png",
       scientificName: 'Pandalus borealis',
     );
 
@@ -536,6 +541,10 @@ class DemoDataSourceFactory {
       species: species1,
       fisherId: fisher1.id,
       status: CatchStatus.available.name,
+      observationId: 'Obs-001',
+      locationName: 'Douala Port',
+      latitude: 4.0511,
+      longitude: 9.7679,
     );
 
     final catch2 = CatchModel(
@@ -555,6 +564,10 @@ class DemoDataSourceFactory {
       species: species3,
       fisherId: fisher2.id,
       status: CatchStatus.available.name,
+      observationId: 'Obs-002',
+      locationName: 'Kribi Coastal Area',
+      latitude: 2.9376,
+      longitude: 9.9153,
     );
 
     final catch3 = CatchModel(
@@ -575,6 +588,10 @@ class DemoDataSourceFactory {
       species: species4,
       fisherId: fisher1.id,
       status: CatchStatus.available.name,
+      observationId: 'Obs-003',
+      locationName: 'Limbe',
+      latitude: 4.0244,
+      longitude: 9.2016,
     );
 
     final catch4 = CatchModel(
@@ -591,6 +608,10 @@ class DemoDataSourceFactory {
       species: species2,
       fisherId: fisher2.id,
       status: CatchStatus.expired.name, // Expired for testing
+      observationId: 'Obs-004',
+      locationName: 'Tiko',
+      latitude: 4.0754,
+      longitude: 9.3601,
     );
 
     final catch5 = CatchModel(
@@ -607,6 +628,10 @@ class DemoDataSourceFactory {
       species: species5,
       fisherId: fisher1.id,
       status: CatchStatus.available.name,
+      observationId: 'Obs-005',
+      locationName: 'Mabeta',
+      latitude: 4.0000,
+      longitude: 9.1500,
     );
 
     _catches[catch1.id] = catch1;

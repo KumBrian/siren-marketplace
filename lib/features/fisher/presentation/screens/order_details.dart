@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -294,7 +295,9 @@ class OrderDetails extends ConsumerWidget {
                                         imageUrl.startsWith('http')
                                         ? NetworkImage(imageUrl)
                                               as ImageProvider
-                                        : AssetImage(imageUrl);
+                                        : (imageUrl.startsWith('assets/')
+                                              ? AssetImage(imageUrl)
+                                              : FileImage(File(imageUrl)));
 
                                     showImageViewer(
                                       context,
@@ -328,12 +331,30 @@ class OrderDetails extends ConsumerWidget {
                                                   fit: BoxFit.cover,
                                                 ),
                                           )
-                                        : Image.asset(
-                                            imageUrl,
-                                            width: 60,
-                                            height: 60,
-                                            fit: BoxFit.cover,
-                                          ),
+                                        : (imageUrl.startsWith('assets/')
+                                              ? Image.asset(
+                                                  imageUrl,
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Image.file(
+                                                  File(imageUrl),
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder:
+                                                      (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) => Image.asset(
+                                                        "assets/images/shrimp.jpg",
+                                                        width: 60,
+                                                        height: 60,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                )),
                                   ),
                                 ),
                                 const SizedBox(width: 10),

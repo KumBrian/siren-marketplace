@@ -48,10 +48,10 @@ Future<void> initDependencies() async {
   // --------------------------------------------------
   // Initialize DB + Core Dependencies
   // --------------------------------------------------
-  final dbHelper = DatabaseHelper();
+  final dbHelper = DatabaseHelper.instance;
   await dbHelper.database;
 
-  sl.registerLazySingleton(() => dbHelper);
+  sl.registerLazySingleton<DatabaseHelper>(() => DatabaseHelper.instance);
   sl.registerLazySingleton(() => TransactionNotifier());
 
   // --------------------------------------------------

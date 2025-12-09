@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -155,9 +156,13 @@ class BuyerOrderDetails extends ConsumerWidget {
                               onTap: () {
                                 final providers = catchItem.images
                                     .map<ImageProvider>((img) {
-                                      return img.contains("http")
-                                          ? NetworkImage(img)
-                                          : AssetImage(img);
+                                      if (img.startsWith("http")) {
+                                        return NetworkImage(img);
+                                      } else if (img.startsWith("assets/")) {
+                                        return AssetImage(img);
+                                      } else {
+                                        return FileImage(File(img));
+                                      }
                                     })
                                     .toList();
 
@@ -190,20 +195,32 @@ class BuyerOrderDetails extends ConsumerWidget {
                                                   fit: BoxFit.cover,
                                                 ),
                                       )
-                                    : Image.asset(
-                                        catchItem.images.first,
-                                        width: 60,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                Image.asset(
-                                                  "assets/images/shrimp.jpg",
-                                                  height: 60,
-                                                  width: 60,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                      ),
+                                    : (catchItem.images.first.startsWith(
+                                            "assets/",
+                                          )
+                                          ? Image.asset(
+                                              catchItem.images.first,
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.file(
+                                              File(catchItem.images.first),
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => Image.asset(
+                                                    "assets/images/shrimp.jpg",
+                                                    height: 60,
+                                                    width: 60,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                            )),
                               ),
                             ),
                             const SizedBox(width: 10),

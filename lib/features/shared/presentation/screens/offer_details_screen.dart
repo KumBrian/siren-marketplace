@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -169,16 +171,56 @@ class _SharedOfferDetailsScreenState
       children: [
         GestureDetector(
           onTap: () {
-            final provider = image.startsWith("http")
-                ? NetworkImage(image)
-                : AssetImage(image) as ImageProvider;
+            ImageProvider provider;
+            if (image.startsWith("http")) {
+              provider = NetworkImage(image);
+            } else if (image.startsWith("assets/")) {
+              provider = AssetImage(image);
+            } else {
+              provider = FileImage(File(image));
+            }
             showImageViewer(context, provider, immersive: true);
           },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: image.startsWith("http")
-                ? Image.network(image, width: 60, height: 60, fit: BoxFit.cover)
-                : Image.asset(image, width: 60, height: 60, fit: BoxFit.cover),
+                ? Image.network(
+                    image,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Image.asset(
+                      "assets/images/prawns.jpg",
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : (image.startsWith("assets/")
+                      ? Image.asset(
+                          image,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Image.asset(
+                            "assets/images/prawns.jpg",
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Image.file(
+                          File(image),
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Image.asset(
+                            "assets/images/prawns.jpg",
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          ),
+                        )),
           ),
         ),
         const SizedBox(width: 12),

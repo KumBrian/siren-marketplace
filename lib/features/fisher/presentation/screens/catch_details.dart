@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -304,12 +306,18 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                       GestureDetector(
                         onTap: () {
                           final providers = selectedCatch.images
-                              .map<ImageProvider>(
-                                (img) => img.startsWith("http")
-                                    ? NetworkImage(img)
-                                    : AssetImage(img) as ImageProvider,
-                              )
+                              .map<ImageProvider>((img) {
+                                if (img.startsWith("http")) {
+                                  return NetworkImage(img);
+                                } else if (img.startsWith("assets/")) {
+                                  return AssetImage(img);
+                                } else {
+                                  return FileImage(File(img));
+                                }
+                              })
                               .toList();
+
+                          if (providers.isEmpty) return;
 
                           final multiImageProvider = MultiImageProvider(
                             providers,
@@ -328,30 +336,54 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                         },
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: selectedCatch.images[0].contains("http")
-                              ? Image.network(
-                                  selectedCatch.images.isNotEmpty
-                                      ? selectedCatch.images[0]
-                                      : 'https://via.placeholder.com/60',
+                          child: selectedCatch.images.isEmpty
+                              ? Image.asset(
+                                  'assets/images/shrimp.jpg',
                                   width: 60,
                                   height: 60,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stacktrace) =>
-                                      Image.asset(
-                                        'assets/images/shrimp.jpg',
+                                )
+                              : (selectedCatch.images[0].startsWith("http")
+                                    ? Image.network(
+                                        selectedCatch.images[0],
                                         width: 60,
                                         height: 60,
                                         fit: BoxFit.cover,
-                                      ),
-                                )
-                              : Image.asset(
-                                  selectedCatch.images.isNotEmpty
-                                      ? selectedCatch.images[0]
-                                      : 'assets/images/prawns.jpg',
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                ),
+                                        errorBuilder:
+                                            (context, error, stacktrace) =>
+                                                Image.asset(
+                                                  'assets/images/shrimp.jpg',
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                      )
+                                    : (selectedCatch.images[0].startsWith(
+                                            'assets/',
+                                          )
+                                          ? Image.asset(
+                                              selectedCatch.images[0],
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.file(
+                                              File(selectedCatch.images[0]),
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => Image.asset(
+                                                    'assets/images/shrimp.jpg',
+                                                    width: 60,
+                                                    height: 60,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                            ))),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -410,15 +442,13 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                     ),
                     child: InfoTable(
                       rows: [
-                        ?selectedCatch.species.id == "prawns"
-                            ? InfoRow(label: "Size", value: selectedCatch.size)
-                            : null,
-                        ?selectedCatch.species.id != "prawns"
-                            ? InfoRow(
-                                label: "Average Size",
-                                value: selectedCatch.size,
-                              )
-                            : null,
+                        if (selectedCatch.species.id == "prawns")
+                          InfoRow(label: "Size", value: selectedCatch.size),
+                        if (selectedCatch.species.id != "prawns")
+                          InfoRow(
+                            label: "Average Size",
+                            value: selectedCatch.size,
+                          ),
                         InfoRow(
                           label: "Initial weight",
                           value: "${selectedCatch.initialWeight.kilograms} kg",
@@ -798,29 +828,22 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                       conversation: conversation,
                       currentUserId: currentUser.id,
                       onTap: () {
-                        context.push("/fisher/chat/${conversation.id}");
+                        context.push('/fisher/chat/${conversation.id}');
                       },
                     );
                   },
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => _buildEmptyState(
-                "Error loading offers",
-                "Please try again later",
-              ),
+              error: (e, _) => Center(child: Text("Error loading offers: $e")),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => _buildEmptyState(
-            "Error loading conversations",
-            "Please try again later",
-          ),
+          error: (e, _) => Center(child: Text("Error loading messages: $e")),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) =>
-          _buildEmptyState("Error loading user", "Please try again later"),
+      error: (e, _) => Center(child: Text("Error loading user: $e")),
     );
   }
 
@@ -828,23 +851,21 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 8,
         children: [
+          Icon(Icons.inbox_outlined, size: 64, color: AppColors.gray200),
+          const SizedBox(height: 16),
           Text(
             title,
             style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
               color: AppColors.textBlue,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
             ),
           ),
+          const SizedBox(height: 8),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: AppColors.textGray,
-              fontWeight: FontWeight.w300,
-              fontSize: 12,
-            ),
+            style: const TextStyle(fontSize: 14, color: AppColors.textGray),
           ),
         ],
       ),

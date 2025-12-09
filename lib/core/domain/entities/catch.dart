@@ -20,6 +20,20 @@ class Catch extends Equatable {
   final Species species;
   final String fisherId;
   final CatchStatus status;
+  // Geolocation & Observation
+  final String observationId;
+  final String locationName;
+  final double latitude;
+  final double longitude;
+
+  // Gearw Fields
+  final double? meshSize; // Fingers
+  final double? gearLength; // meters
+  final double? gearWidth; // meters
+  final String? gearNature; // Cotton, Monofilament, Multifilament
+  final double? waterDepth; // meters
+  final double? fishingTime; // hours
+  final int? numberOfShrimps;
 
   const Catch({
     required this.id,
@@ -35,6 +49,18 @@ class Catch extends Equatable {
     required this.species,
     required this.fisherId,
     required this.status,
+    required this.observationId,
+    required this.locationName,
+    required this.latitude,
+    required this.longitude,
+    // Gear params.meshSize,
+    this.meshSize,
+    this.gearLength,
+    this.gearWidth,
+    this.gearNature,
+    this.waterDepth,
+    this.fishingTime,
+    this.numberOfShrimps,
   });
 
   // Business Logic
@@ -113,7 +139,20 @@ class Catch extends Equatable {
     String? size,
     String? market,
     List<String>? images,
+    Species? species,
+    String? fisherId,
     CatchStatus? status,
+    String? observationId,
+    String? locationName,
+    double? latitude,
+    double? longitude,
+    double? meshSize,
+    double? gearLength,
+    double? gearWidth,
+    String? gearNature,
+    double? waterDepth,
+    double? fishingTime,
+    int? numberOfShrimps,
   }) {
     return Catch(
       id: id,
@@ -126,9 +165,20 @@ class Catch extends Equatable {
       size: size ?? this.size,
       market: market ?? this.market,
       images: images ?? this.images,
-      species: species,
-      fisherId: fisherId,
+      species: species ?? this.species,
+      fisherId: fisherId ?? this.fisherId,
       status: status ?? this.status,
+      observationId: observationId ?? this.observationId,
+      locationName: locationName ?? this.locationName,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      meshSize: meshSize ?? this.meshSize,
+      gearLength: gearLength ?? this.gearLength,
+      gearWidth: gearWidth ?? this.gearWidth,
+      gearNature: gearNature ?? this.gearNature,
+      waterDepth: waterDepth ?? this.waterDepth,
+      fishingTime: fishingTime ?? this.fishingTime,
+      numberOfShrimps: numberOfShrimps ?? this.numberOfShrimps,
     );
   }
 
@@ -147,5 +197,16 @@ class Catch extends Equatable {
     species,
     fisherId,
     status,
+    observationId,
+    locationName,
+    latitude,
+    longitude,
+    meshSize,
+    gearLength,
+    gearWidth,
+    gearNature,
+    waterDepth,
+    fishingTime,
+    numberOfShrimps,
   ];
 }

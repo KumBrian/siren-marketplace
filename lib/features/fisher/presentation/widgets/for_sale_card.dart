@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
@@ -35,22 +37,42 @@ class ForSaleCard extends StatelessWidget {
                   ? Image.network(
                       catchData.images[0],
                       width: 120,
-
                       height: 120,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Image.asset(
                         "assets/images/shrimp.jpg",
                         height: 120,
                         width: 120,
+                        fit: BoxFit.cover,
                       ),
                     )
-                  : Image.asset(
-                      catchData.images[0],
-                      width: 120,
-
-                      height: 120,
-                      fit: BoxFit.cover,
-                    ),
+                  : (catchData.images[0].startsWith("assets/")
+                        ? Image.asset(
+                            catchData.images[0],
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Image.asset(
+                                  "assets/images/shrimp.jpg",
+                                  height: 120,
+                                  width: 120,
+                                  fit: BoxFit.cover,
+                                ),
+                          )
+                        : Image.file(
+                            File(catchData.images[0]),
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Image.asset(
+                                  "assets/images/shrimp.jpg",
+                                  height: 120,
+                                  width: 120,
+                                  fit: BoxFit.cover,
+                                ),
+                          )),
             ),
             Expanded(
               child: Padding(

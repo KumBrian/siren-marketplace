@@ -9,6 +9,7 @@ import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/shared_offer_details_provider.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/order_providers.dart';
 
 class OfferActionState {
   final bool isLoading;
@@ -61,9 +62,6 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
               ))!.id, // Simplified, assumes current user
       );
 
-      // Get the offer to find catchId for invalidation
-      final offer = await _offerRepository.getById(offerId);
-
       state = state.copyWith(
         isLoading: false,
         successMessage: 'Offer accepted successfully!',
@@ -73,13 +71,16 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       // Invalidate both offer detail and offer list providers
       ref.invalidate(offerProvider(offerId));
       ref.invalidate(sharedOfferDetailsProvider(offerId));
-      if (offer != null) {
-        ref.invalidate(offersByCatchProvider(offer.catchId));
-        // Invalidate catch details and lists
-        ref.invalidate(catchByIdProvider(offer.catchId));
-        ref.invalidate(availableCatchesProvider);
-        ref.invalidate(fisherCatchesProvider);
-      }
+
+      // Invalidate catch-related providers using the authoritative catchId from the order
+      ref.invalidate(offersByCatchProvider(order.catchId));
+      ref.invalidate(catchByIdProvider(order.catchId));
+      ref.invalidate(availableCatchesProvider);
+      ref.invalidate(fisherCatchesProvider);
+
+      // Invalidate order providers to show new order
+      ref.invalidate(fisherOrdersProvider);
+      ref.invalidate(myOrdersProvider);
 
       // Invalidate role-specific providers to update UI
       if (role == UserRole.fisher) {
