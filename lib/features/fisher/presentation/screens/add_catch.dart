@@ -206,6 +206,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                     : "Update Location",
                 icon: Icons.my_location,
                 bordered: true,
+                loading: state.isLoadingLocation,
                 onPressed: () => notifier.fetchLocation(),
               ),
             ],

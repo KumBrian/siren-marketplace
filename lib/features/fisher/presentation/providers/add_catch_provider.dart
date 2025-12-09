@@ -46,6 +46,7 @@ class AddCatchState {
   final String? locationName;
   final double? latitude;
   final double? longitude;
+  final bool isLoadingLocation;
 
   // Images (Strings for now, representing paths or assets)
   final List<String> images;
@@ -71,6 +72,7 @@ class AddCatchState {
     this.locationName,
     this.latitude,
     this.longitude,
+    this.isLoadingLocation = false,
     this.images = const [],
   });
 
@@ -95,6 +97,7 @@ class AddCatchState {
     String? locationName,
     double? latitude,
     double? longitude,
+    bool? isLoadingLocation,
     List<String>? images,
   }) {
     return AddCatchState(
@@ -118,6 +121,7 @@ class AddCatchState {
       locationName: locationName ?? this.locationName,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      isLoadingLocation: isLoadingLocation ?? this.isLoadingLocation,
       images: images ?? this.images,
     );
   }
@@ -177,6 +181,7 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
   }
 
   Future<void> fetchLocation() async {
+    state = state.copyWith(isLoadingLocation: true);
     try {
       // 1. Check Permissions
       LocationPermission permission = await Geolocator.checkPermission();
@@ -185,12 +190,14 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
         if (permission == LocationPermission.denied) {
           // Permissions are denied
           print("Location permissions are denied");
+          state = state.copyWith(isLoadingLocation: false);
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
         print("Location permissions are permanently denied");
+        state = state.copyWith(isLoadingLocation: false);
         return;
       }
 
@@ -231,9 +238,11 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
         longitude: position.longitude,
         locationName: locationName,
         observationId: observationId,
+        isLoadingLocation: false,
       );
     } catch (e) {
       print("Error getting location: $e");
+      state = state.copyWith(isLoadingLocation: false);
     }
   }
 
