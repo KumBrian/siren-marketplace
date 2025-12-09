@@ -28,8 +28,6 @@ class SoldCard extends StatelessWidget {
         ? catchImageUrl
         : 'assets/images/placeholder.png'; // Use a placeholder if image is missing
 
-    print(imageUrl);
-
     return Material(
       color: AppColors.white100,
       borderRadius: BorderRadius.circular(16),

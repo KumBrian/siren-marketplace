@@ -24,6 +24,17 @@ class CatchMapper {
       species: SpeciesMapper.toModel(entity.species),
       fisherId: entity.fisherId,
       status: entity.status.name,
+      observationId: entity.observationId,
+      locationName: entity.locationName,
+      latitude: entity.latitude,
+      longitude: entity.longitude,
+      meshSize: entity.meshSize,
+      gearLength: entity.gearLength,
+      gearWidth: entity.gearWidth,
+      gearNature: entity.gearNature,
+      waterDepth: entity.waterDepth,
+      fishingTime: entity.fishingTime,
+      numberOfShrimps: entity.numberOfShrimps,
     );
   }
 
@@ -42,14 +53,21 @@ class CatchMapper {
       images: model.images,
       species: SpeciesMapper.toEntity(model.species),
       fisherId: model.fisherId,
-      status: _parseStatus(model.status),
-    );
-  }
-
-  static CatchStatus _parseStatus(String status) {
-    return CatchStatus.values.firstWhere(
-      (s) => s.name == status,
-      orElse: () => CatchStatus.available,
+      status: CatchStatus.values.firstWhere(
+        (e) => e.name == model.status,
+        orElse: () => CatchStatus.available,
+      ),
+      observationId: model.observationId,
+      locationName: model.locationName,
+      latitude: model.latitude,
+      longitude: model.longitude,
+      meshSize: model.meshSize,
+      gearLength: model.gearLength,
+      gearWidth: model.gearWidth,
+      gearNature: model.gearNature,
+      waterDepth: model.waterDepth,
+      fishingTime: model.fishingTime,
+      numberOfShrimps: model.numberOfShrimps,
     );
   }
 }

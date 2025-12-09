@@ -9,25 +9,29 @@ import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
-import 'package:siren_marketplace/features/fisher/presentation/models/specie_widget_model.dart';
+import 'package:siren_marketplace/core/domain/entities/species.dart';
 import 'package:siren_marketplace/features/fisher/presentation/providers/add_catch_provider.dart';
 
-List<SpecieWidgetModel> specieWidgetModelList = [
-  SpecieWidgetModel(
-    name: "Panaeus Monodon",
-    image: "assets/shrimp-species/panaeus-monodon.png",
+List<Species> speciesList = [
+  const Species(
+    id: "prawn",
+    name: "Prawn",
+    image: "assets/shrimp-species/prawn.png",
   ),
-  SpecieWidgetModel(
-    name: "Crevette Grise",
-    image: "assets/shrimp-species/crevette-grise.png",
+  const Species(
+    id: "grey-shrimp",
+    name: "Grey Shrimp",
+    image: "assets/shrimp-species/grey-shrimp.png",
   ),
-  SpecieWidgetModel(
-    name: "Crevette Rose",
-    image: "assets/shrimp-species/crevette-rose.png",
+  const Species(
+    id: "pink-shrimp",
+    name: "Pink Shrimp",
+    image: "assets/shrimp-species/pink-shrimp.png",
   ),
-  SpecieWidgetModel(
-    name: "Crevette Tiger",
-    image: "assets/shrimp-species/crevette-tiger.png",
+  const Species(
+    id: "tiger-shrimp",
+    name: "Tiger Shrimp",
+    image: "assets/shrimp-species/tiger-shrimp.png",
   ),
 ];
 
@@ -39,7 +43,15 @@ class AddCatchScreen extends ConsumerStatefulWidget {
 }
 
 class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
-  // Controllers for Step 2
+  // Controllers for Step 1
+  final TextEditingController _meshSizeController = TextEditingController();
+  final TextEditingController _gearLengthController = TextEditingController();
+  final TextEditingController _gearWidthController = TextEditingController();
+  final TextEditingController _waterDepthController = TextEditingController();
+  final TextEditingController _fishingTimeController = TextEditingController();
+  // Gear Nature is handled via Dropdown, no text controller needed directly but state stores it
+
+  // Controllers for Step 3
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _sizeController = TextEditingController();
   final TextEditingController _countController = TextEditingController();
@@ -53,6 +65,12 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
 
   @override
   void dispose() {
+    _meshSizeController.dispose();
+    _gearLengthController.dispose();
+    _gearWidthController.dispose();
+    _waterDepthController.dispose();
+    _fishingTimeController.dispose();
+
     _weightController.dispose();
     _sizeController.dispose();
     _countController.dispose();
@@ -119,6 +137,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                     if (state.currentStep == 1) _buildStep2(state, notifier),
                     if (state.currentStep == 2) _buildStep3(state, notifier),
                     if (state.currentStep == 3) _buildStep4(state, notifier),
+                    if (state.currentStep == 4) _buildStep5(state, notifier),
                   ],
                 ),
               ),
@@ -131,6 +150,159 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
   }
 
   Widget _buildStep1(AddCatchState state, AddCatchNotifier notifier) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 32,
+      children: [
+        // Location Section
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.gray200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.location_on, color: AppColors.blue600),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Catch Location",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (state.locationName != null) ...[
+                Text(
+                  state.locationName!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  state.observationId ?? '',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textGray,
+                  ),
+                ),
+                if (state.latitude != null && state.longitude != null)
+                  Text(
+                    "${state.latitude!.toStringAsFixed(4)}, ${state.longitude!.toStringAsFixed(4)}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textGray,
+                    ),
+                  ),
+                const SizedBox(height: 16),
+              ],
+              CustomButton(
+                title: state.locationName == null
+                    ? "Get Current Location"
+                    : "Update Location",
+                icon: Icons.my_location,
+                bordered: true,
+                onPressed: () => notifier.fetchLocation(),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.gray200),
+          ),
+          child: Column(
+            children: [
+              NumberInputField(
+                label: "Mesh Size",
+                suffix: "(finger)",
+                controller: _meshSizeController,
+                value: state.meshSize,
+                onChanged: (val) => notifier.updateGearAndEnvironment(
+                  meshSize: double.tryParse(val),
+                ),
+              ),
+              const SizedBox(height: 16),
+              NumberInputField(
+                label: "Gear Length",
+                suffix: "(m)",
+                controller: _gearLengthController,
+                value: state.gearLength,
+                onChanged: (val) => notifier.updateGearAndEnvironment(
+                  gearLength: double.tryParse(val),
+                ),
+              ),
+              const SizedBox(height: 16),
+              NumberInputField(
+                label: "Gear Width",
+                suffix: "(m)",
+                controller: _gearWidthController,
+                value: state.gearWidth,
+                onChanged: (val) => notifier.updateGearAndEnvironment(
+                  gearWidth: double.tryParse(val),
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  border: const UnderlineInputBorder(),
+                  labelText: "Gear Nature",
+                  labelStyle: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textGray,
+                  ),
+                ),
+                initialValue: state.gearNature,
+                items: ["Cotton", "Monofilament", "Multifilament"]
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                    .toList(),
+                onChanged: (val) =>
+                    notifier.updateGearAndEnvironment(gearNature: val),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.gray200),
+          ),
+          child: Column(
+            children: [
+              NumberInputField(
+                label: "Water Depth",
+                suffix: "(m)",
+                controller: _waterDepthController,
+                value: state.waterDepth,
+                onChanged: (val) => notifier.updateGearAndEnvironment(
+                  waterDepth: double.tryParse(val),
+                ),
+              ),
+              NumberInputField(
+                label: "Fishing Time",
+                suffix: "(h)",
+                controller: _fishingTimeController,
+                value: state.fishingTime,
+                onChanged: (val) => notifier.updateGearAndEnvironment(
+                  fishingTime: double.tryParse(val),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStep2(AddCatchState state, AddCatchNotifier notifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -152,14 +324,12 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                 ),
               ),
               ...List.generate(
-                specieWidgetModelList.length,
+                speciesList.length,
                 (index) => ShrimpSpeciesWidget(
-                  specieWidgetModel: specieWidgetModelList[index],
+                  species: speciesList[index],
                   isSelected:
-                      state.selectedSpecies?.name ==
-                      specieWidgetModelList[index].name,
-                  onTap: () =>
-                      notifier.selectSpecies(specieWidgetModelList[index]),
+                      state.selectedSpecies?.id == speciesList[index].id,
+                  onTap: () => notifier.selectSpecies(speciesList[index]),
                 ),
               ),
             ],
@@ -169,7 +339,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
     );
   }
 
-  Widget _buildStep2(AddCatchState state, AddCatchNotifier notifier) {
+  Widget _buildStep3(AddCatchState state, AddCatchNotifier notifier) {
     return Form(
       autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
@@ -307,7 +477,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
     );
   }
 
-  Widget _buildStep3(AddCatchState state, AddCatchNotifier notifier) {
+  Widget _buildStep4(AddCatchState state, AddCatchNotifier notifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -410,7 +580,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
     );
   }
 
-  Widget _buildStep4(AddCatchState state, AddCatchNotifier notifier) {
+  Widget _buildStep5(AddCatchState state, AddCatchNotifier notifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -434,7 +604,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
     );
   }
 
-  Widget _buildSelectedSpeciesHeader(SpecieWidgetModel? species) {
+  Widget _buildSelectedSpeciesHeader(Species? species) {
     if (species == null) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -471,7 +641,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
 
       child: Column(
         children: [
-          if (state.currentStep == 3) ...[
+          if (state.currentStep == 4) ...[
             CustomButton(
               title: "Save as draft",
               bordered: true,
@@ -499,7 +669,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
 
               // Next/Save Button
               Expanded(
-                child: state.currentStep == 3
+                child: state.currentStep == 4
                     ? Row(
                         children: [
                           Expanded(
@@ -604,12 +774,12 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
 class ShrimpSpeciesWidget extends StatelessWidget {
   const ShrimpSpeciesWidget({
     super.key,
-    required this.specieWidgetModel,
+    required this.species,
     this.isSelected = false,
     required this.onTap,
   });
 
-  final SpecieWidgetModel specieWidgetModel;
+  final Species species;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -634,7 +804,7 @@ class ShrimpSpeciesWidget extends StatelessWidget {
                 ),
                 Expanded(
                   child: Text(
-                    specieWidgetModel.name,
+                    species.name,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: isSelected
@@ -651,7 +821,7 @@ class ShrimpSpeciesWidget extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.asset(
-                  specieWidgetModel.image,
+                  species.image,
                   fit: BoxFit.cover,
                   height: 130,
                   width: 170,

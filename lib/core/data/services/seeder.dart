@@ -16,7 +16,7 @@ class Seeder {
   late final MessageSeeder _messageSeeder;
 
   Seeder() {
-    _messageSeeder = MessageSeeder(dbHelper: DatabaseHelper());
+    _messageSeeder = MessageSeeder(dbHelper: DatabaseHelper.instance);
   }
 
   Future<void> seedAll() async {

@@ -18,7 +18,6 @@ class ForSaleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(catchData.images[0]);
     return Material(
       color: AppColors.white100,
       borderRadius: BorderRadius.circular(16),

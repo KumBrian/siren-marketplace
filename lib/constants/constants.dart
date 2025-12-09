@@ -1,5 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:siren_marketplace/core/models/species.dart';
+import 'package:flutter/material.dart';
 
 class AppSpacing {
   //SIREN PADDING
@@ -20,14 +19,6 @@ class AppSpacing {
   static const margin35 = 35.0;
   static const margin40 = 40.0;
 }
-
-const List<Species> kSpecies = [
-  Species(id: "tiger-shrimp", name: "Tiger Shrimp"),
-  Species(id: "pink-shrimp", name: "Pink Shrimp"),
-  Species(id: "grey-shrimp", name: "Grey Shrimp"),
-  Species(id: "small-prawn", name: "Small Prawn"),
-  Species(id: "large-prawn", name: "Large Prawn"),
-];
 
 const List<String> kFailedTransactionReasons = [
   "Buyer did not come to collect the order",

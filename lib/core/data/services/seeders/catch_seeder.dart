@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/species.dart';
+import 'package:siren_marketplace/core/data/mappers/species_mapper.dart';
 import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
@@ -15,12 +16,9 @@ class CatchSeeder {
   final Uuid _uuid = const Uuid();
   final Random _rng = Random();
 
-  static final List<Species> _speciesList = [
-    const Species(id: 'grey-shrimp', name: 'Grey Shrimp'),
-    const Species(id: 'pink-shrimp', name: 'Pink Shrimp'),
-    const Species(id: 'tiger-shrimp', name: 'Tiger Shrimp'),
-    const Species(id: 'prawns', name: 'Prawns'),
-  ];
+  static final List<Species> _speciesList = SeederData.speciesList
+      .map((model) => SpeciesMapper.toEntity(model))
+      .toList();
 
   /// Generates a random weight in grams with 0.1kg (100g) steps.
   /// maxKg is inclusive maximum kg (e.g. 100 -> up to 100.0 kg).
@@ -76,10 +74,8 @@ class CatchSeeder {
         status = CatchStatus.available;
       }
 
-      // Generate between 1–4 random unique image URLs
-      final imageCount = _rng.nextInt(4) + 1; // gives 1 to 4
-      final shuffled = List.of(SeederData.catchImageUrls)..shuffle(_rng);
-      final randomImages = shuffled.take(imageCount).toList();
+      // Use species image as the only catch image
+      final List<String> catchImages = [species.image];
 
       // total price computed in integer arithmetic: (grams * pricePerKg) / 1000
       final int totalPrice = (initialWeightGrams * pricePerKg) ~/ 1000;
@@ -93,14 +89,24 @@ class CatchSeeder {
         availableWeight: Weight.fromGrams(availableWeightGrams),
         pricePerKg: PricePerKg.fromAmount(pricePerKg),
         totalPrice: Price.fromAmount(totalPrice),
-        size: species.id == "prawns"
+        size: species.id == "prawn"
             ? ['Large', 'Medium', 'Small'][_rng.nextInt(3)]
             : ['0', '00', '000'][_rng.nextInt(3)],
         market: market,
         species: species,
         fisherId: fisherId,
-        images: randomImages,
+        images: catchImages,
         status: status,
+        observationId: 'Obs-${(i + 1).toString().padLeft(3, '0')}',
+        locationName: const [
+          'Douala Port',
+          'Limbe Coast',
+          'Kribi Beach',
+          'Wouri River',
+        ][_rng.nextInt(4)],
+        latitude: 4.0511 + (_rng.nextDouble() * 0.1),
+        longitude: 9.7679 + (_rng.nextDouble() * 0.1),
+        meshSize: 2.5 + _rng.nextInt(3),
       );
 
       await repository.create(c);

@@ -5,9 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 
 class ProductImagesCarousel extends StatefulWidget {
-  const ProductImagesCarousel({super.key, required this.images});
+  const ProductImagesCarousel({
+    super.key,
+    required this.images,
+    this.height = 250,
+  });
 
   final List<String> images;
+  final double height;
 
   @override
   State<ProductImagesCarousel> createState() => _ProductImagesCarouselState();
@@ -26,7 +31,7 @@ class _ProductImagesCarouselState extends State<ProductImagesCarousel> {
         child: Image.asset(
           'assets/images/shrimp.jpg',
           width: double.infinity,
-          height: 250,
+          height: widget.height,
           fit: BoxFit.cover,
         ),
       );
@@ -87,7 +92,8 @@ class _ProductImagesCarouselState extends State<ProductImagesCarousel> {
               }).toList(),
               carouselController: _controller,
               options: CarouselOptions(
-                height: 250,
+                height: widget.height,
+                enableInfiniteScroll: widget.images.length > 1,
                 autoPlay: widget.images.length > 1,
                 viewportFraction: 1.0,
                 onPageChanged: (index, reason) {

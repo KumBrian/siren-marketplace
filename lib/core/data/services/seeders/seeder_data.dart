@@ -1,4 +1,5 @@
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import '../../models/species_model.dart';
 
 class SeederData {
   // Dummy Avatars
@@ -12,6 +13,33 @@ class SeederData {
     10,
     (index) => 'https://picsum.photos/400/300?random=${500 + index}',
   );
+
+  static final List<SpeciesModel> speciesList = [
+    const SpeciesModel(
+      id: "prawn",
+      name: "Prawn",
+      image: "assets/shrimp-species/prawn.png",
+      scientificName: "Panaeus Monodon",
+    ),
+    const SpeciesModel(
+      id: "grey-shrimp",
+      name: "Grey Shrimp",
+      image: "assets/shrimp-species/grey-shrimp.png",
+      scientificName: "Crevette Grise",
+    ),
+    const SpeciesModel(
+      id: "pink-shrimp",
+      name: "Pink Shrimp",
+      image: "assets/shrimp-species/pink-shrimp.png",
+      scientificName: "Crevette Rose",
+    ),
+    const SpeciesModel(
+      id: "tiger-shrimp",
+      name: "Tiger Shrimp",
+      image: "assets/shrimp-species/tiger-shrimp.png",
+      scientificName: "Crevette Tiger",
+    ),
+  ];
 
   static const List<String> markets = [
     'Yopwe',

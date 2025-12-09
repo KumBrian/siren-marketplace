@@ -8,8 +8,11 @@ extension CatchStatusExtension on CatchStatus {
 }
 
 class DatabaseHelper {
-  static const _databaseName = "SirenMarketplaceDB.db";
-  static const _databaseVersion = 18;
+  static const _databaseName = "siren_marketplace.db";
+  static const _databaseVersion = 23;
+
+  DatabaseHelper._privateConstructor();
+  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
 
   // Table Names
   static const _usersTable = 'users';
@@ -98,11 +101,23 @@ class DatabaseHelper {
         total REAL NOT NULL,
         size TEXT,
         market TEXT,
-        species_id TEXT NOT NULL,
-        species_name TEXT NOT NULL,
-        fisher_id TEXT NOT NULL,
+        species_id TEXT,
+        species_name TEXT,
+        species_image TEXT,
+        observation_id TEXT,
+        location_name TEXT,
+        latitude REAL,
+        longitude REAL,
+        fisher_id TEXT,
         images TEXT,
-        status TEXT NOT NULL
+        status TEXT,
+        mesh_size REAL,
+        gear_length REAL,
+        gear_width REAL,
+        gear_nature TEXT,
+        water_depth REAL,
+        fishing_time REAL,
+        number_of_shrimps INTEGER
       )
     ''');
 

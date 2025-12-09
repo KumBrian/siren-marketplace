@@ -39,6 +39,10 @@ class TestData {
     Species? species,
     String? fisherId,
     CatchStatus? status,
+    String? observationId,
+    String? locationName,
+    double? latitude,
+    double? longitude,
   }) {
     final defaultInitialWeight = Weight.fromKg(10);
     return Catch(
@@ -55,6 +59,10 @@ class TestData {
       species: species ?? createSpecies(),
       fisherId: fisherId ?? 'fisher-1',
       status: status ?? CatchStatus.available,
+      observationId: observationId ?? 'Obs-001',
+      locationName: locationName ?? 'Test Location',
+      latitude: latitude ?? 4.0511,
+      longitude: longitude ?? 9.7679,
     );
   }
 
@@ -164,8 +172,12 @@ class TestData {
   }
 
   /// Creates a test Species entity with sensible defaults
-  static Species createSpecies({String? id, String? name}) {
-    return Species(id: id ?? 'species-1', name: name ?? 'Tuna');
+  static Species createSpecies({String? id, String? name, String? image}) {
+    return Species(
+      id: id ?? 'species-1',
+      name: name ?? 'Tuna',
+      image: image ?? '',
+    );
   }
 
   // ============================================================================
