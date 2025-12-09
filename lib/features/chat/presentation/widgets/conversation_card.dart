@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/domain/entities/conversation.dart';
-import '../../../../core/domain/entities/user.dart';
 import '../../../../core/providers/user_providers.dart';
 import '../../../../core/widgets/error_handling_circle_avatar.dart';
 

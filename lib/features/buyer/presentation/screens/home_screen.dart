@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/species.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';

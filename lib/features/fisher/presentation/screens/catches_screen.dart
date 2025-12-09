@@ -198,9 +198,9 @@ class _CatchesScreenState extends ConsumerState<CatchesScreen> {
         final matchesName = catchItem.species.name.toLowerCase().contains(
           query,
         );
-        final matchesScientific =
-            catchItem.species.scientificName?.toLowerCase().contains(query) ??
-            false;
+        final matchesScientific = catchItem.species.scientificName
+            .toLowerCase()
+            .contains(query);
         final matchesObs = catchItem.observationId.toLowerCase().contains(
           query,
         );

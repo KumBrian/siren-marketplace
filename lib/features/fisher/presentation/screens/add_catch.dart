@@ -751,25 +751,6 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
       ),
     );
   }
-
-  void _showSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Success"),
-        content: const Text("Catch added successfully!"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx); // Close dialog
-              Navigator.pop(context); // Close screen
-            },
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class ShrimpSpeciesWidget extends StatelessWidget {
