@@ -10,7 +10,7 @@ Future<void> showActionSuccessDialog(
   int autoCloseSeconds = 3,
 }) async {
   if (!context.mounted) return;
-  showDialog(
+  await showDialog(
     context: context,
     barrierDismissible: true,
     builder: (ctx) {

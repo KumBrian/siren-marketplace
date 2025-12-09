@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
@@ -89,8 +91,17 @@ class ProductCard extends StatelessWidget {
                         },
                       ),
                     )
-                  // 3. If the URL was a local asset path to begin with, use Image.asset directly
-                  : _buildLocalPlaceholder(cardImageHeight),
+                  // 3. Check if asset or file
+                  : (imageUrl.startsWith('assets/')
+                        ? _buildLocalPlaceholder(cardImageHeight)
+                        : Image.file(
+                            File(imageUrl),
+                            height: cardImageHeight,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildLocalPlaceholder(cardImageHeight),
+                          )),
             ),
 
             // --- End Image Display Block ---
