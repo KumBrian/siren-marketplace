@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:siren_marketplace/core/config/app_config.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
@@ -16,23 +17,33 @@ class RoleSelectionController extends AutoDisposeAsyncNotifier<void> {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       print('RoleSelectionController.selectRole - starting guard');
-      final userRepository = sl<IUserRepository>();
       final sessionService = sl<SessionService>();
 
-      // 1. Fetch user based on role (Simulation for demo)
-      final user = role == UserRole.fisher
-          ? await userRepository.getFirstFisher()
-          : await userRepository.getFirstBuyer();
+      if (AppConfig.isApiMode) {
+        // API Mode: User is already authenticated, just switch role
+        print('RoleSelectionController - API mode: switching role');
+        await sessionService.switchRole(role);
+        print('RoleSelectionController - Role switched successfully');
+      } else {
+        // Demo/Local Mode: Fetch mock user and login
+        print('RoleSelectionController - Demo/Local mode: fetching mock user');
+        final userRepository = sl<IUserRepository>();
 
-      if (user == null) {
-        print('RoleSelectionController.selectRole - User not found');
-        throw Exception('No user found for role ${role.name}');
+        // 1. Fetch user based on role (Simulation for demo)
+        final user = role == UserRole.fisher
+            ? await userRepository.getFirstFisher()
+            : await userRepository.getFirstBuyer();
+
+        if (user == null) {
+          print('RoleSelectionController.selectRole - User not found');
+          throw Exception('No user found for role ${role.name}');
+        }
+        print('RoleSelectionController.selectRole - User found: ${user.id}');
+
+        // 2. Login
+        await sessionService.login(user);
+        print('RoleSelectionController.selectRole - Login successful');
       }
-      print('RoleSelectionController.selectRole - User found: ${user.id}');
-
-      // 2. Login
-      await sessionService.login(user);
-      print('RoleSelectionController.selectRole - Login successful');
 
       // 3. Refresh global user provider and WAIT for it to complete
       // This ensures we have the new user data before we navigate.

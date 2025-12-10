@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:siren_marketplace/core/config/app_config.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/providers/auth_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
+import 'package:siren_marketplace/features/auth/presentation/screens/login_screen.dart';
 import 'package:siren_marketplace/features/buyer/presentation/screens/buyer.dart';
 
 import 'package:siren_marketplace/features/buyer/presentation/screens/order_details.dart';
@@ -56,9 +59,33 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: authNotifier,
     redirect: (context, state) {
       print('GoRouter: redirect called. Path: ${state.fullPath}');
+      final bool isRoot = state.fullPath == '/';
+      final bool isLoginRoute = state.fullPath == '/login';
+
+      // API Mode: Check authentication
+      if (AppConfig.isApiMode) {
+        final authAsync = ref.read(isAuthenticatedProvider);
+        final isAuthenticated = authAsync.value ?? false;
+
+        print(
+          'GoRouter: API mode - isAuthenticated: $isAuthenticated, path: ${state.fullPath}',
+        );
+
+        // Not authenticated and not on login → redirect to login
+        if (!isAuthenticated && !isLoginRoute) {
+          print('GoRouter: Not authenticated, redirecting to /login');
+          return '/login';
+        }
+
+        // Authenticated and on login → redirect to role selection
+        if (isAuthenticated && isLoginRoute) {
+          print('GoRouter: Already authenticated, redirecting to /');
+          return '/';
+        }
+      }
+
       // READ the current state, do NOT watch it here to avoid recreating the router
       final userAsync = ref.read(currentUserProvider);
-      final bool isRoot = state.fullPath == '/';
 
       print('GoRouter: userAsync state: $userAsync');
 
@@ -67,15 +94,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       // If we have data (e.g. background refresh), let the user proceed/stay.
       if (userAsync.isLoading && !userAsync.hasValue) {
         print('GoRouter: User is loading and has no value. isRoot: $isRoot');
-        return isRoot ? null : '/';
+        return (isRoot || isLoginRoute) ? null : '/';
       }
 
       final user = userAsync.value;
       final currentRole = user?.currentRole ?? UserRole.unknown;
       print('GoRouter: User loaded. Role: $currentRole');
 
-      // Rule 1: Not loaded/Unknown role attempts to access non-root path -> Redirect to root
-      if (currentRole == UserRole.unknown && !isRoot) {
+      // Rule 1: Not loaded/Unknown role attempts to access non-root path → Redirect to root
+      if (currentRole == UserRole.unknown && !isRoot && !isLoginRoute) {
         print('GoRouter: Unknown role on non-root path. Redirecting to /');
         return '/';
       }
@@ -94,6 +121,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/', builder: (_, __) => const RoleScreen()),
       GoRoute(
         path: '/fisher',
