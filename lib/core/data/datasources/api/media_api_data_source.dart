@@ -12,9 +12,61 @@ class MediaApiDataSource {
   final Dio _dio;
   final TokenStorage _tokenStorage;
 
+  // Cache Pulsebox access token to avoid repeated API calls
+  String? _cachedPulseboxToken;
+  DateTime? _pulseboxTokenExpiry;
+
   MediaApiDataSource({required Dio dio, required TokenStorage tokenStorage})
     : _dio = dio,
       _tokenStorage = tokenStorage;
+
+  /// Get Pulsebox access token by exchanging JWT
+  /// Returns cached token if still valid
+  Future<String> _getPulseboxAccessToken() async {
+    // Check if we have a valid cached token
+    if (_cachedPulseboxToken != null &&
+        _pulseboxTokenExpiry != null &&
+        DateTime.now().isBefore(_pulseboxTokenExpiry!)) {
+      print('DEBUG: Using cached Pulsebox token');
+      return _cachedPulseboxToken!;
+    }
+
+    // Get JWT from storage
+    final jwt = await _tokenStorage.getAccessToken();
+    if (jwt == null) {
+      throw Exception('No JWT available to exchange for Pulsebox token');
+    }
+
+    print('DEBUG: Exchanging JWT for Pulsebox access token');
+
+    try {
+      // Call Pulsebox to create access token
+      final response = await _dio.post(
+        '${ApiConfig.pulseboxBaseUrl}/access-token/create',
+        data: {'jwtToken': jwt},
+      );
+
+      final data = response.data;
+      final pulseboxToken = data['accessToken'] as String?;
+
+      if (pulseboxToken == null) {
+        throw Exception('No accessToken in Pulsebox response');
+      }
+
+      // Cache the token (valid for 1 hour by default)
+      _cachedPulseboxToken = pulseboxToken;
+      _pulseboxTokenExpiry = DateTime.now().add(const Duration(minutes: 55));
+
+      print(
+        'DEBUG: Got Pulsebox access token, cached until ${_pulseboxTokenExpiry}',
+      );
+
+      return pulseboxToken;
+    } catch (e) {
+      print('ERROR: Failed to get Pulsebox access token: $e');
+      rethrow;
+    }
+  }
 
   /// Extract pulseBoxAccessToken from JWT
   String? _extractPulseBoxToken(String jwt) {
@@ -119,18 +171,8 @@ class MediaApiDataSource {
         'DEBUG: Uploading ${compressedImages.length} compressed images to Pulsebox',
       );
 
-      // Get JWT and extract Pulsebox-specific token
-      final jwt = await _tokenStorage.getAccessToken();
-      if (jwt == null) {
-        throw Exception('No access token available for media upload');
-      }
-
-      final pulseBoxToken = _extractPulseBoxToken(jwt);
-      if (pulseBoxToken == null) {
-        throw Exception('No pulseBoxAccessToken found in JWT');
-      }
-
-      print('DEBUG: Using pulseBoxAccessToken for upload');
+      // Get Pulsebox access token (exchanges JWT if needed)
+      final pulseboxToken = await _getPulseboxAccessToken();
 
       // POST to Pulsebox create-collection endpoint with Pulsebox token
       final response = await _dio.post(
@@ -139,7 +181,7 @@ class MediaApiDataSource {
         options: Options(
           headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': 'Bearer $pulseBoxToken',
+            'Authorization': 'Bearer $pulseboxToken',
           },
         ),
       );
