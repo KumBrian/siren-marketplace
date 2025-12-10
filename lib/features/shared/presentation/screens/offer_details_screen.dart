@@ -758,7 +758,7 @@ class _SharedOfferDetailsScreenState
         SizedBox(
           width: double.infinity,
           child: CustomButton(
-            title: "Call ${state.otherParty.name}",
+            title: "Call ${state.otherParty.currentRole.displayName}",
             onPressed: () =>
                 makePhoneCall('651204966', context), // Placeholder number
             hugeIcon: HugeIcons.strokeRoundedCall02,
@@ -769,7 +769,7 @@ class _SharedOfferDetailsScreenState
         SizedBox(
           width: double.infinity,
           child: CustomButton(
-            title: "Message",
+            title: "Message ${state.otherParty.currentRole.displayName}",
             onPressed: () {
               final prefix = state.currentUserRole == UserRole.buyer
                   ? 'buyer'
@@ -793,7 +793,7 @@ class _SharedOfferDetailsScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader("Last Counter-Offer"),
+        const SectionHeader("Previous Offer"),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(16),
@@ -804,13 +804,14 @@ class _SharedOfferDetailsScreenState
           child: InfoTable(
             rows: [
               InfoRow(label: "Weight", value: "${terms.weight.kilograms} kg"),
-              InfoRow(
-                label: "Price",
-                value: formatPrice(terms.totalPrice.amount),
-              ),
+
               InfoRow(
                 label: "Price/Kg",
                 value: formatPrice(terms.pricePerKg.amountPerKg),
+              ),
+              InfoRow(
+                label: "Price",
+                value: formatPrice(terms.totalPrice.amount),
               ),
             ],
           ),
