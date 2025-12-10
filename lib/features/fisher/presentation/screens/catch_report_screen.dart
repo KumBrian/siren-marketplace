@@ -116,7 +116,7 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
                       subtitle: selectedCatch.locationName,
                     ),
                     _buildInfoTile(
-                      icon: Icons.gps_fixed,
+                      icon: Icons.map_outlined,
                       title: "Coordinates",
                       subtitle:
                           "${selectedCatch.latitude.toStringAsFixed(4)}, ${selectedCatch.longitude.toStringAsFixed(4)}",
@@ -127,7 +127,7 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
                       subtitle: selectedCatch.species.name,
                     ),
                     _buildInfoTile(
-                      icon: Icons.person,
+                      icon: Icons.person_2_outlined,
                       title: "Fisher",
                       subtitle: fisherAsync.value!.name,
                     ),

@@ -192,17 +192,6 @@ class FisherHome extends ConsumerWidget {
         error: (error, _) =>
             Center(child: Text("Error loading catches: $error")),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 50.0),
-        child: FloatingActionButton(
-          onPressed: () {
-            context.go("/fisher/add-catch");
-          },
-          backgroundColor: AppColors.blue850,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add, color: AppColors.white100),
-        ),
-      ),
     );
   }
 

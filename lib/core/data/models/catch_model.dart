@@ -5,17 +5,17 @@ import 'species_model.dart';
 class CatchModel {
   final String id;
   final String name;
-  final String datePosted; // ISO8601 string
+  final String datePosted;
   final int initialWeightGrams;
   final int availableWeightGrams;
-  final int pricePerKgAmount; // in smallest currency unit
-  final int totalPriceAmount; // in smallest currency unit
+  final int pricePerKgAmount;
+  final int totalPriceAmount;
   final String size;
   final String market;
   final List<String> images;
   final SpeciesModel species;
   final String fisherId;
-  final String status; // 'available', 'soldOut', 'expired', 'removed'
+  final String status;
   final String observationId;
   final String locationName;
   final double latitude;

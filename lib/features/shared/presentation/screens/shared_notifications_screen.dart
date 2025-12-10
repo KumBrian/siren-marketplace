@@ -79,41 +79,39 @@ class _SharedNotificationsScreenState
       data: (offers) {
         if (offers.isEmpty) {
           return Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 64.0),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 120,
-                    width: 120,
-                    child: Image.asset(
-                      role == UserRole.fisher
-                          ? "assets/images/no-offers.png"
-                          : "assets/images/no-notifications.png",
-                    ),
-                  ),
-                  Text(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 120,
+                  width: 120,
+                  child: Image.asset(
                     role == UserRole.fisher
-                        ? "No offers found."
-                        : "You have no offers yet.",
-                    style: const TextStyle(
-                      color: AppColors.textGray,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
+                        ? "assets/images/no-offers.png"
+                        : "assets/images/no-messages.png",
                   ),
-                  Text(
-                    role == UserRole.fisher
-                        ? "Try adjusting your filters or wait for new bids."
-                        : "Browse the marketplace and make an offer.",
-                    style: const TextStyle(
-                      color: AppColors.textGray,
-                      fontWeight: FontWeight.w300,
-                      fontSize: 12,
-                    ),
+                ),
+                Text(
+                  role == UserRole.fisher
+                      ? "No offers found."
+                      : "You have no offers yet.",
+                  style: const TextStyle(
+                    color: AppColors.textGray,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
                   ),
-                ],
-              ),
+                ),
+                Text(
+                  role == UserRole.fisher
+                      ? "Try adjusting your filters or wait for new bids."
+                      : "Browse the marketplace and make an offer.",
+                  style: const TextStyle(
+                    color: AppColors.textGray,
+                    fontWeight: FontWeight.w300,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
           );
         }
@@ -467,33 +465,31 @@ class _SharedNotificationsScreenState
       data: (conversations) {
         if (conversations.isEmpty) {
           return Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 64.0),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 120,
-                    width: 120,
-                    child: Image.asset("assets/images/no-notifications.png"),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 120,
+                  width: 120,
+                  child: Image.asset("assets/images/no-messages.png"),
+                ),
+                const Text(
+                  "No messages yet.",
+                  style: TextStyle(
+                    color: AppColors.textBlue,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
                   ),
-                  const Text(
-                    "No messages yet.",
-                    style: TextStyle(
-                      color: AppColors.textGray,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
+                ),
+                const Text(
+                  "Start a conversation with a buyer or fisher.",
+                  style: TextStyle(
+                    color: AppColors.textBlue,
+                    fontWeight: FontWeight.w300,
+                    fontSize: 12,
                   ),
-                  const Text(
-                    "Start a conversation with a buyer or fisher.",
-                    style: TextStyle(
-                      color: AppColors.textGray,
-                      fontWeight: FontWeight.w300,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         }

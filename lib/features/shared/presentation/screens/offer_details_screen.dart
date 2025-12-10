@@ -556,7 +556,7 @@ class _SharedOfferDetailsScreenState
 
     final catchItem = state.catchItem;
     final initialPricePerKg = catchItem.pricePerKg.amountPerKg;
-    pricePerKgController.text = initialPricePerKg.toStringAsFixed(2);
+    pricePerKgController.text = initialPricePerKg.toStringAsFixed(0);
 
     bool userEditingTotal = false;
 
@@ -566,7 +566,7 @@ class _SharedOfferDetailsScreenState
       final pricePerKg = double.tryParse(pricePerKgController.text);
       if (weight != null && pricePerKg != null) {
         final total = weight * pricePerKg;
-        priceController.text = total.toStringAsFixed(2);
+        priceController.text = total.toStringAsFixed(0);
       }
     }
 
@@ -575,7 +575,7 @@ class _SharedOfferDetailsScreenState
       final total = double.tryParse(priceController.text);
       if (weight != null && weight > 0 && total != null) {
         final pricePerKg = total / weight;
-        pricePerKgController.text = pricePerKg.toStringAsFixed(2);
+        pricePerKgController.text = pricePerKg.toStringAsFixed(0);
       }
     }
 
@@ -682,6 +682,7 @@ class _SharedOfferDetailsScreenState
                             label: "Price/Kg",
                             suffix: "CFA",
                             decimal: false,
+                            editable: false,
                             validator: (value) {
                               final pricePerKg = int.tryParse(value ?? "");
                               if (pricePerKg == null || pricePerKg <= 0) {
@@ -832,9 +833,11 @@ class _SharedOfferDetailsScreenState
     weightController.text = state.offer.currentTerms.weight.kilograms
         .toString();
     priceController.text = state.offer.currentTerms.totalPrice.amount
-        .toString();
+        .toStringAsFixed(0);
     pricePerKgController.text = state.offer.currentTerms.pricePerKg.amountPerKg
-        .toString();
+        .toStringAsFixed(0);
+
+    final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
@@ -852,78 +855,98 @@ class _SharedOfferDetailsScreenState
               }
             }
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: 16,
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    onPressed: () => context.pop(),
-                    icon: Icon(Icons.close),
+            return Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 16,
+                children: [
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      onPressed: () => context.pop(),
+                      icon: Icon(Icons.close),
+                    ),
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.gray200),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.gray200),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        NumberInputField(
+                          controller: weightController,
+                          label: "Weight",
+                          decimal: true,
+                          suffix: "Kg",
+                          editable: false,
+                          onChanged: (_) => setState(updateCalculations),
+                          validator: (value) {
+                            final val = double.tryParse(value ?? "");
+                            if (val == null || val <= 0) {
+                              return "Enter valid weight";
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        NumberInputField(
+                          controller: priceController,
+                          label: "Total Price",
+                          suffix: "CFA",
+                          decimal: false,
+                          editable: true,
+                          onChanged: (_) => setState(updateCalculations),
+                          validator: (value) {
+                            final val = int.tryParse(value ?? "");
+                            if (val == null || val <= 0) {
+                              return "Enter valid price";
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        NumberInputField(
+                          controller: pricePerKgController,
+                          label: "Price/Kg",
+                          suffix: "CFA",
+                          decimal: false,
+                          editable: false, // Read-only
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      NumberInputField(
-                        controller: weightController,
-                        label: "Weight",
-                        suffix: "Kg",
-                        editable: false,
-                        onChanged: (_) => setState(updateCalculations),
-                      ),
-                      const SizedBox(height: 12),
-                      NumberInputField(
-                        controller: priceController,
-                        label: "Total Price",
-                        suffix: "CFA",
-                        decimal: false,
-                        editable: true,
-                        onChanged: (_) => setState(updateCalculations),
-                      ),
-                      const SizedBox(height: 12),
-                      NumberInputField(
-                        controller: pricePerKgController,
-                        label: "Price/Kg",
-                        suffix: "CFA",
-                        decimal: false,
-                        editable: false, // Read-only
-                      ),
-                    ],
-                  ),
-                ),
-                CustomButton(
-                  title: "Send Counter-offer",
-                  onPressed: () {
-                    final weight = double.tryParse(weightController.text);
-                    final total = int.tryParse(priceController.text);
+                  CustomButton(
+                    title: "Send Counter-offer",
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        final weight = double.tryParse(weightController.text);
+                        final total = int.tryParse(priceController.text);
 
-                    if (weight != null && total != null) {
-                      final terms = OfferTerms.create(
-                        weight: Weight.fromKg(weight),
-                        totalPrice: Price.fromAmount(total),
-                      );
-
-                      ref
-                          .read(offerActionsProvider.notifier)
-                          .counterOffer(
-                            state.offer.id,
-                            state.currentUserRole,
-                            terms,
+                        if (weight != null && total != null) {
+                          final terms = OfferTerms.create(
+                            weight: Weight.fromKg(weight),
+                            totalPrice: Price.fromAmount(total),
                           );
-                      context.pop();
-                    }
-                  },
-                ),
-              ],
+
+                          ref
+                              .read(offerActionsProvider.notifier)
+                              .counterOffer(
+                                state.offer.id,
+                                state.currentUserRole,
+                                terms,
+                              );
+                          context.pop();
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
             );
           },
         ),

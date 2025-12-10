@@ -28,54 +28,64 @@ double _getDeterministicNoise(int daysAgo, double seed) {
       (_random.nextDouble() * seed - seed / 2);
 }
 
-List<HistoricalPriceData> _generateSpeciesData(
+List<HistoricalPriceData> _generateData(
   String species,
-  double initialBasePrice,
-) {
+  double baseValue, {
+  bool isCatch = false,
+}) {
   final data = <HistoricalPriceData>[];
   final speciesSeed =
-      initialBasePrice /
-      100.0; // Use base price to make randomness unique per species
+      baseValue / 100.0; // Use base price to make randomness unique per species
 
-  // 1. Generate Daily Data (Last 30 Days) - High Volatility
-  for (int i = 0; i < 30; i++) {
-    final daysAgo = i;
-    final date = now.subtract(Duration(days: daysAgo));
+  // 1. Generate Hourly Data (Last 24 Hours)
+  for (int i = 0; i < 24; i++) {
+    final hoursAgo = i;
+    final date = now.subtract(Duration(hours: hoursAgo));
 
-    // Simulate high daily volatility (e.g., +/- 50 CFA)
-    final dailyVolatility = _random.nextDouble() * 100 - 50;
+    // Intra-day volatility
+    final volatility =
+        _random.nextDouble() * (baseValue * 0.05) - (baseValue * 0.025);
+    final noise =
+        _getDeterministicNoise(hoursAgo, speciesSeed) * (isCatch ? 1 : 2);
 
-    // Smooth, species-specific market noise
-    final marketNoise = _getDeterministicNoise(daysAgo, speciesSeed) * 5;
-
-    // Calculate final price
-    double price = initialBasePrice + marketNoise + dailyVolatility;
-
-    // Ensure the price is always positive and format to 2 decimal places
-    price = double.parse(price.clamp(100.0, 5000.0).toStringAsFixed(2));
+    double value = baseValue + noise + volatility;
+    value = double.parse(value.clamp(0.0, 10000.0).toStringAsFixed(2));
 
     data.add(
-      HistoricalPriceData(species: species, date: date, pricePerKg: price),
+      HistoricalPriceData(species: species, date: date, pricePerKg: value),
     );
   }
 
-  // 2. Generate Monthly Data (Last 12 Months) - Lower Volatility, Clearer Trend
+  // 2. Generate Daily Data (Last 30 Days)
+  for (int i = 1; i < 30; i++) {
+    final daysAgo = i;
+    final date = now.subtract(Duration(days: daysAgo));
+
+    final dailyVolatility =
+        _random.nextDouble() * (baseValue * 0.1) - (baseValue * 0.05);
+    final marketNoise = _getDeterministicNoise(daysAgo, speciesSeed) * 5;
+
+    double value = baseValue + marketNoise + dailyVolatility;
+    value = double.parse(value.clamp(0.0, 10000.0).toStringAsFixed(2));
+
+    data.add(
+      HistoricalPriceData(species: species, date: date, pricePerKg: value),
+    );
+  }
+
+  // 3. Generate Monthly Data (Last 12 Months)
   for (int i = 30; i < 365; i += 30) {
     final daysAgo = i;
     final date = now.subtract(Duration(days: daysAgo));
 
-    // Simulate seasonal or long-term trend (e.g., lower prices further back)
-    final longTermTrend = (365 - daysAgo) / 365.0 * 50.0;
-
-    // Less volatility for long-term trends
+    final longTermTrend = (365 - daysAgo) / 365.0 * (baseValue * 0.1);
     final marketNoise = _getDeterministicNoise(daysAgo, speciesSeed) * 2;
 
-    double price = (initialBasePrice * 0.9) + longTermTrend + marketNoise;
-
-    price = double.parse(price.clamp(100.0, 5000.0).toStringAsFixed(2));
+    double value = (baseValue * 0.9) + longTermTrend + marketNoise;
+    value = double.parse(value.clamp(0.0, 10000.0).toStringAsFixed(2));
 
     data.add(
-      HistoricalPriceData(species: species, date: date, pricePerKg: price),
+      HistoricalPriceData(species: species, date: date, pricePerKg: value),
     );
   }
 
@@ -83,17 +93,19 @@ List<HistoricalPriceData> _generateSpeciesData(
 }
 
 final List<HistoricalPriceData> mockHistoricalPrices = [
-  // Pink Shrimp (Initial Base Price around 1100)
-  ..._generateSpeciesData('pink-shrimp', 1100.0),
+  ..._generateData('pink-shrimp', 1100.0),
+  ..._generateData('tiger-shrimp', 1400.0),
+  ..._generateData('gray-shrimp', 950.0),
+  ..._generateData('small-prawn', 350.0),
+  ..._generateData('large-prawn', 750.0),
+];
 
-  // Tiger Shrimp (Initial Base Price around 1400)
-  ..._generateSpeciesData('tiger-shrimp', 1400.0),
-
-  // Grey Shrimp (Initial Base Price around 950)
-  ..._generateSpeciesData('gray-shrimp', 950.0),
-
-  ..._generateSpeciesData('small-prawn', 350.0),
-  ..._generateSpeciesData('large-prawn', 750.0),
+final List<HistoricalPriceData> mockHistoricalCatches = [
+  ..._generateData('pink-shrimp', 150.0, isCatch: true),
+  ..._generateData('tiger-shrimp', 80.0, isCatch: true),
+  ..._generateData('gray-shrimp', 200.0, isCatch: true),
+  ..._generateData('small-prawn', 400.0, isCatch: true),
+  ..._generateData('large-prawn', 120.0, isCatch: true),
 ];
 
 // --- DATA FILTERING LOGIC ---
