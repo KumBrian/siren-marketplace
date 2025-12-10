@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +15,27 @@ class MediaApiDataSource {
   MediaApiDataSource({required Dio dio, required TokenStorage tokenStorage})
     : _dio = dio,
       _tokenStorage = tokenStorage;
+
+  /// Extract pulseBoxAccessToken from JWT
+  String? _extractPulseBoxToken(String jwt) {
+    try {
+      // JWT format: header.payload.signature
+      final parts = jwt.split('.');
+      if (parts.length != 3) return null;
+
+      // Decode payload (base64url)
+      final payload = parts[1];
+      // Add padding if needed
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final json = jsonDecode(decoded) as Map<String, dynamic>;
+
+      return json['pulseBoxAccessToken'] as String?;
+    } catch (e) {
+      print('ERROR: Failed to extract pulseBoxAccessToken: $e');
+      return null;
+    }
+  }
 
   /// Compress an image file to reduce size before upload
   /// Target: ~500KB per image with quality compression
@@ -97,20 +119,27 @@ class MediaApiDataSource {
         'DEBUG: Uploading ${compressedImages.length} compressed images to Pulsebox',
       );
 
-      // Get auth token
-      final token = await _tokenStorage.getAccessToken();
-      if (token == null) {
+      // Get JWT and extract Pulsebox-specific token
+      final jwt = await _tokenStorage.getAccessToken();
+      if (jwt == null) {
         throw Exception('No access token available for media upload');
       }
 
-      // POST to Pulsebox create-collection endpoint with auth
+      final pulseBoxToken = _extractPulseBoxToken(jwt);
+      if (pulseBoxToken == null) {
+        throw Exception('No pulseBoxAccessToken found in JWT');
+      }
+
+      print('DEBUG: Using pulseBoxAccessToken for upload');
+
+      // POST to Pulsebox create-collection endpoint with Pulsebox token
       final response = await _dio.post(
         '${ApiConfig.pulseboxBaseUrl}${ApiConfig.mediasCreateCollection}',
         data: formData,
         options: Options(
           headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': 'Bearer $token',
+            'Authorization': 'Bearer $pulseBoxToken',
           },
         ),
       );
