@@ -26,7 +26,7 @@ class CatchCard extends StatelessWidget {
       }
     } else {
       // Fallback
-      imageProvider = const AssetImage('assets/images/placeholder.png');
+      imageProvider = const AssetImage('assets/images/shrimp.jpg');
     }
 
     return Container(

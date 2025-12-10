@@ -33,7 +33,8 @@ class ForSaleCard extends StatelessWidget {
                 bottomLeft: Radius.circular(16),
               ),
               // round corners
-              child: catchData.images[0].contains("http")
+              child:
+                  catchData.images.isNotEmpty && catchData.images[0].isNotEmpty
                   ? Image.network(
                       catchData.images[0],
                       width: 120,
@@ -46,7 +47,8 @@ class ForSaleCard extends StatelessWidget {
                         fit: BoxFit.cover,
                       ),
                     )
-                  : (catchData.images[0].startsWith("assets/")
+                  : (catchData.images.isNotEmpty &&
+                            catchData.images[0].startsWith("assets/")
                         ? Image.asset(
                             catchData.images[0],
                             width: 120,
@@ -60,7 +62,8 @@ class ForSaleCard extends StatelessWidget {
                                   fit: BoxFit.cover,
                                 ),
                           )
-                        : Image.file(
+                        : catchData.images.isNotEmpty
+                        ? Image.file(
                             File(catchData.images[0]),
                             width: 120,
                             height: 120,
@@ -72,6 +75,12 @@ class ForSaleCard extends StatelessWidget {
                                   width: 120,
                                   fit: BoxFit.cover,
                                 ),
+                          )
+                        : Image.asset(
+                            "assets/images/shrimp.jpg",
+                            height: 120,
+                            width: 120,
+                            fit: BoxFit.cover,
                           )),
             ),
             Expanded(

@@ -39,12 +39,12 @@ class ApiConfig {
   static const String toggleNotifications = '/accounts/toggle-notifications';
 
   // Marketplace API Endpoints
-  static const String fishCatches = '/fish_catches';
+  static const String fishCatches = '/fish-catches';
   static const String myFishCatches = '/fish-catches/my-fish-catches';
   static const String offers = '/offers';
   static const String receivedOffers = '/offers/received-offers';
   static const String myOffers = '/offers/my-offers';
-  static const String saleOrders = '/sale_orders';
+  static const String saleOrders = '/sale-orders';
   static const String saleOrdersCreate = '/sale-orders/create';
   static const String mySaleOrders = '/sale-orders/my-orders';
   static const String messages = '/messages';

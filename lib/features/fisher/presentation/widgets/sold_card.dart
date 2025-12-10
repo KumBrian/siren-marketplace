@@ -26,7 +26,7 @@ class SoldCard extends StatelessWidget {
     // Helper to extract the first image or use a placeholder/default
     final imageUrl = catchImageUrl.isNotEmpty
         ? catchImageUrl
-        : 'assets/images/placeholder.png'; // Use a placeholder if image is missing
+        : 'assets/images/shrimp.jpg'; // Use a placeholder if image is missing
 
     return Material(
       color: AppColors.white100,
