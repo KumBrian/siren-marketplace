@@ -2,17 +2,26 @@ import '../entities/user.dart';
 import '../enums/user_role.dart';
 import '../repositories/i_session_repository.dart';
 import '../repositories/i_user_repository.dart';
+import '../../data/sources/api/auth_api_data_source.dart';
+import '../../data/storage/token_storage.dart';
+import '../../data/mappers/account_api_mapper.dart';
 
 /// Service managing user session and role switching
 class SessionService {
   final ISessionRepository _sessionRepository;
   final IUserRepository _userRepository;
+  final IAuthApiDataSource? _authApiDataSource;
+  final TokenStorage? _tokenStorage;
 
   SessionService({
     required ISessionRepository sessionRepository,
     required IUserRepository userRepository,
+    IAuthApiDataSource? authApiDataSource,
+    TokenStorage? tokenStorage,
   }) : _sessionRepository = sessionRepository,
-       _userRepository = userRepository;
+       _userRepository = userRepository,
+       _authApiDataSource = authApiDataSource,
+       _tokenStorage = tokenStorage;
 
   /// Initialize session on app start
   Future<User?> initialize() async {
@@ -36,16 +45,41 @@ class SessionService {
       throw StateError('No user logged in');
     }
 
-    // Update user's current role
+    // Update user's current role locally
     final updatedUser = user.copyWith(currentRole: newRole);
-    await _userRepository.update(updatedUser);
 
     // Save to session
     await _sessionRepository.saveCurrentRole(newRole);
     await _sessionRepository.saveCurrentUser(updatedUser);
   }
 
-  /// Login user (for future API integration)
+  /// Login with email and password via API
+  Future<User> loginWithApi(String email, String password) async {
+    if (_authApiDataSource == null || _tokenStorage == null) {
+      throw StateError('API authentication not configured');
+    }
+
+    // 1. Call API  authorize endpoint
+    final authResponse = await _authApiDataSource.login(email, password);
+
+    // 2. Store JWT token
+    await _tokenStorage.saveToken(
+      authResponse.token,
+      userId: authResponse.id.toString(),
+      expiry: authResponse.tokenExpireAt,
+    );
+
+    // 3. Map account to User entity
+    final user = AccountApiMapper.toDomain(authResponse.account);
+
+    // 4. Save to session
+    await _sessionRepository.saveCurrentUser(user);
+    await _sessionRepository.saveCurrentRole(user.currentRole);
+
+    return user;
+  }
+
+  /// Login user (for local/demo mode)
   Future<void> login(User user) async {
     await _sessionRepository.saveCurrentUser(user);
     await _sessionRepository.saveCurrentRole(user.currentRole);
@@ -53,6 +87,10 @@ class SessionService {
 
   /// Logout
   Future<void> logout() async {
+    // Clear API token if using API mode
+    if (_tokenStorage != null) {
+      await _tokenStorage.clearTokens();
+    }
     await _sessionRepository.clearSession();
   }
 

@@ -11,6 +11,9 @@ import '../data/datasources/demo/demo_datasource.dart';
 import '../data/datasources/local/local_conversation_datasource.dart';
 import '../data/datasources/local/local_datasource_factory.dart';
 import '../data/datasources/local/local_message_datasource.dart';
+import '../data/datasources/api/catches_api_data_source.dart';
+import '../data/datasources/api/offers_api_data_source.dart';
+import '../data/datasources/api/user_api_datasource.dart';
 import '../data/repositories/catch_repository_impl.dart';
 import '../data/repositories/conversation_repository_impl.dart';
 import '../data/repositories/message_repository_impl.dart';
@@ -34,6 +37,9 @@ import '../domain/services/negotiation_service.dart';
 import '../domain/services/order_service.dart';
 import '../domain/services/rating_service.dart';
 import '../domain/services/session_service.dart';
+import '../data/api/api_client.dart';
+import '../data/storage/token_storage.dart';
+import '../data/sources/api/auth_api_data_source.dart';
 
 // ============================================================================
 // GET_IT INSTANCE
@@ -55,6 +61,28 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => TransactionNotifier());
 
   // --------------------------------------------------
+  // API Dependencies (Always register these if configured)
+  // --------------------------------------------------
+  sl.registerLazySingleton(() => TokenStorage());
+
+  // Register Core API Client
+  sl.registerLazySingleton(
+    () => ApiClient.core(tokenStorage: sl()),
+    instanceName: 'coreApiClient',
+  );
+
+  // Register Marketplace API Client
+  sl.registerLazySingleton(
+    () => ApiClient.marketplace(tokenStorage: sl()),
+    instanceName: 'marketplaceApiClient',
+  );
+
+  // Register Auth Data Source
+  sl.registerLazySingleton<IAuthApiDataSource>(
+    () => AuthApiDataSource(client: sl(instanceName: 'coreApiClient')),
+  );
+
+  // --------------------------------------------------
   // CHOOSE DATA SOURCE MODE (demo/local/api)
   // --------------------------------------------------
   switch (AppConfig.mode) {
@@ -67,7 +95,8 @@ Future<void> initDependencies() async {
       break;
 
     case DataSourceMode.api:
-      throw UnimplementedError("API mode not implemented");
+      _initApiMode(dbHelper);
+      break;
   }
 
   // --------------------------------------------------
@@ -101,7 +130,14 @@ Future<void> initDependencies() async {
   );
 
   sl.registerLazySingleton(
-    () => SessionService(sessionRepository: sl(), userRepository: sl()),
+    () => SessionService(
+      sessionRepository: sl(),
+      userRepository: sl(),
+      authApiDataSource: sl.isRegistered<IAuthApiDataSource>()
+          ? sl<IAuthApiDataSource>()
+          : null,
+      tokenStorage: sl(),
+    ),
   );
 
   sl.registerLazySingleton(
@@ -179,6 +215,64 @@ void _initLocalMode(DatabaseHelper dbHelper) {
 
   sl.registerLazySingleton<IOfferRepository>(
     () => OfferRepositoryImpl(dataSource: local.offerDataSource),
+  );
+
+  sl.registerLazySingleton<IOrderRepository>(
+    () => OrderRepositoryImpl(dataSource: local.orderDataSource),
+  );
+
+  sl.registerLazySingleton<IReviewRepository>(
+    () => ReviewRepositoryImpl(dataSource: local.reviewDataSource),
+  );
+
+  sl.registerLazySingleton<ISessionRepository>(
+    () => SessionRepositoryImpl(dataSource: local.sessionDataSource),
+  );
+
+  sl.registerLazySingleton<IMessageRepository>(
+    () => MessageRepositoryImpl(
+      dataSource: LocalMessageDataSource(dbHelper: dbHelper),
+    ),
+  );
+
+  sl.registerLazySingleton<IConversationRepository>(
+    () => ConversationRepositoryImpl(
+      dataSource: LocalConversationDataSource(dbHelper: dbHelper),
+    ),
+  );
+}
+
+// ============================================================================
+// API MODE
+// ============================================================================
+void _initApiMode(DatabaseHelper dbHelper) {
+  // Initialize local data sources for fallback/caching
+  final local = LocalDataSourceFactory.create(dbHelper);
+
+  // API Clients are already registered globally in initDependencies
+
+  // Register User Repository with API Data Source
+  sl.registerLazySingleton<IUserRepository>(
+    () => UserRepositoryImpl(
+      dataSource: UserApiDataSource(client: sl(instanceName: 'coreApiClient')),
+    ),
+  );
+
+  // Register Catches Repository with API Data Source
+  sl.registerLazySingleton<ICatchRepository>(
+    () => CatchRepositoryImpl(
+      dataSource: CatchesApiDataSource(
+        client: sl(instanceName: 'marketplaceApiClient'),
+      ),
+    ),
+  );
+
+  sl.registerLazySingleton<IOfferRepository>(
+    () => OfferRepositoryImpl(
+      dataSource: OffersApiDataSource(
+        client: sl(instanceName: 'marketplaceApiClient'),
+      ),
+    ),
   );
 
   sl.registerLazySingleton<IOrderRepository>(
