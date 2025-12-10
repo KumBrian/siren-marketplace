@@ -63,14 +63,9 @@ class CatchesApiDataSource implements ICatchDataSource {
 
   @override
   Future<List<CatchModel>> getByFisherId(String fisherId) async {
-    final response = await _client.get(
-      ApiConfig.fishCatches,
-      queryParameters: {'fisher_id': fisherId},
-    );
-    final List data = response.data['data'] ?? [];
-    return data
-        .map((json) => CatchApiMapper.toDomain(CatchApiModel.fromJson(json)))
-        .toList();
+    // In API mode, use the authenticated my-fish-catches endpoint
+    // The fisherId parameter is ignored since API uses the token
+    return await getMyCatches(fisherId);
   }
 
   @override

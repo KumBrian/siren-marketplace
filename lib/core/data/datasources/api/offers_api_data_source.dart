@@ -57,14 +57,10 @@ class OffersApiDataSource implements IOfferDataSource {
 
   @override
   Future<List<OfferModel>> getByBuyerId(String buyerId) async {
-    final response = await _client.get(
-      ApiConfig.offers,
-      queryParameters: {'buyer_id': buyerId},
-    );
-    final List data = response.data['data'] ?? [];
-    return data
-        .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
-        .toList();
+    // In API mode, use the authenticated my-offers endpoint
+    // (These are offers made by the buyer)
+    // The buyerId parameter is ignored since API uses the token
+    return await getMyOffers();
   }
 
   @override
@@ -82,14 +78,10 @@ class OffersApiDataSource implements IOfferDataSource {
 
   @override
   Future<List<OfferModel>> getByFisherId(String fisherId) async {
-    final response = await _client.get(
-      ApiConfig.offers,
-      queryParameters: {'fisher_id': fisherId},
-    );
-    final List data = response.data['data'] ?? [];
-    return data
-        .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
-        .toList();
+    // In API mode, use the authenticated received-offers endpoint
+    // (These are offers received by the fisher on their catches)
+    // The fisherId parameter is ignored since API uses the token
+    return await getReceivedOffers(fisherId);
   }
 
   /// Get authenticated user's offers (buyer's offers)
