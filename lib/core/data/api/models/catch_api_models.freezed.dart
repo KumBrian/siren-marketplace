@@ -1376,22 +1376,208 @@ abstract class _CatchApiModel implements CatchApiModel {
       throw _privateConstructorUsedError;
 }
 
+CatchImageRequest _$CatchImageRequestFromJson(Map<String, dynamic> json) {
+  return _CatchImageRequest.fromJson(json);
+}
+
+/// @nodoc
+mixin _$CatchImageRequest {
+  String get mediaUrl => throw _privateConstructorUsedError;
+
+  /// Serializes this CatchImageRequest to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of CatchImageRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $CatchImageRequestCopyWith<CatchImageRequest> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $CatchImageRequestCopyWith<$Res> {
+  factory $CatchImageRequestCopyWith(
+    CatchImageRequest value,
+    $Res Function(CatchImageRequest) then,
+  ) = _$CatchImageRequestCopyWithImpl<$Res, CatchImageRequest>;
+  @useResult
+  $Res call({String mediaUrl});
+}
+
+/// @nodoc
+class _$CatchImageRequestCopyWithImpl<$Res, $Val extends CatchImageRequest>
+    implements $CatchImageRequestCopyWith<$Res> {
+  _$CatchImageRequestCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of CatchImageRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? mediaUrl = null}) {
+    return _then(
+      _value.copyWith(
+            mediaUrl: null == mediaUrl
+                ? _value.mediaUrl
+                : mediaUrl // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$CatchImageRequestImplCopyWith<$Res>
+    implements $CatchImageRequestCopyWith<$Res> {
+  factory _$$CatchImageRequestImplCopyWith(
+    _$CatchImageRequestImpl value,
+    $Res Function(_$CatchImageRequestImpl) then,
+  ) = __$$CatchImageRequestImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String mediaUrl});
+}
+
+/// @nodoc
+class __$$CatchImageRequestImplCopyWithImpl<$Res>
+    extends _$CatchImageRequestCopyWithImpl<$Res, _$CatchImageRequestImpl>
+    implements _$$CatchImageRequestImplCopyWith<$Res> {
+  __$$CatchImageRequestImplCopyWithImpl(
+    _$CatchImageRequestImpl _value,
+    $Res Function(_$CatchImageRequestImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of CatchImageRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? mediaUrl = null}) {
+    return _then(
+      _$CatchImageRequestImpl(
+        mediaUrl: null == mediaUrl
+            ? _value.mediaUrl
+            : mediaUrl // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$CatchImageRequestImpl implements _CatchImageRequest {
+  const _$CatchImageRequestImpl({required this.mediaUrl});
+
+  factory _$CatchImageRequestImpl.fromJson(Map<String, dynamic> json) =>
+      _$$CatchImageRequestImplFromJson(json);
+
+  @override
+  final String mediaUrl;
+
+  @override
+  String toString() {
+    return 'CatchImageRequest(mediaUrl: $mediaUrl)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$CatchImageRequestImpl &&
+            (identical(other.mediaUrl, mediaUrl) ||
+                other.mediaUrl == mediaUrl));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, mediaUrl);
+
+  /// Create a copy of CatchImageRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$CatchImageRequestImplCopyWith<_$CatchImageRequestImpl> get copyWith =>
+      __$$CatchImageRequestImplCopyWithImpl<_$CatchImageRequestImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$CatchImageRequestImplToJson(this);
+  }
+}
+
+abstract class _CatchImageRequest implements CatchImageRequest {
+  const factory _CatchImageRequest({required final String mediaUrl}) =
+      _$CatchImageRequestImpl;
+
+  factory _CatchImageRequest.fromJson(Map<String, dynamic> json) =
+      _$CatchImageRequestImpl.fromJson;
+
+  @override
+  String get mediaUrl;
+
+  /// Create a copy of CatchImageRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$CatchImageRequestImplCopyWith<_$CatchImageRequestImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 CreateCatchRequest _$CreateCatchRequestFromJson(Map<String, dynamic> json) {
   return _CreateCatchRequest.fromJson(json);
 }
 
 /// @nodoc
 mixin _$CreateCatchRequest {
-  String get name => throw _privateConstructorUsedError;
-  @JsonKey(name: 'initial_weight_grams')
-  int get initialWeightGrams => throw _privateConstructorUsedError;
-  @JsonKey(name: 'price_per_kg_amount')
-  int get pricePerKgAmount => throw _privateConstructorUsedError;
-  String get size => throw _privateConstructorUsedError;
-  @JsonKey(name: 'species_id')
-  String get speciesId => throw _privateConstructorUsedError;
-  String get market => throw _privateConstructorUsedError;
-  List<String>? get images => throw _privateConstructorUsedError;
+  String get specie => throw _privateConstructorUsedError;
+  String get subgroup => throw _privateConstructorUsedError;
+  @JsonKey(name: 'gear_mesh_size_in_finger')
+  double get gearMeshSizeInFinger => throw _privateConstructorUsedError;
+  @JsonKey(name: 'gear_length_in_meter')
+  double get gearLengthInMeter => throw _privateConstructorUsedError;
+  @JsonKey(name: 'gear_nature')
+  String get gearNature => throw _privateConstructorUsedError;
+  @JsonKey(name: 'water_depth_in_meter')
+  double get waterDepthInMeter => throw _privateConstructorUsedError;
+  @JsonKey(name: 'fishing_time_in_hour')
+  double get fishingTimeInHour => throw _privateConstructorUsedError;
+  @JsonKey(name: 'estimated_weight_in_kg')
+  double get estimatedWeightInKg => throw _privateConstructorUsedError;
+  @JsonKey(name: 'average_size_in_cm')
+  double get averageSizeInCm => throw _privateConstructorUsedError;
+  @JsonKey(name: 'estimated_size')
+  int get estimatedSize => throw _privateConstructorUsedError;
+  @JsonKey(name: 'published_weight_in_kg')
+  double get publishedWeightInKg => throw _privateConstructorUsedError;
+  @JsonKey(name: 'price_per_kg')
+  double get pricePerKg => throw _privateConstructorUsedError;
+  @JsonKey(name: 'final_price')
+  double get finalPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'published_in_market_place')
+  bool get publishedInMarketPlace => throw _privateConstructorUsedError;
+  String? get note => throw _privateConstructorUsedError;
+  List<CatchImageRequest> get images => throw _privateConstructorUsedError;
+  String? get alpha => throw _privateConstructorUsedError;
+  bool get dead => throw _privateConstructorUsedError;
+  double get coordX => throw _privateConstructorUsedError;
+  double get coordY => throw _privateConstructorUsedError;
+  String get date => throw _privateConstructorUsedError;
+  int get market => throw _privateConstructorUsedError;
+  String? get observationType => throw _privateConstructorUsedError;
+  String? get patrol => throw _privateConstructorUsedError;
+  String? get segment =>
+      throw _privateConstructorUsedError; // Additional fields from UI (not in sample but collected)
+  @JsonKey(name: 'gear_width_in_meter')
+  double? get gearWidthInMeter => throw _privateConstructorUsedError;
 
   /// Serializes this CreateCatchRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1411,13 +1597,32 @@ abstract class $CreateCatchRequestCopyWith<$Res> {
   ) = _$CreateCatchRequestCopyWithImpl<$Res, CreateCatchRequest>;
   @useResult
   $Res call({
-    String name,
-    @JsonKey(name: 'initial_weight_grams') int initialWeightGrams,
-    @JsonKey(name: 'price_per_kg_amount') int pricePerKgAmount,
-    String size,
-    @JsonKey(name: 'species_id') String speciesId,
-    String market,
-    List<String>? images,
+    String specie,
+    String subgroup,
+    @JsonKey(name: 'gear_mesh_size_in_finger') double gearMeshSizeInFinger,
+    @JsonKey(name: 'gear_length_in_meter') double gearLengthInMeter,
+    @JsonKey(name: 'gear_nature') String gearNature,
+    @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
+    @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
+    @JsonKey(name: 'estimated_weight_in_kg') double estimatedWeightInKg,
+    @JsonKey(name: 'average_size_in_cm') double averageSizeInCm,
+    @JsonKey(name: 'estimated_size') int estimatedSize,
+    @JsonKey(name: 'published_weight_in_kg') double publishedWeightInKg,
+    @JsonKey(name: 'price_per_kg') double pricePerKg,
+    @JsonKey(name: 'final_price') double finalPrice,
+    @JsonKey(name: 'published_in_market_place') bool publishedInMarketPlace,
+    String? note,
+    List<CatchImageRequest> images,
+    String? alpha,
+    bool dead,
+    double coordX,
+    double coordY,
+    String date,
+    int market,
+    String? observationType,
+    String? patrol,
+    String? segment,
+    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
   });
 }
 
@@ -1436,44 +1641,139 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? name = null,
-    Object? initialWeightGrams = null,
-    Object? pricePerKgAmount = null,
-    Object? size = null,
-    Object? speciesId = null,
+    Object? specie = null,
+    Object? subgroup = null,
+    Object? gearMeshSizeInFinger = null,
+    Object? gearLengthInMeter = null,
+    Object? gearNature = null,
+    Object? waterDepthInMeter = null,
+    Object? fishingTimeInHour = null,
+    Object? estimatedWeightInKg = null,
+    Object? averageSizeInCm = null,
+    Object? estimatedSize = null,
+    Object? publishedWeightInKg = null,
+    Object? pricePerKg = null,
+    Object? finalPrice = null,
+    Object? publishedInMarketPlace = null,
+    Object? note = freezed,
+    Object? images = null,
+    Object? alpha = freezed,
+    Object? dead = null,
+    Object? coordX = null,
+    Object? coordY = null,
+    Object? date = null,
     Object? market = null,
-    Object? images = freezed,
+    Object? observationType = freezed,
+    Object? patrol = freezed,
+    Object? segment = freezed,
+    Object? gearWidthInMeter = freezed,
   }) {
     return _then(
       _value.copyWith(
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
+            specie: null == specie
+                ? _value.specie
+                : specie // ignore: cast_nullable_to_non_nullable
                       as String,
-            initialWeightGrams: null == initialWeightGrams
-                ? _value.initialWeightGrams
-                : initialWeightGrams // ignore: cast_nullable_to_non_nullable
-                      as int,
-            pricePerKgAmount: null == pricePerKgAmount
-                ? _value.pricePerKgAmount
-                : pricePerKgAmount // ignore: cast_nullable_to_non_nullable
-                      as int,
-            size: null == size
-                ? _value.size
-                : size // ignore: cast_nullable_to_non_nullable
+            subgroup: null == subgroup
+                ? _value.subgroup
+                : subgroup // ignore: cast_nullable_to_non_nullable
                       as String,
-            speciesId: null == speciesId
-                ? _value.speciesId
-                : speciesId // ignore: cast_nullable_to_non_nullable
+            gearMeshSizeInFinger: null == gearMeshSizeInFinger
+                ? _value.gearMeshSizeInFinger
+                : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
+                      as double,
+            gearLengthInMeter: null == gearLengthInMeter
+                ? _value.gearLengthInMeter
+                : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+                      as double,
+            gearNature: null == gearNature
+                ? _value.gearNature
+                : gearNature // ignore: cast_nullable_to_non_nullable
+                      as String,
+            waterDepthInMeter: null == waterDepthInMeter
+                ? _value.waterDepthInMeter
+                : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
+                      as double,
+            fishingTimeInHour: null == fishingTimeInHour
+                ? _value.fishingTimeInHour
+                : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
+                      as double,
+            estimatedWeightInKg: null == estimatedWeightInKg
+                ? _value.estimatedWeightInKg
+                : estimatedWeightInKg // ignore: cast_nullable_to_non_nullable
+                      as double,
+            averageSizeInCm: null == averageSizeInCm
+                ? _value.averageSizeInCm
+                : averageSizeInCm // ignore: cast_nullable_to_non_nullable
+                      as double,
+            estimatedSize: null == estimatedSize
+                ? _value.estimatedSize
+                : estimatedSize // ignore: cast_nullable_to_non_nullable
+                      as int,
+            publishedWeightInKg: null == publishedWeightInKg
+                ? _value.publishedWeightInKg
+                : publishedWeightInKg // ignore: cast_nullable_to_non_nullable
+                      as double,
+            pricePerKg: null == pricePerKg
+                ? _value.pricePerKg
+                : pricePerKg // ignore: cast_nullable_to_non_nullable
+                      as double,
+            finalPrice: null == finalPrice
+                ? _value.finalPrice
+                : finalPrice // ignore: cast_nullable_to_non_nullable
+                      as double,
+            publishedInMarketPlace: null == publishedInMarketPlace
+                ? _value.publishedInMarketPlace
+                : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            note: freezed == note
+                ? _value.note
+                : note // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            images: null == images
+                ? _value.images
+                : images // ignore: cast_nullable_to_non_nullable
+                      as List<CatchImageRequest>,
+            alpha: freezed == alpha
+                ? _value.alpha
+                : alpha // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            dead: null == dead
+                ? _value.dead
+                : dead // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            coordX: null == coordX
+                ? _value.coordX
+                : coordX // ignore: cast_nullable_to_non_nullable
+                      as double,
+            coordY: null == coordY
+                ? _value.coordY
+                : coordY // ignore: cast_nullable_to_non_nullable
+                      as double,
+            date: null == date
+                ? _value.date
+                : date // ignore: cast_nullable_to_non_nullable
                       as String,
             market: null == market
                 ? _value.market
                 : market // ignore: cast_nullable_to_non_nullable
-                      as String,
-            images: freezed == images
-                ? _value.images
-                : images // ignore: cast_nullable_to_non_nullable
-                      as List<String>?,
+                      as int,
+            observationType: freezed == observationType
+                ? _value.observationType
+                : observationType // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            patrol: freezed == patrol
+                ? _value.patrol
+                : patrol // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            segment: freezed == segment
+                ? _value.segment
+                : segment // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            gearWidthInMeter: freezed == gearWidthInMeter
+                ? _value.gearWidthInMeter
+                : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
+                      as double?,
           )
           as $Val,
     );
@@ -1490,13 +1790,32 @@ abstract class _$$CreateCatchRequestImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    String name,
-    @JsonKey(name: 'initial_weight_grams') int initialWeightGrams,
-    @JsonKey(name: 'price_per_kg_amount') int pricePerKgAmount,
-    String size,
-    @JsonKey(name: 'species_id') String speciesId,
-    String market,
-    List<String>? images,
+    String specie,
+    String subgroup,
+    @JsonKey(name: 'gear_mesh_size_in_finger') double gearMeshSizeInFinger,
+    @JsonKey(name: 'gear_length_in_meter') double gearLengthInMeter,
+    @JsonKey(name: 'gear_nature') String gearNature,
+    @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
+    @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
+    @JsonKey(name: 'estimated_weight_in_kg') double estimatedWeightInKg,
+    @JsonKey(name: 'average_size_in_cm') double averageSizeInCm,
+    @JsonKey(name: 'estimated_size') int estimatedSize,
+    @JsonKey(name: 'published_weight_in_kg') double publishedWeightInKg,
+    @JsonKey(name: 'price_per_kg') double pricePerKg,
+    @JsonKey(name: 'final_price') double finalPrice,
+    @JsonKey(name: 'published_in_market_place') bool publishedInMarketPlace,
+    String? note,
+    List<CatchImageRequest> images,
+    String? alpha,
+    bool dead,
+    double coordX,
+    double coordY,
+    String date,
+    int market,
+    String? observationType,
+    String? patrol,
+    String? segment,
+    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
   });
 }
 
@@ -1514,44 +1833,139 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? name = null,
-    Object? initialWeightGrams = null,
-    Object? pricePerKgAmount = null,
-    Object? size = null,
-    Object? speciesId = null,
+    Object? specie = null,
+    Object? subgroup = null,
+    Object? gearMeshSizeInFinger = null,
+    Object? gearLengthInMeter = null,
+    Object? gearNature = null,
+    Object? waterDepthInMeter = null,
+    Object? fishingTimeInHour = null,
+    Object? estimatedWeightInKg = null,
+    Object? averageSizeInCm = null,
+    Object? estimatedSize = null,
+    Object? publishedWeightInKg = null,
+    Object? pricePerKg = null,
+    Object? finalPrice = null,
+    Object? publishedInMarketPlace = null,
+    Object? note = freezed,
+    Object? images = null,
+    Object? alpha = freezed,
+    Object? dead = null,
+    Object? coordX = null,
+    Object? coordY = null,
+    Object? date = null,
     Object? market = null,
-    Object? images = freezed,
+    Object? observationType = freezed,
+    Object? patrol = freezed,
+    Object? segment = freezed,
+    Object? gearWidthInMeter = freezed,
   }) {
     return _then(
       _$CreateCatchRequestImpl(
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
+        specie: null == specie
+            ? _value.specie
+            : specie // ignore: cast_nullable_to_non_nullable
                   as String,
-        initialWeightGrams: null == initialWeightGrams
-            ? _value.initialWeightGrams
-            : initialWeightGrams // ignore: cast_nullable_to_non_nullable
-                  as int,
-        pricePerKgAmount: null == pricePerKgAmount
-            ? _value.pricePerKgAmount
-            : pricePerKgAmount // ignore: cast_nullable_to_non_nullable
-                  as int,
-        size: null == size
-            ? _value.size
-            : size // ignore: cast_nullable_to_non_nullable
+        subgroup: null == subgroup
+            ? _value.subgroup
+            : subgroup // ignore: cast_nullable_to_non_nullable
                   as String,
-        speciesId: null == speciesId
-            ? _value.speciesId
-            : speciesId // ignore: cast_nullable_to_non_nullable
+        gearMeshSizeInFinger: null == gearMeshSizeInFinger
+            ? _value.gearMeshSizeInFinger
+            : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
+                  as double,
+        gearLengthInMeter: null == gearLengthInMeter
+            ? _value.gearLengthInMeter
+            : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+                  as double,
+        gearNature: null == gearNature
+            ? _value.gearNature
+            : gearNature // ignore: cast_nullable_to_non_nullable
+                  as String,
+        waterDepthInMeter: null == waterDepthInMeter
+            ? _value.waterDepthInMeter
+            : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
+                  as double,
+        fishingTimeInHour: null == fishingTimeInHour
+            ? _value.fishingTimeInHour
+            : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
+                  as double,
+        estimatedWeightInKg: null == estimatedWeightInKg
+            ? _value.estimatedWeightInKg
+            : estimatedWeightInKg // ignore: cast_nullable_to_non_nullable
+                  as double,
+        averageSizeInCm: null == averageSizeInCm
+            ? _value.averageSizeInCm
+            : averageSizeInCm // ignore: cast_nullable_to_non_nullable
+                  as double,
+        estimatedSize: null == estimatedSize
+            ? _value.estimatedSize
+            : estimatedSize // ignore: cast_nullable_to_non_nullable
+                  as int,
+        publishedWeightInKg: null == publishedWeightInKg
+            ? _value.publishedWeightInKg
+            : publishedWeightInKg // ignore: cast_nullable_to_non_nullable
+                  as double,
+        pricePerKg: null == pricePerKg
+            ? _value.pricePerKg
+            : pricePerKg // ignore: cast_nullable_to_non_nullable
+                  as double,
+        finalPrice: null == finalPrice
+            ? _value.finalPrice
+            : finalPrice // ignore: cast_nullable_to_non_nullable
+                  as double,
+        publishedInMarketPlace: null == publishedInMarketPlace
+            ? _value.publishedInMarketPlace
+            : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        note: freezed == note
+            ? _value.note
+            : note // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        images: null == images
+            ? _value._images
+            : images // ignore: cast_nullable_to_non_nullable
+                  as List<CatchImageRequest>,
+        alpha: freezed == alpha
+            ? _value.alpha
+            : alpha // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        dead: null == dead
+            ? _value.dead
+            : dead // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        coordX: null == coordX
+            ? _value.coordX
+            : coordX // ignore: cast_nullable_to_non_nullable
+                  as double,
+        coordY: null == coordY
+            ? _value.coordY
+            : coordY // ignore: cast_nullable_to_non_nullable
+                  as double,
+        date: null == date
+            ? _value.date
+            : date // ignore: cast_nullable_to_non_nullable
                   as String,
         market: null == market
             ? _value.market
             : market // ignore: cast_nullable_to_non_nullable
-                  as String,
-        images: freezed == images
-            ? _value._images
-            : images // ignore: cast_nullable_to_non_nullable
-                  as List<String>?,
+                  as int,
+        observationType: freezed == observationType
+            ? _value.observationType
+            : observationType // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        patrol: freezed == patrol
+            ? _value.patrol
+            : patrol // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        segment: freezed == segment
+            ? _value.segment
+            : segment // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        gearWidthInMeter: freezed == gearWidthInMeter
+            ? _value.gearWidthInMeter
+            : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -1561,46 +1975,115 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CreateCatchRequestImpl implements _CreateCatchRequest {
   const _$CreateCatchRequestImpl({
-    required this.name,
-    @JsonKey(name: 'initial_weight_grams') required this.initialWeightGrams,
-    @JsonKey(name: 'price_per_kg_amount') required this.pricePerKgAmount,
-    required this.size,
-    @JsonKey(name: 'species_id') required this.speciesId,
+    required this.specie,
+    required this.subgroup,
+    @JsonKey(name: 'gear_mesh_size_in_finger')
+    required this.gearMeshSizeInFinger,
+    @JsonKey(name: 'gear_length_in_meter') required this.gearLengthInMeter,
+    @JsonKey(name: 'gear_nature') required this.gearNature,
+    @JsonKey(name: 'water_depth_in_meter') required this.waterDepthInMeter,
+    @JsonKey(name: 'fishing_time_in_hour') required this.fishingTimeInHour,
+    @JsonKey(name: 'estimated_weight_in_kg') required this.estimatedWeightInKg,
+    @JsonKey(name: 'average_size_in_cm') required this.averageSizeInCm,
+    @JsonKey(name: 'estimated_size') required this.estimatedSize,
+    @JsonKey(name: 'published_weight_in_kg') required this.publishedWeightInKg,
+    @JsonKey(name: 'price_per_kg') required this.pricePerKg,
+    @JsonKey(name: 'final_price') required this.finalPrice,
+    @JsonKey(name: 'published_in_market_place')
+    required this.publishedInMarketPlace,
+    this.note,
+    required final List<CatchImageRequest> images,
+    this.alpha,
+    required this.dead,
+    required this.coordX,
+    required this.coordY,
+    required this.date,
     required this.market,
-    final List<String>? images,
+    this.observationType,
+    this.patrol,
+    this.segment,
+    @JsonKey(name: 'gear_width_in_meter') this.gearWidthInMeter,
   }) : _images = images;
 
   factory _$CreateCatchRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreateCatchRequestImplFromJson(json);
 
   @override
-  final String name;
+  final String specie;
   @override
-  @JsonKey(name: 'initial_weight_grams')
-  final int initialWeightGrams;
+  final String subgroup;
   @override
-  @JsonKey(name: 'price_per_kg_amount')
-  final int pricePerKgAmount;
+  @JsonKey(name: 'gear_mesh_size_in_finger')
+  final double gearMeshSizeInFinger;
   @override
-  final String size;
+  @JsonKey(name: 'gear_length_in_meter')
+  final double gearLengthInMeter;
   @override
-  @JsonKey(name: 'species_id')
-  final String speciesId;
+  @JsonKey(name: 'gear_nature')
+  final String gearNature;
   @override
-  final String market;
-  final List<String>? _images;
+  @JsonKey(name: 'water_depth_in_meter')
+  final double waterDepthInMeter;
   @override
-  List<String>? get images {
-    final value = _images;
-    if (value == null) return null;
+  @JsonKey(name: 'fishing_time_in_hour')
+  final double fishingTimeInHour;
+  @override
+  @JsonKey(name: 'estimated_weight_in_kg')
+  final double estimatedWeightInKg;
+  @override
+  @JsonKey(name: 'average_size_in_cm')
+  final double averageSizeInCm;
+  @override
+  @JsonKey(name: 'estimated_size')
+  final int estimatedSize;
+  @override
+  @JsonKey(name: 'published_weight_in_kg')
+  final double publishedWeightInKg;
+  @override
+  @JsonKey(name: 'price_per_kg')
+  final double pricePerKg;
+  @override
+  @JsonKey(name: 'final_price')
+  final double finalPrice;
+  @override
+  @JsonKey(name: 'published_in_market_place')
+  final bool publishedInMarketPlace;
+  @override
+  final String? note;
+  final List<CatchImageRequest> _images;
+  @override
+  List<CatchImageRequest> get images {
     if (_images is EqualUnmodifiableListView) return _images;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
+    return EqualUnmodifiableListView(_images);
   }
 
   @override
+  final String? alpha;
+  @override
+  final bool dead;
+  @override
+  final double coordX;
+  @override
+  final double coordY;
+  @override
+  final String date;
+  @override
+  final int market;
+  @override
+  final String? observationType;
+  @override
+  final String? patrol;
+  @override
+  final String? segment;
+  // Additional fields from UI (not in sample but collected)
+  @override
+  @JsonKey(name: 'gear_width_in_meter')
+  final double? gearWidthInMeter;
+
+  @override
   String toString() {
-    return 'CreateCatchRequest(name: $name, initialWeightGrams: $initialWeightGrams, pricePerKgAmount: $pricePerKgAmount, size: $size, speciesId: $speciesId, market: $market, images: $images)';
+    return 'CreateCatchRequest(specie: $specie, subgroup: $subgroup, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearNature: $gearNature, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInKg: $estimatedWeightInKg, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInKg: $publishedWeightInKg, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, note: $note, images: $images, alpha: $alpha, dead: $dead, coordX: $coordX, coordY: $coordY, date: $date, market: $market, observationType: $observationType, patrol: $patrol, segment: $segment, gearWidthInMeter: $gearWidthInMeter)';
   }
 
   @override
@@ -1608,30 +2091,80 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CreateCatchRequestImpl &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.initialWeightGrams, initialWeightGrams) ||
-                other.initialWeightGrams == initialWeightGrams) &&
-            (identical(other.pricePerKgAmount, pricePerKgAmount) ||
-                other.pricePerKgAmount == pricePerKgAmount) &&
-            (identical(other.size, size) || other.size == size) &&
-            (identical(other.speciesId, speciesId) ||
-                other.speciesId == speciesId) &&
+            (identical(other.specie, specie) || other.specie == specie) &&
+            (identical(other.subgroup, subgroup) ||
+                other.subgroup == subgroup) &&
+            (identical(other.gearMeshSizeInFinger, gearMeshSizeInFinger) ||
+                other.gearMeshSizeInFinger == gearMeshSizeInFinger) &&
+            (identical(other.gearLengthInMeter, gearLengthInMeter) ||
+                other.gearLengthInMeter == gearLengthInMeter) &&
+            (identical(other.gearNature, gearNature) ||
+                other.gearNature == gearNature) &&
+            (identical(other.waterDepthInMeter, waterDepthInMeter) ||
+                other.waterDepthInMeter == waterDepthInMeter) &&
+            (identical(other.fishingTimeInHour, fishingTimeInHour) ||
+                other.fishingTimeInHour == fishingTimeInHour) &&
+            (identical(other.estimatedWeightInKg, estimatedWeightInKg) ||
+                other.estimatedWeightInKg == estimatedWeightInKg) &&
+            (identical(other.averageSizeInCm, averageSizeInCm) ||
+                other.averageSizeInCm == averageSizeInCm) &&
+            (identical(other.estimatedSize, estimatedSize) ||
+                other.estimatedSize == estimatedSize) &&
+            (identical(other.publishedWeightInKg, publishedWeightInKg) ||
+                other.publishedWeightInKg == publishedWeightInKg) &&
+            (identical(other.pricePerKg, pricePerKg) ||
+                other.pricePerKg == pricePerKg) &&
+            (identical(other.finalPrice, finalPrice) ||
+                other.finalPrice == finalPrice) &&
+            (identical(other.publishedInMarketPlace, publishedInMarketPlace) ||
+                other.publishedInMarketPlace == publishedInMarketPlace) &&
+            (identical(other.note, note) || other.note == note) &&
+            const DeepCollectionEquality().equals(other._images, _images) &&
+            (identical(other.alpha, alpha) || other.alpha == alpha) &&
+            (identical(other.dead, dead) || other.dead == dead) &&
+            (identical(other.coordX, coordX) || other.coordX == coordX) &&
+            (identical(other.coordY, coordY) || other.coordY == coordY) &&
+            (identical(other.date, date) || other.date == date) &&
             (identical(other.market, market) || other.market == market) &&
-            const DeepCollectionEquality().equals(other._images, _images));
+            (identical(other.observationType, observationType) ||
+                other.observationType == observationType) &&
+            (identical(other.patrol, patrol) || other.patrol == patrol) &&
+            (identical(other.segment, segment) || other.segment == segment) &&
+            (identical(other.gearWidthInMeter, gearWidthInMeter) ||
+                other.gearWidthInMeter == gearWidthInMeter));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
-    name,
-    initialWeightGrams,
-    pricePerKgAmount,
-    size,
-    speciesId,
-    market,
+    specie,
+    subgroup,
+    gearMeshSizeInFinger,
+    gearLengthInMeter,
+    gearNature,
+    waterDepthInMeter,
+    fishingTimeInHour,
+    estimatedWeightInKg,
+    averageSizeInCm,
+    estimatedSize,
+    publishedWeightInKg,
+    pricePerKg,
+    finalPrice,
+    publishedInMarketPlace,
+    note,
     const DeepCollectionEquality().hash(_images),
-  );
+    alpha,
+    dead,
+    coordX,
+    coordY,
+    date,
+    market,
+    observationType,
+    patrol,
+    segment,
+    gearWidthInMeter,
+  ]);
 
   /// Create a copy of CreateCatchRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -1652,36 +2185,109 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
 
 abstract class _CreateCatchRequest implements CreateCatchRequest {
   const factory _CreateCatchRequest({
-    required final String name,
-    @JsonKey(name: 'initial_weight_grams')
-    required final int initialWeightGrams,
-    @JsonKey(name: 'price_per_kg_amount') required final int pricePerKgAmount,
-    required final String size,
-    @JsonKey(name: 'species_id') required final String speciesId,
-    required final String market,
-    final List<String>? images,
+    required final String specie,
+    required final String subgroup,
+    @JsonKey(name: 'gear_mesh_size_in_finger')
+    required final double gearMeshSizeInFinger,
+    @JsonKey(name: 'gear_length_in_meter')
+    required final double gearLengthInMeter,
+    @JsonKey(name: 'gear_nature') required final String gearNature,
+    @JsonKey(name: 'water_depth_in_meter')
+    required final double waterDepthInMeter,
+    @JsonKey(name: 'fishing_time_in_hour')
+    required final double fishingTimeInHour,
+    @JsonKey(name: 'estimated_weight_in_kg')
+    required final double estimatedWeightInKg,
+    @JsonKey(name: 'average_size_in_cm') required final double averageSizeInCm,
+    @JsonKey(name: 'estimated_size') required final int estimatedSize,
+    @JsonKey(name: 'published_weight_in_kg')
+    required final double publishedWeightInKg,
+    @JsonKey(name: 'price_per_kg') required final double pricePerKg,
+    @JsonKey(name: 'final_price') required final double finalPrice,
+    @JsonKey(name: 'published_in_market_place')
+    required final bool publishedInMarketPlace,
+    final String? note,
+    required final List<CatchImageRequest> images,
+    final String? alpha,
+    required final bool dead,
+    required final double coordX,
+    required final double coordY,
+    required final String date,
+    required final int market,
+    final String? observationType,
+    final String? patrol,
+    final String? segment,
+    @JsonKey(name: 'gear_width_in_meter') final double? gearWidthInMeter,
   }) = _$CreateCatchRequestImpl;
 
   factory _CreateCatchRequest.fromJson(Map<String, dynamic> json) =
       _$CreateCatchRequestImpl.fromJson;
 
   @override
-  String get name;
+  String get specie;
   @override
-  @JsonKey(name: 'initial_weight_grams')
-  int get initialWeightGrams;
+  String get subgroup;
   @override
-  @JsonKey(name: 'price_per_kg_amount')
-  int get pricePerKgAmount;
+  @JsonKey(name: 'gear_mesh_size_in_finger')
+  double get gearMeshSizeInFinger;
   @override
-  String get size;
+  @JsonKey(name: 'gear_length_in_meter')
+  double get gearLengthInMeter;
   @override
-  @JsonKey(name: 'species_id')
-  String get speciesId;
+  @JsonKey(name: 'gear_nature')
+  String get gearNature;
   @override
-  String get market;
+  @JsonKey(name: 'water_depth_in_meter')
+  double get waterDepthInMeter;
   @override
-  List<String>? get images;
+  @JsonKey(name: 'fishing_time_in_hour')
+  double get fishingTimeInHour;
+  @override
+  @JsonKey(name: 'estimated_weight_in_kg')
+  double get estimatedWeightInKg;
+  @override
+  @JsonKey(name: 'average_size_in_cm')
+  double get averageSizeInCm;
+  @override
+  @JsonKey(name: 'estimated_size')
+  int get estimatedSize;
+  @override
+  @JsonKey(name: 'published_weight_in_kg')
+  double get publishedWeightInKg;
+  @override
+  @JsonKey(name: 'price_per_kg')
+  double get pricePerKg;
+  @override
+  @JsonKey(name: 'final_price')
+  double get finalPrice;
+  @override
+  @JsonKey(name: 'published_in_market_place')
+  bool get publishedInMarketPlace;
+  @override
+  String? get note;
+  @override
+  List<CatchImageRequest> get images;
+  @override
+  String? get alpha;
+  @override
+  bool get dead;
+  @override
+  double get coordX;
+  @override
+  double get coordY;
+  @override
+  String get date;
+  @override
+  int get market;
+  @override
+  String? get observationType;
+  @override
+  String? get patrol;
+  @override
+  String? get segment; // Additional fields from UI (not in sample but collected)
+  @override
+  @JsonKey(name: 'gear_width_in_meter')
+  double? get gearWidthInMeter;
 
   /// Create a copy of CreateCatchRequest
   /// with the given fields replaced by the non-null parameter values.

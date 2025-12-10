@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../../../../core/data/api/api_client.dart';
 import '../../../../core/data/api/api_config.dart';
 import '../../../../core/data/api/models/catch_api_models.dart';
@@ -5,9 +6,11 @@ import '../../../../core/data/mappers/catch_api_mapper.dart';
 import '../../models/catch_model.dart';
 import '../../../domain/enums/catch_status.dart';
 import '../interfaces/i_catch_datasource.dart';
+import 'media_api_data_source.dart';
 
 class CatchesApiDataSource implements ICatchDataSource {
   final ApiClient _client;
+  final MediaApiDataSource _mediaDataSource;
 
   // In-memory cache for catches
   final Map<String, CatchModel> _catchCache = {};
@@ -16,24 +19,86 @@ class CatchesApiDataSource implements ICatchDataSource {
   static const String _mediaBaseUrl =
       'https://api.pulsebox.dev.siren.dhi-cm.com';
 
-  CatchesApiDataSource({required ApiClient client}) : _client = client;
+  CatchesApiDataSource({
+    required ApiClient client,
+    required MediaApiDataSource mediaDataSource,
+  }) : _client = client,
+       _mediaDataSource = mediaDataSource;
 
   @override
   Future<String> create(CatchModel catchItem) async {
-    final request = CatchApiMapper.toRequest(catchItem);
-    final response = await _client.post(
-      ApiConfig.fishCatches,
-      data: request.toJson(),
-    );
-    // Assuming response returns the created object or ID
-    // If wrapped in 'data'
-    final data = response.data['data'] ?? response.data;
-    final id = data['id'].toString();
+    try {
+      List<String> imageUrls = [];
 
-    // Invalidate cache since we created a new catch
-    _clearCache();
+      // Step 1: Upload images to Pulsebox if any
+      if (catchItem.images.isNotEmpty) {
+        print(
+          'DEBUG: Step 1 - Uploading ${catchItem.images.length} images to Pulsebox',
+        );
 
-    return id;
+        // Filter out asset images (placeholders) and convert paths to Files
+        final realImagePaths = catchItem.images
+            .where((path) => !path.startsWith('assets/'))
+            .toList();
+
+        if (realImagePaths.isNotEmpty) {
+          final imageFiles = realImagePaths.map((path) => File(path)).toList();
+
+          try {
+            final uploadResults = await _mediaDataSource.uploadImages(
+              imageFiles,
+            );
+            print(
+              'DEBUG: Successfully uploaded ${uploadResults.length} images',
+            );
+
+            // Extract storageFilePath from each upload result
+            imageUrls = uploadResults
+                .map((result) => result.storageFilePath)
+                .whereType<String>() // Filter out nulls
+                .toList();
+
+            print('DEBUG: Extracted image URLs: $imageUrls');
+          } catch (e) {
+            print('ERROR: Image upload failed: $e');
+            throw Exception('Failed to upload images: $e');
+          }
+        } else {
+          print('DEBUG: No real images to upload (only placeholders)');
+        }
+      }
+
+      // Step 2: Create catch with image URLs
+      print('DEBUG: Step 2 - Creating catch on Marketplace API');
+
+      final request = CatchApiMapper.toCreateRequest(
+        catchItem,
+        imageUrls: imageUrls,
+      );
+
+      print('DEBUG: Catch request: ${request.toJson()}');
+
+      final response = await _client.post(
+        ApiConfig.fishCatchesCreate,
+        data: request.toJson(),
+      );
+
+      print('DEBUG: Catch creation response status: ${response.statusCode}');
+
+      // Extract ID from response
+      final data = response.data['data'] ?? response.data;
+      final id = data['id'].toString();
+
+      print('DEBUG: Catch created successfully with ID: $id');
+
+      // Invalidate cache since we created a new catch
+      _clearCache();
+
+      return id;
+    } catch (e) {
+      print('ERROR: Failed to create catch: $e');
+      rethrow;
+    }
   }
 
   @override

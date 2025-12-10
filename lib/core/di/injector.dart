@@ -12,8 +12,12 @@ import '../data/datasources/local/local_conversation_datasource.dart';
 import '../data/datasources/local/local_datasource_factory.dart';
 import '../data/datasources/local/local_message_datasource.dart';
 import '../data/datasources/api/catches_api_data_source.dart';
+import '../data/datasources/api/media_api_data_source.dart';
 import '../data/datasources/api/offers_api_data_source.dart';
 import '../data/datasources/api/user_api_datasource.dart';
+import '../data/api/api_config.dart';
+
+import 'package:dio/dio.dart';
 import '../data/repositories/catch_repository_impl.dart';
 import '../data/repositories/conversation_repository_impl.dart';
 import '../data/repositories/message_repository_impl.dart';
@@ -258,11 +262,37 @@ void _initApiMode(DatabaseHelper dbHelper) {
     ),
   );
 
+  // Register Media API Data Source for Pulsebox
+  sl.registerLazySingleton<MediaApiDataSource>(() {
+    // Create separate Dio instance for Pulsebox
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: ApiConfig.pulseboxBaseUrl,
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+      ),
+    );
+
+    // Add logging interceptor
+    dio.interceptors.add(
+      LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        error: true,
+      ),
+    );
+
+    return MediaApiDataSource(dio: dio);
+  });
+
   // Register Catches Repository with API Data Source
   sl.registerLazySingleton<ICatchRepository>(
     () => CatchRepositoryImpl(
       dataSource: CatchesApiDataSource(
         client: sl(instanceName: 'marketplaceApiClient'),
+        mediaDataSource: sl<MediaApiDataSource>(),
       ),
     ),
   );

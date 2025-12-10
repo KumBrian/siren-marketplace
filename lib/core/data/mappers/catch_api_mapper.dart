@@ -52,15 +52,39 @@ class CatchApiMapper {
     );
   }
 
-  static CreateCatchRequest toRequest(CatchModel model) {
+  /// Map domain CatchModel to API CreateCatchRequest
+  /// imageUrls should be the storageFilePath values from Pulsebox upload
+  static CreateCatchRequest toCreateRequest(
+    CatchModel model, {
+    required List<String> imageUrls,
+  }) {
     return CreateCatchRequest(
-      name: model.name,
-      initialWeightGrams: model.initialWeightGrams,
-      pricePerKgAmount: model.pricePerKgAmount,
-      size: model.size,
-      speciesId: model.species.id,
-      market: model.market,
-      images: model.images,
+      specie: model.species.id,
+      subgroup: model.species.id, // Use same as species per user
+      gearMeshSizeInFinger: model.meshSize ?? 0.0,
+      gearLengthInMeter: model.gearLength ?? 0.0,
+      gearNature: model.gearNature ?? 'Unknown',
+      waterDepthInMeter: model.waterDepth ?? 0.0,
+      fishingTimeInHour: model.fishingTime ?? 0.0,
+      estimatedWeightInKg: model.initialWeightGrams / 1000.0,
+      averageSizeInCm: double.tryParse(model.size) ?? 0.0,
+      estimatedSize: model.numberOfShrimps ?? 0,
+      publishedWeightInKg: model.availableWeightGrams / 1000.0,
+      pricePerKg: model.pricePerKgAmount / 100.0,
+      finalPrice: model.totalPriceAmount / 100.0,
+      publishedInMarketPlace: model.status == 'available',
+      note: null, // Will be added separately if needed
+      images: imageUrls.map((url) => CatchImageRequest(mediaUrl: url)).toList(),
+      alpha: null,
+      dead: false,
+      coordX: model.longitude,
+      coordY: model.latitude,
+      date: DateTime.now().toIso8601String(),
+      market: 1, // Always 1 for now per user
+      observationType: 'unknown',
+      patrol: null,
+      segment: null,
+      gearWidthInMeter: model.gearWidth,
     );
   }
 }

@@ -60,6 +60,14 @@ class ApiConfig {
   /// Get endpoint for specific offer
   static String offer(String id) => '$offers/$id';
 
+  // Pulsebox API (Media Server)
+  static String get pulseboxBaseUrl =>
+      'https://api.pulsebox.dev.siren.dhi-cm.com/api/v1';
+  static const String mediasCreateCollection = '/medias/create-collection';
+
+  // Catch creation endpoint
+  static const String fishCatchesCreate = '/fish-catches/create';
+
   /// Get endpoint for specific sale order
   static String saleOrder(String id) => '$saleOrders/$id';
 

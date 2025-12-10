@@ -73,16 +73,50 @@ class CatchApiModel with _$CatchApiModel {
       _$CatchApiModelFromJson(json);
 }
 
+/// Image object for catch creation
+@freezed
+class CatchImageRequest with _$CatchImageRequest {
+  const factory CatchImageRequest({required String mediaUrl}) =
+      _CatchImageRequest;
+
+  factory CatchImageRequest.fromJson(Map<String, dynamic> json) =>
+      _$CatchImageRequestFromJson(json);
+}
+
 @freezed
 class CreateCatchRequest with _$CreateCatchRequest {
   const factory CreateCatchRequest({
-    required String name,
-    @JsonKey(name: 'initial_weight_grams') required int initialWeightGrams,
-    @JsonKey(name: 'price_per_kg_amount') required int pricePerKgAmount,
-    required String size,
-    @JsonKey(name: 'species_id') required String speciesId,
-    required String market,
-    List<String>? images,
+    required String specie,
+    required String subgroup,
+    @JsonKey(name: 'gear_mesh_size_in_finger')
+    required double gearMeshSizeInFinger,
+    @JsonKey(name: 'gear_length_in_meter') required double gearLengthInMeter,
+    @JsonKey(name: 'gear_nature') required String gearNature,
+    @JsonKey(name: 'water_depth_in_meter') required double waterDepthInMeter,
+    @JsonKey(name: 'fishing_time_in_hour') required double fishingTimeInHour,
+    @JsonKey(name: 'estimated_weight_in_kg')
+    required double estimatedWeightInKg,
+    @JsonKey(name: 'average_size_in_cm') required double averageSizeInCm,
+    @JsonKey(name: 'estimated_size') required int estimatedSize,
+    @JsonKey(name: 'published_weight_in_kg')
+    required double publishedWeightInKg,
+    @JsonKey(name: 'price_per_kg') required double pricePerKg,
+    @JsonKey(name: 'final_price') required double finalPrice,
+    @JsonKey(name: 'published_in_market_place')
+    required bool publishedInMarketPlace,
+    String? note,
+    required List<CatchImageRequest> images,
+    String? alpha,
+    required bool dead,
+    required double coordX,
+    required double coordY,
+    required String date,
+    required int market,
+    String? observationType,
+    String? patrol,
+    String? segment,
+    // Additional fields from UI (not in sample but collected)
+    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
   }) = _CreateCatchRequest;
 
   factory CreateCatchRequest.fromJson(Map<String, dynamic> json) =>
