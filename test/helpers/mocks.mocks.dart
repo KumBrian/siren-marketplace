@@ -6,7 +6,7 @@
 import 'dart:async' as _i2;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i8;
+import 'package:mockito/src/dummies.dart' as _i9;
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_catch_datasource.dart'
     as _i24;
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_offer_datasource.dart'
@@ -24,25 +24,25 @@ import 'package:siren_marketplace/core/data/models/offer_model.dart' as _i27;
 import 'package:siren_marketplace/core/data/models/order_model.dart' as _i29;
 import 'package:siren_marketplace/core/data/models/review_model.dart' as _i31;
 import 'package:siren_marketplace/core/data/models/user_model.dart' as _i33;
-import 'package:siren_marketplace/core/domain/entities/catch.dart' as _i7;
+import 'package:siren_marketplace/core/domain/entities/catch.dart' as _i8;
 import 'package:siren_marketplace/core/domain/entities/offer.dart' as _i4;
 import 'package:siren_marketplace/core/domain/entities/order.dart' as _i3;
 import 'package:siren_marketplace/core/domain/entities/review.dart' as _i5;
-import 'package:siren_marketplace/core/domain/entities/user.dart' as _i18;
-import 'package:siren_marketplace/core/domain/enums/catch_status.dart' as _i9;
-import 'package:siren_marketplace/core/domain/enums/offer_status.dart' as _i11;
-import 'package:siren_marketplace/core/domain/enums/order_status.dart' as _i15;
-import 'package:siren_marketplace/core/domain/enums/user_role.dart' as _i12;
+import 'package:siren_marketplace/core/domain/entities/user.dart' as _i6;
+import 'package:siren_marketplace/core/domain/enums/catch_status.dart' as _i10;
+import 'package:siren_marketplace/core/domain/enums/offer_status.dart' as _i12;
+import 'package:siren_marketplace/core/domain/enums/order_status.dart' as _i16;
+import 'package:siren_marketplace/core/domain/enums/user_role.dart' as _i13;
 import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart'
-    as _i6;
+    as _i7;
 import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart'
-    as _i10;
+    as _i11;
 import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart'
-    as _i14;
+    as _i15;
 import 'package:siren_marketplace/core/domain/repositories/i_review_repository.dart'
-    as _i16;
-import 'package:siren_marketplace/core/domain/repositories/i_session_repository.dart'
     as _i17;
+import 'package:siren_marketplace/core/domain/repositories/i_session_repository.dart'
+    as _i18;
 import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart'
     as _i19;
 import 'package:siren_marketplace/core/domain/services/negotiation_service.dart'
@@ -52,7 +52,7 @@ import 'package:siren_marketplace/core/domain/services/rating_service.dart'
 import 'package:siren_marketplace/core/domain/services/session_service.dart'
     as _i23;
 import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart'
-    as _i13;
+    as _i14;
 import 'package:siren_marketplace/core/domain/value_objects/rating.dart'
     as _i20;
 
@@ -90,20 +90,25 @@ class _FakeReview_3 extends _i1.SmartFake implements _i5.Review {
     : super(parent, parentInvocation);
 }
 
+class _FakeUser_4 extends _i1.SmartFake implements _i6.User {
+  _FakeUser_4(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [ICatchRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockICatchRepository extends _i1.Mock implements _i6.ICatchRepository {
+class MockICatchRepository extends _i1.Mock implements _i7.ICatchRepository {
   MockICatchRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i2.Future<String> create(_i7.Catch? catchItem) =>
+  _i2.Future<String> create(_i8.Catch? catchItem) =>
       (super.noSuchMethod(
             Invocation.method(#create, [catchItem]),
             returnValue: _i2.Future<String>.value(
-              _i8.dummyValue<String>(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#create, [catchItem]),
               ),
@@ -112,55 +117,55 @@ class MockICatchRepository extends _i1.Mock implements _i6.ICatchRepository {
           as _i2.Future<String>);
 
   @override
-  _i2.Future<_i7.Catch?> getById(String? catchId) =>
+  _i2.Future<_i8.Catch?> getById(String? catchId) =>
       (super.noSuchMethod(
             Invocation.method(#getById, [catchId]),
-            returnValue: _i2.Future<_i7.Catch?>.value(),
+            returnValue: _i2.Future<_i8.Catch?>.value(),
           )
-          as _i2.Future<_i7.Catch?>);
+          as _i2.Future<_i8.Catch?>);
 
   @override
-  _i2.Future<List<_i7.Catch>> getByFisherId(String? fisherId) =>
+  _i2.Future<List<_i8.Catch>> getByFisherId(String? fisherId) =>
       (super.noSuchMethod(
             Invocation.method(#getByFisherId, [fisherId]),
-            returnValue: _i2.Future<List<_i7.Catch>>.value(<_i7.Catch>[]),
+            returnValue: _i2.Future<List<_i8.Catch>>.value(<_i8.Catch>[]),
           )
-          as _i2.Future<List<_i7.Catch>>);
+          as _i2.Future<List<_i8.Catch>>);
 
   @override
-  _i2.Future<List<_i7.Catch>> getAvailableCatches() =>
+  _i2.Future<List<_i8.Catch>> getAvailableCatches() =>
       (super.noSuchMethod(
             Invocation.method(#getAvailableCatches, []),
-            returnValue: _i2.Future<List<_i7.Catch>>.value(<_i7.Catch>[]),
+            returnValue: _i2.Future<List<_i8.Catch>>.value(<_i8.Catch>[]),
           )
-          as _i2.Future<List<_i7.Catch>>);
+          as _i2.Future<List<_i8.Catch>>);
 
   @override
-  _i2.Future<List<_i7.Catch>> getByStatus(_i9.CatchStatus? status) =>
+  _i2.Future<List<_i8.Catch>> getByStatus(_i10.CatchStatus? status) =>
       (super.noSuchMethod(
             Invocation.method(#getByStatus, [status]),
-            returnValue: _i2.Future<List<_i7.Catch>>.value(<_i7.Catch>[]),
+            returnValue: _i2.Future<List<_i8.Catch>>.value(<_i8.Catch>[]),
           )
-          as _i2.Future<List<_i7.Catch>>);
+          as _i2.Future<List<_i8.Catch>>);
 
   @override
-  _i2.Future<List<_i7.Catch>> getExpiredCatches() =>
+  _i2.Future<List<_i8.Catch>> getExpiredCatches() =>
       (super.noSuchMethod(
             Invocation.method(#getExpiredCatches, []),
-            returnValue: _i2.Future<List<_i7.Catch>>.value(<_i7.Catch>[]),
+            returnValue: _i2.Future<List<_i8.Catch>>.value(<_i8.Catch>[]),
           )
-          as _i2.Future<List<_i7.Catch>>);
+          as _i2.Future<List<_i8.Catch>>);
 
   @override
-  _i2.Future<List<_i7.Catch>> getCatchesForDeletion() =>
+  _i2.Future<List<_i8.Catch>> getCatchesForDeletion() =>
       (super.noSuchMethod(
             Invocation.method(#getCatchesForDeletion, []),
-            returnValue: _i2.Future<List<_i7.Catch>>.value(<_i7.Catch>[]),
+            returnValue: _i2.Future<List<_i8.Catch>>.value(<_i8.Catch>[]),
           )
-          as _i2.Future<List<_i7.Catch>>);
+          as _i2.Future<List<_i8.Catch>>);
 
   @override
-  _i2.Future<void> update(_i7.Catch? catchItem) =>
+  _i2.Future<void> update(_i8.Catch? catchItem) =>
       (super.noSuchMethod(
             Invocation.method(#update, [catchItem]),
             returnValue: _i2.Future<void>.value(),
@@ -178,7 +183,7 @@ class MockICatchRepository extends _i1.Mock implements _i6.ICatchRepository {
           as _i2.Future<void>);
 
   @override
-  _i2.Future<void> updateBatch(List<_i7.Catch>? catches) =>
+  _i2.Future<void> updateBatch(List<_i8.Catch>? catches) =>
       (super.noSuchMethod(
             Invocation.method(#updateBatch, [catches]),
             returnValue: _i2.Future<void>.value(),
@@ -199,7 +204,7 @@ class MockICatchRepository extends _i1.Mock implements _i6.ICatchRepository {
 /// A class which mocks [IOfferRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockIOfferRepository extends _i1.Mock implements _i10.IOfferRepository {
+class MockIOfferRepository extends _i1.Mock implements _i11.IOfferRepository {
   MockIOfferRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -209,7 +214,7 @@ class MockIOfferRepository extends _i1.Mock implements _i10.IOfferRepository {
       (super.noSuchMethod(
             Invocation.method(#create, [offer]),
             returnValue: _i2.Future<String>.value(
-              _i8.dummyValue<String>(this, Invocation.method(#create, [offer])),
+              _i9.dummyValue<String>(this, Invocation.method(#create, [offer])),
             ),
           )
           as _i2.Future<String>);
@@ -263,7 +268,7 @@ class MockIOfferRepository extends _i1.Mock implements _i10.IOfferRepository {
           as _i2.Future<List<_i4.Offer>>);
 
   @override
-  _i2.Future<List<_i4.Offer>> getByStatus(_i11.OfferStatus? status) =>
+  _i2.Future<List<_i4.Offer>> getByStatus(_i12.OfferStatus? status) =>
       (super.noSuchMethod(
             Invocation.method(#getByStatus, [status]),
             returnValue: _i2.Future<List<_i4.Offer>>.value(<_i4.Offer>[]),
@@ -297,7 +302,7 @@ class MockIOfferRepository extends _i1.Mock implements _i10.IOfferRepository {
           as _i2.Future<void>);
 
   @override
-  _i2.Future<void> acceptOffer(String? offerId, _i12.UserRole? role) =>
+  _i2.Future<void> acceptOffer(String? offerId, _i13.UserRole? role) =>
       (super.noSuchMethod(
             Invocation.method(#acceptOffer, [offerId, role]),
             returnValue: _i2.Future<void>.value(),
@@ -306,7 +311,7 @@ class MockIOfferRepository extends _i1.Mock implements _i10.IOfferRepository {
           as _i2.Future<void>);
 
   @override
-  _i2.Future<void> rejectOffer(String? offerId, _i12.UserRole? role) =>
+  _i2.Future<void> rejectOffer(String? offerId, _i13.UserRole? role) =>
       (super.noSuchMethod(
             Invocation.method(#rejectOffer, [offerId, role]),
             returnValue: _i2.Future<void>.value(),
@@ -317,8 +322,8 @@ class MockIOfferRepository extends _i1.Mock implements _i10.IOfferRepository {
   @override
   _i2.Future<void> counterOffer(
     String? offerId,
-    _i12.UserRole? role,
-    _i13.OfferTerms? terms,
+    _i13.UserRole? role,
+    _i14.OfferTerms? terms,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#counterOffer, [offerId, role, terms]),
@@ -328,7 +333,7 @@ class MockIOfferRepository extends _i1.Mock implements _i10.IOfferRepository {
           as _i2.Future<void>);
 
   @override
-  _i2.Future<void> markAsViewed(String? offerId, _i12.UserRole? role) =>
+  _i2.Future<void> markAsViewed(String? offerId, _i13.UserRole? role) =>
       (super.noSuchMethod(
             Invocation.method(#markAsViewed, [offerId, role]),
             returnValue: _i2.Future<void>.value(),
@@ -341,8 +346,8 @@ class MockIOfferRepository extends _i1.Mock implements _i10.IOfferRepository {
       (super.noSuchMethod(
             Invocation.method(#transaction, [action]),
             returnValue:
-                _i8.ifNotNull(
-                  _i8.dummyValueOrNull<T>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#transaction, [action]),
                   ),
@@ -359,7 +364,7 @@ class MockIOfferRepository extends _i1.Mock implements _i10.IOfferRepository {
 /// A class which mocks [IOrderRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockIOrderRepository extends _i1.Mock implements _i14.IOrderRepository {
+class MockIOrderRepository extends _i1.Mock implements _i15.IOrderRepository {
   MockIOrderRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -369,7 +374,7 @@ class MockIOrderRepository extends _i1.Mock implements _i14.IOrderRepository {
       (super.noSuchMethod(
             Invocation.method(#create, [order]),
             returnValue: _i2.Future<String>.value(
-              _i8.dummyValue<String>(this, Invocation.method(#create, [order])),
+              _i9.dummyValue<String>(this, Invocation.method(#create, [order])),
             ),
           )
           as _i2.Future<String>);
@@ -425,7 +430,7 @@ class MockIOrderRepository extends _i1.Mock implements _i14.IOrderRepository {
           as _i2.Future<List<_i3.Order>>);
 
   @override
-  _i2.Future<List<_i3.Order>> getByStatus(_i15.OrderStatus? status) =>
+  _i2.Future<List<_i3.Order>> getByStatus(_i16.OrderStatus? status) =>
       (super.noSuchMethod(
             Invocation.method(#getByStatus, [status]),
             returnValue: _i2.Future<List<_i3.Order>>.value(<_i3.Order>[]),
@@ -463,8 +468,8 @@ class MockIOrderRepository extends _i1.Mock implements _i14.IOrderRepository {
       (super.noSuchMethod(
             Invocation.method(#transaction, [action]),
             returnValue:
-                _i8.ifNotNull(
-                  _i8.dummyValueOrNull<T>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#transaction, [action]),
                   ),
@@ -481,7 +486,7 @@ class MockIOrderRepository extends _i1.Mock implements _i14.IOrderRepository {
 /// A class which mocks [IReviewRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockIReviewRepository extends _i1.Mock implements _i16.IReviewRepository {
+class MockIReviewRepository extends _i1.Mock implements _i17.IReviewRepository {
   MockIReviewRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -491,7 +496,7 @@ class MockIReviewRepository extends _i1.Mock implements _i16.IReviewRepository {
       (super.noSuchMethod(
             Invocation.method(#create, [review]),
             returnValue: _i2.Future<String>.value(
-              _i8.dummyValue<String>(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#create, [review]),
               ),
@@ -561,8 +566,8 @@ class MockIReviewRepository extends _i1.Mock implements _i16.IReviewRepository {
       (super.noSuchMethod(
             Invocation.method(#transaction, [action]),
             returnValue:
-                _i8.ifNotNull(
-                  _i8.dummyValueOrNull<T>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#transaction, [action]),
                   ),
@@ -580,29 +585,29 @@ class MockIReviewRepository extends _i1.Mock implements _i16.IReviewRepository {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockISessionRepository extends _i1.Mock
-    implements _i17.ISessionRepository {
+    implements _i18.ISessionRepository {
   MockISessionRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i2.Future<_i18.User?> getCurrentUser() =>
+  _i2.Future<_i6.User?> getCurrentUser() =>
       (super.noSuchMethod(
             Invocation.method(#getCurrentUser, []),
-            returnValue: _i2.Future<_i18.User?>.value(),
+            returnValue: _i2.Future<_i6.User?>.value(),
           )
-          as _i2.Future<_i18.User?>);
+          as _i2.Future<_i6.User?>);
 
   @override
-  _i2.Future<_i12.UserRole?> getCurrentRole() =>
+  _i2.Future<_i13.UserRole?> getCurrentRole() =>
       (super.noSuchMethod(
             Invocation.method(#getCurrentRole, []),
-            returnValue: _i2.Future<_i12.UserRole?>.value(),
+            returnValue: _i2.Future<_i13.UserRole?>.value(),
           )
-          as _i2.Future<_i12.UserRole?>);
+          as _i2.Future<_i13.UserRole?>);
 
   @override
-  _i2.Future<void> saveCurrentUser(_i18.User? user) =>
+  _i2.Future<void> saveCurrentUser(_i6.User? user) =>
       (super.noSuchMethod(
             Invocation.method(#saveCurrentUser, [user]),
             returnValue: _i2.Future<void>.value(),
@@ -611,7 +616,7 @@ class MockISessionRepository extends _i1.Mock
           as _i2.Future<void>);
 
   @override
-  _i2.Future<void> saveCurrentRole(_i12.UserRole? role) =>
+  _i2.Future<void> saveCurrentRole(_i13.UserRole? role) =>
       (super.noSuchMethod(
             Invocation.method(#saveCurrentRole, [role]),
             returnValue: _i2.Future<void>.value(),
@@ -646,23 +651,23 @@ class MockIUserRepository extends _i1.Mock implements _i19.IUserRepository {
   }
 
   @override
-  _i2.Future<_i18.User?> getById(String? userId) =>
+  _i2.Future<_i6.User?> getById(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#getById, [userId]),
-            returnValue: _i2.Future<_i18.User?>.value(),
+            returnValue: _i2.Future<_i6.User?>.value(),
           )
-          as _i2.Future<_i18.User?>);
+          as _i2.Future<_i6.User?>);
 
   @override
-  _i2.Future<List<_i18.User>> getByIds(List<String>? userIds) =>
+  _i2.Future<List<_i6.User>> getByIds(List<String>? userIds) =>
       (super.noSuchMethod(
             Invocation.method(#getByIds, [userIds]),
-            returnValue: _i2.Future<List<_i18.User>>.value(<_i18.User>[]),
+            returnValue: _i2.Future<List<_i6.User>>.value(<_i6.User>[]),
           )
-          as _i2.Future<List<_i18.User>>);
+          as _i2.Future<List<_i6.User>>);
 
   @override
-  _i2.Future<void> updateRole(String? userId, _i12.UserRole? role) =>
+  _i2.Future<void> updateRole(String? userId, _i13.UserRole? role) =>
       (super.noSuchMethod(
             Invocation.method(#updateRole, [userId, role]),
             returnValue: _i2.Future<void>.value(),
@@ -688,7 +693,7 @@ class MockIUserRepository extends _i1.Mock implements _i19.IUserRepository {
           as _i2.Future<void>);
 
   @override
-  _i2.Future<void> update(_i18.User? user) =>
+  _i2.Future<void> update(_i6.User? user) =>
       (super.noSuchMethod(
             Invocation.method(#update, [user]),
             returnValue: _i2.Future<void>.value(),
@@ -705,7 +710,7 @@ class MockIUserRepository extends _i1.Mock implements _i19.IUserRepository {
           as _i2.Future<bool>);
 
   @override
-  _i2.Future<void> create(_i18.User? user) =>
+  _i2.Future<void> create(_i6.User? user) =>
       (super.noSuchMethod(
             Invocation.method(#create, [user]),
             returnValue: _i2.Future<void>.value(),
@@ -714,20 +719,20 @@ class MockIUserRepository extends _i1.Mock implements _i19.IUserRepository {
           as _i2.Future<void>);
 
   @override
-  _i2.Future<_i18.User?> getFirstFisher() =>
+  _i2.Future<_i6.User?> getFirstFisher() =>
       (super.noSuchMethod(
             Invocation.method(#getFirstFisher, []),
-            returnValue: _i2.Future<_i18.User?>.value(),
+            returnValue: _i2.Future<_i6.User?>.value(),
           )
-          as _i2.Future<_i18.User?>);
+          as _i2.Future<_i6.User?>);
 
   @override
-  _i2.Future<_i18.User?> getFirstBuyer() =>
+  _i2.Future<_i6.User?> getFirstBuyer() =>
       (super.noSuchMethod(
             Invocation.method(#getFirstBuyer, []),
-            returnValue: _i2.Future<_i18.User?>.value(),
+            returnValue: _i2.Future<_i6.User?>.value(),
           )
-          as _i2.Future<_i18.User?>);
+          as _i2.Future<_i6.User?>);
 }
 
 /// A class which mocks [NegotiationService].
@@ -744,7 +749,7 @@ class MockNegotiationService extends _i1.Mock
     required String? catchId,
     required String? buyerId,
     required String? fisherId,
-    required _i13.OfferTerms? terms,
+    required _i14.OfferTerms? terms,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#createOffer, [], {
@@ -815,7 +820,7 @@ class MockNegotiationService extends _i1.Mock
   _i2.Future<_i4.Offer> counterOffer({
     required String? offerId,
     required String? userId,
-    required _i13.OfferTerms? newTerms,
+    required _i14.OfferTerms? newTerms,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#counterOffer, [], {
@@ -925,31 +930,31 @@ class MockSessionService extends _i1.Mock implements _i23.SessionService {
   }
 
   @override
-  _i2.Future<_i18.User?> initialize() =>
+  _i2.Future<_i6.User?> initialize() =>
       (super.noSuchMethod(
             Invocation.method(#initialize, []),
-            returnValue: _i2.Future<_i18.User?>.value(),
+            returnValue: _i2.Future<_i6.User?>.value(),
           )
-          as _i2.Future<_i18.User?>);
+          as _i2.Future<_i6.User?>);
 
   @override
-  _i2.Future<_i18.User?> getCurrentUser() =>
+  _i2.Future<_i6.User?> getCurrentUser() =>
       (super.noSuchMethod(
             Invocation.method(#getCurrentUser, []),
-            returnValue: _i2.Future<_i18.User?>.value(),
+            returnValue: _i2.Future<_i6.User?>.value(),
           )
-          as _i2.Future<_i18.User?>);
+          as _i2.Future<_i6.User?>);
 
   @override
-  _i2.Future<_i12.UserRole?> getCurrentRole() =>
+  _i2.Future<_i13.UserRole?> getCurrentRole() =>
       (super.noSuchMethod(
             Invocation.method(#getCurrentRole, []),
-            returnValue: _i2.Future<_i12.UserRole?>.value(),
+            returnValue: _i2.Future<_i13.UserRole?>.value(),
           )
-          as _i2.Future<_i12.UserRole?>);
+          as _i2.Future<_i13.UserRole?>);
 
   @override
-  _i2.Future<void> switchRole(_i12.UserRole? newRole) =>
+  _i2.Future<void> switchRole(_i13.UserRole? newRole) =>
       (super.noSuchMethod(
             Invocation.method(#switchRole, [newRole]),
             returnValue: _i2.Future<void>.value(),
@@ -958,7 +963,20 @@ class MockSessionService extends _i1.Mock implements _i23.SessionService {
           as _i2.Future<void>);
 
   @override
-  _i2.Future<void> login(_i18.User? user) =>
+  _i2.Future<_i6.User> loginWithApi(String? email, String? password) =>
+      (super.noSuchMethod(
+            Invocation.method(#loginWithApi, [email, password]),
+            returnValue: _i2.Future<_i6.User>.value(
+              _FakeUser_4(
+                this,
+                Invocation.method(#loginWithApi, [email, password]),
+              ),
+            ),
+          )
+          as _i2.Future<_i6.User>);
+
+  @override
+  _i2.Future<void> login(_i6.User? user) =>
       (super.noSuchMethod(
             Invocation.method(#login, [user]),
             returnValue: _i2.Future<void>.value(),
@@ -997,7 +1015,7 @@ class MockICatchDataSource extends _i1.Mock implements _i24.ICatchDataSource {
       (super.noSuchMethod(
             Invocation.method(#create, [catchItem]),
             returnValue: _i2.Future<String>.value(
-              _i8.dummyValue<String>(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#create, [catchItem]),
               ),
@@ -1024,7 +1042,7 @@ class MockICatchDataSource extends _i1.Mock implements _i24.ICatchDataSource {
           as _i2.Future<List<_i25.CatchModel>>);
 
   @override
-  _i2.Future<List<_i25.CatchModel>> getByStatus(_i9.CatchStatus? status) =>
+  _i2.Future<List<_i25.CatchModel>> getByStatus(_i10.CatchStatus? status) =>
       (super.noSuchMethod(
             Invocation.method(#getByStatus, [status]),
             returnValue: _i2.Future<List<_i25.CatchModel>>.value(
@@ -1093,7 +1111,7 @@ class MockIOfferDataSource extends _i1.Mock implements _i26.IOfferDataSource {
       (super.noSuchMethod(
             Invocation.method(#create, [offer]),
             returnValue: _i2.Future<String>.value(
-              _i8.dummyValue<String>(this, Invocation.method(#create, [offer])),
+              _i9.dummyValue<String>(this, Invocation.method(#create, [offer])),
             ),
           )
           as _i2.Future<String>);
@@ -1157,7 +1175,7 @@ class MockIOfferDataSource extends _i1.Mock implements _i26.IOfferDataSource {
           as _i2.Future<List<_i27.OfferModel>>);
 
   @override
-  _i2.Future<List<_i27.OfferModel>> getByStatus(_i11.OfferStatus? status) =>
+  _i2.Future<List<_i27.OfferModel>> getByStatus(_i12.OfferStatus? status) =>
       (super.noSuchMethod(
             Invocation.method(#getByStatus, [status]),
             returnValue: _i2.Future<List<_i27.OfferModel>>.value(
@@ -1189,8 +1207,8 @@ class MockIOfferDataSource extends _i1.Mock implements _i26.IOfferDataSource {
       (super.noSuchMethod(
             Invocation.method(#transaction, [action]),
             returnValue:
-                _i8.ifNotNull(
-                  _i8.dummyValueOrNull<T>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#transaction, [action]),
                   ),
@@ -1217,7 +1235,7 @@ class MockIOrderDataSource extends _i1.Mock implements _i28.IOrderDataSource {
       (super.noSuchMethod(
             Invocation.method(#create, [order]),
             returnValue: _i2.Future<String>.value(
-              _i8.dummyValue<String>(this, Invocation.method(#create, [order])),
+              _i9.dummyValue<String>(this, Invocation.method(#create, [order])),
             ),
           )
           as _i2.Future<String>);
@@ -1279,7 +1297,7 @@ class MockIOrderDataSource extends _i1.Mock implements _i28.IOrderDataSource {
           as _i2.Future<List<_i29.OrderModel>>);
 
   @override
-  _i2.Future<List<_i29.OrderModel>> getByStatus(_i15.OrderStatus? status) =>
+  _i2.Future<List<_i29.OrderModel>> getByStatus(_i16.OrderStatus? status) =>
       (super.noSuchMethod(
             Invocation.method(#getByStatus, [status]),
             returnValue: _i2.Future<List<_i29.OrderModel>>.value(
@@ -1311,8 +1329,8 @@ class MockIOrderDataSource extends _i1.Mock implements _i28.IOrderDataSource {
       (super.noSuchMethod(
             Invocation.method(#transaction, [action]),
             returnValue:
-                _i8.ifNotNull(
-                  _i8.dummyValueOrNull<T>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#transaction, [action]),
                   ),
@@ -1339,7 +1357,7 @@ class MockIReviewDataSource extends _i1.Mock implements _i30.IReviewDataSource {
       (super.noSuchMethod(
             Invocation.method(#create, [review]),
             returnValue: _i2.Future<String>.value(
-              _i8.dummyValue<String>(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#create, [review]),
               ),
@@ -1415,8 +1433,8 @@ class MockIReviewDataSource extends _i1.Mock implements _i30.IReviewDataSource {
       (super.noSuchMethod(
             Invocation.method(#transaction, [action]),
             returnValue:
-                _i8.ifNotNull(
-                  _i8.dummyValueOrNull<T>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<T>(
                     this,
                     Invocation.method(#transaction, [action]),
                   ),

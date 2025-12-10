@@ -20,18 +20,19 @@ class CatchApiMapper {
           const SpeciesModel(id: 'unknown', name: 'Unknown', image: ''),
       fisherId: apiModel.fisher?.id?.toString() ?? 'unknown_fisher',
       status: apiModel.status ?? 'available',
-      // Fields not provided by API - use defaults
-      observationId: '',
-      locationName: '',
-      latitude: 0.0,
-      longitude: 0.0,
-      meshSize: null,
-      gearLength: null,
-      gearWidth: null,
-      gearNature: null,
-      waterDepth: null,
-      fishingTime: null,
-      numberOfShrimps: null,
+      // Location and observation data from API
+      observationId: apiModel.observationId ?? '',
+      locationName: apiModel.locationName ?? '',
+      latitude: apiModel.latitude ?? 0.0,
+      longitude: apiModel.longitude ?? 0.0,
+      // Gear and fishing data from API
+      meshSize: apiModel.meshSize,
+      gearLength: apiModel.gearLength,
+      gearWidth: apiModel.gearWidth,
+      gearNature: apiModel.gearNature,
+      waterDepth: apiModel.waterDepth,
+      fishingTime: apiModel.fishingTime,
+      numberOfShrimps: apiModel.numberOfShrimps,
     );
   }
 

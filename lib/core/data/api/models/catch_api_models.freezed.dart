@@ -39,7 +39,28 @@ mixin _$CatchApiModel {
   String? get status =>
       throw _privateConstructorUsedError; // available, sold, etc.
   @JsonKey(name: 'created_at')
-  String? get createdAt => throw _privateConstructorUsedError;
+  String? get createdAt => throw _privateConstructorUsedError; // Location data
+  @JsonKey(name: 'observation_id')
+  String? get observationId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'location_name')
+  String? get locationName => throw _privateConstructorUsedError;
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude =>
+      throw _privateConstructorUsedError; // Gear and fishing data
+  @JsonKey(name: 'mesh_size')
+  double? get meshSize => throw _privateConstructorUsedError;
+  @JsonKey(name: 'gear_length')
+  double? get gearLength => throw _privateConstructorUsedError;
+  @JsonKey(name: 'gear_width')
+  double? get gearWidth => throw _privateConstructorUsedError;
+  @JsonKey(name: 'gear_nature')
+  String? get gearNature => throw _privateConstructorUsedError;
+  @JsonKey(name: 'water_depth')
+  double? get waterDepth => throw _privateConstructorUsedError;
+  @JsonKey(name: 'fishing_time')
+  double? get fishingTime => throw _privateConstructorUsedError;
+  @JsonKey(name: 'number_of_shrimps')
+  int? get numberOfShrimps => throw _privateConstructorUsedError;
 
   /// Serializes this CatchApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -72,6 +93,17 @@ abstract class $CatchApiModelCopyWith<$Res> {
     String? market,
     String? status,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'observation_id') String? observationId,
+    @JsonKey(name: 'location_name') String? locationName,
+    double? latitude,
+    double? longitude,
+    @JsonKey(name: 'mesh_size') double? meshSize,
+    @JsonKey(name: 'gear_length') double? gearLength,
+    @JsonKey(name: 'gear_width') double? gearWidth,
+    @JsonKey(name: 'gear_nature') String? gearNature,
+    @JsonKey(name: 'water_depth') double? waterDepth,
+    @JsonKey(name: 'fishing_time') double? fishingTime,
+    @JsonKey(name: 'number_of_shrimps') int? numberOfShrimps,
   });
 
   $AccountApiModelCopyWith<$Res>? get fisher;
@@ -105,6 +137,17 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
     Object? market = freezed,
     Object? status = freezed,
     Object? createdAt = freezed,
+    Object? observationId = freezed,
+    Object? locationName = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? meshSize = freezed,
+    Object? gearLength = freezed,
+    Object? gearWidth = freezed,
+    Object? gearNature = freezed,
+    Object? waterDepth = freezed,
+    Object? fishingTime = freezed,
+    Object? numberOfShrimps = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -160,6 +203,50 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                       as String?,
+            observationId: freezed == observationId
+                ? _value.observationId
+                : observationId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            locationName: freezed == locationName
+                ? _value.locationName
+                : locationName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            meshSize: freezed == meshSize
+                ? _value.meshSize
+                : meshSize // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            gearLength: freezed == gearLength
+                ? _value.gearLength
+                : gearLength // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            gearWidth: freezed == gearWidth
+                ? _value.gearWidth
+                : gearWidth // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            gearNature: freezed == gearNature
+                ? _value.gearNature
+                : gearNature // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            waterDepth: freezed == waterDepth
+                ? _value.waterDepth
+                : waterDepth // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            fishingTime: freezed == fishingTime
+                ? _value.fishingTime
+                : fishingTime // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            numberOfShrimps: freezed == numberOfShrimps
+                ? _value.numberOfShrimps
+                : numberOfShrimps // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -203,6 +290,17 @@ abstract class _$$CatchApiModelImplCopyWith<$Res>
     String? market,
     String? status,
     @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'observation_id') String? observationId,
+    @JsonKey(name: 'location_name') String? locationName,
+    double? latitude,
+    double? longitude,
+    @JsonKey(name: 'mesh_size') double? meshSize,
+    @JsonKey(name: 'gear_length') double? gearLength,
+    @JsonKey(name: 'gear_width') double? gearWidth,
+    @JsonKey(name: 'gear_nature') String? gearNature,
+    @JsonKey(name: 'water_depth') double? waterDepth,
+    @JsonKey(name: 'fishing_time') double? fishingTime,
+    @JsonKey(name: 'number_of_shrimps') int? numberOfShrimps,
   });
 
   @override
@@ -236,6 +334,17 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
     Object? market = freezed,
     Object? status = freezed,
     Object? createdAt = freezed,
+    Object? observationId = freezed,
+    Object? locationName = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
+    Object? meshSize = freezed,
+    Object? gearLength = freezed,
+    Object? gearWidth = freezed,
+    Object? gearNature = freezed,
+    Object? waterDepth = freezed,
+    Object? fishingTime = freezed,
+    Object? numberOfShrimps = freezed,
   }) {
     return _then(
       _$CatchApiModelImpl(
@@ -291,6 +400,50 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
                   as String?,
+        observationId: freezed == observationId
+            ? _value.observationId
+            : observationId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        locationName: freezed == locationName
+            ? _value.locationName
+            : locationName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        meshSize: freezed == meshSize
+            ? _value.meshSize
+            : meshSize // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        gearLength: freezed == gearLength
+            ? _value.gearLength
+            : gearLength // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        gearWidth: freezed == gearWidth
+            ? _value.gearWidth
+            : gearWidth // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        gearNature: freezed == gearNature
+            ? _value.gearNature
+            : gearNature // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        waterDepth: freezed == waterDepth
+            ? _value.waterDepth
+            : waterDepth // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        fishingTime: freezed == fishingTime
+            ? _value.fishingTime
+            : fishingTime // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        numberOfShrimps: freezed == numberOfShrimps
+            ? _value.numberOfShrimps
+            : numberOfShrimps // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -313,6 +466,17 @@ class _$CatchApiModelImpl implements _CatchApiModel {
     this.market,
     this.status,
     @JsonKey(name: 'created_at') this.createdAt,
+    @JsonKey(name: 'observation_id') this.observationId,
+    @JsonKey(name: 'location_name') this.locationName,
+    this.latitude,
+    this.longitude,
+    @JsonKey(name: 'mesh_size') this.meshSize,
+    @JsonKey(name: 'gear_length') this.gearLength,
+    @JsonKey(name: 'gear_width') this.gearWidth,
+    @JsonKey(name: 'gear_nature') this.gearNature,
+    @JsonKey(name: 'water_depth') this.waterDepth,
+    @JsonKey(name: 'fishing_time') this.fishingTime,
+    @JsonKey(name: 'number_of_shrimps') this.numberOfShrimps,
   }) : _images = images;
 
   factory _$CatchApiModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -357,10 +521,43 @@ class _$CatchApiModelImpl implements _CatchApiModel {
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
+  // Location data
+  @override
+  @JsonKey(name: 'observation_id')
+  final String? observationId;
+  @override
+  @JsonKey(name: 'location_name')
+  final String? locationName;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  // Gear and fishing data
+  @override
+  @JsonKey(name: 'mesh_size')
+  final double? meshSize;
+  @override
+  @JsonKey(name: 'gear_length')
+  final double? gearLength;
+  @override
+  @JsonKey(name: 'gear_width')
+  final double? gearWidth;
+  @override
+  @JsonKey(name: 'gear_nature')
+  final String? gearNature;
+  @override
+  @JsonKey(name: 'water_depth')
+  final double? waterDepth;
+  @override
+  @JsonKey(name: 'fishing_time')
+  final double? fishingTime;
+  @override
+  @JsonKey(name: 'number_of_shrimps')
+  final int? numberOfShrimps;
 
   @override
   String toString() {
-    return 'CatchApiModel(id: $id, name: $name, initialWeightGrams: $initialWeightGrams, availableWeightGrams: $availableWeightGrams, pricePerKgAmount: $pricePerKgAmount, totalPriceAmount: $totalPriceAmount, size: $size, images: $images, species: $species, fisher: $fisher, market: $market, status: $status, createdAt: $createdAt)';
+    return 'CatchApiModel(id: $id, name: $name, initialWeightGrams: $initialWeightGrams, availableWeightGrams: $availableWeightGrams, pricePerKgAmount: $pricePerKgAmount, totalPriceAmount: $totalPriceAmount, size: $size, images: $images, species: $species, fisher: $fisher, market: $market, status: $status, createdAt: $createdAt, observationId: $observationId, locationName: $locationName, latitude: $latitude, longitude: $longitude, meshSize: $meshSize, gearLength: $gearLength, gearWidth: $gearWidth, gearNature: $gearNature, waterDepth: $waterDepth, fishingTime: $fishingTime, numberOfShrimps: $numberOfShrimps)';
   }
 
   @override
@@ -385,12 +582,34 @@ class _$CatchApiModelImpl implements _CatchApiModel {
             (identical(other.market, market) || other.market == market) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.observationId, observationId) ||
+                other.observationId == observationId) &&
+            (identical(other.locationName, locationName) ||
+                other.locationName == locationName) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
+            (identical(other.meshSize, meshSize) ||
+                other.meshSize == meshSize) &&
+            (identical(other.gearLength, gearLength) ||
+                other.gearLength == gearLength) &&
+            (identical(other.gearWidth, gearWidth) ||
+                other.gearWidth == gearWidth) &&
+            (identical(other.gearNature, gearNature) ||
+                other.gearNature == gearNature) &&
+            (identical(other.waterDepth, waterDepth) ||
+                other.waterDepth == waterDepth) &&
+            (identical(other.fishingTime, fishingTime) ||
+                other.fishingTime == fishingTime) &&
+            (identical(other.numberOfShrimps, numberOfShrimps) ||
+                other.numberOfShrimps == numberOfShrimps));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     const DeepCollectionEquality().hash(id),
     name,
@@ -405,7 +624,18 @@ class _$CatchApiModelImpl implements _CatchApiModel {
     market,
     status,
     createdAt,
-  );
+    observationId,
+    locationName,
+    latitude,
+    longitude,
+    meshSize,
+    gearLength,
+    gearWidth,
+    gearNature,
+    waterDepth,
+    fishingTime,
+    numberOfShrimps,
+  ]);
 
   /// Create a copy of CatchApiModel
   /// with the given fields replaced by the non-null parameter values.
@@ -436,6 +666,17 @@ abstract class _CatchApiModel implements CatchApiModel {
     final String? market,
     final String? status,
     @JsonKey(name: 'created_at') final String? createdAt,
+    @JsonKey(name: 'observation_id') final String? observationId,
+    @JsonKey(name: 'location_name') final String? locationName,
+    final double? latitude,
+    final double? longitude,
+    @JsonKey(name: 'mesh_size') final double? meshSize,
+    @JsonKey(name: 'gear_length') final double? gearLength,
+    @JsonKey(name: 'gear_width') final double? gearWidth,
+    @JsonKey(name: 'gear_nature') final String? gearNature,
+    @JsonKey(name: 'water_depth') final double? waterDepth,
+    @JsonKey(name: 'fishing_time') final double? fishingTime,
+    @JsonKey(name: 'number_of_shrimps') final int? numberOfShrimps,
   }) = _$CatchApiModelImpl;
 
   factory _CatchApiModel.fromJson(Map<String, dynamic> json) =
@@ -471,7 +712,38 @@ abstract class _CatchApiModel implements CatchApiModel {
   String? get status; // available, sold, etc.
   @override
   @JsonKey(name: 'created_at')
-  String? get createdAt;
+  String? get createdAt; // Location data
+  @override
+  @JsonKey(name: 'observation_id')
+  String? get observationId;
+  @override
+  @JsonKey(name: 'location_name')
+  String? get locationName;
+  @override
+  double? get latitude;
+  @override
+  double? get longitude; // Gear and fishing data
+  @override
+  @JsonKey(name: 'mesh_size')
+  double? get meshSize;
+  @override
+  @JsonKey(name: 'gear_length')
+  double? get gearLength;
+  @override
+  @JsonKey(name: 'gear_width')
+  double? get gearWidth;
+  @override
+  @JsonKey(name: 'gear_nature')
+  String? get gearNature;
+  @override
+  @JsonKey(name: 'water_depth')
+  double? get waterDepth;
+  @override
+  @JsonKey(name: 'fishing_time')
+  double? get fishingTime;
+  @override
+  @JsonKey(name: 'number_of_shrimps')
+  int? get numberOfShrimps;
 
   /// Create a copy of CatchApiModel
   /// with the given fields replaced by the non-null parameter values.

@@ -21,6 +21,19 @@ class CatchApiModel with _$CatchApiModel {
     String? market,
     String? status, // available, sold, etc.
     @JsonKey(name: 'created_at') String? createdAt,
+    // Location data
+    @JsonKey(name: 'observation_id') String? observationId,
+    @JsonKey(name: 'location_name') String? locationName,
+    double? latitude,
+    double? longitude,
+    // Gear and fishing data
+    @JsonKey(name: 'mesh_size') double? meshSize,
+    @JsonKey(name: 'gear_length') double? gearLength,
+    @JsonKey(name: 'gear_width') double? gearWidth,
+    @JsonKey(name: 'gear_nature') String? gearNature,
+    @JsonKey(name: 'water_depth') double? waterDepth,
+    @JsonKey(name: 'fishing_time') double? fishingTime,
+    @JsonKey(name: 'number_of_shrimps') int? numberOfShrimps,
   }) = _CatchApiModel;
 
   factory CatchApiModel.fromJson(Map<String, dynamic> json) =>
