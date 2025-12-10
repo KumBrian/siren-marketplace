@@ -20,15 +20,14 @@ class ApiInterceptor extends Interceptor {
     }
 
     // Check for proactive refresh
+    // If token is expired or about to expire, refresh it before making the request
     if (await _tokenStorage.isTokenExpired()) {
       print('DEBUG: Token expired, attempting proactive refresh');
       final refreshed = await _tryRefreshToken();
       print('DEBUG: Proactive refresh result: $refreshed');
       if (!refreshed) {
-        // If refresh failed, we can't do much but clear tokens
+        // If refresh failed, clear tokens and reject request
         await _tokenStorage.clearTokens();
-
-        // Reject the request immediately with 401 to trigger logout
         return handler.reject(
           DioException(
             requestOptions: options,
@@ -40,7 +39,7 @@ class ApiInterceptor extends Interceptor {
             type: DioExceptionType.badResponse,
             message: 'Session expired, please login again',
           ),
-          true, // Call following error interceptor, though 401 might be handled by UI or SessionService
+          true,
         );
       }
     }
@@ -97,41 +96,60 @@ class ApiInterceptor extends Interceptor {
   }
 
   /// Attempt to refresh the access token
+  /// API expects current token in Authorization header, returns new token
   Future<bool> _tryRefreshToken() async {
     try {
-      final refreshToken = await _tokenStorage.getRefreshToken();
-      if (refreshToken == null) return false;
+      final currentToken = await _tokenStorage.getAccessToken();
+      if (currentToken == null) {
+        print('DEBUG: No current token available for refresh');
+        return false;
+      }
+
+      print('DEBUG: Attempting to refresh token...');
 
       // Create a new Dio instance to avoid interceptor loop
       final dio = Dio();
-      // Use Core base URL + token refresh endpoint
       final url = '${ApiConfig.coreBaseUrl}${ApiConfig.tokenRefresh}';
 
       final response = await dio.post(
         url,
-        data: {'refresh_token': refreshToken},
         options: Options(
+          headers: {'Authorization': 'Bearer $currentToken'},
           validateStatus: (status) => status != null && status < 500,
         ),
       );
 
+      print('DEBUG: Refresh response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = response.data;
-        // Assuming response matches AuthorizeResponse or contains token/refreshToken
         final newToken = data['token'];
-        final newRefreshToken = data['refresh_token'];
+        final newExpiry = data['tokenExpireAt'];
+
+        print('DEBUG: Refresh successful, got new token');
 
         if (newToken != null) {
           await _tokenStorage.saveAccessToken(newToken);
+
+          // Parse and save new expiry if provided
+          if (newExpiry != null) {
+            try {
+              final expiryDate = DateTime.parse(newExpiry);
+              await _tokenStorage.saveTokenExpiry(expiryDate);
+              print('DEBUG: New token expires at: $expiryDate');
+            } catch (e) {
+              print('DEBUG: Could not parse expiry date: $e');
+            }
+          }
+
+          return true;
         }
-        if (newRefreshToken != null) {
-          await _tokenStorage.saveRefreshToken(newRefreshToken);
-        }
-        return true;
       }
 
+      print('DEBUG: Refresh failed with status ${response.statusCode}');
       return false;
     } catch (e) {
+      print('DEBUG: Refresh error: $e');
       return false;
     }
   }
