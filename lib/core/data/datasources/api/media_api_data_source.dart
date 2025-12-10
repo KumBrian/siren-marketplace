@@ -12,7 +12,7 @@ class MediaApiDataSource {
   MediaApiDataSource({required Dio dio}) : _dio = dio;
 
   /// Compress an image file to reduce size before upload
-  /// Target: ~500KB per image, max dimensions 1920x1080
+  /// Target: ~500KB per image with quality compression
   Future<File> _compressImage(File imageFile) async {
     try {
       final filePath = imageFile.path;
@@ -20,14 +20,16 @@ class MediaApiDataSource {
       final dir = await getTemporaryDirectory();
       final targetPath = '${dir.path}/compressed_$fileName';
 
+      final originalSize = await imageFile.length();
       print('DEBUG: Compressing image: $fileName');
-      print('DEBUG: Original size: ${await imageFile.length()} bytes');
+      print('DEBUG: Original size: $originalSize bytes');
 
+      // Compress with quality only (no resizing)
+      // This prevents upscaling small images
       final compressedBytes = await FlutterImageCompress.compressWithFile(
         filePath,
-        minWidth: 1920,
-        minHeight: 1080,
-        quality: 85, // 85% quality - good balance
+        quality:
+            60, // 60% quality - good compression while maintaining decent quality
       );
 
       if (compressedBytes == null) {
@@ -35,13 +37,21 @@ class MediaApiDataSource {
         return imageFile;
       }
 
+      final compressedSize = compressedBytes.length;
+
+      // Only use compressed version if it's actually smaller
+      if (compressedSize >= originalSize) {
+        print('WARN: Compressed file is larger, using original');
+        return imageFile;
+      }
+
       // Write compressed bytes to new file
       final compressedFile = File(targetPath);
       await compressedFile.writeAsBytes(compressedBytes);
 
-      print('DEBUG: Compressed size: ${compressedBytes.length} bytes');
+      print('DEBUG: Compressed size: $compressedSize bytes');
       print(
-        'DEBUG: Reduction: ${((1 - (compressedBytes.length / await imageFile.length())) * 100).toStringAsFixed(1)}%',
+        'DEBUG: Reduction: ${((1 - (compressedSize / originalSize)) * 100).toStringAsFixed(1)}%',
       );
 
       return compressedFile;
