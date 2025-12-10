@@ -92,6 +92,18 @@ class OffersApiDataSource implements IOfferDataSource {
         .toList();
   }
 
+  /// Get authenticated user's offers (buyer's offers)
+  Future<List<OfferModel>> getMyOffers() async {
+    final response = await _client.get(
+      ApiConfig.myOffers,
+      queryParameters: {'page': 1, 'itemsPerPage': 20},
+    );
+    final List data = response.data['data']['member'] ?? [];
+    return data
+        .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
+        .toList();
+  }
+
   @override
   Future<List<OfferModel>> getByCatchIds(List<String> catchIds) async {
     if (catchIds.isEmpty) return [];
