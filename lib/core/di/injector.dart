@@ -284,7 +284,7 @@ void _initApiMode(DatabaseHelper dbHelper) {
       ),
     );
 
-    return MediaApiDataSource(dio: dio);
+    return MediaApiDataSource(dio: dio, tokenStorage: sl<TokenStorage>());
   });
 
   // Register Catches Repository with API Data Source

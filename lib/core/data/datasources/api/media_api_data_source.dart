@@ -4,12 +4,16 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:siren_marketplace/core/data/api/api_config.dart';
 import 'package:siren_marketplace/core/data/api/models/media_api_models.dart';
+import 'package:siren_marketplace/core/data/storage/token_storage.dart';
 
 /// Data source for Pulsebox media upload API
 class MediaApiDataSource {
   final Dio _dio;
+  final TokenStorage _tokenStorage;
 
-  MediaApiDataSource({required Dio dio}) : _dio = dio;
+  MediaApiDataSource({required Dio dio, required TokenStorage tokenStorage})
+    : _dio = dio,
+      _tokenStorage = tokenStorage;
 
   /// Compress an image file to reduce size before upload
   /// Target: ~500KB per image with quality compression
@@ -93,13 +97,23 @@ class MediaApiDataSource {
         'DEBUG: Uploading ${compressedImages.length} compressed images to Pulsebox',
       );
 
-      // POST to Pulsebox create-collection endpoint
+      // Get auth token
+      final token = await _tokenStorage.getAccessToken();
+      if (token == null) {
+        throw Exception('No access token available for media upload');
+      }
+
+      // POST to Pulsebox create-collection endpoint with auth
       final response = await _dio.post(
         '${ApiConfig.pulseboxBaseUrl}${ApiConfig.mediasCreateCollection}',
         data: formData,
-        options: Options(headers: {'Content-Type': 'multipart/form-data'}),
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': 'Bearer $token',
+          },
+        ),
       );
-
       print('DEBUG: Upload response status: ${response.statusCode}');
 
       // Parse response - could be array or single object
