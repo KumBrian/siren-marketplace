@@ -62,12 +62,26 @@ class SessionService {
     // 1. Call API  authorize endpoint
     final authResponse = await _authApiDataSource.login(email, password);
 
+    // Debug logging
+    print(
+      'LoginWithApi - Token received: ${authResponse.token.substring(0, 20)}...',
+    );
+    print('LoginWithApi - Token expiry: ${authResponse.tokenExpireAt}');
+    print('LoginWithApi - Token issued at: ${authResponse.tokenIssuedAt}');
+    print('LoginWithApi - Current time: ${DateTime.now()}');
+
     // 2. Store JWT token
     await _tokenStorage.saveToken(
       authResponse.token,
       userId: authResponse.id.toString(),
       expiry: authResponse.tokenExpireAt,
     );
+
+    // Verify what was stored
+    final storedExpiry = await _tokenStorage.getTokenExpiry();
+    final isExpired = await _tokenStorage.isTokenExpired();
+    print('LoginWithApi - Stored expiry: $storedExpiry');
+    print('LoginWithApi - Is token expired: $isExpired');
 
     // 3. Map account to User entity
     final user = AccountApiMapper.toDomain(authResponse.account);

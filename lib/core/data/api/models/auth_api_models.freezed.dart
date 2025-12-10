@@ -194,7 +194,10 @@ AuthorizeResponse _$AuthorizeResponseFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$AuthorizeResponse {
   String get token => throw _privateConstructorUsedError;
+  @JsonKey(name: 'tokenExpireAt')
   DateTime? get tokenExpireAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'tokenIssuedAt')
+  DateTime? get tokenIssuedAt => throw _privateConstructorUsedError;
   dynamic get id => throw _privateConstructorUsedError; // ID can be int
   String get email => throw _privateConstructorUsedError;
   String? get firstName => throw _privateConstructorUsedError;
@@ -223,7 +226,8 @@ abstract class $AuthorizeResponseCopyWith<$Res> {
   @useResult
   $Res call({
     String token,
-    DateTime? tokenExpireAt,
+    @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
+    @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
     dynamic id,
     String email,
     String? firstName,
@@ -252,6 +256,7 @@ class _$AuthorizeResponseCopyWithImpl<$Res, $Val extends AuthorizeResponse>
   $Res call({
     Object? token = null,
     Object? tokenExpireAt = freezed,
+    Object? tokenIssuedAt = freezed,
     Object? id = freezed,
     Object? email = null,
     Object? firstName = freezed,
@@ -270,6 +275,10 @@ class _$AuthorizeResponseCopyWithImpl<$Res, $Val extends AuthorizeResponse>
             tokenExpireAt: freezed == tokenExpireAt
                 ? _value.tokenExpireAt
                 : tokenExpireAt // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
+            tokenIssuedAt: freezed == tokenIssuedAt
+                ? _value.tokenIssuedAt
+                : tokenIssuedAt // ignore: cast_nullable_to_non_nullable
                       as DateTime?,
             id: freezed == id
                 ? _value.id
@@ -320,7 +329,8 @@ abstract class _$$AuthorizeResponseImplCopyWith<$Res>
   @useResult
   $Res call({
     String token,
-    DateTime? tokenExpireAt,
+    @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
+    @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
     dynamic id,
     String email,
     String? firstName,
@@ -348,6 +358,7 @@ class __$$AuthorizeResponseImplCopyWithImpl<$Res>
   $Res call({
     Object? token = null,
     Object? tokenExpireAt = freezed,
+    Object? tokenIssuedAt = freezed,
     Object? id = freezed,
     Object? email = null,
     Object? firstName = freezed,
@@ -366,6 +377,10 @@ class __$$AuthorizeResponseImplCopyWithImpl<$Res>
         tokenExpireAt: freezed == tokenExpireAt
             ? _value.tokenExpireAt
             : tokenExpireAt // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
+        tokenIssuedAt: freezed == tokenIssuedAt
+            ? _value.tokenIssuedAt
+            : tokenIssuedAt // ignore: cast_nullable_to_non_nullable
                   as DateTime?,
         id: freezed == id
             ? _value.id
@@ -409,7 +424,8 @@ class __$$AuthorizeResponseImplCopyWithImpl<$Res>
 class _$AuthorizeResponseImpl extends _AuthorizeResponse {
   const _$AuthorizeResponseImpl({
     required this.token,
-    this.tokenExpireAt,
+    @JsonKey(name: 'tokenExpireAt') this.tokenExpireAt,
+    @JsonKey(name: 'tokenIssuedAt') this.tokenIssuedAt,
     required this.id,
     required this.email,
     this.firstName,
@@ -427,7 +443,11 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
   @override
   final String token;
   @override
+  @JsonKey(name: 'tokenExpireAt')
   final DateTime? tokenExpireAt;
+  @override
+  @JsonKey(name: 'tokenIssuedAt')
+  final DateTime? tokenIssuedAt;
   @override
   final dynamic id;
   // ID can be int
@@ -455,7 +475,7 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
 
   @override
   String toString() {
-    return 'AuthorizeResponse(token: $token, tokenExpireAt: $tokenExpireAt, id: $id, email: $email, firstName: $firstName, lastName: $lastName, username: $username, phone: $phone, city: $city, roles: $roles)';
+    return 'AuthorizeResponse(token: $token, tokenExpireAt: $tokenExpireAt, tokenIssuedAt: $tokenIssuedAt, id: $id, email: $email, firstName: $firstName, lastName: $lastName, username: $username, phone: $phone, city: $city, roles: $roles)';
   }
 
   @override
@@ -466,6 +486,8 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
             (identical(other.token, token) || other.token == token) &&
             (identical(other.tokenExpireAt, tokenExpireAt) ||
                 other.tokenExpireAt == tokenExpireAt) &&
+            (identical(other.tokenIssuedAt, tokenIssuedAt) ||
+                other.tokenIssuedAt == tokenIssuedAt) &&
             const DeepCollectionEquality().equals(other.id, id) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.firstName, firstName) ||
@@ -485,6 +507,7 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
     runtimeType,
     token,
     tokenExpireAt,
+    tokenIssuedAt,
     const DeepCollectionEquality().hash(id),
     email,
     firstName,
@@ -515,7 +538,8 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
 abstract class _AuthorizeResponse extends AuthorizeResponse {
   const factory _AuthorizeResponse({
     required final String token,
-    final DateTime? tokenExpireAt,
+    @JsonKey(name: 'tokenExpireAt') final DateTime? tokenExpireAt,
+    @JsonKey(name: 'tokenIssuedAt') final DateTime? tokenIssuedAt,
     required final dynamic id,
     required final String email,
     final String? firstName,
@@ -533,7 +557,11 @@ abstract class _AuthorizeResponse extends AuthorizeResponse {
   @override
   String get token;
   @override
+  @JsonKey(name: 'tokenExpireAt')
   DateTime? get tokenExpireAt;
+  @override
+  @JsonKey(name: 'tokenIssuedAt')
+  DateTime? get tokenIssuedAt;
   @override
   dynamic get id; // ID can be int
   @override

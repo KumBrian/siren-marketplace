@@ -22,7 +22,8 @@ class AuthorizeResponse with _$AuthorizeResponse {
 
   const factory AuthorizeResponse({
     required String token,
-    DateTime? tokenExpireAt,
+    @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
+    @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
     required dynamic id, // ID can be int
     required String email,
     String? firstName,

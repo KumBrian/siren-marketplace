@@ -24,6 +24,9 @@ _$AuthorizeResponseImpl _$$AuthorizeResponseImplFromJson(
   tokenExpireAt: json['tokenExpireAt'] == null
       ? null
       : DateTime.parse(json['tokenExpireAt'] as String),
+  tokenIssuedAt: json['tokenIssuedAt'] == null
+      ? null
+      : DateTime.parse(json['tokenIssuedAt'] as String),
   id: json['id'],
   email: json['email'] as String,
   firstName: json['firstName'] as String?,
@@ -39,6 +42,7 @@ Map<String, dynamic> _$$AuthorizeResponseImplToJson(
 ) => <String, dynamic>{
   'token': instance.token,
   'tokenExpireAt': instance.tokenExpireAt?.toIso8601String(),
+  'tokenIssuedAt': instance.tokenIssuedAt?.toIso8601String(),
   'id': instance.id,
   'email': instance.email,
   'firstName': instance.firstName,
