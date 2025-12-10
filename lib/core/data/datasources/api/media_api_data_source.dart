@@ -47,18 +47,34 @@ class MediaApiDataSource {
       );
 
       final data = response.data;
-      final pulseboxToken = data['accessToken'] as String?;
+      final pulseboxToken = data['token'] as String?;
+      final expireAt = data['expireAt'] as String?;
 
       if (pulseboxToken == null) {
-        throw Exception('No accessToken in Pulsebox response');
+        throw Exception('No token in Pulsebox response');
       }
 
-      // Cache the token (valid for 1 hour by default)
+      // Parse expiry time from response
+      DateTime? expiryTime;
+      if (expireAt != null) {
+        try {
+          expiryTime = DateTime.parse(expireAt);
+          // Use token until 5 minutes before expiry for safety
+          expiryTime = expiryTime.subtract(const Duration(minutes: 5));
+        } catch (e) {
+          print('WARN: Could not parse expireAt, using default 55 minutes');
+          expiryTime = DateTime.now().add(const Duration(minutes: 55));
+        }
+      } else {
+        expiryTime = DateTime.now().add(const Duration(minutes: 55));
+      }
+
+      // Cache the token
       _cachedPulseboxToken = pulseboxToken;
-      _pulseboxTokenExpiry = DateTime.now().add(const Duration(minutes: 55));
+      _pulseboxTokenExpiry = expiryTime;
 
       print(
-        'DEBUG: Got Pulsebox access token, cached until ${_pulseboxTokenExpiry}',
+        'DEBUG: Got Pulsebox access token, valid until ${_pulseboxTokenExpiry}',
       );
 
       return pulseboxToken;
