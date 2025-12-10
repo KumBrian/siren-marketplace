@@ -221,7 +221,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
           child: Column(
             children: [
               NumberInputField(
-                label: "Mesh Size",
+                label: "Mesh Size *",
                 suffix: "(finger)",
                 controller: _meshSizeController,
                 value: state.meshSize,
@@ -231,7 +231,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
               ),
               const SizedBox(height: 16),
               NumberInputField(
-                label: "Gear Length",
+                label: "Gear Length *",
                 suffix: "(m)",
                 controller: _gearLengthController,
                 value: state.gearLength,
@@ -241,7 +241,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
               ),
               const SizedBox(height: 16),
               NumberInputField(
-                label: "Gear Width",
+                label: "Gear Width *",
                 suffix: "(m)",
                 controller: _gearWidthController,
                 value: state.gearWidth,
@@ -253,7 +253,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(
                   border: const UnderlineInputBorder(),
-                  labelText: "Gear Nature",
+                  labelText: "Gear Nature *",
                   labelStyle: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -279,7 +279,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
           child: Column(
             children: [
               NumberInputField(
-                label: "Water Depth",
+                label: "Water Depth *",
                 suffix: "(m)",
                 controller: _waterDepthController,
                 value: state.waterDepth,
@@ -288,7 +288,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                 ),
               ),
               NumberInputField(
-                label: "Fishing Time",
+                label: "Fishing Time *",
                 suffix: "(h)",
                 controller: _fishingTimeController,
                 value: state.fishingTime,
@@ -361,7 +361,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                 SectionHeader("Catch Details"),
                 const SizedBox(height: 16),
                 NumberInputField(
-                  label: "Est. Weight (kg)",
+                  label: "Est. Weight (kg) *",
                   suffix: "kg",
                   controller: _weightController,
                   value: state.estimatedWeight,
@@ -374,7 +374,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                 ),
                 const SizedBox(height: 16),
                 NumberInputField(
-                  label: "Avg. Size (cm)",
+                  label: "Avg. Size (cm) *",
                   suffix: "cm",
                   controller: _sizeController,
                   value: state.averageSize,
@@ -387,7 +387,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                 ),
                 const SizedBox(height: 16),
                 NumberInputField(
-                  label: "Count (approx)",
+                  label: "Count (approx) *",
                   suffix: "pcs",
                   decimal: false,
                   controller: _countController,
@@ -429,7 +429,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                   const Divider(),
                   const SizedBox(height: 16),
                   NumberInputField(
-                    label: "Qty to Sell (kg)",
+                    label: "Qty to Sell (kg) *",
                     suffix: "kg",
                     controller: _qtySellController,
                     value: state.quantityToSell,
@@ -449,7 +449,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                   ),
                   const SizedBox(height: 16),
                   NumberInputField(
-                    label: "Price/Kg",
+                    label: "Price/Kg *",
                     suffix: "CFA",
                     controller: _priceController,
                     value: state.pricePerKg,

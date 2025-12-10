@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
@@ -55,7 +57,8 @@ class OrderCard extends StatelessWidget {
                         width: 120,
                       ),
                     )
-                  : Image.asset(
+                  : imageUrl.contains("assets")
+                  ? Image.asset(
                       imageUrl,
                       width: 120,
                       height: 120,
@@ -64,6 +67,18 @@ class OrderCard extends StatelessWidget {
                         "assets/images/shrimp.jpg",
                         height: 120,
                         width: 120,
+                      ),
+                    )
+                  : Image.file(
+                      File(imageUrl),
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        "assets/images/shrimp.jpg",
+                        height: 120,
+                        width: 120,
+                        fit: BoxFit.cover,
                       ),
                     ),
             ),
@@ -86,11 +101,12 @@ class OrderCard extends StatelessWidget {
                             catchItem.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
                               fontSize: 14,
-                              fontWeight: FontWeight.bold,
                               color: AppColors.textBlue,
                             ),
+                            softWrap: true,
                           ),
                         ),
                         // Status Badge

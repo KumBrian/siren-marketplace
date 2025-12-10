@@ -87,14 +87,18 @@ class SoldCard extends StatelessWidget {
                   children: [
                     // FIX: Removed fixed width SizedBox to prevent overflow.
                     // The text will now use the space provided by the surrounding Expanded widget.
-                    Text(
-                      catchTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: AppColors.textBlue,
+                    SizedBox(
+                      width: 140,
+                      child: Text(
+                        catchTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: AppColors.textBlue,
+                        ),
+                        softWrap: true,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -159,7 +163,7 @@ class SoldCard extends StatelessWidget {
                               Icons.notifications,
                               color:
                                   AppColors.fail500, // Kept as requested (Bell)
-                              size: 20,
+                              size: 16,
                             )
                           else if (orderStatus == OrderStatus.completed)
                             const Icon(

@@ -150,6 +150,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     return AppBar(
       leading: const BackButton(),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      scrolledUnderElevation: 0,
       title: userAsync.when(
         data: (user) {
           if (user == null) {
@@ -160,34 +162,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             children: [
               ErrorHandlingCircleAvatar(
                 avatarUrl: user.avatarUrl ?? 'assets/images/user-profile.png',
-                radius: 18,
+                radius: 20,
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                  ),
-                  if (user.hasRatings)
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 14),
-                        Text(
-                          user.displayRating,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
+              Text(
+                user.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: AppColors.textBlue,
+                ),
               ),
             ],
           );
@@ -195,9 +179,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         loading: () => const Text('Loading...'),
         error: (_, __) => const Text('Error'),
       ),
-      actions: [
-        IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
-      ],
     );
   }
 

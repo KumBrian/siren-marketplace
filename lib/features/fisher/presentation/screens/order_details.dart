@@ -546,6 +546,20 @@ class OrderDetails extends ConsumerWidget {
                               ),
                             ],
 
+                            if (orderStatus == OrderStatus.completed) ...[
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: CustomButton(
+                                  title: "Marketplace",
+                                  onPressed: () => context.go("/fisher"),
+                                  icon: Icons.storefront,
+                                  bordered: true,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
                             // Rating Section
                             if (orderStatus == OrderStatus.completed &&
                                 !selectedOrder.hasReviewFromFisher) ...[

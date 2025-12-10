@@ -91,7 +91,7 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
             ),
             const SizedBox(height: 8),
             CustomButton(
-              title: "Accept",
+              title: "Delete",
               onPressed: () async {
                 final repository = sl<ICatchRepository>();
                 await repository.delete(selectedCatch.id);
@@ -107,7 +107,7 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
               },
             ),
             CustomButton(
-              title: "Reject",
+              title: "Cancel",
               cancel: true,
               onPressed: () => context.pop(),
             ),

@@ -18,11 +18,20 @@ class MarketTrends extends StatefulWidget {
 }
 
 class _MarketTrendsState extends State<MarketTrends> {
-  ChartRange _chartRange = ChartRange.month;
-  Set<String> _activeSpecies = {};
+  // Price Chart State
+  ChartRange _priceChartRange = ChartRange.month;
+  Set<String> _priceActiveSpecies = {};
 
-  Map<String, List<ChartData>> _getFilteredPriceData() {
-    final filteredData = filterDataByRange(mockHistoricalPrices, _chartRange);
+  // Catch Chart State
+  ChartRange _catchChartRange = ChartRange.month;
+  Set<String> _catchActiveSpecies = {};
+
+  // Helper to get data based on specific range and species
+  Map<String, List<ChartData>> _getFilteredData(
+    List<HistoricalPriceData> dataSource,
+    ChartRange range,
+  ) {
+    final filteredData = filterDataByRange(dataSource, range);
 
     final Map<String, List<ChartData>> dataMap = {};
     const speciesKeys = [
@@ -37,7 +46,7 @@ class _MarketTrendsState extends State<MarketTrends> {
       final speciesData = filteredData.where((d) => d.species == key).toList();
       final chartData = speciesData.map((d) {
         String xLabel = '';
-        switch (_chartRange) {
+        switch (range) {
           case ChartRange.day:
             xLabel = DateFormat('h:mm a').format(d.date);
             break;
@@ -62,28 +71,56 @@ class _MarketTrendsState extends State<MarketTrends> {
   @override
   void initState() {
     super.initState();
-    _activeSpecies = {
+    final defaultSpecies = {
       'pink-shrimp',
       'tiger-shrimp',
       'gray-shrimp',
       'small-prawn',
       'large-prawn',
     };
+    _priceActiveSpecies = Set.from(defaultSpecies);
+    _catchActiveSpecies = Set.from(defaultSpecies);
   }
 
-  void _toggleSpecies(String key) {
+  void _togglePriceSpecies(String key) {
     setState(() {
-      if (_activeSpecies.contains(key)) {
-        _activeSpecies.remove(key);
+      if (_priceActiveSpecies.contains(key)) {
+        _priceActiveSpecies.remove(key);
       } else {
-        _activeSpecies.add(key);
+        _priceActiveSpecies.add(key);
+      }
+    });
+  }
+
+  void _toggleCatchSpecies(String key) {
+    setState(() {
+      if (_catchActiveSpecies.contains(key)) {
+        _catchActiveSpecies.remove(key);
+      } else {
+        _catchActiveSpecies.add(key);
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final priceChartData = _getFilteredPriceData();
+    final priceChartData = _getFilteredData(
+      mockHistoricalPrices,
+      _priceChartRange,
+    );
+    final catchChartData = _getFilteredData(
+      mockHistoricalCatches,
+      _catchChartRange,
+    );
+
+    // Keys for legends
+    final allKeys = [
+      'pink-shrimp',
+      'tiger-shrimp',
+      'gray-shrimp',
+      'small-prawn',
+      'large-prawn',
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -123,16 +160,16 @@ class _MarketTrendsState extends State<MarketTrends> {
             ),
             const SizedBox(height: 8),
 
-            // --- Chart Section ---
-            // --- ONLY THE CHART AREA IS MODIFIED BELOW ---
+            // --- Price Chart Section ---
             SectionHeader("Average Sold Price Per Kg"),
             _buildChartContainer(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   PillSegmentedButton(
-                    selected: _chartRange,
-                    onChanged: (value) => setState(() => _chartRange = value),
+                    selected: _priceChartRange,
+                    onChanged: (value) =>
+                        setState(() => _priceChartRange = value),
                   ),
                   const SizedBox(height: 12),
 
@@ -140,12 +177,16 @@ class _MarketTrendsState extends State<MarketTrends> {
                     height: MediaQuery.of(context).size.height * 0.35,
                     child: Column(
                       children: [
-                        _buildCustomLegend(priceChartData.keys.toList()),
+                        _buildCustomLegend(
+                          allKeys,
+                          _priceActiveSpecies,
+                          _togglePriceSpecies,
+                        ),
                         const SizedBox(height: 12),
                         Expanded(
                           child: PriceLineChart(
                             chartDataSources: priceChartData,
-                            activeSpecies: _activeSpecies,
+                            activeSpecies: _priceActiveSpecies,
                           ),
                         ),
                       ],
@@ -155,15 +196,16 @@ class _MarketTrendsState extends State<MarketTrends> {
               ),
             ),
 
-            // --- Repeat same structure for the second chart ---
+            // --- Total Catch Chart Section ---
             SectionHeader("Total Catch"),
             _buildChartContainer(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   PillSegmentedButton(
-                    selected: _chartRange,
-                    onChanged: (value) => setState(() => _chartRange = value),
+                    selected: _catchChartRange,
+                    onChanged: (value) =>
+                        setState(() => _catchChartRange = value),
                   ),
                   const SizedBox(height: 12),
 
@@ -171,12 +213,16 @@ class _MarketTrendsState extends State<MarketTrends> {
                     height: MediaQuery.of(context).size.height * 0.35,
                     child: Column(
                       children: [
-                        _buildCustomLegend(priceChartData.keys.toList()),
+                        _buildCustomLegend(
+                          allKeys,
+                          _catchActiveSpecies,
+                          _toggleCatchSpecies,
+                        ),
                         const SizedBox(height: 12),
                         Expanded(
                           child: PriceLineChart(
-                            chartDataSources: priceChartData,
-                            activeSpecies: _activeSpecies,
+                            chartDataSources: catchChartData,
+                            activeSpecies: _catchActiveSpecies,
                           ),
                         ),
                       ],
@@ -193,17 +239,21 @@ class _MarketTrendsState extends State<MarketTrends> {
     );
   }
 
-  Widget _buildCustomLegend(List<String> speciesKeys) {
+  Widget _buildCustomLegend(
+    List<String> speciesKeys,
+    Set<String> activeSet,
+    ValueChanged<String> onToggle,
+  ) {
     return Wrap(
       spacing: 10,
       runSpacing: 8,
       children: speciesKeys.map((key) {
         final color = PriceLineChart.speciesColors[key] ?? Colors.grey;
         final label = _getSpeciesDisplayName(key);
-        final isActive = _activeSpecies.contains(key);
+        final isActive = activeSet.contains(key);
 
         return GestureDetector(
-          onTap: () => _toggleSpecies(key),
+          onTap: () => onToggle(key),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),

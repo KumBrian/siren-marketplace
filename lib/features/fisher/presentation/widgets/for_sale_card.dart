@@ -87,14 +87,14 @@ class ForSaleCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: SizedBox(
-                            width: 150,
+                            width: 140,
                             child: Text(
                               catchData.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
                                 color: AppColors.textBlue,
                               ),
                               softWrap: true,
@@ -107,14 +107,17 @@ class ForSaleCard extends StatelessWidget {
                           children: [
                             Icon(
                               Icons.access_time,
-                              size: 16,
+                              size: 12,
                               color: catchData.daysLeftLabel == "1 day left"
                                   ? AppColors.fail500
                                   : AppColors.textBlue,
                             ),
                             Text(
                               catchData.daysLeftLabel,
-                              style: TextStyle(fontSize: 12),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
                           ],
                         ),
@@ -161,7 +164,7 @@ class ForSaleCard extends StatelessWidget {
 
                                       children: [
                                         TextSpan(
-                                          text: "${catchData.size}",
+                                          text: catchData.size,
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
