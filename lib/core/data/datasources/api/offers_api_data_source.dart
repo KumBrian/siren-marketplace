@@ -45,11 +45,13 @@ class OffersApiDataSource implements IOfferDataSource {
 
   @override
   Future<List<OfferModel>> getByCatchId(String catchId) async {
+    // Use my-offers endpoint with product filter
+    // More efficient than filtering all offers
     final response = await _client.get(
-      ApiConfig.offers,
-      queryParameters: {'catch_id': catchId},
+      ApiConfig.myOffers,
+      queryParameters: {'product': catchId, 'page': 1, 'itemsPerPage': 100},
     );
-    final List data = response.data['data'] ?? [];
+    final List data = response.data['data']['member'] ?? [];
     return data
         .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
         .toList();
