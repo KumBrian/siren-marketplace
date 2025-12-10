@@ -15,9 +15,23 @@ class CatchApiMapper {
       size: apiModel.size ?? 'Medium',
       market: apiModel.market ?? 'Default Market',
       images: apiModel.images,
-      species: apiModel.species ?? SpeciesModel(id: 'unknown', name: 'Unknown'),
+      species:
+          apiModel.species ??
+          const SpeciesModel(id: 'unknown', name: 'Unknown', image: ''),
       fisherId: apiModel.fisher?.id?.toString() ?? 'unknown_fisher',
       status: apiModel.status ?? 'available',
+      // Fields not provided by API - use defaults
+      observationId: '',
+      locationName: '',
+      latitude: 0.0,
+      longitude: 0.0,
+      meshSize: null,
+      gearLength: null,
+      gearWidth: null,
+      gearNature: null,
+      waterDepth: null,
+      fishingTime: null,
+      numberOfShrimps: null,
     );
   }
 
