@@ -7,9 +7,13 @@ import 'package:siren_marketplace/core/di/injector.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:siren_marketplace/core/providers/router_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables from .env file
+  await dotenv.load(fileName: ".env");
 
   // Initialize DI
   await initDependencies();
