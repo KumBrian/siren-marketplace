@@ -12,7 +12,7 @@ class MediaUploadResponse with _$MediaUploadResponse {
     String? thumbnailName,
     required String filePath,
     String? thumbnailFilePath,
-    required String storageFilePath,
+    required String storageFilePath, // This is what we need for catch creation
     String? storageThumbnailFilePath,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,

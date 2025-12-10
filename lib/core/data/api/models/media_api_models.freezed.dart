@@ -26,7 +26,8 @@ mixin _$MediaUploadResponse {
   String? get thumbnailName => throw _privateConstructorUsedError;
   String get filePath => throw _privateConstructorUsedError;
   String? get thumbnailFilePath => throw _privateConstructorUsedError;
-  String get storageFilePath => throw _privateConstructorUsedError;
+  String get storageFilePath =>
+      throw _privateConstructorUsedError; // This is what we need for catch creation
   String? get storageThumbnailFilePath => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   String? get createdAt => throw _privateConstructorUsedError;
@@ -280,6 +281,7 @@ class _$MediaUploadResponseImpl implements _MediaUploadResponse {
   final String? thumbnailFilePath;
   @override
   final String storageFilePath;
+  // This is what we need for catch creation
   @override
   final String? storageThumbnailFilePath;
   @override
@@ -392,7 +394,7 @@ abstract class _MediaUploadResponse implements MediaUploadResponse {
   @override
   String? get thumbnailFilePath;
   @override
-  String get storageFilePath;
+  String get storageFilePath; // This is what we need for catch creation
   @override
   String? get storageThumbnailFilePath;
   @override
