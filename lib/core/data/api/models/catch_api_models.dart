@@ -63,6 +63,9 @@ class CatchApiModel with _$CatchApiModel {
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     String? uid,
+    // Coordinate fields
+    double? coordX,
+    double? coordY,
     // Legacy fields for compatibility
     String? name,
     SpeciesModel? species,

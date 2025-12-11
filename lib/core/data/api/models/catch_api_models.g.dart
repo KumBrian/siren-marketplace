@@ -87,6 +87,8 @@ _$CatchApiModelImpl _$$CatchApiModelImplFromJson(Map<String, dynamic> json) =>
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
       uid: json['uid'] as String?,
+      coordX: (json['coordX'] as num?)?.toDouble(),
+      coordY: (json['coordY'] as num?)?.toDouble(),
       name: json['name'] as String?,
       species: json['species'] == null
           ? null
@@ -116,6 +118,8 @@ Map<String, dynamic> _$$CatchApiModelImplToJson(
   'created_at': instance.createdAt,
   'updated_at': instance.updatedAt,
   'uid': instance.uid,
+  'coordX': instance.coordX,
+  'coordY': instance.coordY,
   'name': instance.name,
   'species': instance.species?.toJson(),
   'market': instance.market,

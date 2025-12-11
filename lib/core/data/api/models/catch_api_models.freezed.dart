@@ -701,7 +701,9 @@ mixin _$CatchApiModel {
   String? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
   String? get updatedAt => throw _privateConstructorUsedError;
-  String? get uid =>
+  String? get uid => throw _privateConstructorUsedError; // Coordinate fields
+  double? get coordX => throw _privateConstructorUsedError;
+  double? get coordY =>
       throw _privateConstructorUsedError; // Legacy fields for compatibility
   String? get name => throw _privateConstructorUsedError;
   SpeciesModel? get species => throw _privateConstructorUsedError;
@@ -745,6 +747,8 @@ abstract class $CatchApiModelCopyWith<$Res> {
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     String? uid,
+    double? coordX,
+    double? coordY,
     String? name,
     SpeciesModel? species,
     String? market,
@@ -788,6 +792,8 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? uid = freezed,
+    Object? coordX = freezed,
+    Object? coordY = freezed,
     Object? name = freezed,
     Object? species = freezed,
     Object? market = freezed,
@@ -870,6 +876,14 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
                 ? _value.uid
                 : uid // ignore: cast_nullable_to_non_nullable
                       as String?,
+            coordX: freezed == coordX
+                ? _value.coordX
+                : coordX // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            coordY: freezed == coordY
+                ? _value.coordY
+                : coordY // ignore: cast_nullable_to_non_nullable
+                      as double?,
             name: freezed == name
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
@@ -946,6 +960,8 @@ abstract class _$$CatchApiModelImplCopyWith<$Res>
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     String? uid,
+    double? coordX,
+    double? coordY,
     String? name,
     SpeciesModel? species,
     String? market,
@@ -990,6 +1006,8 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? uid = freezed,
+    Object? coordX = freezed,
+    Object? coordY = freezed,
     Object? name = freezed,
     Object? species = freezed,
     Object? market = freezed,
@@ -1072,6 +1090,14 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
             ? _value.uid
             : uid // ignore: cast_nullable_to_non_nullable
                   as String?,
+        coordX: freezed == coordX
+            ? _value.coordX
+            : coordX // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        coordY: freezed == coordY
+            ? _value.coordY
+            : coordY // ignore: cast_nullable_to_non_nullable
+                  as double?,
         name: freezed == name
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
@@ -1114,6 +1140,8 @@ class _$CatchApiModelImpl implements _CatchApiModel {
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'updated_at') this.updatedAt,
     this.uid,
+    this.coordX,
+    this.coordY,
     this.name,
     this.species,
     this.market,
@@ -1180,6 +1208,11 @@ class _$CatchApiModelImpl implements _CatchApiModel {
   final String? updatedAt;
   @override
   final String? uid;
+  // Coordinate fields
+  @override
+  final double? coordX;
+  @override
+  final double? coordY;
   // Legacy fields for compatibility
   @override
   final String? name;
@@ -1190,7 +1223,7 @@ class _$CatchApiModelImpl implements _CatchApiModel {
 
   @override
   String toString() {
-    return 'CatchApiModel(id: $id, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInKg: $estimatedWeightInKg, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInKg: $publishedWeightInKg, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, fishCatchImages: $fishCatchImages, note: $note, status: $status, gear: $gear, account: $account, obsSynced: $obsSynced, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid, name: $name, species: $species, market: $market)';
+    return 'CatchApiModel(id: $id, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInKg: $estimatedWeightInKg, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInKg: $publishedWeightInKg, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, fishCatchImages: $fishCatchImages, note: $note, status: $status, gear: $gear, account: $account, obsSynced: $obsSynced, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid, coordX: $coordX, coordY: $coordY, name: $name, species: $species, market: $market)';
   }
 
   @override
@@ -1232,6 +1265,8 @@ class _$CatchApiModelImpl implements _CatchApiModel {
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
             (identical(other.uid, uid) || other.uid == uid) &&
+            (identical(other.coordX, coordX) || other.coordX == coordX) &&
+            (identical(other.coordY, coordY) || other.coordY == coordY) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.species, species) || other.species == species) &&
             (identical(other.market, market) || other.market == market));
@@ -1260,6 +1295,8 @@ class _$CatchApiModelImpl implements _CatchApiModel {
     createdAt,
     updatedAt,
     uid,
+    coordX,
+    coordY,
     name,
     species,
     market,
@@ -1302,6 +1339,8 @@ abstract class _CatchApiModel implements CatchApiModel {
     @JsonKey(name: 'created_at') final String? createdAt,
     @JsonKey(name: 'updated_at') final String? updatedAt,
     final String? uid,
+    final double? coordX,
+    final double? coordY,
     final String? name,
     final SpeciesModel? species,
     final String? market,
@@ -1360,7 +1399,11 @@ abstract class _CatchApiModel implements CatchApiModel {
   @JsonKey(name: 'updated_at')
   String? get updatedAt;
   @override
-  String? get uid; // Legacy fields for compatibility
+  String? get uid; // Coordinate fields
+  @override
+  double? get coordX;
+  @override
+  double? get coordY; // Legacy fields for compatibility
   @override
   String? get name;
   @override

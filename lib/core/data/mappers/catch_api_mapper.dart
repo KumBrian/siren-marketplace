@@ -41,11 +41,11 @@ class CatchApiMapper {
           ),
       fisherId: apiModel.account?.id?.toString() ?? 'unknown_fisher',
       status: apiModel.status ?? 'UPLOADED',
-      // Location and observation data
-      observationId: '',
-      locationName: '',
-      latitude: 0.0,
-      longitude: 0.0,
+      // Location and observation data from API
+      observationId: '', // Not provided by API yet
+      locationName: '', // Not provided by API yet
+      latitude: apiModel.coordY ?? 0.0, // coordY is latitude
+      longitude: apiModel.coordX ?? 0.0, // coordX is longitude
       // Gear and fishing data from API
       meshSize: apiModel.gear?.gearMeshSizeInFinger,
       gearLength: apiModel.gear?.gearLengthInMeter,
