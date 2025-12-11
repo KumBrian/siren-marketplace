@@ -15,21 +15,25 @@ import 'package:siren_marketplace/features/fisher/presentation/providers/add_cat
 List<Species> speciesList = [
   const Species(
     id: "prawn",
+    uid: "55bcb79a-d06e-4f41-b89e-f243763e64ab",
     name: "Prawn",
     image: "assets/shrimp-species/prawn.png",
   ),
   const Species(
     id: "grey-shrimp",
+    uid: "4d244dab-7fe8-4e8c-8a4a-9b6643842625",
     name: "Grey Shrimp",
     image: "assets/shrimp-species/grey-shrimp.png",
   ),
   const Species(
     id: "pink-shrimp",
+    uid: "06264f8b-70df-4903-854c-d7477315bda4",
     name: "Pink Shrimp",
     image: "assets/shrimp-species/pink-shrimp.png",
   ),
   const Species(
     id: "tiger-shrimp",
+    uid: "34b34061-f620-48d0-bcdb-45c207032011",
     name: "Tiger Shrimp",
     image: "assets/shrimp-species/tiger-shrimp.png",
   ),
