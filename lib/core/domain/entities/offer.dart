@@ -80,10 +80,16 @@ class Offer extends Equatable {
       throw StateError('Offer cannot be accepted in status: $status');
     }
 
+    // Use waitingFor to determine who is accepting and notify the opposite party
+    // If waitingFor is fisher (fisher's turn), buyer gets notification
+    // If waitingFor is buyer (buyer's turn), fisher gets notification
     return copyWith(
       status: OfferStatus.accepted,
       dateUpdated: DateTime.now(),
       waitingFor: null,
+      clearWaitingFor: true,
+      hasUpdateForFisher: waitingFor == UserRole.buyer ? true : false,
+      hasUpdateForBuyer: waitingFor == UserRole.fisher ? true : false,
     );
   }
 
@@ -92,10 +98,16 @@ class Offer extends Equatable {
       throw StateError('Offer cannot be rejected in status: $status');
     }
 
+    // Use waitingFor to determine who is rejecting and notify the opposite party
+    // If waitingFor is fisher (fisher's turn), buyer gets notification
+    // If waitingFor is buyer (buyer's turn), fisher gets notification
     return copyWith(
       status: OfferStatus.rejected,
       dateUpdated: DateTime.now(),
       waitingFor: null,
+      clearWaitingFor: true,
+      hasUpdateForFisher: waitingFor == UserRole.buyer ? true : false,
+      hasUpdateForBuyer: waitingFor == UserRole.fisher ? true : false,
     );
   }
 

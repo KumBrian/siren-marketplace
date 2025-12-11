@@ -92,8 +92,8 @@ class OfferCard extends StatelessWidget {
                   ? AppColors.textBlue
                   : AppColors.textGray,
               fontWeight: offer.hasUpdateForFisher
-                  ? FontWeight.w500
-                  : FontWeight.w300,
+                  ? FontWeight.w600
+                  : FontWeight.w400,
             ),
             const SizedBox(width: 4),
             const Icon(Icons.star, color: AppColors.shellOrange, size: 12),

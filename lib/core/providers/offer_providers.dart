@@ -151,10 +151,10 @@ final filteredNotificationOffersProvider =
           return filterState.activeStatuses.contains(offer.status);
         }).toList();
 
-        // Apply sort
+        // Apply sort by dateUpdated (most recent updates first)
         filtered.sort((a, b) {
-          final dateA = a.dateCreated;
-          final dateB = b.dateCreated;
+          final dateA = a.dateUpdated;
+          final dateB = b.dateUpdated;
           return filterState.activeSortBy == "ascending"
               ? dateA.compareTo(dateB)
               : dateB.compareTo(dateA);

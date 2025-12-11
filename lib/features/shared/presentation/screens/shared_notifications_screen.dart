@@ -187,16 +187,21 @@ class _SharedNotificationsScreenState
                     children: [
                       Row(
                         children: [
-                          Text(
-                            buyer?.name ?? "Loading...",
-                            style: TextStyle(
-                              color: offer.hasUpdateForFisher
-                                  ? AppColors.textBlue
-                                  : AppColors.textGray,
-                              fontWeight: offer.hasUpdateForFisher
-                                  ? FontWeight.w500
-                                  : FontWeight.w300,
-                              fontSize: 14,
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              buyer?.name ?? "Loading...",
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: offer.hasUpdateForFisher
+                                    ? AppColors.textBlue
+                                    : AppColors.textGray,
+                                fontWeight: offer.hasUpdateForFisher
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -220,7 +225,7 @@ class _SharedNotificationsScreenState
                         ],
                       ),
                       Text(
-                        offer.dateCreated.toIso8601String().toFormattedDate(),
+                        offer.dateUpdated.toIso8601String().toFormattedDate(),
                         style: TextStyle(
                           color: offer.hasUpdateForFisher
                               ? AppColors.textBlue
@@ -347,12 +352,17 @@ class _SharedNotificationsScreenState
                     children: [
                       Row(
                         children: [
-                          Text(
-                            fisher?.name ?? "Loading...",
-                            style: const TextStyle(
-                              color: AppColors.textGray,
-                              fontWeight: FontWeight.w300,
-                              fontSize: 14,
+                          SizedBox(
+                            width: 120,
+                            child: Text(
+                              fisher?.name ?? "Loading...",
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: const TextStyle(
+                                color: AppColors.textGray,
+                                fontWeight: FontWeight.w400,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -372,7 +382,7 @@ class _SharedNotificationsScreenState
                         ],
                       ),
                       Text(
-                        offer.dateCreated.toIso8601String().toFormattedDate(),
+                        offer.dateUpdated.toIso8601String().toFormattedDate(),
                         style: const TextStyle(
                           color: AppColors.textGray,
                           fontWeight: FontWeight.w300,
