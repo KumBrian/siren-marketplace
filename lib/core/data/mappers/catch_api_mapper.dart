@@ -78,17 +78,17 @@ class CatchApiMapper {
       pricePerKg: model.pricePerKgAmount / 100.0,
       finalPrice: model.totalPriceAmount / 100.0,
       publishedInMarketPlace: model.status == 'available',
-      note: null, // Will be added separately if needed
+      note: '', // API expects empty string, not null
       images: imageUrls.map((url) => CatchImageRequest(mediaUrl: url)).toList(),
-      alpha: null,
+      alpha: '', // API expects empty string, not null
       dead: false,
       coordX: model.longitude,
       coordY: model.latitude,
       date: DateTime.now().toIso8601String(),
       market: 1, // Always 1 for now per user
-      observationType: 'unknown',
-      patrol: null,
-      segment: null,
+      observationType: '', // API expects empty string, not null
+      patrol: '', // API expects empty string, not null
+      segment: '', // API expects empty string, not null
     );
   }
 }
