@@ -1923,7 +1923,7 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
             : note // ignore: cast_nullable_to_non_nullable
                   as String?,
         images: null == images
-            ? _value._images
+            ? _value.images
             : images // ignore: cast_nullable_to_non_nullable
                   as List<CatchImageRequest>,
         alpha: freezed == alpha
@@ -1992,7 +1992,7 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     @JsonKey(name: 'published_in_market_place')
     required this.publishedInMarketPlace,
     this.note,
-    required final List<CatchImageRequest> images,
+    required this.images,
     this.alpha,
     required this.dead,
     required this.coordX,
@@ -2003,7 +2003,7 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     this.patrol,
     this.segment,
     @JsonKey(name: 'gear_width_in_meter') this.gearWidthInMeter,
-  }) : _images = images;
+  });
 
   factory _$CreateCatchRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreateCatchRequestImplFromJson(json);
@@ -2050,14 +2050,8 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
   final bool publishedInMarketPlace;
   @override
   final String? note;
-  final List<CatchImageRequest> _images;
   @override
-  List<CatchImageRequest> get images {
-    if (_images is EqualUnmodifiableListView) return _images;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_images);
-  }
-
+  final List<CatchImageRequest> images;
   @override
   final String? alpha;
   @override
@@ -2119,7 +2113,7 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
             (identical(other.publishedInMarketPlace, publishedInMarketPlace) ||
                 other.publishedInMarketPlace == publishedInMarketPlace) &&
             (identical(other.note, note) || other.note == note) &&
-            const DeepCollectionEquality().equals(other._images, _images) &&
+            const DeepCollectionEquality().equals(other.images, images) &&
             (identical(other.alpha, alpha) || other.alpha == alpha) &&
             (identical(other.dead, dead) || other.dead == dead) &&
             (identical(other.coordX, coordX) || other.coordX == coordX) &&
@@ -2153,7 +2147,7 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     finalPrice,
     publishedInMarketPlace,
     note,
-    const DeepCollectionEquality().hash(_images),
+    const DeepCollectionEquality().hash(images),
     alpha,
     dead,
     coordX,
