@@ -19,15 +19,14 @@ class ApiInterceptor extends Interceptor {
       return handler.next(options);
     }
 
-    // DISABLED: Proactive token refresh
-    // API returns 501 (Not Implemented) for refresh endpoint
-    // Token will be cleared on 401 errors instead
-    /*
+    // Check for proactive refresh
+    // If token is expired or about to expire, refresh it before making the request
     if (await _tokenStorage.isTokenExpired()) {
       print('DEBUG: Token expired, attempting proactive refresh');
       final refreshed = await _tryRefreshToken();
       print('DEBUG: Proactive refresh result: $refreshed');
       if (!refreshed) {
+        // If refresh failed, clear tokens and reject request
         await _tokenStorage.clearTokens();
         return handler.reject(
           DioException(
@@ -44,7 +43,6 @@ class ApiInterceptor extends Interceptor {
         );
       }
     }
-    */
 
     // Add JWT token to headers
     final token = await _tokenStorage.getAccessToken();
