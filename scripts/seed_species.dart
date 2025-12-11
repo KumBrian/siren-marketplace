@@ -17,7 +17,7 @@ void main() async {
   // API Configuration
   const apiBaseUrl = 'https://api.marketplace.dev.siren.dhi-cm.com/api/v1';
   const token =
-      'YOUR_JWT_TOKEN_HERE'; // Replace with actual JWT token from login
+      'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpYXQiOjE3NjU0NDY4MzEsImV4cCI6MTc2NTQ1MDQzMSwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImVtYWlsIjoibmlyb3UwMDBAZ21haWwuY29tIiwidWlkIjoiYTNlOTUzOTUtMDE0MS00MGQ5LWIxMTgtOGU0MGVkZDE3MjEzIiwidXNlcm5hbWUiOm51bGwsInB1bHNlQm94QWNjZXNzVG9rZW4iOiI0NDE4ZDA0YS04YWI0LTQ1MzItYTIxMC0xNTE4YTBkYzkxM2QtMDYwNGY4N2ItMGIyYi00MTgzLWJjZTYtYmNhZmMzZWNhZmNkIiwibWFya2V0cGxhY2VBY2Nlc3NUb2tlbiI6ImExMjI2MTYzLTczMGEtNDk1MC1iYTM0LTdiODU2OTZhYzcwOS05NjNmMjZkMC0xYWQwLTRmZDUtOGUyNi01YzNiOWIwNzNhMmEiLCJ0b2tlbkV4cGlyZUF0IjoxNzY1NDUwNDI4fQ.cyvdaqyAoG8nooJrkwyY-9v7AliZx0T2PirNsvLP_d_00shdpsXf48D8xWSd84ZVbitEvILQ_yGxrmcJtx3wUhFInX7Xv_cG6VQiA2CC3WMdhnGtEzTnzSRTNgqSHEM3UfUuxX4dCFEXMV1QMwtL0w_Y-o2yKILqOK2VADYFxHrmNu0uK5Q4rPzFqFmw3c6bCdGxUcgUD_pqGcE8fQd43KnSAaCWeFiHYSfdfuCLcPn-MG9nuELwKJBRUpm2Vl-mKgEu0OtbjV1M8PvvLuXKCeiMN_QL71nI0rIou6-teJ9O1F5jiatyQbrGTMdOOxHvy-ymLfnLGmtOhm6-2ZkSSA'; // Replace with actual JWT token from login
 
   // Create Dio client
   final dio = Dio(
@@ -71,24 +71,30 @@ void main() async {
     try {
       print('Creating species: ${species['name']}...');
 
-      // Build request body based on API spec
-      // Adjust fields based on actual API requirements
+      // Minimal request body - only required fields
+      // Skip fishCatches and marketSpecies to avoid circular dependencies
       final requestBody = {
-        'name': species['name'],
-        'scientificName': species['scientificName'],
+        'name': species['scientificName'], // Use scientific name as primary
         'mediaReference': species['mediaReference'],
-        // Add other required fields here based on API spec
+        // Optional: add these if API allows them to be empty
+        // 'fishCatches': [],
+        // 'marketSpecies': [],
       };
+
+      print('Request body: $requestBody');
 
       final response = await dio.post('/species/create', data: requestBody);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        final data = response.data;
-        final uuid = data['uid'] ?? data['id'] ?? data['uuid'];
+        final responseData = response.data;
+        // UUID is nested: {data: {uid: "...", ...}}
+        final data = responseData['data'] as Map<String, dynamic>?;
+        final uuid = data?['uid'] ?? data?['id'] ?? responseData['uid'];
 
         print('✅ Created: ${species['name']}');
         print('   UUID: $uuid');
-        print('   Slug: ${species['slug']}\n');
+        print('   Slug: ${species['slug']}');
+        print('   Full response: $responseData\n');
 
         createdSpecies.add({
           'name': species['name'],
@@ -103,8 +109,9 @@ void main() async {
     } catch (e) {
       print('❌ Error creating ${species['name']}: $e\n');
       if (e is DioException) {
+        print('   Status: ${e.response?.statusCode}');
         print('   Response: ${e.response?.data}');
-        print('   Status: ${e.response?.statusCode}\n');
+        print('   Message: ${e.message}\n');
       }
     }
 

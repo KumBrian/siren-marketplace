@@ -17,24 +17,28 @@ class SeederData {
   static final List<SpeciesModel> speciesList = [
     const SpeciesModel(
       id: "prawn",
+      uid: "55bcb79a-d06e-4f41-b89e-f243763e64ab",
       name: "Prawn",
       image: "assets/shrimp-species/prawn.png",
       scientificName: "Panaeus Monodon",
     ),
     const SpeciesModel(
       id: "grey-shrimp",
+      uid: "4d244dab-7fe8-4e8c-8a4a-9b6643842625",
       name: "Grey Shrimp",
       image: "assets/shrimp-species/grey-shrimp.png",
       scientificName: "Crevette Grise",
     ),
     const SpeciesModel(
       id: "pink-shrimp",
+      uid: "06264f8b-70df-4903-854c-d7477315bda4",
       name: "Pink Shrimp",
       image: "assets/shrimp-species/pink-shrimp.png",
       scientificName: "Crevette Rose",
     ),
     const SpeciesModel(
       id: "tiger-shrimp",
+      uid: "34b34061-f620-48d0-bcdb-45c207032011",
       name: "Tiger Shrimp",
       image: "assets/shrimp-species/tiger-shrimp.png",
       scientificName: "Crevette Tiger",

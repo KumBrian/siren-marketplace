@@ -59,8 +59,8 @@ class CatchApiMapper {
     required List<String> imageUrls,
   }) {
     return CreateCatchRequest(
-      specie: model.species.id,
-      subgroup: model.species.id, // Use same as species per user
+      specie: model.species.uid, // Use UUID from backend!
+      subgroup: model.species.uid, // Use same UUID for subgroup
       gearMeshSizeInFinger: model.meshSize ?? 0.0,
       gearLengthInMeter: model.gearLength ?? 0.0,
       gearNature: model.gearNature ?? 'Unknown',
