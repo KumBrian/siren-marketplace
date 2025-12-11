@@ -55,7 +55,7 @@ class CatchMapper {
       fisherId: model.fisherId,
       status: CatchStatus.values.firstWhere(
         (e) => e.name == model.status,
-        orElse: () => CatchStatus.available,
+        orElse: () => CatchStatus.draft, // Default to draft, not available
       ),
       observationId: model.observationId,
       locationName: model.locationName,
