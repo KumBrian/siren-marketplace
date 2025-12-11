@@ -6,6 +6,69 @@ part of 'catch_api_models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+CreateCatchRequest _$CreateCatchRequestFromJson(Map<String, dynamic> json) =>
+    CreateCatchRequest(
+      specie: json['specie'] as String,
+      subgroup: json['subgroup'] as String,
+      gearMeshSizeInFinger: (json['gear_mesh_size_in_finger'] as num)
+          .toDouble(),
+      gearLengthInMeter: (json['gear_length_in_meter'] as num).toDouble(),
+      gearNature: json['gear_nature'] as String,
+      waterDepthInMeter: (json['water_depth_in_meter'] as num).toDouble(),
+      fishingTimeInHour: (json['fishing_time_in_hour'] as num).toDouble(),
+      estimatedWeightInKg: (json['estimated_weight_in_kg'] as num).toDouble(),
+      averageSizeInCm: (json['average_size_in_cm'] as num).toDouble(),
+      estimatedSize: (json['estimated_size'] as num).toInt(),
+      publishedWeightInKg: (json['published_weight_in_kg'] as num).toDouble(),
+      pricePerKg: (json['price_per_kg'] as num).toDouble(),
+      finalPrice: (json['final_price'] as num).toDouble(),
+      publishedInMarketPlace: json['published_in_market_place'] as bool,
+      note: json['note'] as String?,
+      images: (json['images'] as List<dynamic>)
+          .map((e) => CatchImageRequest.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      alpha: json['alpha'] as String?,
+      dead: json['dead'] as bool,
+      coordX: (json['coordX'] as num).toDouble(),
+      coordY: (json['coordY'] as num).toDouble(),
+      date: json['date'] as String,
+      market: (json['market'] as num).toInt(),
+      observationType: json['observationType'] as String?,
+      patrol: json['patrol'] as String?,
+      segment: json['segment'] as String?,
+      gearWidthInMeter: (json['gear_width_in_meter'] as num?)?.toDouble(),
+    );
+
+Map<String, dynamic> _$CreateCatchRequestToJson(CreateCatchRequest instance) =>
+    <String, dynamic>{
+      'specie': instance.specie,
+      'subgroup': instance.subgroup,
+      'gear_mesh_size_in_finger': instance.gearMeshSizeInFinger,
+      'gear_length_in_meter': instance.gearLengthInMeter,
+      'gear_nature': instance.gearNature,
+      'water_depth_in_meter': instance.waterDepthInMeter,
+      'fishing_time_in_hour': instance.fishingTimeInHour,
+      'estimated_weight_in_kg': instance.estimatedWeightInKg,
+      'average_size_in_cm': instance.averageSizeInCm,
+      'estimated_size': instance.estimatedSize,
+      'published_weight_in_kg': instance.publishedWeightInKg,
+      'price_per_kg': instance.pricePerKg,
+      'final_price': instance.finalPrice,
+      'published_in_market_place': instance.publishedInMarketPlace,
+      'note': instance.note,
+      'images': instance.images.map((e) => e.toJson()).toList(),
+      'alpha': instance.alpha,
+      'dead': instance.dead,
+      'coordX': instance.coordX,
+      'coordY': instance.coordY,
+      'date': instance.date,
+      'market': instance.market,
+      'observationType': instance.observationType,
+      'patrol': instance.patrol,
+      'segment': instance.segment,
+      'gear_width_in_meter': instance.gearWidthInMeter,
+    };
+
 _$GearApiModelImpl _$$GearApiModelImplFromJson(Map<String, dynamic> json) =>
     _$GearApiModelImpl(
       id: json['id'],

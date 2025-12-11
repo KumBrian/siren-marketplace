@@ -83,7 +83,8 @@ class CatchImageRequest with _$CatchImageRequest {
       _$CatchImageRequestFromJson(json);
 }
 
-@freezed
+@Freezed(toJson: true)
+@JsonSerializable(explicitToJson: true)
 class CreateCatchRequest with _$CreateCatchRequest {
   const factory CreateCatchRequest({
     required String specie,
