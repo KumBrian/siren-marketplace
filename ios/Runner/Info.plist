@@ -55,6 +55,8 @@
         <string>We need access to your location to automatically tag your catch with GPS coordinates.</string>
         <key>NSLocationAlwaysUsageDescription</key>
         <string>We need access to your location to automatically tag your catch with GPS coordinates.</string>
+        <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+        <string>We need access to your location to automatically tag your catch with GPS coordinates.</string>
         <key>ITSAppUsesNonExemptEncryption</key>
         <false />
     </dict>
