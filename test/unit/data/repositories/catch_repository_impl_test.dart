@@ -38,6 +38,7 @@ void main() {
           name: entity.species.name,
           image: entity.species.image,
           scientificName: entity.species.scientificName,
+          uid: entity.species.uid,
         ),
         fisherId: entity.fisherId,
         status: entity.status.name,

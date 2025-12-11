@@ -358,7 +358,7 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
         images: catchImages,
         species:
             state.selectedSpecies ??
-            const Species(id: 'unknown', name: 'Unknown', image: ''),
+            const Species(id: 'unknown', name: 'Unknown', image: '', uid: ''),
         fisherId: user.id,
         status: state.isSelling ? CatchStatus.available : CatchStatus.draft,
         observationId: state.observationId ?? 'Obs-UNKNOWN',

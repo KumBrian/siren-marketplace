@@ -33,7 +33,12 @@ class CatchApiMapper {
       images: images,
       species:
           apiModel.species ??
-          const SpeciesModel(id: 'unknown', name: 'Unknown', image: ''),
+          const SpeciesModel(
+            id: 'unknown',
+            name: 'Unknown',
+            image: '',
+            uid: '',
+          ),
       fisherId: apiModel.account?.id?.toString() ?? 'unknown_fisher',
       status: apiModel.status ?? 'UPLOADED',
       // Location and observation data

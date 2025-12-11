@@ -172,11 +172,17 @@ class TestData {
   }
 
   /// Creates a test Species entity with sensible defaults
-  static Species createSpecies({String? id, String? name, String? image}) {
+  static Species createSpecies({
+    String? id,
+    String? name,
+    String? image,
+    String? uid,
+  }) {
     return Species(
       id: id ?? 'species-1',
       name: name ?? 'Tuna',
       image: image ?? '',
+      uid: uid ?? 'species-1',
     );
   }
 

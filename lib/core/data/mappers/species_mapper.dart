@@ -8,6 +8,7 @@ class SpeciesMapper {
       name: model.name,
       image: model.image,
       scientificName: model.scientificName,
+      uid: model.uid,
     );
   }
 
@@ -17,6 +18,7 @@ class SpeciesMapper {
       name: entity.name,
       image: entity.image,
       scientificName: entity.scientificName,
+      uid: entity.uid,
     );
   }
 }

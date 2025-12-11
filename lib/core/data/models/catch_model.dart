@@ -157,6 +157,7 @@ class CatchModel {
       id: map['species_id'] as String,
       name: map['species_name'] as String,
       image: map['species_image'] as String? ?? '',
+      uid: map['species_uid'] as String? ?? '',
     ),
     fisherId: map['fisher_id'] as String,
     status: map['status'] as String,

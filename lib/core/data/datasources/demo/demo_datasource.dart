@@ -491,6 +491,7 @@ class DemoDataSourceFactory {
       name: 'Large Prawns',
       image: "assets/shrimp-species/prawn.png",
       scientificName: 'Penaeus monodon',
+      uid: '55bcb79a-d06e-4f41-b89e-f243763e64ab',
     );
 
     final species2 = SpeciesModel(
@@ -498,6 +499,7 @@ class DemoDataSourceFactory {
       name: 'Small Prawns',
       image: "assets/shrimp-species/prawn.png",
       scientificName: 'Penaeus monodon',
+      uid: '55bcb79a-d06e-4f41-b89e-f243763e64ab',
     );
 
     final species3 = SpeciesModel(
@@ -505,6 +507,7 @@ class DemoDataSourceFactory {
       name: 'Tiger Shrimp',
       image: "assets/shrimp-species/tiger-shrimp.png",
       scientificName: 'Penaeus monodon',
+      uid: '34b34061-f620-48d0-bcdb-45c207032011',
     );
 
     final species4 = SpeciesModel(
@@ -512,6 +515,7 @@ class DemoDataSourceFactory {
       name: 'Grey Shrimp',
       image: "assets/shrimp-species/grey-shrimp.png",
       scientificName: 'Crangon crangon',
+      uid: '4d244dab-7fe8-4e8c-8a4a-9b6643842625',
     );
 
     final species5 = SpeciesModel(
@@ -519,6 +523,7 @@ class DemoDataSourceFactory {
       name: 'Pink Shrimp',
       image: "assets/shrimp-species/pink-shrimp.png",
       scientificName: 'Pandalus borealis',
+      uid: '06264f8b-70df-4903-854c-d7477315bda4',
     );
 
     // Seed Catches
