@@ -14,30 +14,6 @@ class ApiInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    // Skip token for auth endpoints
-    if (options.path.contains('/auth/login')) {
-      return handler.next(options);
-    }
-
-    // Check for proactive refresh
-    // If token is expired or about to expire, refresh it before making the request
-    if (await _tokenStorage.isTokenExpired()) {
-      print('DEBUG: Token expired, attempting proactive refresh');
-      final refreshed = await _tryRefreshToken();
-      print('DEBUG: Proactive refresh result: $refreshed');
-      if (!refreshed) {
-        // If refresh failed, clear tokens and reject request
-        await _tokenStorage.clearTokens();
-        return handler.reject(
-          DioException(
-            requestOptions: options,
-            response: Response(
-              requestOptions: options,
-              statusCode: 401,
-              statusMessage: 'Session expired',
-            ),
-            type: DioExceptionType.badResponse,
-            message: 'Session expired, please login again',
           ),
           true,
         );
