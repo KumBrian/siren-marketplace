@@ -84,7 +84,6 @@ class CatchApiMapper {
       observationType: 'unknown',
       patrol: null,
       segment: null,
-      gearWidthInMeter: model.gearWidth,
     );
   }
 }

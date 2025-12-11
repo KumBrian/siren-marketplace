@@ -115,8 +115,6 @@ class CreateCatchRequest with _$CreateCatchRequest {
     String? observationType,
     String? patrol,
     String? segment,
-    // Additional fields from UI (not in sample but collected)
-    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
   }) = _CreateCatchRequest;
 
   factory CreateCatchRequest.fromJson(Map<String, dynamic> json) =>

@@ -1574,10 +1574,7 @@ mixin _$CreateCatchRequest {
   int get market => throw _privateConstructorUsedError;
   String? get observationType => throw _privateConstructorUsedError;
   String? get patrol => throw _privateConstructorUsedError;
-  String? get segment =>
-      throw _privateConstructorUsedError; // Additional fields from UI (not in sample but collected)
-  @JsonKey(name: 'gear_width_in_meter')
-  double? get gearWidthInMeter => throw _privateConstructorUsedError;
+  String? get segment => throw _privateConstructorUsedError;
 
   /// Serializes this CreateCatchRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1622,7 +1619,6 @@ abstract class $CreateCatchRequestCopyWith<$Res> {
     String? observationType,
     String? patrol,
     String? segment,
-    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
   });
 }
 
@@ -1666,7 +1662,6 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
     Object? observationType = freezed,
     Object? patrol = freezed,
     Object? segment = freezed,
-    Object? gearWidthInMeter = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1770,10 +1765,6 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
                 ? _value.segment
                 : segment // ignore: cast_nullable_to_non_nullable
                       as String?,
-            gearWidthInMeter: freezed == gearWidthInMeter
-                ? _value.gearWidthInMeter
-                : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
-                      as double?,
           )
           as $Val,
     );
@@ -1815,7 +1806,6 @@ abstract class _$$CreateCatchRequestImplCopyWith<$Res>
     String? observationType,
     String? patrol,
     String? segment,
-    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
   });
 }
 
@@ -1858,7 +1848,6 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
     Object? observationType = freezed,
     Object? patrol = freezed,
     Object? segment = freezed,
-    Object? gearWidthInMeter = freezed,
   }) {
     return _then(
       _$CreateCatchRequestImpl(
@@ -1962,10 +1951,6 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
             ? _value.segment
             : segment // ignore: cast_nullable_to_non_nullable
                   as String?,
-        gearWidthInMeter: freezed == gearWidthInMeter
-            ? _value.gearWidthInMeter
-            : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
-                  as double?,
       ),
     );
   }
@@ -2002,7 +1987,6 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     this.observationType,
     this.patrol,
     this.segment,
-    @JsonKey(name: 'gear_width_in_meter') this.gearWidthInMeter,
   });
 
   factory _$CreateCatchRequestImpl.fromJson(Map<String, dynamic> json) =>
@@ -2070,14 +2054,10 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
   final String? patrol;
   @override
   final String? segment;
-  // Additional fields from UI (not in sample but collected)
-  @override
-  @JsonKey(name: 'gear_width_in_meter')
-  final double? gearWidthInMeter;
 
   @override
   String toString() {
-    return 'CreateCatchRequest(specie: $specie, subgroup: $subgroup, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearNature: $gearNature, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInKg: $estimatedWeightInKg, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInKg: $publishedWeightInKg, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, note: $note, images: $images, alpha: $alpha, dead: $dead, coordX: $coordX, coordY: $coordY, date: $date, market: $market, observationType: $observationType, patrol: $patrol, segment: $segment, gearWidthInMeter: $gearWidthInMeter)';
+    return 'CreateCatchRequest(specie: $specie, subgroup: $subgroup, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearNature: $gearNature, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInKg: $estimatedWeightInKg, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInKg: $publishedWeightInKg, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, note: $note, images: $images, alpha: $alpha, dead: $dead, coordX: $coordX, coordY: $coordY, date: $date, market: $market, observationType: $observationType, patrol: $patrol, segment: $segment)';
   }
 
   @override
@@ -2123,9 +2103,7 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
             (identical(other.observationType, observationType) ||
                 other.observationType == observationType) &&
             (identical(other.patrol, patrol) || other.patrol == patrol) &&
-            (identical(other.segment, segment) || other.segment == segment) &&
-            (identical(other.gearWidthInMeter, gearWidthInMeter) ||
-                other.gearWidthInMeter == gearWidthInMeter));
+            (identical(other.segment, segment) || other.segment == segment));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2157,7 +2135,6 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     observationType,
     patrol,
     segment,
-    gearWidthInMeter,
   ]);
 
   /// Create a copy of CreateCatchRequest
@@ -2211,7 +2188,6 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
     final String? observationType,
     final String? patrol,
     final String? segment,
-    @JsonKey(name: 'gear_width_in_meter') final double? gearWidthInMeter,
   }) = _$CreateCatchRequestImpl;
 
   factory _CreateCatchRequest.fromJson(Map<String, dynamic> json) =
@@ -2278,10 +2254,7 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
   @override
   String? get patrol;
   @override
-  String? get segment; // Additional fields from UI (not in sample but collected)
-  @override
-  @JsonKey(name: 'gear_width_in_meter')
-  double? get gearWidthInMeter;
+  String? get segment;
 
   /// Create a copy of CreateCatchRequest
   /// with the given fields replaced by the non-null parameter values.

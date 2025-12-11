@@ -159,7 +159,6 @@ _$CreateCatchRequestImpl _$$CreateCatchRequestImplFromJson(
   observationType: json['observationType'] as String?,
   patrol: json['patrol'] as String?,
   segment: json['segment'] as String?,
-  gearWidthInMeter: (json['gear_width_in_meter'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$$CreateCatchRequestImplToJson(
@@ -190,5 +189,4 @@ Map<String, dynamic> _$$CreateCatchRequestImplToJson(
   'observationType': instance.observationType,
   'patrol': instance.patrol,
   'segment': instance.segment,
-  'gear_width_in_meter': instance.gearWidthInMeter,
 };
