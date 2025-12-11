@@ -63,6 +63,9 @@ class CatchApiMapper {
     CatchModel model, {
     required List<String> imageUrls,
   }) {
+    // Only include selling data if catch is available for sale
+    final isForSale = model.status == 'available';
+
     return CreateCatchRequest(
       specie: model.species.uid, // Use UUID from backend!
       subgroup: model.species.uid, // Use same UUID for subgroup
@@ -74,10 +77,13 @@ class CatchApiMapper {
       estimatedWeightInKg: model.initialWeightGrams / 1000.0,
       averageSizeInCm: double.tryParse(model.size) ?? 0.0,
       estimatedSize: model.numberOfShrimps ?? 0,
-      publishedWeightInKg: model.availableWeightGrams / 1000.0,
-      pricePerKg: model.pricePerKgAmount / 100.0,
-      finalPrice: model.totalPriceAmount / 100.0,
-      publishedInMarketPlace: model.status == 'available',
+      // Only send selling data when catch is for sale
+      publishedWeightInKg: isForSale
+          ? (model.availableWeightGrams / 1000.0)
+          : 0.0,
+      pricePerKg: isForSale ? (model.pricePerKgAmount / 100.0) : 0.0,
+      finalPrice: isForSale ? (model.totalPriceAmount / 100.0) : 0.0,
+      publishedInMarketPlace: isForSale,
       note: '', // API expects empty string, not null
       images: imageUrls.map((url) => CatchImageRequest(mediaUrl: url)).toList(),
       alpha: '', // API expects empty string, not null
