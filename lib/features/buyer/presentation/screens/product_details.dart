@@ -192,6 +192,8 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                             label: "Price/Kg",
                             suffix: "CFA",
                             decimal: false,
+                            editable:
+                                false, // Auto-calculated from weight and total price
                             validator: (value) {
                               final pricePerKg = int.tryParse(value ?? "");
                               if (pricePerKg == null || pricePerKg <= 0) {

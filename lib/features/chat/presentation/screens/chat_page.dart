@@ -229,21 +229,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // Icon for image/gallery
-                        IconButton(
-                          icon: const Icon(
-                            Icons.image_outlined,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {},
-                        ),
-                        // Icon for emoji/stickers
-                        IconButton(
-                          icon: const Icon(
-                            Icons.sentiment_satisfied_outlined,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {},
-                        ),
+                        // IconButton(
+                        //   icon: const Icon(
+                        //     Icons.image_outlined,
+                        //     color: Colors.grey,
+                        //   ),
+                        //   onPressed: () {},
+                        // ),
                         showSend
                             ? IconButton(
                                 icon: const Icon(
