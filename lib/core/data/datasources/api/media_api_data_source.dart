@@ -190,14 +190,21 @@ class MediaApiDataSource {
       // Get Pulsebox access token (exchanges JWT if needed)
       final pulseboxToken = await _getPulseboxAccessToken();
 
-      // POST to Pulsebox create-collection endpoint with Pulsebox token
+      // Also get JWT for MigrationApiToken header
+      final jwt = await _tokenStorage.getAccessToken();
+      if (jwt == null) {
+        throw Exception('No JWT available for MigrationApiToken');
+      }
+
+      // POST to Pulsebox create-collection endpoint with custom headers
       final response = await _dio.post(
         '${ApiConfig.pulseboxBaseUrl}${ApiConfig.mediasCreateCollection}',
         data: formData,
         options: Options(
           headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': 'Bearer $pulseboxToken',
+            'AccessToken': pulseboxToken, // Pulsebox access token
+            'MigrationApiToken': jwt, // JWT token
           },
         ),
       );
