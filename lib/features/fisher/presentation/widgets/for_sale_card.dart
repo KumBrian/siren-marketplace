@@ -9,12 +9,12 @@ class ForSaleCard extends StatelessWidget {
     super.key,
     required this.onPressed,
     required this.catchData,
-    required this.hasPendingOffers,
+    required this.hasNotifications, // Includes both offer updates AND unread messages
   });
 
   final VoidCallback onPressed;
   final Catch catchData;
-  final bool hasPendingOffers;
+  final bool hasNotifications;
 
   @override
   Widget build(BuildContext context) {
@@ -198,13 +198,7 @@ class ForSaleCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        if (hasPendingOffers) ...[
-                          Icon(
-                            Icons.notifications,
-                            color: AppColors.fail500,
-                            size: 16,
-                          ),
-                        ],
+                        if (hasNotifications) ...[\n                          Icon(\n                            Icons.notifications,\n                            color: AppColors.fail500,\n                            size: 16,\n                          ),\n                        ],
                       ],
                     ),
                   ],
