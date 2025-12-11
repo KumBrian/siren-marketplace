@@ -40,9 +40,15 @@ class LoginController extends AutoDisposeAsyncNotifier<void> {
       // Invalidate auth provider to trigger re-check
       ref.invalidate(isAuthenticatedProvider);
 
+      // CRITICAL: Wait for auth provider to refresh before completing
+      // This ensures the router sees the updated auth state
+      await ref.read(isAuthenticatedProvider.future);
+
       // Refresh current user provider
       ref.invalidate(currentUserProvider);
       await ref.read(currentUserProvider.future);
+
+      print('DEBUG: Login complete - auth and user providers refreshed');
     });
   }
 
