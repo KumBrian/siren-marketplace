@@ -12,98 +12,9 @@ class MediaApiDataSource {
   final Dio _dio;
   final TokenStorage _tokenStorage;
 
-  // Cache Pulsebox access token to avoid repeated API calls
-  String? _cachedPulseboxToken;
-  DateTime? _pulseboxTokenExpiry;
-
   MediaApiDataSource({required Dio dio, required TokenStorage tokenStorage})
     : _dio = dio,
       _tokenStorage = tokenStorage;
-
-  /// Get Pulsebox access token by exchanging JWT
-  /// Returns cached token if still valid
-  Future<String> _getPulseboxAccessToken() async {
-    // Check if we have a valid cached token
-    if (_cachedPulseboxToken != null &&
-        _pulseboxTokenExpiry != null &&
-        DateTime.now().isBefore(_pulseboxTokenExpiry!)) {
-      print('DEBUG: Using cached Pulsebox token');
-      return _cachedPulseboxToken!;
-    }
-
-    // Get JWT from storage
-    final jwt = await _tokenStorage.getAccessToken();
-    if (jwt == null) {
-      throw Exception('No JWT available to exchange for Pulsebox token');
-    }
-
-    print('DEBUG: Exchanging JWT for Pulsebox access token');
-
-    try {
-      // Call Pulsebox to create access token
-      final response = await _dio.post(
-        '${ApiConfig.pulseboxBaseUrl}/access-token/create',
-        data: {'jwtToken': jwt},
-      );
-
-      final data = response.data;
-      final pulseboxToken = data['token'] as String?;
-      final expireAt = data['expireAt'] as String?;
-
-      if (pulseboxToken == null) {
-        throw Exception('No token in Pulsebox response');
-      }
-
-      // Parse expiry time from response
-      DateTime? expiryTime;
-      if (expireAt != null) {
-        try {
-          expiryTime = DateTime.parse(expireAt);
-          // Use token until 5 minutes before expiry for safety
-          expiryTime = expiryTime.subtract(const Duration(minutes: 5));
-        } catch (e) {
-          print('WARN: Could not parse expireAt, using default 55 minutes');
-          expiryTime = DateTime.now().add(const Duration(minutes: 55));
-        }
-      } else {
-        expiryTime = DateTime.now().add(const Duration(minutes: 55));
-      }
-
-      // Cache the token
-      _cachedPulseboxToken = pulseboxToken;
-      _pulseboxTokenExpiry = expiryTime;
-
-      print(
-        'DEBUG: Got Pulsebox access token, valid until ${_pulseboxTokenExpiry}',
-      );
-
-      return pulseboxToken;
-    } catch (e) {
-      print('ERROR: Failed to get Pulsebox access token: $e');
-      rethrow;
-    }
-  }
-
-  /// Extract pulseBoxAccessToken from JWT
-  String? _extractPulseBoxToken(String jwt) {
-    try {
-      // JWT format: header.payload.signature
-      final parts = jwt.split('.');
-      if (parts.length != 3) return null;
-
-      // Decode payload (base64url)
-      final payload = parts[1];
-      // Add padding if needed
-      final normalized = base64Url.normalize(payload);
-      final decoded = utf8.decode(base64Url.decode(normalized));
-      final json = jsonDecode(decoded) as Map<String, dynamic>;
-
-      return json['pulseBoxAccessToken'] as String?;
-    } catch (e) {
-      print('ERROR: Failed to extract pulseBoxAccessToken: $e');
-      return null;
-    }
-  }
 
   /// Compress an image file to reduce size before upload
   /// Target: ~500KB per image with quality compression
@@ -187,17 +98,20 @@ class MediaApiDataSource {
         'DEBUG: Uploading ${compressedImages.length} compressed images to Pulsebox',
       );
 
-      // Get Pulsebox access token (exchanges JWT if needed)
-      final pulseboxToken = await _getPulseboxAccessToken();
+      // Get JWT from storage
+      final jwt = await _tokenStorage.getAccessToken();
+      if (jwt == null) {
+        throw Exception('No authentication token available for upload');
+      }
 
-      // POST to Pulsebox create-collection endpoint with AccessToken only
+      // POST to Pulsebox create-collection endpoint with Authorization header
       final response = await _dio.post(
         '${ApiConfig.pulseboxBaseUrl}${ApiConfig.mediasCreateCollection}',
         data: formData,
         options: Options(
           headers: {
             'Content-Type': 'multipart/form-data',
-            'AccessToken': pulseboxToken,
+            'Authorization': 'Bearer $jwt', // Centralized auth
           },
         ),
       );
