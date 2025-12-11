@@ -112,12 +112,18 @@ class Offer extends Equatable {
         ? UserRole.buyer
         : UserRole.fisher;
 
+    // Set hasUpdate flag for the OTHER party (the one receiving the counter)
+    // The countering party has already seen it (they created it), so hasUpdate=false
     return copyWith(
       currentTerms: newTerms,
       previousTerms: currentTerms,
       status: OfferStatus.pending,
       dateUpdated: DateTime.now(),
       waitingFor: nextWaitingFor,
+      // If fisher counters, buyer needs notification (hasUpdateForBuyer=true)
+      // If buyer counters, fisher needs notification (hasUpdateForFisher=true)
+      hasUpdateForFisher: byUserId == buyerId ? true : false,
+      hasUpdateForBuyer: byUserId == fisherId ? true : false,
     );
   }
 
