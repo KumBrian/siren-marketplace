@@ -20,6 +20,16 @@ class CatchApiMapper {
     final pricePerKgCents = ((apiModel.pricePerKg ?? 0) * 100).toInt();
     final finalPriceCents = ((apiModel.finalPrice ?? 0) * 100).toInt();
 
+    // Determine status from published_in_market_place flag
+    // If publishedInMarketPlace is true, status is 'available', else use API status or default to 'draft'
+    String determineStatus() {
+      if (apiModel.publishedInMarketPlace == true) {
+        return 'available';
+      }
+      // Use API status if provided, otherwise default to 'draft'
+      return apiModel.status?.toLowerCase() ?? 'draft';
+    }
+
     return CatchModel(
       id: apiModel.id.toString(),
       name: apiModel.name ?? apiModel.species?.name ?? 'Catch #${apiModel.id}',
@@ -40,7 +50,7 @@ class CatchApiMapper {
             uid: '',
           ),
       fisherId: apiModel.account?.id?.toString() ?? 'unknown_fisher',
-      status: apiModel.status ?? 'UPLOADED',
+      status: determineStatus(),
       // Location and observation data from API
       observationId: '', // Not provided by API yet
       locationName: '', // Not provided by API yet
