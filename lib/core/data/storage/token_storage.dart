@@ -2,7 +2,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Service for securely storing and retrieving JWT tokens
 class TokenStorage {
-  static const _storage = FlutterSecureStorage();
+  // Use final instead of const to avoid hot restart issues
+  static final _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
 
   // Storage keys
   static const String _accessTokenKey = 'access_token';
