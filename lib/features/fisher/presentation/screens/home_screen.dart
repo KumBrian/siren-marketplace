@@ -178,6 +178,7 @@ class FisherHome extends ConsumerWidget {
                                   _buildForSaleTab(
                                     forSaleCatches,
                                     catchesWithUnviewedOffers,
+                                    hasUnreadMessages,
                                     context,
                                   ),
                                   // Sold Tab
@@ -213,6 +214,7 @@ class FisherHome extends ConsumerWidget {
   Widget _buildForSaleTab(
     List<Catch> forSaleCatches,
     Set<String> catchesWithUnviewedOffers,
+    bool hasUnreadMessages,
     BuildContext context,
   ) {
     // Sort catches by date posted descending (effectively by expiry date descending)

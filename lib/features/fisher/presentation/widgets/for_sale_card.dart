@@ -198,7 +198,13 @@ class ForSaleCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        if (hasNotifications) ...[\n                          Icon(\n                            Icons.notifications,\n                            color: AppColors.fail500,\n                            size: 16,\n                          ),\n                        ],
+                        if (hasNotifications) ...[
+                          Icon(
+                            Icons.notifications,
+                            color: AppColors.fail500,
+                            size: 16,
+                          ),
+                        ],
                       ],
                     ),
                   ],
