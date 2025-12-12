@@ -48,7 +48,9 @@ class ApiConfig {
   static const String saleOrdersCreate = '/sale-orders/create';
   static const String mySaleOrders = '/sale-orders/my-orders';
   static const String messages = '/messages';
+  static const String fishCatchesCreate = '/fish-catches/create';
   static const String reviews = '/reviews';
+  static const String speciesList = '/species/list';
   static const String products = '/products';
   static const String markets = '/markets';
   static const String species = '/species';
