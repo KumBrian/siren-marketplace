@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/entities/order.dart';
-import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
 
 import 'package:siren_marketplace/core/domain/enums/order_status.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
