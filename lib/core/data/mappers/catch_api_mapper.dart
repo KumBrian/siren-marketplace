@@ -1,9 +1,13 @@
 import '../api/models/catch_api_models.dart';
 import '../models/catch_model.dart';
 import '../models/species_model.dart';
+import '../../domain/entities/species.dart';
 
 class CatchApiMapper {
-  static CatchModel toDomain(CatchApiModel apiModel) {
+  static CatchModel toDomain(
+    CatchApiModel apiModel, {
+    List<Species>? speciesList,
+  }) {
     // Extract images from fishCatchImages array
     final images = apiModel.fishCatchImages
         .map((img) => img.imageUrl ?? '')
@@ -28,9 +32,53 @@ class CatchApiMapper {
       return apiModel.status?.toLowerCase() ?? 'draft';
     }
 
+    // Get species by uid lookup
+    SpeciesModel getSpecies() {
+      // First check legacy species field
+      if (apiModel.species != null) {
+        return apiModel.species!;
+      }
+
+      // Try to find species by uid in provided list
+      if (apiModel.specie?.uid != null && speciesList != null) {
+        try {
+          final foundSpecies = speciesList.firstWhere(
+            (s) => s.uid == apiModel.specie!.uid,
+          );
+          return SpeciesModel(
+            id: foundSpecies.id,
+            uid: foundSpecies.uid,
+            name: foundSpecies.name,
+            image: foundSpecies.image,
+            scientificName: foundSpecies.scientificName,
+          );
+        } catch (e) {
+          // Species not found in list, fall through
+        }
+      }
+
+      // Fallback: use uid as name if species not found
+      if (apiModel.specie?.uid != null) {
+        return SpeciesModel(
+          id: apiModel.specie!.uid,
+          name: apiModel.specie!.uid, // Display uid if species not in app
+          image: '',
+          uid: apiModel.specie!.uid,
+        );
+      }
+
+      // No species data at all
+      return const SpeciesModel(
+        id: 'unknown',
+        name: 'Unknown',
+        image: '',
+        uid: '',
+      );
+    }
+
     return CatchModel(
       id: apiModel.id.toString(),
-      name: apiModel.name ?? apiModel.species?.name ?? 'Catch #${apiModel.id}',
+      name: apiModel.name ?? getSpecies().name ?? 'Catch #${apiModel.id}',
       datePosted: apiModel.createdAt ?? DateTime.now().toIso8601String(),
       initialWeightGrams: initialWeightGrams,
       availableWeightGrams: publishedWeightGrams,
@@ -39,22 +87,7 @@ class CatchApiMapper {
       size: apiModel.averageSizeInCm?.toString() ?? 'Unknown',
       market: apiModel.market ?? 'Unknown Market',
       images: images,
-      species:
-          apiModel.species ??
-          (apiModel.specie != null
-              ? SpeciesModel(
-                  id: apiModel.specie!.uid,
-                  name:
-                      apiModel.specie!.uid, // Display uid if species not in app
-                  image: '',
-                  uid: apiModel.specie!.uid,
-                )
-              : const SpeciesModel(
-                  id: 'unknown',
-                  name: 'Unknown',
-                  image: '',
-                  uid: '',
-                )),
+      species: getSpecies(),
       fisherId: apiModel.account?.id?.toString() ?? 'unknown_fisher',
       status: determineStatus(),
       // Location and observation data from API
