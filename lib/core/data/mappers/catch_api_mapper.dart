@@ -10,11 +10,9 @@ class CatchApiMapper {
         .where((url) => url.isNotEmpty)
         .toList();
 
-    // Convert weights from kg to grams for internal model
-    final initialWeightGrams = ((apiModel.estimatedWeightInKg ?? 0) * 1000)
-        .toInt();
-    final publishedWeightGrams = ((apiModel.publishedWeightInKg ?? 0) * 1000)
-        .toInt();
+    // Weights are now in grams from API (no conversion needed)
+    final initialWeightGrams = (apiModel.estimatedWeightInGrams ?? 0).toInt();
+    final publishedWeightGrams = (apiModel.publishedWeightInGrams ?? 0).toInt();
 
     // Convert price_per_kg to cents
     final pricePerKgCents = ((apiModel.pricePerKg ?? 0) * 100).toInt();
@@ -43,19 +41,26 @@ class CatchApiMapper {
       images: images,
       species:
           apiModel.species ??
-          const SpeciesModel(
-            id: 'unknown',
-            name: 'Unknown',
-            image: '',
-            uid: '',
-          ),
+          (apiModel.specie != null
+              ? SpeciesModel(
+                  id: apiModel.specie!.uid,
+                  name: 'Unknown Species',
+                  image: '',
+                  uid: apiModel.specie!.uid,
+                )
+              : const SpeciesModel(
+                  id: 'unknown',
+                  name: 'Unknown',
+                  image: '',
+                  uid: '',
+                )),
       fisherId: apiModel.account?.id?.toString() ?? 'unknown_fisher',
       status: determineStatus(),
       // Location and observation data from API
-      observationId: '', // Not provided by API yet
+      observationId: apiModel.observationId ?? '',
       locationName: '', // Not provided by API yet
-      latitude: apiModel.coordY ?? 0.0, // coordY is latitude
-      longitude: apiModel.coordX ?? 0.0, // coordX is longitude
+      latitude: 0.0, // Backend doesn't send coords yet
+      longitude: 0.0, // Backend doesn't send coords yet
       // Gear and fishing data from API
       meshSize: apiModel.gear?.gearMeshSizeInFinger,
       gearLength: apiModel.gear?.gearLengthInMeter,

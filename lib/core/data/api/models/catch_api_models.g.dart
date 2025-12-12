@@ -55,15 +55,39 @@ Map<String, dynamic> _$$FishCatchImageApiModelImplToJson(
   'uid': instance.uid,
 };
 
+_$SpecieApiModelImpl _$$SpecieApiModelImplFromJson(Map<String, dynamic> json) =>
+    _$SpecieApiModelImpl(
+      createdAt: json['created_at'] as String?,
+      updatedAt: json['updated_at'] as String?,
+      deletedAt: json['deleted_at'] as String?,
+      uid: json['uid'] as String,
+    );
+
+Map<String, dynamic> _$$SpecieApiModelImplToJson(
+  _$SpecieApiModelImpl instance,
+) => <String, dynamic>{
+  'created_at': instance.createdAt,
+  'updated_at': instance.updatedAt,
+  'deleted_at': instance.deletedAt,
+  'uid': instance.uid,
+};
+
 _$CatchApiModelImpl _$$CatchApiModelImplFromJson(Map<String, dynamic> json) =>
     _$CatchApiModelImpl(
       id: json['id'],
+      observationId: json['observationId'] as String?,
       waterDepthInMeter: (json['water_depth_in_meter'] as num?)?.toDouble(),
       fishingTimeInHour: (json['fishing_time_in_hour'] as num?)?.toDouble(),
-      estimatedWeightInKg: (json['estimated_weight_in_kg'] as num?)?.toDouble(),
+      specie: json['specie'] == null
+          ? null
+          : SpecieApiModel.fromJson(json['specie'] as Map<String, dynamic>),
+      estimatedWeightInGrams: (json['estimated_weight_in_grams'] as num?)
+          ?.toDouble(),
       averageSizeInCm: (json['average_size_in_cm'] as num?)?.toDouble(),
       estimatedSize: (json['estimated_size'] as num?)?.toInt(),
-      publishedWeightInKg: (json['published_weight_in_kg'] as num?)?.toDouble(),
+      published: json['published'] as bool?,
+      publishedWeightInGrams: (json['published_weight_in_grams'] as num?)
+          ?.toDouble(),
       pricePerKg: (json['price_per_kg'] as num?)?.toDouble(),
       finalPrice: (json['final_price'] as num?)?.toDouble(),
       publishedInMarketPlace: json['published_in_market_place'] as bool?,
@@ -86,13 +110,12 @@ _$CatchApiModelImpl _$$CatchApiModelImplFromJson(Map<String, dynamic> json) =>
       obsSynced: json['obs_synced'] as bool?,
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
+      deletedAt: json['deleted_at'] as String?,
       uid: json['uid'] as String?,
-      coordX: (json['coordX'] as num?)?.toDouble(),
-      coordY: (json['coordY'] as num?)?.toDouble(),
-      name: json['name'] as String?,
       species: json['species'] == null
           ? null
           : SpeciesModel.fromJson(json['species'] as Map<String, dynamic>),
+      name: json['name'] as String?,
       market: json['market'] as String?,
     );
 
@@ -100,12 +123,15 @@ Map<String, dynamic> _$$CatchApiModelImplToJson(
   _$CatchApiModelImpl instance,
 ) => <String, dynamic>{
   'id': instance.id,
+  'observationId': instance.observationId,
   'water_depth_in_meter': instance.waterDepthInMeter,
   'fishing_time_in_hour': instance.fishingTimeInHour,
-  'estimated_weight_in_kg': instance.estimatedWeightInKg,
+  'specie': instance.specie?.toJson(),
+  'estimated_weight_in_grams': instance.estimatedWeightInGrams,
   'average_size_in_cm': instance.averageSizeInCm,
   'estimated_size': instance.estimatedSize,
-  'published_weight_in_kg': instance.publishedWeightInKg,
+  'published': instance.published,
+  'published_weight_in_grams': instance.publishedWeightInGrams,
   'price_per_kg': instance.pricePerKg,
   'final_price': instance.finalPrice,
   'published_in_market_place': instance.publishedInMarketPlace,
@@ -117,11 +143,10 @@ Map<String, dynamic> _$$CatchApiModelImplToJson(
   'obs_synced': instance.obsSynced,
   'created_at': instance.createdAt,
   'updated_at': instance.updatedAt,
+  'deleted_at': instance.deletedAt,
   'uid': instance.uid,
-  'coordX': instance.coordX,
-  'coordY': instance.coordY,
-  'name': instance.name,
   'species': instance.species?.toJson(),
+  'name': instance.name,
   'market': instance.market,
 };
 

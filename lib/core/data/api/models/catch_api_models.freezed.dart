@@ -662,6 +662,245 @@ abstract class _FishCatchImageApiModel implements FishCatchImageApiModel {
   get copyWith => throw _privateConstructorUsedError;
 }
 
+SpecieApiModel _$SpecieApiModelFromJson(Map<String, dynamic> json) {
+  return _SpecieApiModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SpecieApiModel {
+  @JsonKey(name: 'created_at')
+  String? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'updated_at')
+  String? get updatedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'deleted_at')
+  String? get deletedAt => throw _privateConstructorUsedError;
+  String get uid => throw _privateConstructorUsedError;
+
+  /// Serializes this SpecieApiModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SpecieApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SpecieApiModelCopyWith<SpecieApiModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SpecieApiModelCopyWith<$Res> {
+  factory $SpecieApiModelCopyWith(
+    SpecieApiModel value,
+    $Res Function(SpecieApiModel) then,
+  ) = _$SpecieApiModelCopyWithImpl<$Res, SpecieApiModel>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'deleted_at') String? deletedAt,
+    String uid,
+  });
+}
+
+/// @nodoc
+class _$SpecieApiModelCopyWithImpl<$Res, $Val extends SpecieApiModel>
+    implements $SpecieApiModelCopyWith<$Res> {
+  _$SpecieApiModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SpecieApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? deletedAt = freezed,
+    Object? uid = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            updatedAt: freezed == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            deletedAt: freezed == deletedAt
+                ? _value.deletedAt
+                : deletedAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            uid: null == uid
+                ? _value.uid
+                : uid // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$SpecieApiModelImplCopyWith<$Res>
+    implements $SpecieApiModelCopyWith<$Res> {
+  factory _$$SpecieApiModelImplCopyWith(
+    _$SpecieApiModelImpl value,
+    $Res Function(_$SpecieApiModelImpl) then,
+  ) = __$$SpecieApiModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'deleted_at') String? deletedAt,
+    String uid,
+  });
+}
+
+/// @nodoc
+class __$$SpecieApiModelImplCopyWithImpl<$Res>
+    extends _$SpecieApiModelCopyWithImpl<$Res, _$SpecieApiModelImpl>
+    implements _$$SpecieApiModelImplCopyWith<$Res> {
+  __$$SpecieApiModelImplCopyWithImpl(
+    _$SpecieApiModelImpl _value,
+    $Res Function(_$SpecieApiModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of SpecieApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? deletedAt = freezed,
+    Object? uid = null,
+  }) {
+    return _then(
+      _$SpecieApiModelImpl(
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        updatedAt: freezed == updatedAt
+            ? _value.updatedAt
+            : updatedAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        deletedAt: freezed == deletedAt
+            ? _value.deletedAt
+            : deletedAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        uid: null == uid
+            ? _value.uid
+            : uid // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SpecieApiModelImpl implements _SpecieApiModel {
+  const _$SpecieApiModelImpl({
+    @JsonKey(name: 'created_at') this.createdAt,
+    @JsonKey(name: 'updated_at') this.updatedAt,
+    @JsonKey(name: 'deleted_at') this.deletedAt,
+    required this.uid,
+  });
+
+  factory _$SpecieApiModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SpecieApiModelImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
+  @override
+  @JsonKey(name: 'deleted_at')
+  final String? deletedAt;
+  @override
+  final String uid;
+
+  @override
+  String toString() {
+    return 'SpecieApiModel(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SpecieApiModelImpl &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.uid, uid) || other.uid == uid));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, createdAt, updatedAt, deletedAt, uid);
+
+  /// Create a copy of SpecieApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SpecieApiModelImplCopyWith<_$SpecieApiModelImpl> get copyWith =>
+      __$$SpecieApiModelImplCopyWithImpl<_$SpecieApiModelImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SpecieApiModelImplToJson(this);
+  }
+}
+
+abstract class _SpecieApiModel implements SpecieApiModel {
+  const factory _SpecieApiModel({
+    @JsonKey(name: 'created_at') final String? createdAt,
+    @JsonKey(name: 'updated_at') final String? updatedAt,
+    @JsonKey(name: 'deleted_at') final String? deletedAt,
+    required final String uid,
+  }) = _$SpecieApiModelImpl;
+
+  factory _SpecieApiModel.fromJson(Map<String, dynamic> json) =
+      _$SpecieApiModelImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'created_at')
+  String? get createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  String? get updatedAt;
+  @override
+  @JsonKey(name: 'deleted_at')
+  String? get deletedAt;
+  @override
+  String get uid;
+
+  /// Create a copy of SpecieApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SpecieApiModelImplCopyWith<_$SpecieApiModelImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
 CatchApiModel _$CatchApiModelFromJson(Map<String, dynamic> json) {
   return _CatchApiModel.fromJson(json);
 }
@@ -669,18 +908,21 @@ CatchApiModel _$CatchApiModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$CatchApiModel {
   dynamic get id => throw _privateConstructorUsedError;
+  String? get observationId => throw _privateConstructorUsedError;
   @JsonKey(name: 'water_depth_in_meter')
   double? get waterDepthInMeter => throw _privateConstructorUsedError;
   @JsonKey(name: 'fishing_time_in_hour')
   double? get fishingTimeInHour => throw _privateConstructorUsedError;
-  @JsonKey(name: 'estimated_weight_in_kg')
-  double? get estimatedWeightInKg => throw _privateConstructorUsedError;
+  SpecieApiModel? get specie => throw _privateConstructorUsedError;
+  @JsonKey(name: 'estimated_weight_in_grams')
+  double? get estimatedWeightInGrams => throw _privateConstructorUsedError;
   @JsonKey(name: 'average_size_in_cm')
   double? get averageSizeInCm => throw _privateConstructorUsedError;
   @JsonKey(name: 'estimated_size')
   int? get estimatedSize => throw _privateConstructorUsedError;
-  @JsonKey(name: 'published_weight_in_kg')
-  double? get publishedWeightInKg => throw _privateConstructorUsedError;
+  bool? get published => throw _privateConstructorUsedError;
+  @JsonKey(name: 'published_weight_in_grams')
+  double? get publishedWeightInGrams => throw _privateConstructorUsedError;
   @JsonKey(name: 'price_per_kg')
   double? get pricePerKg => throw _privateConstructorUsedError;
   @JsonKey(name: 'final_price')
@@ -701,12 +943,15 @@ mixin _$CatchApiModel {
   String? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
   String? get updatedAt => throw _privateConstructorUsedError;
-  String? get uid => throw _privateConstructorUsedError; // Coordinate fields
-  double? get coordX => throw _privateConstructorUsedError;
-  double? get coordY =>
-      throw _privateConstructorUsedError; // Legacy fields for compatibility
-  String? get name => throw _privateConstructorUsedError;
+  @JsonKey(name: 'deleted_at')
+  String? get deletedAt => throw _privateConstructorUsedError;
+  String? get uid =>
+      throw _privateConstructorUsedError; // Legacy fields for compatibility with old cached data
+  @Deprecated('Use specie.uid instead')
   SpeciesModel? get species => throw _privateConstructorUsedError;
+  @Deprecated('Backend no longer sends these')
+  String? get name => throw _privateConstructorUsedError;
+  @Deprecated('Backend no longer sends these')
   String? get market => throw _privateConstructorUsedError;
 
   /// Serializes this CatchApiModel to a JSON map.
@@ -728,12 +973,15 @@ abstract class $CatchApiModelCopyWith<$Res> {
   @useResult
   $Res call({
     dynamic id,
+    String? observationId,
     @JsonKey(name: 'water_depth_in_meter') double? waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') double? fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg') double? estimatedWeightInKg,
+    SpecieApiModel? specie,
+    @JsonKey(name: 'estimated_weight_in_grams') double? estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') double? averageSizeInCm,
     @JsonKey(name: 'estimated_size') int? estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg') double? publishedWeightInKg,
+    bool? published,
+    @JsonKey(name: 'published_weight_in_grams') double? publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') double? pricePerKg,
     @JsonKey(name: 'final_price') double? finalPrice,
     @JsonKey(name: 'published_in_market_place') bool? publishedInMarketPlace,
@@ -746,14 +994,14 @@ abstract class $CatchApiModelCopyWith<$Res> {
     @JsonKey(name: 'obs_synced') bool? obsSynced,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'deleted_at') String? deletedAt,
     String? uid,
-    double? coordX,
-    double? coordY,
-    String? name,
-    SpeciesModel? species,
-    String? market,
+    @Deprecated('Use specie.uid instead') SpeciesModel? species,
+    @Deprecated('Backend no longer sends these') String? name,
+    @Deprecated('Backend no longer sends these') String? market,
   });
 
+  $SpecieApiModelCopyWith<$Res>? get specie;
   $GearApiModelCopyWith<$Res>? get gear;
   $AccountApiModelCopyWith<$Res>? get account;
 }
@@ -774,12 +1022,15 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
   @override
   $Res call({
     Object? id = freezed,
+    Object? observationId = freezed,
     Object? waterDepthInMeter = freezed,
     Object? fishingTimeInHour = freezed,
-    Object? estimatedWeightInKg = freezed,
+    Object? specie = freezed,
+    Object? estimatedWeightInGrams = freezed,
     Object? averageSizeInCm = freezed,
     Object? estimatedSize = freezed,
-    Object? publishedWeightInKg = freezed,
+    Object? published = freezed,
+    Object? publishedWeightInGrams = freezed,
     Object? pricePerKg = freezed,
     Object? finalPrice = freezed,
     Object? publishedInMarketPlace = freezed,
@@ -791,11 +1042,10 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
     Object? obsSynced = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
+    Object? deletedAt = freezed,
     Object? uid = freezed,
-    Object? coordX = freezed,
-    Object? coordY = freezed,
-    Object? name = freezed,
     Object? species = freezed,
+    Object? name = freezed,
     Object? market = freezed,
   }) {
     return _then(
@@ -804,6 +1054,10 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as dynamic,
+            observationId: freezed == observationId
+                ? _value.observationId
+                : observationId // ignore: cast_nullable_to_non_nullable
+                      as String?,
             waterDepthInMeter: freezed == waterDepthInMeter
                 ? _value.waterDepthInMeter
                 : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
@@ -812,9 +1066,13 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
                 ? _value.fishingTimeInHour
                 : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
                       as double?,
-            estimatedWeightInKg: freezed == estimatedWeightInKg
-                ? _value.estimatedWeightInKg
-                : estimatedWeightInKg // ignore: cast_nullable_to_non_nullable
+            specie: freezed == specie
+                ? _value.specie
+                : specie // ignore: cast_nullable_to_non_nullable
+                      as SpecieApiModel?,
+            estimatedWeightInGrams: freezed == estimatedWeightInGrams
+                ? _value.estimatedWeightInGrams
+                : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
                       as double?,
             averageSizeInCm: freezed == averageSizeInCm
                 ? _value.averageSizeInCm
@@ -824,9 +1082,13 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
                 ? _value.estimatedSize
                 : estimatedSize // ignore: cast_nullable_to_non_nullable
                       as int?,
-            publishedWeightInKg: freezed == publishedWeightInKg
-                ? _value.publishedWeightInKg
-                : publishedWeightInKg // ignore: cast_nullable_to_non_nullable
+            published: freezed == published
+                ? _value.published
+                : published // ignore: cast_nullable_to_non_nullable
+                      as bool?,
+            publishedWeightInGrams: freezed == publishedWeightInGrams
+                ? _value.publishedWeightInGrams
+                : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
                       as double?,
             pricePerKg: freezed == pricePerKg
                 ? _value.pricePerKg
@@ -872,26 +1134,22 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
                 ? _value.updatedAt
                 : updatedAt // ignore: cast_nullable_to_non_nullable
                       as String?,
+            deletedAt: freezed == deletedAt
+                ? _value.deletedAt
+                : deletedAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
             uid: freezed == uid
                 ? _value.uid
                 : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            coordX: freezed == coordX
-                ? _value.coordX
-                : coordX // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            coordY: freezed == coordY
-                ? _value.coordY
-                : coordY // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            name: freezed == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
                       as String?,
             species: freezed == species
                 ? _value.species
                 : species // ignore: cast_nullable_to_non_nullable
                       as SpeciesModel?,
+            name: freezed == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String?,
             market: freezed == market
                 ? _value.market
                 : market // ignore: cast_nullable_to_non_nullable
@@ -899,6 +1157,20 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of CatchApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SpecieApiModelCopyWith<$Res>? get specie {
+    if (_value.specie == null) {
+      return null;
+    }
+
+    return $SpecieApiModelCopyWith<$Res>(_value.specie!, (value) {
+      return _then(_value.copyWith(specie: value) as $Val);
+    });
   }
 
   /// Create a copy of CatchApiModel
@@ -941,12 +1213,15 @@ abstract class _$$CatchApiModelImplCopyWith<$Res>
   @useResult
   $Res call({
     dynamic id,
+    String? observationId,
     @JsonKey(name: 'water_depth_in_meter') double? waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') double? fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg') double? estimatedWeightInKg,
+    SpecieApiModel? specie,
+    @JsonKey(name: 'estimated_weight_in_grams') double? estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') double? averageSizeInCm,
     @JsonKey(name: 'estimated_size') int? estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg') double? publishedWeightInKg,
+    bool? published,
+    @JsonKey(name: 'published_weight_in_grams') double? publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') double? pricePerKg,
     @JsonKey(name: 'final_price') double? finalPrice,
     @JsonKey(name: 'published_in_market_place') bool? publishedInMarketPlace,
@@ -959,14 +1234,15 @@ abstract class _$$CatchApiModelImplCopyWith<$Res>
     @JsonKey(name: 'obs_synced') bool? obsSynced,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'deleted_at') String? deletedAt,
     String? uid,
-    double? coordX,
-    double? coordY,
-    String? name,
-    SpeciesModel? species,
-    String? market,
+    @Deprecated('Use specie.uid instead') SpeciesModel? species,
+    @Deprecated('Backend no longer sends these') String? name,
+    @Deprecated('Backend no longer sends these') String? market,
   });
 
+  @override
+  $SpecieApiModelCopyWith<$Res>? get specie;
   @override
   $GearApiModelCopyWith<$Res>? get gear;
   @override
@@ -988,12 +1264,15 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = freezed,
+    Object? observationId = freezed,
     Object? waterDepthInMeter = freezed,
     Object? fishingTimeInHour = freezed,
-    Object? estimatedWeightInKg = freezed,
+    Object? specie = freezed,
+    Object? estimatedWeightInGrams = freezed,
     Object? averageSizeInCm = freezed,
     Object? estimatedSize = freezed,
-    Object? publishedWeightInKg = freezed,
+    Object? published = freezed,
+    Object? publishedWeightInGrams = freezed,
     Object? pricePerKg = freezed,
     Object? finalPrice = freezed,
     Object? publishedInMarketPlace = freezed,
@@ -1005,11 +1284,10 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
     Object? obsSynced = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
+    Object? deletedAt = freezed,
     Object? uid = freezed,
-    Object? coordX = freezed,
-    Object? coordY = freezed,
-    Object? name = freezed,
     Object? species = freezed,
+    Object? name = freezed,
     Object? market = freezed,
   }) {
     return _then(
@@ -1018,6 +1296,10 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as dynamic,
+        observationId: freezed == observationId
+            ? _value.observationId
+            : observationId // ignore: cast_nullable_to_non_nullable
+                  as String?,
         waterDepthInMeter: freezed == waterDepthInMeter
             ? _value.waterDepthInMeter
             : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
@@ -1026,9 +1308,13 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
             ? _value.fishingTimeInHour
             : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
                   as double?,
-        estimatedWeightInKg: freezed == estimatedWeightInKg
-            ? _value.estimatedWeightInKg
-            : estimatedWeightInKg // ignore: cast_nullable_to_non_nullable
+        specie: freezed == specie
+            ? _value.specie
+            : specie // ignore: cast_nullable_to_non_nullable
+                  as SpecieApiModel?,
+        estimatedWeightInGrams: freezed == estimatedWeightInGrams
+            ? _value.estimatedWeightInGrams
+            : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
                   as double?,
         averageSizeInCm: freezed == averageSizeInCm
             ? _value.averageSizeInCm
@@ -1038,9 +1324,13 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
             ? _value.estimatedSize
             : estimatedSize // ignore: cast_nullable_to_non_nullable
                   as int?,
-        publishedWeightInKg: freezed == publishedWeightInKg
-            ? _value.publishedWeightInKg
-            : publishedWeightInKg // ignore: cast_nullable_to_non_nullable
+        published: freezed == published
+            ? _value.published
+            : published // ignore: cast_nullable_to_non_nullable
+                  as bool?,
+        publishedWeightInGrams: freezed == publishedWeightInGrams
+            ? _value.publishedWeightInGrams
+            : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
                   as double?,
         pricePerKg: freezed == pricePerKg
             ? _value.pricePerKg
@@ -1086,26 +1376,22 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
             ? _value.updatedAt
             : updatedAt // ignore: cast_nullable_to_non_nullable
                   as String?,
+        deletedAt: freezed == deletedAt
+            ? _value.deletedAt
+            : deletedAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
         uid: freezed == uid
             ? _value.uid
             : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        coordX: freezed == coordX
-            ? _value.coordX
-            : coordX // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        coordY: freezed == coordY
-            ? _value.coordY
-            : coordY // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        name: freezed == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
                   as String?,
         species: freezed == species
             ? _value.species
             : species // ignore: cast_nullable_to_non_nullable
                   as SpeciesModel?,
+        name: freezed == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String?,
         market: freezed == market
             ? _value.market
             : market // ignore: cast_nullable_to_non_nullable
@@ -1120,12 +1406,15 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
 class _$CatchApiModelImpl implements _CatchApiModel {
   const _$CatchApiModelImpl({
     required this.id,
+    this.observationId,
     @JsonKey(name: 'water_depth_in_meter') this.waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') this.fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg') this.estimatedWeightInKg,
+    this.specie,
+    @JsonKey(name: 'estimated_weight_in_grams') this.estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') this.averageSizeInCm,
     @JsonKey(name: 'estimated_size') this.estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg') this.publishedWeightInKg,
+    this.published,
+    @JsonKey(name: 'published_weight_in_grams') this.publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') this.pricePerKg,
     @JsonKey(name: 'final_price') this.finalPrice,
     @JsonKey(name: 'published_in_market_place') this.publishedInMarketPlace,
@@ -1139,12 +1428,11 @@ class _$CatchApiModelImpl implements _CatchApiModel {
     @JsonKey(name: 'obs_synced') this.obsSynced,
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'updated_at') this.updatedAt,
+    @JsonKey(name: 'deleted_at') this.deletedAt,
     this.uid,
-    this.coordX,
-    this.coordY,
-    this.name,
-    this.species,
-    this.market,
+    @Deprecated('Use specie.uid instead') this.species,
+    @Deprecated('Backend no longer sends these') this.name,
+    @Deprecated('Backend no longer sends these') this.market,
   }) : _fishCatchImages = fishCatchImages;
 
   factory _$CatchApiModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -1153,14 +1441,18 @@ class _$CatchApiModelImpl implements _CatchApiModel {
   @override
   final dynamic id;
   @override
+  final String? observationId;
+  @override
   @JsonKey(name: 'water_depth_in_meter')
   final double? waterDepthInMeter;
   @override
   @JsonKey(name: 'fishing_time_in_hour')
   final double? fishingTimeInHour;
   @override
-  @JsonKey(name: 'estimated_weight_in_kg')
-  final double? estimatedWeightInKg;
+  final SpecieApiModel? specie;
+  @override
+  @JsonKey(name: 'estimated_weight_in_grams')
+  final double? estimatedWeightInGrams;
   @override
   @JsonKey(name: 'average_size_in_cm')
   final double? averageSizeInCm;
@@ -1168,8 +1460,10 @@ class _$CatchApiModelImpl implements _CatchApiModel {
   @JsonKey(name: 'estimated_size')
   final int? estimatedSize;
   @override
-  @JsonKey(name: 'published_weight_in_kg')
-  final double? publishedWeightInKg;
+  final bool? published;
+  @override
+  @JsonKey(name: 'published_weight_in_grams')
+  final double? publishedWeightInGrams;
   @override
   @JsonKey(name: 'price_per_kg')
   final double? pricePerKg;
@@ -1207,23 +1501,24 @@ class _$CatchApiModelImpl implements _CatchApiModel {
   @JsonKey(name: 'updated_at')
   final String? updatedAt;
   @override
+  @JsonKey(name: 'deleted_at')
+  final String? deletedAt;
+  @override
   final String? uid;
-  // Coordinate fields
+  // Legacy fields for compatibility with old cached data
   @override
-  final double? coordX;
-  @override
-  final double? coordY;
-  // Legacy fields for compatibility
-  @override
-  final String? name;
-  @override
+  @Deprecated('Use specie.uid instead')
   final SpeciesModel? species;
   @override
+  @Deprecated('Backend no longer sends these')
+  final String? name;
+  @override
+  @Deprecated('Backend no longer sends these')
   final String? market;
 
   @override
   String toString() {
-    return 'CatchApiModel(id: $id, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInKg: $estimatedWeightInKg, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInKg: $publishedWeightInKg, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, fishCatchImages: $fishCatchImages, note: $note, status: $status, gear: $gear, account: $account, obsSynced: $obsSynced, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid, coordX: $coordX, coordY: $coordY, name: $name, species: $species, market: $market)';
+    return 'CatchApiModel(id: $id, observationId: $observationId, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, specie: $specie, estimatedWeightInGrams: $estimatedWeightInGrams, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, published: $published, publishedWeightInGrams: $publishedWeightInGrams, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, fishCatchImages: $fishCatchImages, note: $note, status: $status, gear: $gear, account: $account, obsSynced: $obsSynced, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid, species: $species, name: $name, market: $market)';
   }
 
   @override
@@ -1232,18 +1527,23 @@ class _$CatchApiModelImpl implements _CatchApiModel {
         (other.runtimeType == runtimeType &&
             other is _$CatchApiModelImpl &&
             const DeepCollectionEquality().equals(other.id, id) &&
+            (identical(other.observationId, observationId) ||
+                other.observationId == observationId) &&
             (identical(other.waterDepthInMeter, waterDepthInMeter) ||
                 other.waterDepthInMeter == waterDepthInMeter) &&
             (identical(other.fishingTimeInHour, fishingTimeInHour) ||
                 other.fishingTimeInHour == fishingTimeInHour) &&
-            (identical(other.estimatedWeightInKg, estimatedWeightInKg) ||
-                other.estimatedWeightInKg == estimatedWeightInKg) &&
+            (identical(other.specie, specie) || other.specie == specie) &&
+            (identical(other.estimatedWeightInGrams, estimatedWeightInGrams) ||
+                other.estimatedWeightInGrams == estimatedWeightInGrams) &&
             (identical(other.averageSizeInCm, averageSizeInCm) ||
                 other.averageSizeInCm == averageSizeInCm) &&
             (identical(other.estimatedSize, estimatedSize) ||
                 other.estimatedSize == estimatedSize) &&
-            (identical(other.publishedWeightInKg, publishedWeightInKg) ||
-                other.publishedWeightInKg == publishedWeightInKg) &&
+            (identical(other.published, published) ||
+                other.published == published) &&
+            (identical(other.publishedWeightInGrams, publishedWeightInGrams) ||
+                other.publishedWeightInGrams == publishedWeightInGrams) &&
             (identical(other.pricePerKg, pricePerKg) ||
                 other.pricePerKg == pricePerKg) &&
             (identical(other.finalPrice, finalPrice) ||
@@ -1264,11 +1564,11 @@ class _$CatchApiModelImpl implements _CatchApiModel {
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
             (identical(other.uid, uid) || other.uid == uid) &&
-            (identical(other.coordX, coordX) || other.coordX == coordX) &&
-            (identical(other.coordY, coordY) || other.coordY == coordY) &&
-            (identical(other.name, name) || other.name == name) &&
             (identical(other.species, species) || other.species == species) &&
+            (identical(other.name, name) || other.name == name) &&
             (identical(other.market, market) || other.market == market));
   }
 
@@ -1277,12 +1577,15 @@ class _$CatchApiModelImpl implements _CatchApiModel {
   int get hashCode => Object.hashAll([
     runtimeType,
     const DeepCollectionEquality().hash(id),
+    observationId,
     waterDepthInMeter,
     fishingTimeInHour,
-    estimatedWeightInKg,
+    specie,
+    estimatedWeightInGrams,
     averageSizeInCm,
     estimatedSize,
-    publishedWeightInKg,
+    published,
+    publishedWeightInGrams,
     pricePerKg,
     finalPrice,
     publishedInMarketPlace,
@@ -1294,11 +1597,10 @@ class _$CatchApiModelImpl implements _CatchApiModel {
     obsSynced,
     createdAt,
     updatedAt,
+    deletedAt,
     uid,
-    coordX,
-    coordY,
-    name,
     species,
+    name,
     market,
   ]);
 
@@ -1319,12 +1621,17 @@ class _$CatchApiModelImpl implements _CatchApiModel {
 abstract class _CatchApiModel implements CatchApiModel {
   const factory _CatchApiModel({
     required final dynamic id,
+    final String? observationId,
     @JsonKey(name: 'water_depth_in_meter') final double? waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') final double? fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg') final double? estimatedWeightInKg,
+    final SpecieApiModel? specie,
+    @JsonKey(name: 'estimated_weight_in_grams')
+    final double? estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') final double? averageSizeInCm,
     @JsonKey(name: 'estimated_size') final int? estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg') final double? publishedWeightInKg,
+    final bool? published,
+    @JsonKey(name: 'published_weight_in_grams')
+    final double? publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') final double? pricePerKg,
     @JsonKey(name: 'final_price') final double? finalPrice,
     @JsonKey(name: 'published_in_market_place')
@@ -1338,12 +1645,11 @@ abstract class _CatchApiModel implements CatchApiModel {
     @JsonKey(name: 'obs_synced') final bool? obsSynced,
     @JsonKey(name: 'created_at') final String? createdAt,
     @JsonKey(name: 'updated_at') final String? updatedAt,
+    @JsonKey(name: 'deleted_at') final String? deletedAt,
     final String? uid,
-    final double? coordX,
-    final double? coordY,
-    final String? name,
-    final SpeciesModel? species,
-    final String? market,
+    @Deprecated('Use specie.uid instead') final SpeciesModel? species,
+    @Deprecated('Backend no longer sends these') final String? name,
+    @Deprecated('Backend no longer sends these') final String? market,
   }) = _$CatchApiModelImpl;
 
   factory _CatchApiModel.fromJson(Map<String, dynamic> json) =
@@ -1352,14 +1658,18 @@ abstract class _CatchApiModel implements CatchApiModel {
   @override
   dynamic get id;
   @override
+  String? get observationId;
+  @override
   @JsonKey(name: 'water_depth_in_meter')
   double? get waterDepthInMeter;
   @override
   @JsonKey(name: 'fishing_time_in_hour')
   double? get fishingTimeInHour;
   @override
-  @JsonKey(name: 'estimated_weight_in_kg')
-  double? get estimatedWeightInKg;
+  SpecieApiModel? get specie;
+  @override
+  @JsonKey(name: 'estimated_weight_in_grams')
+  double? get estimatedWeightInGrams;
   @override
   @JsonKey(name: 'average_size_in_cm')
   double? get averageSizeInCm;
@@ -1367,8 +1677,10 @@ abstract class _CatchApiModel implements CatchApiModel {
   @JsonKey(name: 'estimated_size')
   int? get estimatedSize;
   @override
-  @JsonKey(name: 'published_weight_in_kg')
-  double? get publishedWeightInKg;
+  bool? get published;
+  @override
+  @JsonKey(name: 'published_weight_in_grams')
+  double? get publishedWeightInGrams;
   @override
   @JsonKey(name: 'price_per_kg')
   double? get pricePerKg;
@@ -1399,16 +1711,18 @@ abstract class _CatchApiModel implements CatchApiModel {
   @JsonKey(name: 'updated_at')
   String? get updatedAt;
   @override
-  String? get uid; // Coordinate fields
+  @JsonKey(name: 'deleted_at')
+  String? get deletedAt;
   @override
-  double? get coordX;
+  String? get uid; // Legacy fields for compatibility with old cached data
   @override
-  double? get coordY; // Legacy fields for compatibility
-  @override
-  String? get name;
-  @override
+  @Deprecated('Use specie.uid instead')
   SpeciesModel? get species;
   @override
+  @Deprecated('Backend no longer sends these')
+  String? get name;
+  @override
+  @Deprecated('Backend no longer sends these')
   String? get market;
 
   /// Create a copy of CatchApiModel

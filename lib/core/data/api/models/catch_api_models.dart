@@ -39,16 +39,33 @@ class FishCatchImageApiModel with _$FishCatchImageApiModel {
       _$FishCatchImageApiModelFromJson(json);
 }
 
+/// Species reference from API (simplified - only uid)
+@freezed
+class SpecieApiModel with _$SpecieApiModel {
+  const factory SpecieApiModel({
+    @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'deleted_at') String? deletedAt,
+    required String uid,
+  }) = _SpecieApiModel;
+
+  factory SpecieApiModel.fromJson(Map<String, dynamic> json) =>
+      _$SpecieApiModelFromJson(json);
+}
+
 @freezed
 class CatchApiModel with _$CatchApiModel {
   const factory CatchApiModel({
     required dynamic id,
+    String? observationId,
     @JsonKey(name: 'water_depth_in_meter') double? waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') double? fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg') double? estimatedWeightInKg,
+    SpecieApiModel? specie,
+    @JsonKey(name: 'estimated_weight_in_grams') double? estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') double? averageSizeInCm,
     @JsonKey(name: 'estimated_size') int? estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg') double? publishedWeightInKg,
+    bool? published,
+    @JsonKey(name: 'published_weight_in_grams') double? publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') double? pricePerKg,
     @JsonKey(name: 'final_price') double? finalPrice,
     @JsonKey(name: 'published_in_market_place') bool? publishedInMarketPlace,
@@ -62,14 +79,12 @@ class CatchApiModel with _$CatchApiModel {
     @JsonKey(name: 'obs_synced') bool? obsSynced,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'deleted_at') String? deletedAt,
     String? uid,
-    // Coordinate fields
-    double? coordX,
-    double? coordY,
-    // Legacy fields for compatibility
-    String? name,
-    SpeciesModel? species,
-    String? market,
+    // Legacy fields for compatibility with old cached data
+    @Deprecated('Use specie.uid instead') SpeciesModel? species,
+    @Deprecated('Backend no longer sends these') String? name,
+    @Deprecated('Backend no longer sends these') String? market,
   }) = _CatchApiModel;
 
   factory CatchApiModel.fromJson(Map<String, dynamic> json) =>
