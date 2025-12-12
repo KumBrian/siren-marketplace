@@ -8,9 +8,12 @@ import '../../../domain/enums/catch_status.dart';
 import '../interfaces/i_catch_datasource.dart';
 import 'media_api_data_source.dart';
 
+import '../../../domain/entities/species.dart';
+
 class CatchesApiDataSource implements ICatchDataSource {
   final ApiClient _client;
   final MediaApiDataSource _mediaDataSource;
+  final List<Species> speciesList;
 
   // In-memory cache for catches
   final Map<String, CatchModel> _catchCache = {};
@@ -22,6 +25,7 @@ class CatchesApiDataSource implements ICatchDataSource {
   CatchesApiDataSource({
     required ApiClient client,
     required MediaApiDataSource mediaDataSource,
+    this.speciesList = const [], // Optional - will use API species or fallback
   }) : _client = client,
        _mediaDataSource = mediaDataSource;
 
@@ -126,7 +130,10 @@ class CatchesApiDataSource implements ICatchDataSource {
       final prefixedData = _prefixImageUrls(data);
 
       final apiModel = CatchApiModel.fromJson(prefixedData);
-      final catchModel = CatchApiMapper.toDomain(apiModel);
+      final catchModel = CatchApiMapper.toDomain(
+        apiModel,
+        speciesList: speciesList,
+      );
 
       // Store in cache
       _catchCache[catchId] = catchModel;
@@ -145,7 +152,10 @@ class CatchesApiDataSource implements ICatchDataSource {
 
     final catches = data.map((json) {
       final prefixedJson = _prefixImageUrls(json);
-      return CatchApiMapper.toDomain(CatchApiModel.fromJson(prefixedJson));
+      return CatchApiMapper.toDomain(
+        CatchApiModel.fromJson(prefixedJson),
+        speciesList: speciesList,
+      );
     }).toList();
 
     // Update cache
@@ -172,7 +182,10 @@ class CatchesApiDataSource implements ICatchDataSource {
 
     final catches = data.map((json) {
       final prefixedJson = _prefixImageUrls(json);
-      return CatchApiMapper.toDomain(CatchApiModel.fromJson(prefixedJson));
+      return CatchApiMapper.toDomain(
+        CatchApiModel.fromJson(prefixedJson),
+        speciesList: speciesList,
+      );
     }).toList();
 
     // Populate cache with all fetched catches
@@ -205,7 +218,10 @@ class CatchesApiDataSource implements ICatchDataSource {
 
     final catches = data.map((json) {
       final prefixedJson = _prefixImageUrls(json);
-      return CatchApiMapper.toDomain(CatchApiModel.fromJson(prefixedJson));
+      return CatchApiMapper.toDomain(
+        CatchApiModel.fromJson(prefixedJson),
+        speciesList: speciesList,
+      );
     }).toList();
 
     // Update cache
