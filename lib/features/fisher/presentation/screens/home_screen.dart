@@ -90,9 +90,12 @@ class FisherHome extends ConsumerWidget {
         data: (catches) {
           return offersAsync.when(
             data: (offers) {
-              // Filter for sale catches - those that are available
+              // Filter for sale catches - those published in marketplace
+              // Note: status is derived from backend's published_in_market_place flag
               final forSaleCatches = catches
-                  .where((c) => c.status == CatchStatus.available)
+                  .where(
+                    (c) => c.isAvailable,
+                  ) // isAvailable = status == available
                   .where((c) => c.availableWeight.kilograms > 0)
                   .toList();
 
