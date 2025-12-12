@@ -5,39 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/providers/navigation_providers.dart';
+import 'package:siren_marketplace/core/providers/species_provider.dart';
 import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/core/domain/entities/species.dart';
 import 'package:siren_marketplace/features/fisher/presentation/providers/add_catch_provider.dart';
-
-List<Species> speciesList = [
-  const Species(
-    id: "prawn",
-    uid: "55bcb79a-d06e-4f41-b89e-f243763e64ab",
-    name: "Prawn",
-    image: "assets/shrimp-species/prawn.png",
-  ),
-  const Species(
-    id: "grey-shrimp",
-    uid: "4d244dab-7fe8-4e8c-8a4a-9b6643842625",
-    name: "Grey Shrimp",
-    image: "assets/shrimp-species/grey-shrimp.png",
-  ),
-  const Species(
-    id: "pink-shrimp",
-    uid: "06264f8b-70df-4903-854c-d7477315bda4",
-    name: "Pink Shrimp",
-    image: "assets/shrimp-species/pink-shrimp.png",
-  ),
-  const Species(
-    id: "tiger-shrimp",
-    uid: "34b34061-f620-48d0-bcdb-45c207032011",
-    name: "Tiger Shrimp",
-    image: "assets/shrimp-species/tiger-shrimp.png",
-  ),
-];
 
 class AddCatchScreen extends ConsumerStatefulWidget {
   const AddCatchScreen({super.key});
@@ -308,39 +282,85 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
   }
 
   Widget _buildStep2(AddCatchState state, AddCatchNotifier notifier) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.gray200),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Shrimp Species *",
-                style: TextStyle(
-                  color: AppColors.textGray,
-                  fontSize: 12,
-                  fontWeight: FontWeight.normal,
-                ),
+    final speciesAsync = ref.watch(speciesProvider);
+
+    return speciesAsync.when(
+      data: (speciesList) {
+        if (speciesList.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Text(
+                'No species available.\nPlease check your internet connection.',
+                textAlign: TextAlign.center,
               ),
-              ...List.generate(
-                speciesList.length,
-                (index) => ShrimpSpeciesWidget(
-                  species: speciesList[index],
-                  isSelected:
-                      state.selectedSpecies?.id == speciesList[index].id,
-                  onTap: () => notifier.selectSpecies(speciesList[index]),
-                ),
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.gray200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Shrimp Species *",
+                    style: TextStyle(
+                      color: AppColors.textGray,
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  ...List.generate(
+                    speciesList.length,
+                    (index) => ShrimpSpeciesWidget(
+                      species: speciesList[index],
+                      isSelected:
+                          state.selectedSpecies?.id == speciesList[index].id,
+                      onTap: () => notifier.selectSpecies(speciesList[index]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text(
+                'Failed to load species',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                error.toString(),
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 

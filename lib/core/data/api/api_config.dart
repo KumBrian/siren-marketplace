@@ -67,9 +67,6 @@ class ApiConfig {
       'https://api.pulsebox.dev.siren.dhi-cm.com/api/v1';
   static const String mediasCreateCollection = '/medias/create-collection';
 
-  // Catch creation endpoint
-  static const String fishCatchesCreate = '/fish-catches/create';
-
   /// Get endpoint for specific sale order
   static String saleOrder(String id) => '$saleOrders/$id';
 
