@@ -44,7 +44,8 @@ class CatchApiMapper {
           (apiModel.specie != null
               ? SpeciesModel(
                   id: apiModel.specie!.uid,
-                  name: 'Unknown Species',
+                  name:
+                      apiModel.specie!.uid, // Display uid if species not in app
                   image: '',
                   uid: apiModel.specie!.uid,
                 )
