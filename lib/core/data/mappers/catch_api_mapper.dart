@@ -123,12 +123,14 @@ class CatchApiMapper {
       gearNature: model.gearNature ?? 'Unknown',
       waterDepthInMeter: model.waterDepth ?? 0.0,
       fishingTimeInHour: model.fishingTime ?? 0.0,
-      estimatedWeightInKg: model.initialWeightGrams / 1000.0,
+      estimatedWeightInGrams: model.initialWeightGrams
+          .toDouble(), // Send in grams
       averageSizeInCm: double.tryParse(model.size) ?? 0.0,
       estimatedSize: model.numberOfShrimps ?? 0,
       // Only send selling data when catch is for sale
-      publishedWeightInKg: isForSale
-          ? (model.availableWeightGrams / 1000.0)
+      publishedWeightInGrams: isForSale
+          ? model.availableWeightGrams
+                .toDouble() // Send in grams
           : 0.0,
       pricePerKg: isForSale ? (model.pricePerKgAmount / 100.0) : 0.0,
       finalPrice: isForSale ? (model.totalPriceAmount / 100.0) : 0.0,
