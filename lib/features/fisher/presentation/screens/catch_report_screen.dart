@@ -99,7 +99,9 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
               children: [
                 // Header: Observation ID
                 Text(
-                  selectedCatch.observationId,
+                  selectedCatch.observationId.isNotEmpty
+                      ? selectedCatch.observationId
+                      : 'Catch #${selectedCatch.id}',
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
