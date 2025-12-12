@@ -112,12 +112,12 @@ class CreateCatchRequest with _$CreateCatchRequest {
     @JsonKey(name: 'gear_nature') required String gearNature,
     @JsonKey(name: 'water_depth_in_meter') required double waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') required double fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg')
-    required double estimatedWeightInKg,
+    @JsonKey(name: 'estimated_weight_in_grams')
+    required double estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') required double averageSizeInCm,
     @JsonKey(name: 'estimated_size') required int estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg')
-    required double publishedWeightInKg,
+    @JsonKey(name: 'published_weight_in_grams')
+    required double publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') required double pricePerKg,
     @JsonKey(name: 'final_price') required double finalPrice,
     @JsonKey(name: 'published_in_market_place')

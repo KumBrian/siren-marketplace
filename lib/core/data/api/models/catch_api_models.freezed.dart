@@ -1907,14 +1907,14 @@ mixin _$CreateCatchRequest {
   double get waterDepthInMeter => throw _privateConstructorUsedError;
   @JsonKey(name: 'fishing_time_in_hour')
   double get fishingTimeInHour => throw _privateConstructorUsedError;
-  @JsonKey(name: 'estimated_weight_in_kg')
-  double get estimatedWeightInKg => throw _privateConstructorUsedError;
+  @JsonKey(name: 'estimated_weight_in_grams')
+  double get estimatedWeightInGrams => throw _privateConstructorUsedError;
   @JsonKey(name: 'average_size_in_cm')
   double get averageSizeInCm => throw _privateConstructorUsedError;
   @JsonKey(name: 'estimated_size')
   int get estimatedSize => throw _privateConstructorUsedError;
-  @JsonKey(name: 'published_weight_in_kg')
-  double get publishedWeightInKg => throw _privateConstructorUsedError;
+  @JsonKey(name: 'published_weight_in_grams')
+  double get publishedWeightInGrams => throw _privateConstructorUsedError;
   @JsonKey(name: 'price_per_kg')
   double get pricePerKg => throw _privateConstructorUsedError;
   @JsonKey(name: 'final_price')
@@ -1958,10 +1958,10 @@ abstract class $CreateCatchRequestCopyWith<$Res> {
     @JsonKey(name: 'gear_nature') String gearNature,
     @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg') double estimatedWeightInKg,
+    @JsonKey(name: 'estimated_weight_in_grams') double estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') double averageSizeInCm,
     @JsonKey(name: 'estimated_size') int estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg') double publishedWeightInKg,
+    @JsonKey(name: 'published_weight_in_grams') double publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') double pricePerKg,
     @JsonKey(name: 'final_price') double finalPrice,
     @JsonKey(name: 'published_in_market_place') bool publishedInMarketPlace,
@@ -2001,10 +2001,10 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
     Object? gearNature = null,
     Object? waterDepthInMeter = null,
     Object? fishingTimeInHour = null,
-    Object? estimatedWeightInKg = null,
+    Object? estimatedWeightInGrams = null,
     Object? averageSizeInCm = null,
     Object? estimatedSize = null,
-    Object? publishedWeightInKg = null,
+    Object? publishedWeightInGrams = null,
     Object? pricePerKg = null,
     Object? finalPrice = null,
     Object? publishedInMarketPlace = null,
@@ -2050,9 +2050,9 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
                 ? _value.fishingTimeInHour
                 : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
                       as double,
-            estimatedWeightInKg: null == estimatedWeightInKg
-                ? _value.estimatedWeightInKg
-                : estimatedWeightInKg // ignore: cast_nullable_to_non_nullable
+            estimatedWeightInGrams: null == estimatedWeightInGrams
+                ? _value.estimatedWeightInGrams
+                : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
                       as double,
             averageSizeInCm: null == averageSizeInCm
                 ? _value.averageSizeInCm
@@ -2062,9 +2062,9 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
                 ? _value.estimatedSize
                 : estimatedSize // ignore: cast_nullable_to_non_nullable
                       as int,
-            publishedWeightInKg: null == publishedWeightInKg
-                ? _value.publishedWeightInKg
-                : publishedWeightInKg // ignore: cast_nullable_to_non_nullable
+            publishedWeightInGrams: null == publishedWeightInGrams
+                ? _value.publishedWeightInGrams
+                : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
                       as double,
             pricePerKg: null == pricePerKg
                 ? _value.pricePerKg
@@ -2145,10 +2145,10 @@ abstract class _$$CreateCatchRequestImplCopyWith<$Res>
     @JsonKey(name: 'gear_nature') String gearNature,
     @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg') double estimatedWeightInKg,
+    @JsonKey(name: 'estimated_weight_in_grams') double estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') double averageSizeInCm,
     @JsonKey(name: 'estimated_size') int estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg') double publishedWeightInKg,
+    @JsonKey(name: 'published_weight_in_grams') double publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') double pricePerKg,
     @JsonKey(name: 'final_price') double finalPrice,
     @JsonKey(name: 'published_in_market_place') bool publishedInMarketPlace,
@@ -2187,10 +2187,10 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
     Object? gearNature = null,
     Object? waterDepthInMeter = null,
     Object? fishingTimeInHour = null,
-    Object? estimatedWeightInKg = null,
+    Object? estimatedWeightInGrams = null,
     Object? averageSizeInCm = null,
     Object? estimatedSize = null,
-    Object? publishedWeightInKg = null,
+    Object? publishedWeightInGrams = null,
     Object? pricePerKg = null,
     Object? finalPrice = null,
     Object? publishedInMarketPlace = null,
@@ -2236,9 +2236,9 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
             ? _value.fishingTimeInHour
             : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
                   as double,
-        estimatedWeightInKg: null == estimatedWeightInKg
-            ? _value.estimatedWeightInKg
-            : estimatedWeightInKg // ignore: cast_nullable_to_non_nullable
+        estimatedWeightInGrams: null == estimatedWeightInGrams
+            ? _value.estimatedWeightInGrams
+            : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
                   as double,
         averageSizeInCm: null == averageSizeInCm
             ? _value.averageSizeInCm
@@ -2248,9 +2248,9 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
             ? _value.estimatedSize
             : estimatedSize // ignore: cast_nullable_to_non_nullable
                   as int,
-        publishedWeightInKg: null == publishedWeightInKg
-            ? _value.publishedWeightInKg
-            : publishedWeightInKg // ignore: cast_nullable_to_non_nullable
+        publishedWeightInGrams: null == publishedWeightInGrams
+            ? _value.publishedWeightInGrams
+            : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
                   as double,
         pricePerKg: null == pricePerKg
             ? _value.pricePerKg
@@ -2325,10 +2325,12 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     @JsonKey(name: 'gear_nature') required this.gearNature,
     @JsonKey(name: 'water_depth_in_meter') required this.waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') required this.fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg') required this.estimatedWeightInKg,
+    @JsonKey(name: 'estimated_weight_in_grams')
+    required this.estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') required this.averageSizeInCm,
     @JsonKey(name: 'estimated_size') required this.estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg') required this.publishedWeightInKg,
+    @JsonKey(name: 'published_weight_in_grams')
+    required this.publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') required this.pricePerKg,
     @JsonKey(name: 'final_price') required this.finalPrice,
     @JsonKey(name: 'published_in_market_place')
@@ -2369,8 +2371,8 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
   @JsonKey(name: 'fishing_time_in_hour')
   final double fishingTimeInHour;
   @override
-  @JsonKey(name: 'estimated_weight_in_kg')
-  final double estimatedWeightInKg;
+  @JsonKey(name: 'estimated_weight_in_grams')
+  final double estimatedWeightInGrams;
   @override
   @JsonKey(name: 'average_size_in_cm')
   final double averageSizeInCm;
@@ -2378,8 +2380,8 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
   @JsonKey(name: 'estimated_size')
   final int estimatedSize;
   @override
-  @JsonKey(name: 'published_weight_in_kg')
-  final double publishedWeightInKg;
+  @JsonKey(name: 'published_weight_in_grams')
+  final double publishedWeightInGrams;
   @override
   @JsonKey(name: 'price_per_kg')
   final double pricePerKg;
@@ -2414,7 +2416,7 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
 
   @override
   String toString() {
-    return 'CreateCatchRequest(specie: $specie, subgroup: $subgroup, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearNature: $gearNature, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInKg: $estimatedWeightInKg, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInKg: $publishedWeightInKg, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, note: $note, images: $images, alpha: $alpha, dead: $dead, coordX: $coordX, coordY: $coordY, date: $date, market: $market, observationType: $observationType, patrol: $patrol, segment: $segment)';
+    return 'CreateCatchRequest(specie: $specie, subgroup: $subgroup, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearNature: $gearNature, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInGrams: $estimatedWeightInGrams, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInGrams: $publishedWeightInGrams, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, note: $note, images: $images, alpha: $alpha, dead: $dead, coordX: $coordX, coordY: $coordY, date: $date, market: $market, observationType: $observationType, patrol: $patrol, segment: $segment)';
   }
 
   @override
@@ -2435,14 +2437,14 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
                 other.waterDepthInMeter == waterDepthInMeter) &&
             (identical(other.fishingTimeInHour, fishingTimeInHour) ||
                 other.fishingTimeInHour == fishingTimeInHour) &&
-            (identical(other.estimatedWeightInKg, estimatedWeightInKg) ||
-                other.estimatedWeightInKg == estimatedWeightInKg) &&
+            (identical(other.estimatedWeightInGrams, estimatedWeightInGrams) ||
+                other.estimatedWeightInGrams == estimatedWeightInGrams) &&
             (identical(other.averageSizeInCm, averageSizeInCm) ||
                 other.averageSizeInCm == averageSizeInCm) &&
             (identical(other.estimatedSize, estimatedSize) ||
                 other.estimatedSize == estimatedSize) &&
-            (identical(other.publishedWeightInKg, publishedWeightInKg) ||
-                other.publishedWeightInKg == publishedWeightInKg) &&
+            (identical(other.publishedWeightInGrams, publishedWeightInGrams) ||
+                other.publishedWeightInGrams == publishedWeightInGrams) &&
             (identical(other.pricePerKg, pricePerKg) ||
                 other.pricePerKg == pricePerKg) &&
             (identical(other.finalPrice, finalPrice) ||
@@ -2474,10 +2476,10 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     gearNature,
     waterDepthInMeter,
     fishingTimeInHour,
-    estimatedWeightInKg,
+    estimatedWeightInGrams,
     averageSizeInCm,
     estimatedSize,
-    publishedWeightInKg,
+    publishedWeightInGrams,
     pricePerKg,
     finalPrice,
     publishedInMarketPlace,
@@ -2524,12 +2526,12 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
     required final double waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour')
     required final double fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_kg')
-    required final double estimatedWeightInKg,
+    @JsonKey(name: 'estimated_weight_in_grams')
+    required final double estimatedWeightInGrams,
     @JsonKey(name: 'average_size_in_cm') required final double averageSizeInCm,
     @JsonKey(name: 'estimated_size') required final int estimatedSize,
-    @JsonKey(name: 'published_weight_in_kg')
-    required final double publishedWeightInKg,
+    @JsonKey(name: 'published_weight_in_grams')
+    required final double publishedWeightInGrams,
     @JsonKey(name: 'price_per_kg') required final double pricePerKg,
     @JsonKey(name: 'final_price') required final double finalPrice,
     @JsonKey(name: 'published_in_market_place')
@@ -2570,8 +2572,8 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
   @JsonKey(name: 'fishing_time_in_hour')
   double get fishingTimeInHour;
   @override
-  @JsonKey(name: 'estimated_weight_in_kg')
-  double get estimatedWeightInKg;
+  @JsonKey(name: 'estimated_weight_in_grams')
+  double get estimatedWeightInGrams;
   @override
   @JsonKey(name: 'average_size_in_cm')
   double get averageSizeInCm;
@@ -2579,8 +2581,8 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
   @JsonKey(name: 'estimated_size')
   int get estimatedSize;
   @override
-  @JsonKey(name: 'published_weight_in_kg')
-  double get publishedWeightInKg;
+  @JsonKey(name: 'published_weight_in_grams')
+  double get publishedWeightInGrams;
   @override
   @JsonKey(name: 'price_per_kg')
   double get pricePerKg;
