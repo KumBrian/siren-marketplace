@@ -2,6 +2,7 @@
 // UNIFIED DEPENDENCY INJECTION USING GET_IT
 // ============================================================================
 import 'package:get_it/get_it.dart';
+import 'package:siren_marketplace/core/data/api/api_config.dart';
 // DB, Notifier, Feature Repos
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
 import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
@@ -16,6 +17,7 @@ import '../data/datasources/api/media_api_data_source.dart';
 import '../data/datasources/api/offers_api_data_source.dart';
 import '../data/datasources/api/species_api_data_source.dart';
 import '../data/datasources/api/user_api_datasource.dart';
+import '../data/api/api_config.dart';
 
 import 'package:dio/dio.dart';
 import '../data/repositories/catch_repository_impl.dart';
