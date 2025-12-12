@@ -59,6 +59,12 @@ class ApiConfig {
   /// Get endpoint for specific fish catch
   static String fishCatch(String id) => '$fishCatches/$id';
 
+  /// Update endpoint for specific fish catch
+  static String fishCatchUpdate(String id) => '$fishCatches/$id/update';
+
+  /// Delete endpoint for specific fish catch
+  static String fishCatchDelete(String id) => '$fishCatches/$id/delete';
+
   /// Get endpoint for specific offer
   static String offer(String id) => '$offers/$id';
 

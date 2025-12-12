@@ -167,7 +167,10 @@ void _initDemoMode() {
   );
 
   sl.registerLazySingleton<ICatchRepository>(
-    () => CatchRepositoryImpl(dataSource: demo.catchDataSource),
+    () => CatchRepositoryImpl(
+      remoteDataSource: demo.catchDataSource,
+      localDataSource: demo.catchDataSource,
+    ),
   );
 
   sl.registerLazySingleton<IOfferRepository>(
@@ -216,7 +219,10 @@ void _initLocalMode(DatabaseHelper dbHelper) {
   );
 
   sl.registerLazySingleton<ICatchRepository>(
-    () => CatchRepositoryImpl(dataSource: local.catchDataSource),
+    () => CatchRepositoryImpl(
+      remoteDataSource: local.catchDataSource,
+      localDataSource: local.catchDataSource,
+    ),
   );
 
   sl.registerLazySingleton<IOfferRepository>(
@@ -292,13 +298,14 @@ void _initApiMode(DatabaseHelper dbHelper) {
   // Register Catches Repository with API Data Source
   sl.registerLazySingleton<ICatchRepository>(
     () => CatchRepositoryImpl(
-      dataSource: CatchesApiDataSource(
+      remoteDataSource: CatchesApiDataSource(
         client: sl(instanceName: 'marketplaceApiClient'),
         mediaDataSource: sl<MediaApiDataSource>(),
         speciesDataSource: SpeciesApiDataSource(
           client: sl(instanceName: 'marketplaceApiClient'),
         ),
       ),
+      localDataSource: local.catchDataSource,
     ),
   );
 

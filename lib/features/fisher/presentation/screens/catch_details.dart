@@ -30,6 +30,7 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/presentation/widgets/conversation_card.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
+import 'package:siren_marketplace/features/shared/presentation/widgets/catch_image.dart';
 
 class CatchDetails extends ConsumerStatefulWidget {
   const CatchDetails({super.key, required this.catchId});
@@ -334,56 +335,14 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                             ),
                           );
                         },
-                        child: ClipRRect(
+                        child: CatchImage(
+                          imageUrl: selectedCatch.images.isNotEmpty
+                              ? selectedCatch.images.first
+                              : null,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
                           borderRadius: BorderRadius.circular(8),
-                          child: selectedCatch.images.isEmpty
-                              ? Image.asset(
-                                  'assets/images/shrimp.jpg',
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                )
-                              : (selectedCatch.images[0].startsWith("http")
-                                    ? Image.network(
-                                        selectedCatch.images[0],
-                                        width: 60,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stacktrace) =>
-                                                Image.asset(
-                                                  'assets/images/shrimp.jpg',
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                      )
-                                    : (selectedCatch.images[0].startsWith(
-                                            'assets/',
-                                          )
-                                          ? Image.asset(
-                                              selectedCatch.images[0],
-                                              width: 60,
-                                              height: 60,
-                                              fit: BoxFit.cover,
-                                            )
-                                          : Image.file(
-                                              File(selectedCatch.images[0]),
-                                              width: 60,
-                                              height: 60,
-                                              fit: BoxFit.cover,
-                                              errorBuilder:
-                                                  (
-                                                    context,
-                                                    error,
-                                                    stackTrace,
-                                                  ) => Image.asset(
-                                                    'assets/images/shrimp.jpg',
-                                                    width: 60,
-                                                    height: 60,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                            ))),
                         ),
                       ),
                       const SizedBox(width: 10),

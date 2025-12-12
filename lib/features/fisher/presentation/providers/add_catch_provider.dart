@@ -322,6 +322,78 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
     }
   }
 
+  Future<bool> saveAsDraft() async {
+    // Only basic validation: Needs at least location and species maybe?
+    // Or allow completely empty? Drafts imply "Work in Progress".
+    // For now, let's require at least Species to give it a name.
+
+    if (state.selectedSpecies == null) {
+      // Maybe ok? Name defaults to "Unknown Species" in submit logic.
+    }
+
+    try {
+      final user = await ref.read(currentUserProvider.future);
+      if (user == null) {
+        print("Error: User not found");
+        return false;
+      }
+
+      final catchRepository = sl<ICatchRepository>();
+
+      final catchId = DateTime.now().millisecondsSinceEpoch.toString();
+
+      // Use species image if no images are selected (Temporary)
+      List<String> catchImages = state.images;
+      if (catchImages.isEmpty && state.selectedSpecies != null) {
+        catchImages = [state.selectedSpecies!.image];
+      }
+
+      final catchEntity = Catch(
+        id: catchId,
+        name: state.selectedSpecies?.name ?? 'Unknown Species',
+        datePosted: DateTime.now(),
+        initialWeight: Weight.fromKg(state.estimatedWeight ?? 0),
+        availableWeight: Weight.fromKg(
+          0,
+        ), // Drafts don't have available weight for sale yet
+        pricePerKg: PricePerKg.fromAmount((state.pricePerKg ?? 0).round()),
+        totalPrice: Price.fromAmount(state.finalPrice.round()),
+        size: state.averageSize?.toString() ?? '0',
+        market: "Douala",
+        images: catchImages,
+        species:
+            state.selectedSpecies ??
+            const Species(id: 'unknown', name: 'Unknown', image: '', uid: ''),
+        fisherId: user.id,
+        status: CatchStatus.draft, // FORCE DRAFT
+        observationId: state.observationId ?? 'Obs-UNKNOWN',
+        locationName: state.locationName ?? 'Unknown Location',
+        latitude: state.latitude ?? 0.0,
+        longitude: state.longitude ?? 0.0,
+        meshSize: (state.meshSize ?? 0).toDouble(),
+        gearLength: state.gearLength,
+        gearWidth: state.gearWidth,
+        gearNature: state.gearNature,
+        waterDepth: state.waterDepth,
+        fishingTime: state.fishingTime,
+        numberOfShrimps: state.numberOfShrimps,
+      );
+
+      await catchRepository.saveDraft(catchEntity);
+
+      // Invalidate providers
+      ref.invalidate(fisherCatchesProvider);
+
+      // Clear state
+      state = const AddCatchState();
+
+      return true;
+    } catch (e) {
+      print("Error saving draft: $e");
+      return false;
+    }
+  }
+
   Future<bool> submit() async {
     if (!canProceed()) return false;
 

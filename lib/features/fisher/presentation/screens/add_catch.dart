@@ -670,10 +670,17 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
             CustomButton(
               title: "Save as draft",
               bordered: true,
-              icon: Icons.wifi_off,
-              onPressed: () {
-                //TODO: save as draft
-                Navigator.pop(context);
+              icon: Icons.save_as,
+              onPressed: () async {
+                final success = await notifier.saveAsDraft();
+                if (success) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Draft saved locally")),
+                    );
+                    Navigator.pop(context);
+                  }
+                }
               },
             ),
             const SizedBox(height: 16),

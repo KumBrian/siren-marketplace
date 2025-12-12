@@ -14,7 +14,10 @@ void main() {
 
   setUp(() {
     mockDataSource = MockICatchDataSource();
-    repository = CatchRepositoryImpl(dataSource: mockDataSource);
+    repository = CatchRepositoryImpl(
+      remoteDataSource: mockDataSource,
+      localDataSource: mockDataSource,
+    );
   });
 
   group('CatchRepositoryImpl', () {

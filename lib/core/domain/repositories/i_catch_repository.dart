@@ -5,6 +5,9 @@ abstract class ICatchRepository {
   /// Create a new catch
   Future<String> create(Catch catchItem);
 
+  /// Save a catch as a local draft
+  Future<void> saveDraft(Catch catchItem);
+
   /// Get catch by ID
   Future<Catch?> getById(String catchId);
 
@@ -34,4 +37,5 @@ abstract class ICatchRepository {
 
   /// Batch delete catches
   Future<void> deleteBatch(List<String> catchIds);
+  Future<String> publishDraft(Catch draft);
 }

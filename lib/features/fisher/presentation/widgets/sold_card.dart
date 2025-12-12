@@ -1,3 +1,5 @@
+import 'package:siren_marketplace/features/shared/presentation/widgets/catch_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
@@ -23,11 +25,6 @@ class SoldCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Helper to extract the first image or use a placeholder/default
-    final imageUrl = catchImageUrl.isNotEmpty
-        ? catchImageUrl
-        : 'assets/images/shrimp.jpg'; // Use a placeholder if image is missing
-
     return Material(
       color: AppColors.white100,
       borderRadius: BorderRadius.circular(16),
@@ -38,45 +35,17 @@ class SoldCard extends StatelessWidget {
         // Simplified usage of withOpacity
         child: Row(
           children: [
-            ClipRRect(
+            CatchImage(
+              imageUrl: (catchImageUrl.isNotEmpty && catchImageUrl.length < 500)
+                  ? catchImageUrl
+                  : null,
+              width: 120,
+              height: 120,
+              fit: BoxFit.cover,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
               ),
-              child: imageUrl.contains("http")
-                  ? Image.network(
-                      // Assuming Image.network is correct for the URL
-                      imageUrl,
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Image.asset(
-                        "assets/images/shrimp.jpg",
-                        height: 120,
-                        width: 120,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : (imageUrl.length < 500)
-                  ? Image.asset(
-                      // Assuming Image.network is correct for the URL
-                      imageUrl,
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Image.asset(
-                        "assets/images/shrimp.jpg",
-                        height: 120,
-                        width: 120,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : Image.asset(
-                      "assets/images/shrimp.jpg",
-                      height: 120,
-                      width: 120,
-                      fit: BoxFit.cover,
-                    ),
             ),
             Expanded(
               child: Padding(

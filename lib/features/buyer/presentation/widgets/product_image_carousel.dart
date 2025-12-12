@@ -1,8 +1,10 @@
 import 'dart:io';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/features/shared/presentation/widgets/catch_image.dart';
 
 class ProductImagesCarousel extends StatefulWidget {
   const ProductImagesCarousel({
@@ -62,7 +64,7 @@ class _ProductImagesCarouselState extends State<ProductImagesCarousel> {
               immersive: true,
               useSafeArea: true,
               doubleTapZoomable: true,
-              backgroundColor: Colors.black.withOpacity(0.4),
+              backgroundColor: Colors.black.withValues(alpha: 0.4),
             );
           },
           child: ClipRRect(
@@ -73,19 +75,13 @@ class _ProductImagesCarouselState extends State<ProductImagesCarousel> {
                   builder: (BuildContext context) {
                     return SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      child: item.contains("http")
-                          ? Image.network(
-                              item,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Image.asset(
-                                    'assets/images/shrimp.jpg',
-                                    fit: BoxFit.cover,
-                                  ),
-                            )
-                          : (item.startsWith("assets/")
-                                ? Image.asset(item, fit: BoxFit.cover)
-                                : Image.file(File(item), fit: BoxFit.cover)),
+                      child: CatchImage(
+                        imageUrl: item,
+                        width: MediaQuery.of(context).size.width,
+                        height: widget.height,
+                        fit: BoxFit.cover,
+                        borderRadius: BorderRadius.zero,
+                      ),
                     );
                   },
                 );

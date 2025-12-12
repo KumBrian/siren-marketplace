@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import '../../../../core/data/api/api_client.dart';
 import '../../../../core/data/api/api_config.dart';
 import '../../../../core/data/api/models/catch_api_models.dart';
@@ -271,18 +272,65 @@ class CatchesApiDataSource implements ICatchDataSource {
 
   @override
   Future<void> update(CatchModel catchItem) async {
-    // TODO: Implement update
-    // PATCH /fish-catches/{id}
+    try {
+      // Handle images similar to create: upload new files if any
+      // Note: For update, we might have mixed URLs and File paths.
+      // EXISTING URLs should be preserved.
+      // NEW Files should be uploaded and replaced with URLs.
 
-    // Invalidate cache for this catch
-    _catchCache.remove(catchItem.id);
+      List<String> finalImageUrls = [];
+      List<File> newImagesToUpload = [];
 
-    throw UnimplementedError();
+      // Identify existing URLs vs new Files
+      for (final path in catchItem.images) {
+        if (path.startsWith('http')) {
+          finalImageUrls.add(path);
+        } else if (!path.startsWith('assets/')) {
+          // It's a file path
+          newImagesToUpload.add(File(path));
+        }
+      }
+
+      // Upload new images
+      if (newImagesToUpload.isNotEmpty) {
+        try {
+          final uploadResults = await _mediaDataSource.uploadImages(
+            newImagesToUpload,
+          );
+          final newUrls = uploadResults
+              .map((result) => result.storageFilePath)
+              .whereType<String>()
+              .toList();
+          finalImageUrls.addAll(newUrls);
+        } catch (e) {
+          print('ERROR: Image upload failed during update: $e');
+          // We might want to abort or continue? Abort safe.
+          throw Exception('Failed to upload new images: $e');
+        }
+      }
+
+      // Use Partial Update for publishing/updating info
+      final requestBody = CatchApiMapper.toUpdateRequest(catchItem);
+
+      final url = ApiConfig.fishCatchUpdate(catchItem.id);
+
+      await _client.patch(
+        url,
+        data: requestBody,
+        options: Options(contentType: 'application/merge-patch+json'),
+      );
+
+      // Invalidate cache
+      _catchCache.remove(catchItem.id);
+    } catch (e) {
+      print('ERROR: Failed to update catch: $e');
+      rethrow;
+    }
   }
 
   @override
   Future<void> delete(String catchId) async {
-    await _client.delete(ApiConfig.fishCatch(catchId));
+    await _client.delete(ApiConfig.fishCatchDelete(catchId));
 
     // Remove from cache
     _catchCache.remove(catchId);

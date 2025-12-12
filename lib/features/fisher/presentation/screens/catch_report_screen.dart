@@ -77,6 +77,17 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
             title: const PageTitle(title: "Catch Detail"),
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             scrolledUnderElevation: 0,
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.fail500,
+                ),
+                onPressed: () =>
+                    _showDeleteConfirmation(context, selectedCatch),
+              ),
+              const SizedBox(width: 8),
+            ],
           ),
           bottomNavigationBar: selectedCatch.status == CatchStatus.draft
               ? Container(
@@ -494,7 +505,16 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
 
                           // 2. Save to Repository
                           final repository = sl<ICatchRepository>();
-                          await repository.update(updatedCatch);
+                          String? finalCatchId;
+
+                          if (selectedCatch.status == CatchStatus.draft) {
+                            finalCatchId = await repository.publishDraft(
+                              updatedCatch,
+                            );
+                          } else {
+                            await repository.update(updatedCatch);
+                            finalCatchId = updatedCatch.id;
+                          }
 
                           // 3. Invalidate Providers
                           ref.invalidate(catchByIdProvider(widget.catchId));
@@ -511,7 +531,17 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
                                 backgroundColor: AppColors.success500,
                               ),
                             );
-                            // Optional: Navigate back or refresh
+
+                            // Redirect to new ID if it changed (local draft -> published catch)
+                            if (finalCatchId != widget.catchId) {
+                              // Replace the current route with the new catch details
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      CatchReportScreen(catchId: finalCatchId!),
+                                ),
+                              );
+                            }
                           }
                         }
                       },
@@ -521,6 +551,65 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Catch selectedCatch) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete Catch"),
+          content: const Text(
+            "Are you sure you want to delete this catch? This action cannot be undone.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Close dialog
+                Navigator.of(context).pop();
+
+                try {
+                  final repository = sl<ICatchRepository>();
+                  await repository.delete(selectedCatch.id);
+
+                  // Invalidate providers
+                  ref.invalidate(fisherCatchesProvider);
+                  // Also invalidate specific catch provider just in case
+                  ref.invalidate(catchByIdProvider(selectedCatch.id));
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Catch deleted successfully"),
+                        backgroundColor: AppColors.success500,
+                      ),
+                    );
+                    Navigator.of(context).pop(); // Go back to list
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Error deleting catch: $e"),
+                        backgroundColor: AppColors.fail500,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text(
+                "Delete",
+                style: TextStyle(color: AppColors.fail500),
+              ),
+            ),
+          ],
         );
       },
     );

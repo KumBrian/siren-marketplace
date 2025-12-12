@@ -1,9 +1,10 @@
-import 'dart:io';
+import 'package:siren_marketplace/features/shared/presentation/widgets/catch_image.dart';
 
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
+import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
 
 class CatchCard extends StatelessWidget {
   final Catch catchItem;
@@ -13,22 +14,6 @@ class CatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine image provider
-    ImageProvider imageProvider;
-    if (catchItem.images.isNotEmpty) {
-      final imagePath = catchItem.images.first;
-      if (imagePath.startsWith('http')) {
-        imageProvider = NetworkImage(imagePath);
-      } else if (imagePath.startsWith('assets/')) {
-        imageProvider = AssetImage(imagePath);
-      } else {
-        imageProvider = FileImage(File(imagePath));
-      }
-    } else {
-      // Fallback
-      imageProvider = const AssetImage('assets/images/shrimp.jpg');
-    }
-
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -44,19 +29,19 @@ class CatchCard extends StatelessWidget {
           child: Row(
             children: [
               // Image
-              ClipRRect(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
-                child: Container(
+              SizedBox(
+                width: 120,
+                height: 120,
+                child: CatchImage(
+                  imageUrl: catchItem.images.isNotEmpty
+                      ? catchItem.images.first
+                      : null,
                   width: 120,
                   height: 120,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                    ),
+                  fit: BoxFit.cover,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
                   ),
                 ),
               ),
@@ -76,7 +61,7 @@ class CatchCard extends StatelessWidget {
                             SizedBox(
                               width: 140,
                               child: Text(
-                                catchItem.species.name,
+                                "Catch #${catchItem.id}",
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
 
@@ -96,11 +81,19 @@ class CatchCard extends StatelessWidget {
                                 horizontal: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.blue700,
+                                color: catchItem.status == CatchStatus.draft
+                                    ? AppColors.gray500
+                                    : (catchItem.status == CatchStatus.soldOut
+                                          ? AppColors.blue500
+                                          : AppColors.blue700),
                                 borderRadius: BorderRadius.circular(99),
                               ),
                               child: Text(
-                                "Shrimp",
+                                catchItem.status == CatchStatus.draft
+                                    ? "Draft"
+                                    : (catchItem.status == CatchStatus.soldOut
+                                          ? "Sold Out"
+                                          : "Shrimp"),
                                 style: const TextStyle(
                                   fontSize: 10,
                                   color: AppColors.white100,

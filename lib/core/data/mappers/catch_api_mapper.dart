@@ -148,4 +148,15 @@ class CatchApiMapper {
       segment: '', // API expects empty string, not null
     );
   }
+
+  /// Map domain CatchModel to API Update Request body (Partial)
+  static Map<String, dynamic> toUpdateRequest(CatchModel model) {
+    return {
+      'publishedInMarketPlace': model.status == 'available',
+      'pricePerKg': (model.pricePerKgAmount / 100.0),
+      'publishedWeightInGrams': model.availableWeightGrams.toDouble(),
+      'finalPrice': (model.totalPriceAmount / 100.0),
+      'status': model.status == 'available' ? 'PUBLISHED' : 'UPLOADED',
+    };
+  }
 }

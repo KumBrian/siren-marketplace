@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:siren_marketplace/features/shared/presentation/widgets/catch_image.dart';
 
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
@@ -27,61 +27,19 @@ class ForSaleCard extends StatelessWidget {
         splashColor: AppColors.blue700.withValues(alpha: 0.1),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.only(
+            CatchImage(
+              imageUrl:
+                  (catchData.images.isNotEmpty &&
+                      catchData.images[0].isNotEmpty)
+                  ? catchData.images[0]
+                  : null,
+              width: 120,
+              height: 120,
+              fit: BoxFit.cover,
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
               ),
-              // round corners
-              child:
-                  catchData.images.isNotEmpty && catchData.images[0].isNotEmpty
-                  ? Image.network(
-                      catchData.images[0],
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Image.asset(
-                        "assets/images/shrimp.jpg",
-                        height: 120,
-                        width: 120,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : (catchData.images.isNotEmpty &&
-                            catchData.images[0].startsWith("assets/")
-                        ? Image.asset(
-                            catchData.images[0],
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Image.asset(
-                                  "assets/images/shrimp.jpg",
-                                  height: 120,
-                                  width: 120,
-                                  fit: BoxFit.cover,
-                                ),
-                          )
-                        : catchData.images.isNotEmpty
-                        ? Image.file(
-                            File(catchData.images[0]),
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Image.asset(
-                                  "assets/images/shrimp.jpg",
-                                  height: 120,
-                                  width: 120,
-                                  fit: BoxFit.cover,
-                                ),
-                          )
-                        : Image.asset(
-                            "assets/images/shrimp.jpg",
-                            height: 120,
-                            width: 120,
-                            fit: BoxFit.cover,
-                          )),
             ),
             Expanded(
               child: Padding(
@@ -98,7 +56,7 @@ class ForSaleCard extends StatelessWidget {
                           child: SizedBox(
                             width: 140,
                             child: Text(
-                              catchData.name,
+                              "Catch #${catchData.id}",
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
