@@ -14,6 +14,9 @@ import '../data/datasources/local/local_message_datasource.dart';
 import '../data/datasources/api/catches_api_data_source.dart';
 import '../data/datasources/api/media_api_data_source.dart';
 import '../data/datasources/api/offers_api_data_source.dart';
+import '../data/datasources/api/orders_api_data_source.dart';
+import '../data/datasources/api/reviews_api_data_source.dart';
+import '../data/datasources/api/species_api_data_source.dart';
 import '../data/datasources/api/user_api_datasource.dart';
 import '../data/api/api_config.dart';
 
