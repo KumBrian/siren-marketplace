@@ -293,6 +293,9 @@ void _initApiMode(DatabaseHelper dbHelper) {
       dataSource: CatchesApiDataSource(
         client: sl(instanceName: 'marketplaceApiClient'),
         mediaDataSource: sl<MediaApiDataSource>(),
+        speciesDataSource: SpeciesApiDataSource(
+          client: sl(instanceName: 'marketplaceApiClient'),
+        ),
       ),
     ),
   );

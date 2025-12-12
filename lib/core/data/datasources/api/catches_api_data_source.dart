@@ -7,13 +7,17 @@ import '../../models/catch_model.dart';
 import '../../../domain/enums/catch_status.dart';
 import '../interfaces/i_catch_datasource.dart';
 import 'media_api_data_source.dart';
+import 'species_api_data_source.dart';
 
 import '../../../domain/entities/species.dart';
 
 class CatchesApiDataSource implements ICatchDataSource {
   final ApiClient _client;
   final MediaApiDataSource _mediaDataSource;
-  final List<Species> speciesList;
+  final SpeciesApiDataSource _speciesDataSource;
+
+  // Cache species in memory
+  List<Species>? _cachedSpecies;
 
   // In-memory cache for catches
   final Map<String, CatchModel> _catchCache = {};
@@ -25,9 +29,38 @@ class CatchesApiDataSource implements ICatchDataSource {
   CatchesApiDataSource({
     required ApiClient client,
     required MediaApiDataSource mediaDataSource,
-    this.speciesList = const [], // Optional - will use API species or fallback
+    required SpeciesApiDataSource speciesDataSource,
   }) : _client = client,
-       _mediaDataSource = mediaDataSource;
+       _mediaDataSource = mediaDataSource,
+       _speciesDataSource = speciesDataSource;
+
+  /// Fetch and cache species list
+  Future<List<Species>> _getSpecies() async {
+    if (_cachedSpecies != null) {
+      return _cachedSpecies!;
+    }
+
+    try {
+      print('DEBUG: Fetching species for catch mapping...');
+      final apiSpecies = await _speciesDataSource.fetchSpecies(
+        itemsPerPage: 100,
+      );
+      _cachedSpecies = apiSpecies.map((api) {
+        return Species(
+          id: api.uid,
+          uid: api.uid,
+          name: api.name,
+          image: api.mediaReference ?? '',
+          scientificName: '',
+        );
+      }).toList();
+      print('DEBUG: Cached ${_cachedSpecies!.length} species for mapping');
+      return _cachedSpecies!;
+    } catch (e) {
+      print('WARNING: Failed to fetch species: $e');
+      return [];
+    }
+  }
 
   @override
   Future<String> create(CatchModel catchItem) async {
@@ -130,9 +163,10 @@ class CatchesApiDataSource implements ICatchDataSource {
       final prefixedData = _prefixImageUrls(data);
 
       final apiModel = CatchApiModel.fromJson(prefixedData);
+      final species = await _getSpecies();
       final catchModel = CatchApiMapper.toDomain(
         apiModel,
-        speciesList: speciesList,
+        speciesList: species,
       );
 
       // Store in cache
@@ -150,11 +184,12 @@ class CatchesApiDataSource implements ICatchDataSource {
     final response = await _client.get(ApiConfig.fishCatches);
     final List data = response.data['data'] ?? [];
 
+    final species = await _getSpecies();
     final catches = data.map((json) {
       final prefixedJson = _prefixImageUrls(json);
       return CatchApiMapper.toDomain(
         CatchApiModel.fromJson(prefixedJson),
-        speciesList: speciesList,
+        speciesList: species,
       );
     }).toList();
 
@@ -180,11 +215,12 @@ class CatchesApiDataSource implements ICatchDataSource {
 
     print('DEBUG: Fetched ${data.length} catches from my-fish-catches');
 
+    final species = await _getSpecies();
     final catches = data.map((json) {
       final prefixedJson = _prefixImageUrls(json);
       return CatchApiMapper.toDomain(
         CatchApiModel.fromJson(prefixedJson),
-        speciesList: speciesList,
+        speciesList: species,
       );
     }).toList();
 
@@ -216,11 +252,12 @@ class CatchesApiDataSource implements ICatchDataSource {
     );
     final List data = response.data['data'] ?? [];
 
+    final species = await _getSpecies();
     final catches = data.map((json) {
       final prefixedJson = _prefixImageUrls(json);
       return CatchApiMapper.toDomain(
         CatchApiModel.fromJson(prefixedJson),
-        speciesList: speciesList,
+        speciesList: species,
       );
     }).toList();
 
