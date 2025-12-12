@@ -18,7 +18,9 @@ const Duration _cacheDuration = Duration(days: 2);
 final speciesApiDataSourceProvider = Provider<SpeciesApiDataSource>((ref) {
   try {
     print('DEBUG: Creating SpeciesApiDataSource...');
-    final apiClient = sl<ApiClient>();
+    // Species API is on marketplace, so use marketplace client
+    final apiClient = sl<ApiClient>(instanceName: 'marketplaceApiClient');
+    print('DEBUG: Got marketplace API client');
     return SpeciesApiDataSource(client: apiClient);
   } catch (e, stack) {
     print('ERROR: Failed to create SpeciesApiDataSource: $e');
