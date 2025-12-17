@@ -46,6 +46,24 @@ Map<String, dynamic> _$$ProductMarketApiModelImplToJson(
   'uid': instance.uid,
 };
 
+_$ProductAccountApiModelImpl _$$ProductAccountApiModelImplFromJson(
+  Map<String, dynamic> json,
+) => _$ProductAccountApiModelImpl(
+  createdAt: json['created_at'] as String?,
+  updatedAt: json['updated_at'] as String?,
+  deletedAt: json['deleted_at'] as String?,
+  uid: json['uid'] as String?,
+);
+
+Map<String, dynamic> _$$ProductAccountApiModelImplToJson(
+  _$ProductAccountApiModelImpl instance,
+) => <String, dynamic>{
+  'created_at': instance.createdAt,
+  'updated_at': instance.updatedAt,
+  'deleted_at': instance.deletedAt,
+  'uid': instance.uid,
+};
+
 _$ProductApiModelImpl _$$ProductApiModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$ProductApiModelImpl(
@@ -81,6 +99,14 @@ _$ProductApiModelImpl _$$ProductApiModelImplFromJson(
   specie: json['specie'] == null
       ? null
       : ProductSpeciesApiModel.fromJson(json['specie'] as Map<String, dynamic>),
+  account: json['account'] == null
+      ? null
+      : ProductAccountApiModel.fromJson(
+          json['account'] as Map<String, dynamic>,
+        ),
+  images:
+      (json['images'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$ProductApiModelImplToJson(
@@ -113,4 +139,6 @@ Map<String, dynamic> _$$ProductApiModelImplToJson(
   'gearWidthInMeter': instance.gearWidthInMeter,
   'gearNature': instance.gearNature,
   'specie': instance.specie?.toJson(),
+  'account': instance.account?.toJson(),
+  'images': instance.images,
 };

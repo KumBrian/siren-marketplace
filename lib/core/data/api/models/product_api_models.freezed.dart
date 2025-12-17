@@ -554,6 +554,252 @@ abstract class _ProductMarketApiModel implements ProductMarketApiModel {
   get copyWith => throw _privateConstructorUsedError;
 }
 
+ProductAccountApiModel _$ProductAccountApiModelFromJson(
+  Map<String, dynamic> json,
+) {
+  return _ProductAccountApiModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ProductAccountApiModel {
+  @JsonKey(name: 'created_at')
+  String? get createdAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'updated_at')
+  String? get updatedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'deleted_at')
+  String? get deletedAt => throw _privateConstructorUsedError;
+  String? get uid => throw _privateConstructorUsedError;
+
+  /// Serializes this ProductAccountApiModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ProductAccountApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ProductAccountApiModelCopyWith<ProductAccountApiModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ProductAccountApiModelCopyWith<$Res> {
+  factory $ProductAccountApiModelCopyWith(
+    ProductAccountApiModel value,
+    $Res Function(ProductAccountApiModel) then,
+  ) = _$ProductAccountApiModelCopyWithImpl<$Res, ProductAccountApiModel>;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'deleted_at') String? deletedAt,
+    String? uid,
+  });
+}
+
+/// @nodoc
+class _$ProductAccountApiModelCopyWithImpl<
+  $Res,
+  $Val extends ProductAccountApiModel
+>
+    implements $ProductAccountApiModelCopyWith<$Res> {
+  _$ProductAccountApiModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ProductAccountApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? deletedAt = freezed,
+    Object? uid = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            createdAt: freezed == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            updatedAt: freezed == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            deletedAt: freezed == deletedAt
+                ? _value.deletedAt
+                : deletedAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            uid: freezed == uid
+                ? _value.uid
+                : uid // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ProductAccountApiModelImplCopyWith<$Res>
+    implements $ProductAccountApiModelCopyWith<$Res> {
+  factory _$$ProductAccountApiModelImplCopyWith(
+    _$ProductAccountApiModelImpl value,
+    $Res Function(_$ProductAccountApiModelImpl) then,
+  ) = __$$ProductAccountApiModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'deleted_at') String? deletedAt,
+    String? uid,
+  });
+}
+
+/// @nodoc
+class __$$ProductAccountApiModelImplCopyWithImpl<$Res>
+    extends
+        _$ProductAccountApiModelCopyWithImpl<$Res, _$ProductAccountApiModelImpl>
+    implements _$$ProductAccountApiModelImplCopyWith<$Res> {
+  __$$ProductAccountApiModelImplCopyWithImpl(
+    _$ProductAccountApiModelImpl _value,
+    $Res Function(_$ProductAccountApiModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ProductAccountApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? deletedAt = freezed,
+    Object? uid = freezed,
+  }) {
+    return _then(
+      _$ProductAccountApiModelImpl(
+        createdAt: freezed == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        updatedAt: freezed == updatedAt
+            ? _value.updatedAt
+            : updatedAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        deletedAt: freezed == deletedAt
+            ? _value.deletedAt
+            : deletedAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        uid: freezed == uid
+            ? _value.uid
+            : uid // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
+  const _$ProductAccountApiModelImpl({
+    @JsonKey(name: 'created_at') this.createdAt,
+    @JsonKey(name: 'updated_at') this.updatedAt,
+    @JsonKey(name: 'deleted_at') this.deletedAt,
+    this.uid,
+  });
+
+  factory _$ProductAccountApiModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ProductAccountApiModelImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
+  @override
+  @JsonKey(name: 'deleted_at')
+  final String? deletedAt;
+  @override
+  final String? uid;
+
+  @override
+  String toString() {
+    return 'ProductAccountApiModel(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ProductAccountApiModelImpl &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.deletedAt, deletedAt) ||
+                other.deletedAt == deletedAt) &&
+            (identical(other.uid, uid) || other.uid == uid));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, createdAt, updatedAt, deletedAt, uid);
+
+  /// Create a copy of ProductAccountApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ProductAccountApiModelImplCopyWith<_$ProductAccountApiModelImpl>
+  get copyWith =>
+      __$$ProductAccountApiModelImplCopyWithImpl<_$ProductAccountApiModelImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ProductAccountApiModelImplToJson(this);
+  }
+}
+
+abstract class _ProductAccountApiModel implements ProductAccountApiModel {
+  const factory _ProductAccountApiModel({
+    @JsonKey(name: 'created_at') final String? createdAt,
+    @JsonKey(name: 'updated_at') final String? updatedAt,
+    @JsonKey(name: 'deleted_at') final String? deletedAt,
+    final String? uid,
+  }) = _$ProductAccountApiModelImpl;
+
+  factory _ProductAccountApiModel.fromJson(Map<String, dynamic> json) =
+      _$ProductAccountApiModelImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'created_at')
+  String? get createdAt;
+  @override
+  @JsonKey(name: 'updated_at')
+  String? get updatedAt;
+  @override
+  @JsonKey(name: 'deleted_at')
+  String? get deletedAt;
+  @override
+  String? get uid;
+
+  /// Create a copy of ProductAccountApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ProductAccountApiModelImplCopyWith<_$ProductAccountApiModelImpl>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
 ProductApiModel _$ProductApiModelFromJson(Map<String, dynamic> json) {
   return _ProductApiModel.fromJson(json);
 }
@@ -595,10 +841,11 @@ mixin _$ProductApiModel {
   String? get uid => throw _privateConstructorUsedError;
   double? get gearMeshSizeInFinger => throw _privateConstructorUsedError;
   double? get gearLengthInMeter => throw _privateConstructorUsedError;
-  double? get gearWidthInMeter =>
-      throw _privateConstructorUsedError; // Assuming this exists or will exist based on context, but user response didn't explicitly show it in JSON example, but previous turns did. Let's add it.
+  double? get gearWidthInMeter => throw _privateConstructorUsedError;
   String? get gearNature => throw _privateConstructorUsedError;
   ProductSpeciesApiModel? get specie => throw _privateConstructorUsedError;
+  ProductAccountApiModel? get account => throw _privateConstructorUsedError;
+  List<String> get images => throw _privateConstructorUsedError;
 
   /// Serializes this ProductApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -645,10 +892,13 @@ abstract class $ProductApiModelCopyWith<$Res> {
     double? gearWidthInMeter,
     String? gearNature,
     ProductSpeciesApiModel? specie,
+    ProductAccountApiModel? account,
+    List<String> images,
   });
 
   $ProductMarketApiModelCopyWith<$Res>? get market;
   $ProductSpeciesApiModelCopyWith<$Res>? get specie;
+  $ProductAccountApiModelCopyWith<$Res>? get account;
 }
 
 /// @nodoc
@@ -693,6 +943,8 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
     Object? gearWidthInMeter = freezed,
     Object? gearNature = freezed,
     Object? specie = freezed,
+    Object? account = freezed,
+    Object? images = null,
   }) {
     return _then(
       _value.copyWith(
@@ -804,6 +1056,14 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
                 ? _value.specie
                 : specie // ignore: cast_nullable_to_non_nullable
                       as ProductSpeciesApiModel?,
+            account: freezed == account
+                ? _value.account
+                : account // ignore: cast_nullable_to_non_nullable
+                      as ProductAccountApiModel?,
+            images: null == images
+                ? _value.images
+                : images // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
           )
           as $Val,
     );
@@ -834,6 +1094,20 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
 
     return $ProductSpeciesApiModelCopyWith<$Res>(_value.specie!, (value) {
       return _then(_value.copyWith(specie: value) as $Val);
+    });
+  }
+
+  /// Create a copy of ProductApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProductAccountApiModelCopyWith<$Res>? get account {
+    if (_value.account == null) {
+      return null;
+    }
+
+    return $ProductAccountApiModelCopyWith<$Res>(_value.account!, (value) {
+      return _then(_value.copyWith(account: value) as $Val);
     });
   }
 }
@@ -875,12 +1149,16 @@ abstract class _$$ProductApiModelImplCopyWith<$Res>
     double? gearWidthInMeter,
     String? gearNature,
     ProductSpeciesApiModel? specie,
+    ProductAccountApiModel? account,
+    List<String> images,
   });
 
   @override
   $ProductMarketApiModelCopyWith<$Res>? get market;
   @override
   $ProductSpeciesApiModelCopyWith<$Res>? get specie;
+  @override
+  $ProductAccountApiModelCopyWith<$Res>? get account;
 }
 
 /// @nodoc
@@ -924,6 +1202,8 @@ class __$$ProductApiModelImplCopyWithImpl<$Res>
     Object? gearWidthInMeter = freezed,
     Object? gearNature = freezed,
     Object? specie = freezed,
+    Object? account = freezed,
+    Object? images = null,
   }) {
     return _then(
       _$ProductApiModelImpl(
@@ -1035,6 +1315,14 @@ class __$$ProductApiModelImplCopyWithImpl<$Res>
             ? _value.specie
             : specie // ignore: cast_nullable_to_non_nullable
                   as ProductSpeciesApiModel?,
+        account: freezed == account
+            ? _value.account
+            : account // ignore: cast_nullable_to_non_nullable
+                  as ProductAccountApiModel?,
+        images: null == images
+            ? _value._images
+            : images // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
       ),
     );
   }
@@ -1071,7 +1359,9 @@ class _$ProductApiModelImpl implements _ProductApiModel {
     this.gearWidthInMeter,
     this.gearNature,
     this.specie,
-  });
+    this.account,
+    final List<String> images = const [],
+  }) : _images = images;
 
   factory _$ProductApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductApiModelImplFromJson(json);
@@ -1137,15 +1427,24 @@ class _$ProductApiModelImpl implements _ProductApiModel {
   final double? gearLengthInMeter;
   @override
   final double? gearWidthInMeter;
-  // Assuming this exists or will exist based on context, but user response didn't explicitly show it in JSON example, but previous turns did. Let's add it.
   @override
   final String? gearNature;
   @override
   final ProductSpeciesApiModel? specie;
+  @override
+  final ProductAccountApiModel? account;
+  final List<String> _images;
+  @override
+  @JsonKey()
+  List<String> get images {
+    if (_images is EqualUnmodifiableListView) return _images;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_images);
+  }
 
   @override
   String toString() {
-    return 'ProductApiModel(id: $id, name: $name, market: $market, status: $status, rejectReason: $rejectReason, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedWeightInGrams: $publishedWeightInGrams, expireAt: $expireAt, locationName: $locationName, latitude: $latitude, longitude: $longitude, size: $size, datePosted: $datePosted, isSold: $isSold, soldAt: $soldAt, initialWeight: $initialWeight, availableWeight: $availableWeight, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearWidthInMeter: $gearWidthInMeter, gearNature: $gearNature, specie: $specie)';
+    return 'ProductApiModel(id: $id, name: $name, market: $market, status: $status, rejectReason: $rejectReason, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedWeightInGrams: $publishedWeightInGrams, expireAt: $expireAt, locationName: $locationName, latitude: $latitude, longitude: $longitude, size: $size, datePosted: $datePosted, isSold: $isSold, soldAt: $soldAt, initialWeight: $initialWeight, availableWeight: $availableWeight, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearWidthInMeter: $gearWidthInMeter, gearNature: $gearNature, specie: $specie, account: $account, images: $images)';
   }
 
   @override
@@ -1197,7 +1496,9 @@ class _$ProductApiModelImpl implements _ProductApiModel {
                 other.gearWidthInMeter == gearWidthInMeter) &&
             (identical(other.gearNature, gearNature) ||
                 other.gearNature == gearNature) &&
-            (identical(other.specie, specie) || other.specie == specie));
+            (identical(other.specie, specie) || other.specie == specie) &&
+            (identical(other.account, account) || other.account == account) &&
+            const DeepCollectionEquality().equals(other._images, _images));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1231,6 +1532,8 @@ class _$ProductApiModelImpl implements _ProductApiModel {
     gearWidthInMeter,
     gearNature,
     specie,
+    account,
+    const DeepCollectionEquality().hash(_images),
   ]);
 
   /// Create a copy of ProductApiModel
@@ -1280,6 +1583,8 @@ abstract class _ProductApiModel implements ProductApiModel {
     final double? gearWidthInMeter,
     final String? gearNature,
     final ProductSpeciesApiModel? specie,
+    final ProductAccountApiModel? account,
+    final List<String> images,
   }) = _$ProductApiModelImpl;
 
   factory _ProductApiModel.fromJson(Map<String, dynamic> json) =
@@ -1345,11 +1650,15 @@ abstract class _ProductApiModel implements ProductApiModel {
   @override
   double? get gearLengthInMeter;
   @override
-  double? get gearWidthInMeter; // Assuming this exists or will exist based on context, but user response didn't explicitly show it in JSON example, but previous turns did. Let's add it.
+  double? get gearWidthInMeter;
   @override
   String? get gearNature;
   @override
   ProductSpeciesApiModel? get specie;
+  @override
+  ProductAccountApiModel? get account;
+  @override
+  List<String> get images;
 
   /// Create a copy of ProductApiModel
   /// with the given fields replaced by the non-null parameter values.

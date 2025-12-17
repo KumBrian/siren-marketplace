@@ -32,6 +32,19 @@ class ProductMarketApiModel with _$ProductMarketApiModel {
 }
 
 @freezed
+class ProductAccountApiModel with _$ProductAccountApiModel {
+  const factory ProductAccountApiModel({
+    @JsonKey(name: 'created_at') String? createdAt,
+    @JsonKey(name: 'updated_at') String? updatedAt,
+    @JsonKey(name: 'deleted_at') String? deletedAt,
+    String? uid,
+  }) = _ProductAccountApiModel;
+
+  factory ProductAccountApiModel.fromJson(Map<String, dynamic> json) =>
+      _$ProductAccountApiModelFromJson(json);
+}
+
+@freezed
 class ProductApiModel with _$ProductApiModel {
   const factory ProductApiModel({
     required dynamic id,
@@ -58,10 +71,11 @@ class ProductApiModel with _$ProductApiModel {
     String? uid,
     double? gearMeshSizeInFinger,
     double? gearLengthInMeter,
-    double?
-    gearWidthInMeter, // Assuming this exists or will exist based on context, but user response didn't explicitly show it in JSON example, but previous turns did. Let's add it.
+    double? gearWidthInMeter,
     String? gearNature,
     ProductSpeciesApiModel? specie,
+    ProductAccountApiModel? account,
+    @Default([]) List<String> images,
   }) = _ProductApiModel;
 
   factory ProductApiModel.fromJson(Map<String, dynamic> json) =>

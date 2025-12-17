@@ -8,21 +8,28 @@ class ProductsApiDataSource {
   ProductsApiDataSource(this._client);
 
   Future<List<ProductApiModel>> getFisherProducts({required int page}) async {
-    final response = await _client.get(
-      '/products/my-products',
-      queryParameters: {'page': page, 'itemsPerPage': 20},
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data['data'];
-      return data.map((json) => ProductApiModel.fromJson(json)).toList();
-    } else {
-      // ApiClient might throw ApiException, but if we get here with non-200 that didn't throw:
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        type: DioExceptionType.badResponse,
+    try {
+      final response = await _client.get(
+        '/products/my-products',
+        queryParameters: {'page': page, 'itemsPerPage': 20},
       );
+
+      print('DEBUG: Products API response status: ${response.statusCode}');
+      print(
+        'DEBUG: Products API response data type: ${response.data.runtimeType}',
+      );
+
+      // API returns array directly, not wrapped in {data: [...]}
+      final List<dynamic> data = response.data is List
+          ? response.data
+          : (response.data['data'] ?? []);
+
+      print('DEBUG: Parsing ${data.length} products');
+
+      return data.map((json) => ProductApiModel.fromJson(json)).toList();
+    } catch (e) {
+      print('ERROR: Failed to fetch fisher products: $e');
+      rethrow;
     }
   }
 }
