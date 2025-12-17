@@ -19,14 +19,14 @@ class ProductsApiDataSource {
         'DEBUG: Products API response data type: ${response.data.runtimeType}',
       );
 
-      // API returns array directly, not wrapped in {data: [...]}
-      final List<dynamic> data = response.data is List
-          ? response.data
-          : (response.data['data'] ?? []);
+      // API returns: {"data": {"totalItems": 6, "member": [...]}}
+      // So we need to extract data.member
+      final responseData = response.data['data'];
+      final List<dynamic> products = responseData['member'] ?? [];
 
-      print('DEBUG: Parsing ${data.length} products');
+      print('DEBUG: Parsing ${products.length} products from member array');
 
-      return data.map((json) => ProductApiModel.fromJson(json)).toList();
+      return products.map((json) => ProductApiModel.fromJson(json)).toList();
     } catch (e) {
       print('ERROR: Failed to fetch fisher products: $e');
       rethrow;
