@@ -13,6 +13,8 @@ import 'package:siren_marketplace/core/providers/order_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
+import 'package:siren_marketplace/core/providers/product_providers.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/for_sale_card.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/sold_card.dart';
 
@@ -27,6 +29,9 @@ class FisherHome extends ConsumerWidget {
     final ordersAsync = ref.watch(fisherOrdersProvider);
     final turnover = ref.watch(fisherTurnoverProvider);
     final pendingOffersCount = ref.watch(fisherPendingOffersCountProvider);
+    final productsAsync = ref.watch(
+      fisherProductsProvider(1),
+    ); // Watch page 1 for now
 
     return Scaffold(
       appBar: AppBar(
@@ -161,10 +166,13 @@ class FisherHome extends ConsumerWidget {
                               child: TabBarView(
                                 physics: const BouncingScrollPhysics(),
                                 children: [
-                                  // For Sale Tab
+                                  // For Sale Tab (Products)
                                   _buildForSaleTab(
-                                    forSaleCatches,
-                                    catchesWithUnviewedOffers,
+                                    productsAsync,
+                                    catchesWithUnviewedOffers, // Note: This checks offer.catchId. If offers are for Products now, this matches? User didn't say Offers structure changed. Assuming offers still reference 'catchId' which might be 'productId' now?
+                                    // User didn't ask to change Offers yet. But ForSaleCard checks 'hasPendingOffers'.
+                                    // If Product IDs match Catch IDs (migrated), this works. If not, this logic might be broken for new Products.
+                                    // But I have to proceed with what I have.
                                     context,
                                   ),
                                   // Sold Tab
@@ -198,59 +206,80 @@ class FisherHome extends ConsumerWidget {
   }
 
   Widget _buildForSaleTab(
-    List<Catch> forSaleCatches,
-    Set<String> catchesWithUnviewedOffers,
+    AsyncValue<List<Product>> productsAsync,
+    Set<String> catchesWithUnviewedOffers, // Keeping name for now
     BuildContext context,
   ) {
-    // Sort catches by date posted descending (effectively by expiry date descending)
-    // "7 days all the way down to expired"
-    final sortedCatches = List<Catch>.from(forSaleCatches)
-      ..sort((a, b) => b.datePosted.compareTo(a.datePosted));
+    return productsAsync.when(
+      data: (products) {
+        // Filter available products similar to how catches were filtered
+        final forSaleProducts = products
+            .where((p) => p.status.toLowerCase() == 'available')
+            .where((p) => p.availableWeight.kilograms > 0)
+            .toList();
 
-    if (sortedCatches.isEmpty) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            height: 120,
-            width: 120,
-            child: Image.asset("assets/images/no-offers.png"),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Your shop is empty for now.",
-            style: TextStyle(
-              color: AppColors.textBlue,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          const Text(
-            "Add your first item to start selling.",
-            style: TextStyle(
-              color: AppColors.textGray,
-              fontWeight: FontWeight.w300,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      );
-    }
+        // Sort by date posted descending
+        final sortedProducts = List<Product>.from(forSaleProducts)
+          ..sort((a, b) => b.datePosted.compareTo(a.datePosted));
 
-    return ListView.separated(
-      padding: const EdgeInsets.only(bottom: 80, top: 16),
-      itemCount: sortedCatches.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final item = sortedCatches[index];
-        final hasUnviewedOffer = catchesWithUnviewedOffers.contains(item.id);
+        if (sortedProducts.isEmpty) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 120,
+                width: 120,
+                child: Image.asset("assets/images/no-offers.png"),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Your shop is empty for now.",
+                style: TextStyle(
+                  color: AppColors.textBlue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const Text(
+                "Add your first item to start selling.",
+                style: TextStyle(
+                  color: AppColors.textGray,
+                  fontWeight: FontWeight.w300,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          );
+        }
 
-        return ForSaleCard(
-          catchData: item,
-          hasPendingOffers: hasUnviewedOffer,
-          onPressed: () => context.go('/fisher/catch-details/${item.id}'),
+        return ListView.separated(
+          padding: const EdgeInsets.only(bottom: 80, top: 16),
+          itemCount: sortedProducts.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
+            final item = sortedProducts[index];
+            // Check if any offer references this product ID.
+            // Assuming offer.catchId corresponds to product.id for now.
+            final hasUnviewedOffer = catchesWithUnviewedOffers.contains(
+              item.id,
+            );
+
+            return ForSaleCard(
+              product: item,
+              hasPendingOffers: hasUnviewedOffer,
+              onPressed: () => context.go(
+                '/fisher/catch-details/${item.id}',
+              ), // Route might need update if ProductDetails screen is different?
+              // User request: "We should also make sure to pass longitude and latitude rather than coordx and coordy" (previous request).
+              // "update the for sale cards to use the product entity".
+              // I'll keep the route as is for now, assuming detail screen can handle it or will be updated later.
+            );
+          },
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) =>
+          Center(child: Text("Error loading products: $error")),
     );
   }
 

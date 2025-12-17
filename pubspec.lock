@@ -217,6 +217,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+  dart_either:
+    dependency: "direct main"
+    description:
+      name: dart_either
+      sha256: "2c6f9bb4426c2f9e5109ca72e132e9d4f858167f9750dabd24a30c992c90db78"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   dart_style:
     dependency: transitive
     description:
@@ -721,10 +729,10 @@ packages:
     dependency: "direct main"
     description:
       name: hugeicons
-      sha256: "7118b52d96466cdc3394e549ff18e7ff1a92938982777f8feb09e20dca6f6521"
+      sha256: "786fe107c037f54dd115e2c15a19dc6903ec5ded763463c50ed42eebf0ff84ec"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.2"
+    version: "1.1.4"
   image_picker:
     dependency: "direct main"
     description:
@@ -1302,18 +1310,18 @@ packages:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_charts
-      sha256: c8d068271f74b41aa63444c1e8fb12222d0bec3aede9c9e5f7ac075f25a9e3d7
+      sha256: a4c0dc5a5ff43f525c1d6d6802630a7500815b8b9125f38743c8fbaa8b0efc7c
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.16"
+    version: "31.2.18"
   syncfusion_flutter_core:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: e68a7e214659faf0df483c760d295ab58e376a639285d2a9f7d1e43351efcbb3
+      sha256: e1fdfcc3ed7e1f040ba95838780b2eb1857e3e5eccb817fbe94ea2b09c35eac4
       url: "https://pub.dev"
     source: hosted
-    version: "31.2.16"
+    version: "31.2.18"
   synchronized:
     dependency: transitive
     description:
@@ -1470,10 +1478,10 @@ packages:
     dependency: transitive
     description:
       name: watcher
-      sha256: "592ab6e2892f67760543fb712ff0177f4ec76c031f02f5b4ff8d3fc5eb9fb61a"
+      sha256: f52385d4f73589977c80797e60fe51014f7f2b957b5e9a62c3f6ada439889249
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.4"
+    version: "1.2.0"
   web:
     dependency: transitive
     description:

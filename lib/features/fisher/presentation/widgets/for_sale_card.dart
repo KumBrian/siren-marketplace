@@ -2,18 +2,18 @@ import 'package:siren_marketplace/features/shared/presentation/widgets/catch_ima
 
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 
 class ForSaleCard extends StatelessWidget {
   const ForSaleCard({
     super.key,
     required this.onPressed,
-    required this.catchData,
+    required this.product,
     required this.hasPendingOffers,
   });
 
   final VoidCallback onPressed;
-  final Catch catchData;
+  final Product product;
   final bool hasPendingOffers;
 
   @override
@@ -27,12 +27,19 @@ class ForSaleCard extends StatelessWidget {
         splashColor: AppColors.blue700.withValues(alpha: 0.1),
         child: Row(
           children: [
+            // Assuming Product doesn't have images list yet in entity definition based on previous step
+            // But if it mimics Catch, it should? Wait, user JSON sample didn't have images array explicitly shown as "images": [...].
+            // It had "specie" ... wait.
+            // Catch entity has images. Product entity I defined didn't have images field because JSON schema provided by user didn't show it.
+            // JSON had: id, name, market, status, rejectReason, price_per_kg, final_price, published_weight_in_grams, expire_at, location_name, latitude, longitude, size, date_posted, isSold, soldAt, initial_weight, available_weight, created_at, updated_at, deleted_at, uid, gear..., specie.
+            // NO IMAGES array in user provided JSON.
+            // So we might need to use species image or placeholder.
+            // For now, let's use a placeholder or species image if available via specie relation.
             CatchImage(
-              imageUrl:
-                  (catchData.images.isNotEmpty &&
-                      catchData.images[0].isNotEmpty)
-                  ? catchData.images[0]
-                  : null,
+              imageUrl: '', // No images in product response yet?
+              // The Product entity has "species" field. Species has "image".
+              // Let's try to use species image.
+              // product.species.image
               width: 120,
               height: 120,
               fit: BoxFit.cover,
@@ -56,7 +63,7 @@ class ForSaleCard extends StatelessWidget {
                           child: SizedBox(
                             width: 140,
                             child: Text(
-                              "Catch #${catchData.id}",
+                              product.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -75,12 +82,12 @@ class ForSaleCard extends StatelessWidget {
                             Icon(
                               Icons.access_time,
                               size: 12,
-                              color: catchData.daysLeftLabel == "1 day left"
+                              color: product.daysLeftLabel == "1 day left"
                                   ? AppColors.fail500
                                   : AppColors.textBlue,
                             ),
                             Text(
-                              catchData.daysLeftLabel,
+                              product.daysLeftLabel,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w400,
@@ -98,7 +105,7 @@ class ForSaleCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 8,
                           children: [
-                            catchData.species.id == "prawns"
+                            product.species.id == "prawns"
                                 ? RichText(
                                     text: TextSpan(
                                       text: "Size: ",
@@ -109,7 +116,7 @@ class ForSaleCard extends StatelessWidget {
 
                                       children: [
                                         TextSpan(
-                                          text: catchData.size,
+                                          text: product.size,
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
@@ -120,7 +127,7 @@ class ForSaleCard extends StatelessWidget {
                                     ),
                                   )
                                 : Container(),
-                            catchData.species.id != "prawns"
+                            product.species.id != "prawns"
                                 ? RichText(
                                     text: TextSpan(
                                       text: "Size: ",
@@ -131,7 +138,7 @@ class ForSaleCard extends StatelessWidget {
 
                                       children: [
                                         TextSpan(
-                                          text: catchData.size,
+                                          text: product.size,
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
@@ -153,7 +160,7 @@ class ForSaleCard extends StatelessWidget {
                                 children: [
                                   TextSpan(
                                     text:
-                                        "${catchData.availableWeight.kilograms} kg",
+                                        "${product.availableWeight.kilograms} kg",
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,

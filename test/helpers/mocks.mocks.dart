@@ -117,6 +117,15 @@ class MockICatchRepository extends _i1.Mock implements _i7.ICatchRepository {
           as _i2.Future<String>);
 
   @override
+  _i2.Future<void> saveDraft(_i8.Catch? catchItem) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveDraft, [catchItem]),
+            returnValue: _i2.Future<void>.value(),
+            returnValueForMissingStub: _i2.Future<void>.value(),
+          )
+          as _i2.Future<void>);
+
+  @override
   _i2.Future<_i8.Catch?> getById(String? catchId) =>
       (super.noSuchMethod(
             Invocation.method(#getById, [catchId]),
@@ -199,6 +208,19 @@ class MockICatchRepository extends _i1.Mock implements _i7.ICatchRepository {
             returnValueForMissingStub: _i2.Future<void>.value(),
           )
           as _i2.Future<void>);
+
+  @override
+  _i2.Future<String> publishDraft(_i8.Catch? draft) =>
+      (super.noSuchMethod(
+            Invocation.method(#publishDraft, [draft]),
+            returnValue: _i2.Future<String>.value(
+              _i9.dummyValue<String>(
+                this,
+                Invocation.method(#publishDraft, [draft]),
+              ),
+            ),
+          )
+          as _i2.Future<String>);
 }
 
 /// A class which mocks [IOfferRepository].

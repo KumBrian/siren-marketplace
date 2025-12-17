@@ -8,14 +8,15 @@ import '../../models/catch_model.dart';
 import '../../../domain/enums/catch_status.dart';
 import '../interfaces/i_catch_datasource.dart';
 import 'media_api_data_source.dart';
-import 'species_api_data_source.dart';
+import 'subgroups_api_data_source.dart';
+import '../../mappers/subgroup_mapper.dart';
 
 import '../../../domain/entities/species.dart';
 
 class CatchesApiDataSource implements ICatchDataSource {
   final ApiClient _client;
   final MediaApiDataSource _mediaDataSource;
-  final SpeciesApiDataSource _speciesDataSource;
+  final SubgroupsApiDataSource _subgroupsDataSource;
 
   // Cache species in memory
   List<Species>? _cachedSpecies;
@@ -30,35 +31,39 @@ class CatchesApiDataSource implements ICatchDataSource {
   CatchesApiDataSource({
     required ApiClient client,
     required MediaApiDataSource mediaDataSource,
-    required SpeciesApiDataSource speciesDataSource,
+    required SubgroupsApiDataSource subgroupsDataSource,
   }) : _client = client,
        _mediaDataSource = mediaDataSource,
-       _speciesDataSource = speciesDataSource;
+       _subgroupsDataSource = subgroupsDataSource;
 
-  /// Fetch and cache species list
+  /// Fetch and cache species list from subgroups
   Future<List<Species>> _getSpecies() async {
     if (_cachedSpecies != null) {
       return _cachedSpecies!;
     }
 
     try {
-      print('DEBUG: Fetching species for catch mapping...');
-      final apiSpecies = await _speciesDataSource.fetchSpecies(
-        itemsPerPage: 100,
-      );
-      _cachedSpecies = apiSpecies.map((api) {
-        return Species(
-          id: api.uid,
-          uid: api.uid,
-          name: api.name,
-          image: api.mediaReference ?? '',
-          scientificName: '',
-        );
-      }).toList();
+      print('DEBUG: Fetching species from subgroups for catch mapping...');
+      final subgroupModels = await _subgroupsDataSource.getMarketSubgroups(1);
+      final subgroups = SubgroupMapper.toDomainList(subgroupModels);
+
+      // Flatten all species from all subgroups
+      _cachedSpecies = subgroups
+          .expand((subgroup) => subgroup.species)
+          .map(
+            (subgroupSpecies) => Species(
+              id: subgroupSpecies.id.toString(),
+              uid: subgroupSpecies.id.toString(),
+              name: subgroupSpecies.name,
+              image: subgroupSpecies.imageUrl,
+              scientificName: '',
+            ),
+          )
+          .toList();
       print('DEBUG: Cached ${_cachedSpecies!.length} species for mapping');
       return _cachedSpecies!;
     } catch (e) {
-      print('WARNING: Failed to fetch species: $e');
+      print('WARNING: Failed to fetch species from subgroups: $e');
       return [];
     }
   }

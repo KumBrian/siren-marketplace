@@ -26,12 +26,12 @@ class ApiService {
 
       return Success(data);
     } on DioException catch (e) {
-      return Failure(
+      return ApiFailure(
         NetworkExceptions.getErrorMessage(e),
         statusCode: e.response?.statusCode,
       );
     } catch (e) {
-      return Failure(e.toString());
+      return ApiFailure(e.toString());
     }
   }
 
@@ -46,12 +46,12 @@ class ApiService {
       final data = fromJson != null ? fromJson(response.data) : response.data;
       return Success(data);
     } on DioException catch (e) {
-      return Failure(
+      return ApiFailure(
         NetworkExceptions.getErrorMessage(e),
         statusCode: e.response?.statusCode,
       );
     } catch (e) {
-      return Failure(e.toString());
+      return ApiFailure(e.toString());
     }
   }
 
@@ -73,12 +73,12 @@ class ApiService {
       final data = fromJson != null ? fromJson(response.data) : response.data;
       return Success(data);
     } on DioException catch (e) {
-      return Failure(
+      return ApiFailure(
         NetworkExceptions.getErrorMessage(e),
         statusCode: e.response?.statusCode,
       );
     } catch (e) {
-      return Failure(e.toString());
+      return ApiFailure(e.toString());
     }
   }
 }

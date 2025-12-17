@@ -12,6 +12,7 @@ class GearApiModel with _$GearApiModel {
     required dynamic id,
     @JsonKey(name: 'gear_mesh_size_in_finger') double? gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter') double? gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
     @JsonKey(name: 'gear_nature') String? gearNature,
     AccountApiModel? account,
     @JsonKey(name: 'created_at') String? createdAt,
@@ -39,10 +40,12 @@ class FishCatchImageApiModel with _$FishCatchImageApiModel {
       _$FishCatchImageApiModelFromJson(json);
 }
 
-/// Species reference from API (simplified - only uid)
+/// Species reference from API
 @freezed
 class SpecieApiModel with _$SpecieApiModel {
   const factory SpecieApiModel({
+    int? id,
+    String? name,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
@@ -80,6 +83,9 @@ class CatchApiModel with _$CatchApiModel {
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
+    @JsonKey(name: 'location_name') String? locationName,
+    double? latitude,
+    double? longitude,
     String? uid,
     // Legacy fields for compatibility with old cached data
     @Deprecated('Use specie.uid instead') SpeciesModel? species,
@@ -104,11 +110,11 @@ class CatchImageRequest with _$CatchImageRequest {
 @Freezed(makeCollectionsUnmodifiable: false)
 class CreateCatchRequest with _$CreateCatchRequest {
   const factory CreateCatchRequest({
-    required String specie,
-    required String subgroup,
+    required int specie,
     @JsonKey(name: 'gear_mesh_size_in_finger')
     required double gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter') required double gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter') required double gearWidthInMeter,
     @JsonKey(name: 'gear_nature') required String gearNature,
     @JsonKey(name: 'water_depth_in_meter') required double waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') required double fishingTimeInHour,
@@ -125,9 +131,12 @@ class CreateCatchRequest with _$CreateCatchRequest {
     String? note,
     required List<CatchImageRequest> images,
     String? alpha,
+    required String size,
     required bool dead,
-    required double coordX,
-    required double coordY,
+
+    @JsonKey(name: 'location_name') String? locationName,
+    required double latitude,
+    required double longitude,
     required String date,
     required int market,
     String? observationType,

@@ -39,21 +39,38 @@ class CatchApiMapper {
         return apiModel.species!;
       }
 
-      // Try to find species by uid in provided list
-      if (apiModel.specie?.uid != null && speciesList != null) {
+      // First, try to use the specie data directly from the API response
+      if (apiModel.specie != null) {
+        final specieData = apiModel.specie!;
+
+        // If the API provides id and name directly, use them
+        if (specieData.id != null && specieData.name != null) {
+          return SpeciesModel(
+            id: specieData.id.toString(),
+            uid: specieData.uid,
+            name: specieData.name!,
+            image: '', // Will be mapped from local assets based on name
+          );
+        }
+      }
+
+      // Fallback: Try to match by UID from cached species list
+      if (apiModel.specie?.uid != null &&
+          speciesList != null &&
+          speciesList.isNotEmpty) {
         try {
-          final foundSpecies = speciesList.firstWhere(
+          final matchedSpecies = speciesList.firstWhere(
             (s) => s.uid == apiModel.specie!.uid,
           );
           return SpeciesModel(
-            id: foundSpecies.id,
-            uid: foundSpecies.uid,
-            name: foundSpecies.name,
-            image: foundSpecies.image,
-            scientificName: foundSpecies.scientificName,
+            id: matchedSpecies.id,
+            uid: matchedSpecies.uid,
+            name: matchedSpecies.name,
+            image: matchedSpecies.image,
+            scientificName: matchedSpecies.scientificName,
           );
-        } catch (e) {
-          // Species not found in list, fall through
+        } catch (_) {
+          // Species not found in list, continue to fallback
         }
       }
 
@@ -61,7 +78,7 @@ class CatchApiMapper {
       if (apiModel.specie?.uid != null) {
         return SpeciesModel(
           id: apiModel.specie!.uid,
-          name: apiModel.specie!.uid, // Display uid if species not in app
+          name: apiModel.specie!.name ?? apiModel.specie!.uid,
           image: '',
           uid: apiModel.specie!.uid,
         );
@@ -92,13 +109,13 @@ class CatchApiMapper {
       status: determineStatus(),
       // Location and observation data from API
       observationId: apiModel.observationId ?? '',
-      locationName: '', // Not provided by API yet
-      latitude: 0.0, // Backend doesn't send coords yet
-      longitude: 0.0, // Backend doesn't send coords yet
+      locationName: apiModel.locationName ?? '',
+      latitude: apiModel.latitude ?? 0.0,
+      longitude: apiModel.longitude ?? 0.0,
       // Gear and fishing data from API
       meshSize: apiModel.gear?.gearMeshSizeInFinger,
       gearLength: apiModel.gear?.gearLengthInMeter,
-      gearWidth: null, // Not in API
+      gearWidth: apiModel.gear?.gearWidthInMeter,
       gearNature: apiModel.gear?.gearNature,
       waterDepth: apiModel.waterDepthInMeter,
       fishingTime: apiModel.fishingTimeInHour,
@@ -116,10 +133,10 @@ class CatchApiMapper {
     final isForSale = model.status == 'available';
 
     return CreateCatchRequest(
-      specie: model.species.uid, // Use UUID from backend!
-      subgroup: model.species.uid, // Use same UUID for subgroup
+      specie: int.tryParse(model.species.id) ?? 1, // Convert species ID to int
       gearMeshSizeInFinger: model.meshSize ?? 0.0,
       gearLengthInMeter: model.gearLength ?? 0.0,
+      gearWidthInMeter: model.gearWidth ?? 0.0,
       gearNature: model.gearNature ?? 'Unknown',
       waterDepthInMeter: model.waterDepth ?? 0.0,
       fishingTimeInHour: model.fishingTime ?? 0.0,
@@ -138,9 +155,11 @@ class CatchApiMapper {
       note: '', // API expects empty string, not null
       images: imageUrls.map((url) => CatchImageRequest(mediaUrl: url)).toList(),
       alpha: '', // API expects empty string, not null
+      size: model.size,
       dead: false,
-      coordX: model.longitude,
-      coordY: model.latitude,
+      locationName: model.locationName,
+      latitude: model.latitude,
+      longitude: model.longitude,
       date: DateTime.now().toIso8601String(),
       market: 1, // Always 1 for now per user
       observationType: '', // API expects empty string, not null

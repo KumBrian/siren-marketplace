@@ -5,12 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/providers/navigation_providers.dart';
-import 'package:siren_marketplace/core/providers/species_provider.dart';
+import 'package:siren_marketplace/core/providers/subgroups_provider.dart';
 import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/core/domain/entities/species.dart';
+import 'package:siren_marketplace/core/domain/entities/subgroup.dart';
 import 'package:siren_marketplace/features/fisher/presentation/providers/add_catch_provider.dart';
 
 class AddCatchScreen extends ConsumerStatefulWidget {
@@ -90,20 +91,48 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionHeader("New Catch"),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.blue600,
-                borderRadius: BorderRadius.circular(99),
-              ),
-              child: Text(
-                "Shrimp",
-                style: TextStyle(
-                  color: AppColors.white100,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            // Dynamic subgroup badge from API
+            Consumer(
+              builder: (context, ref, _) {
+                final subgroupsAsync = ref.watch(subgroupsProvider);
+                return subgroupsAsync.when(
+                  data: (subgroups) {
+                    if (subgroups.isEmpty) return const SizedBox.shrink();
+                    // Show first subgroup (Shrimp) - for now we only have one
+                    final subgroup = subgroups.first;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.blue600,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: Text(
+                        subgroup.name,
+                        style: TextStyle(
+                          color: AppColors.white100,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
+                  loading: () => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  error: (_, __) => const SizedBox.shrink(),
+                );
+              },
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -282,16 +311,32 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
   }
 
   Widget _buildStep2(AddCatchState state, AddCatchNotifier notifier) {
-    final speciesAsync = ref.watch(speciesProvider);
+    // Use subgroups provider to get species (from first subgroup)
+    final subgroupsAsync = ref.watch(subgroupsProvider);
 
-    return speciesAsync.when(
-      data: (speciesList) {
-        if (speciesList.isEmpty) {
+    return subgroupsAsync.when(
+      data: (subgroups) {
+        if (subgroups.isEmpty) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(32.0),
               child: Text(
                 'No species available.\nPlease check your internet connection.',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        // Get species from first subgroup (Shrimp)
+        final speciesList = subgroups.first.species;
+
+        if (speciesList.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Text(
+                'No species available in this subgroup.',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -311,7 +356,7 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Shrimp Species *",
+                    "${subgroups.first.name} Species *",
                     style: TextStyle(
                       color: AppColors.textGray,
                       fontSize: 12,
@@ -320,11 +365,21 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                   ),
                   ...List.generate(
                     speciesList.length,
-                    (index) => ShrimpSpeciesWidget(
+                    (index) => SubgroupSpeciesWidget(
                       species: speciesList[index],
                       isSelected:
-                          state.selectedSpecies?.id == speciesList[index].id,
-                      onTap: () => notifier.selectSpecies(speciesList[index]),
+                          state.selectedSpecies?.id ==
+                          speciesList[index].id.toString(),
+                      onTap: () {
+                        // Create a Species object from SubgroupSpecies for compatibility
+                        final species = Species(
+                          id: speciesList[index].id.toString(),
+                          name: speciesList[index].name,
+                          image: speciesList[index].imageUrl,
+                          uid: speciesList[index].id.toString(),
+                        );
+                        notifier.selectSpecies(species);
+                      },
                     ),
                   ),
                 ],
@@ -784,15 +839,15 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
   }
 }
 
-class ShrimpSpeciesWidget extends StatelessWidget {
-  const ShrimpSpeciesWidget({
+class SubgroupSpeciesWidget extends StatelessWidget {
+  const SubgroupSpeciesWidget({
     super.key,
     required this.species,
     this.isSelected = false,
     required this.onTap,
   });
 
-  final Species species;
+  final SubgroupSpecies species;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -834,7 +889,7 @@ class ShrimpSpeciesWidget extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.asset(
-                  species.image,
+                  species.imageUrl,
                   fit: BoxFit.cover,
                   height: 130,
                   width: 170,

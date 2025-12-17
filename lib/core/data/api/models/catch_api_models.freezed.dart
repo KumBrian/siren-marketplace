@@ -26,6 +26,8 @@ mixin _$GearApiModel {
   double? get gearMeshSizeInFinger => throw _privateConstructorUsedError;
   @JsonKey(name: 'gear_length_in_meter')
   double? get gearLengthInMeter => throw _privateConstructorUsedError;
+  @JsonKey(name: 'gear_width_in_meter')
+  double? get gearWidthInMeter => throw _privateConstructorUsedError;
   @JsonKey(name: 'gear_nature')
   String? get gearNature => throw _privateConstructorUsedError;
   AccountApiModel? get account => throw _privateConstructorUsedError;
@@ -56,6 +58,7 @@ abstract class $GearApiModelCopyWith<$Res> {
     dynamic id,
     @JsonKey(name: 'gear_mesh_size_in_finger') double? gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter') double? gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
     @JsonKey(name: 'gear_nature') String? gearNature,
     AccountApiModel? account,
     @JsonKey(name: 'created_at') String? createdAt,
@@ -84,6 +87,7 @@ class _$GearApiModelCopyWithImpl<$Res, $Val extends GearApiModel>
     Object? id = freezed,
     Object? gearMeshSizeInFinger = freezed,
     Object? gearLengthInMeter = freezed,
+    Object? gearWidthInMeter = freezed,
     Object? gearNature = freezed,
     Object? account = freezed,
     Object? createdAt = freezed,
@@ -103,6 +107,10 @@ class _$GearApiModelCopyWithImpl<$Res, $Val extends GearApiModel>
             gearLengthInMeter: freezed == gearLengthInMeter
                 ? _value.gearLengthInMeter
                 : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            gearWidthInMeter: freezed == gearWidthInMeter
+                ? _value.gearWidthInMeter
+                : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
                       as double?,
             gearNature: freezed == gearNature
                 ? _value.gearNature
@@ -157,6 +165,7 @@ abstract class _$$GearApiModelImplCopyWith<$Res>
     dynamic id,
     @JsonKey(name: 'gear_mesh_size_in_finger') double? gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter') double? gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
     @JsonKey(name: 'gear_nature') String? gearNature,
     AccountApiModel? account,
     @JsonKey(name: 'created_at') String? createdAt,
@@ -185,6 +194,7 @@ class __$$GearApiModelImplCopyWithImpl<$Res>
     Object? id = freezed,
     Object? gearMeshSizeInFinger = freezed,
     Object? gearLengthInMeter = freezed,
+    Object? gearWidthInMeter = freezed,
     Object? gearNature = freezed,
     Object? account = freezed,
     Object? createdAt = freezed,
@@ -204,6 +214,10 @@ class __$$GearApiModelImplCopyWithImpl<$Res>
         gearLengthInMeter: freezed == gearLengthInMeter
             ? _value.gearLengthInMeter
             : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        gearWidthInMeter: freezed == gearWidthInMeter
+            ? _value.gearWidthInMeter
+            : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
                   as double?,
         gearNature: freezed == gearNature
             ? _value.gearNature
@@ -237,6 +251,7 @@ class _$GearApiModelImpl implements _GearApiModel {
     required this.id,
     @JsonKey(name: 'gear_mesh_size_in_finger') this.gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter') this.gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter') this.gearWidthInMeter,
     @JsonKey(name: 'gear_nature') this.gearNature,
     this.account,
     @JsonKey(name: 'created_at') this.createdAt,
@@ -256,6 +271,9 @@ class _$GearApiModelImpl implements _GearApiModel {
   @JsonKey(name: 'gear_length_in_meter')
   final double? gearLengthInMeter;
   @override
+  @JsonKey(name: 'gear_width_in_meter')
+  final double? gearWidthInMeter;
+  @override
   @JsonKey(name: 'gear_nature')
   final String? gearNature;
   @override
@@ -271,7 +289,7 @@ class _$GearApiModelImpl implements _GearApiModel {
 
   @override
   String toString() {
-    return 'GearApiModel(id: $id, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearNature: $gearNature, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid)';
+    return 'GearApiModel(id: $id, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearWidthInMeter: $gearWidthInMeter, gearNature: $gearNature, account: $account, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid)';
   }
 
   @override
@@ -284,6 +302,8 @@ class _$GearApiModelImpl implements _GearApiModel {
                 other.gearMeshSizeInFinger == gearMeshSizeInFinger) &&
             (identical(other.gearLengthInMeter, gearLengthInMeter) ||
                 other.gearLengthInMeter == gearLengthInMeter) &&
+            (identical(other.gearWidthInMeter, gearWidthInMeter) ||
+                other.gearWidthInMeter == gearWidthInMeter) &&
             (identical(other.gearNature, gearNature) ||
                 other.gearNature == gearNature) &&
             (identical(other.account, account) || other.account == account) &&
@@ -301,6 +321,7 @@ class _$GearApiModelImpl implements _GearApiModel {
     const DeepCollectionEquality().hash(id),
     gearMeshSizeInFinger,
     gearLengthInMeter,
+    gearWidthInMeter,
     gearNature,
     account,
     createdAt,
@@ -328,6 +349,7 @@ abstract class _GearApiModel implements GearApiModel {
     @JsonKey(name: 'gear_mesh_size_in_finger')
     final double? gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter') final double? gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter') final double? gearWidthInMeter,
     @JsonKey(name: 'gear_nature') final String? gearNature,
     final AccountApiModel? account,
     @JsonKey(name: 'created_at') final String? createdAt,
@@ -346,6 +368,9 @@ abstract class _GearApiModel implements GearApiModel {
   @override
   @JsonKey(name: 'gear_length_in_meter')
   double? get gearLengthInMeter;
+  @override
+  @JsonKey(name: 'gear_width_in_meter')
+  double? get gearWidthInMeter;
   @override
   @JsonKey(name: 'gear_nature')
   String? get gearNature;
@@ -668,6 +693,8 @@ SpecieApiModel _$SpecieApiModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$SpecieApiModel {
+  int? get id => throw _privateConstructorUsedError;
+  String? get name => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   String? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
@@ -694,6 +721,8 @@ abstract class $SpecieApiModelCopyWith<$Res> {
   ) = _$SpecieApiModelCopyWithImpl<$Res, SpecieApiModel>;
   @useResult
   $Res call({
+    int? id,
+    String? name,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
@@ -716,6 +745,8 @@ class _$SpecieApiModelCopyWithImpl<$Res, $Val extends SpecieApiModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = freezed,
+    Object? name = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? deletedAt = freezed,
@@ -723,6 +754,14 @@ class _$SpecieApiModelCopyWithImpl<$Res, $Val extends SpecieApiModel>
   }) {
     return _then(
       _value.copyWith(
+            id: freezed == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            name: freezed == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String?,
             createdAt: freezed == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -755,6 +794,8 @@ abstract class _$$SpecieApiModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
+    int? id,
+    String? name,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
@@ -776,6 +817,8 @@ class __$$SpecieApiModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = freezed,
+    Object? name = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? deletedAt = freezed,
@@ -783,6 +826,14 @@ class __$$SpecieApiModelImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$SpecieApiModelImpl(
+        id: freezed == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        name: freezed == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String?,
         createdAt: freezed == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -808,6 +859,8 @@ class __$$SpecieApiModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SpecieApiModelImpl implements _SpecieApiModel {
   const _$SpecieApiModelImpl({
+    this.id,
+    this.name,
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'updated_at') this.updatedAt,
     @JsonKey(name: 'deleted_at') this.deletedAt,
@@ -817,6 +870,10 @@ class _$SpecieApiModelImpl implements _SpecieApiModel {
   factory _$SpecieApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SpecieApiModelImplFromJson(json);
 
+  @override
+  final int? id;
+  @override
+  final String? name;
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
@@ -831,7 +888,7 @@ class _$SpecieApiModelImpl implements _SpecieApiModel {
 
   @override
   String toString() {
-    return 'SpecieApiModel(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid)';
+    return 'SpecieApiModel(id: $id, name: $name, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid)';
   }
 
   @override
@@ -839,6 +896,8 @@ class _$SpecieApiModelImpl implements _SpecieApiModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$SpecieApiModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -851,7 +910,7 @@ class _$SpecieApiModelImpl implements _SpecieApiModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, createdAt, updatedAt, deletedAt, uid);
+      Object.hash(runtimeType, id, name, createdAt, updatedAt, deletedAt, uid);
 
   /// Create a copy of SpecieApiModel
   /// with the given fields replaced by the non-null parameter values.
@@ -872,6 +931,8 @@ class _$SpecieApiModelImpl implements _SpecieApiModel {
 
 abstract class _SpecieApiModel implements SpecieApiModel {
   const factory _SpecieApiModel({
+    final int? id,
+    final String? name,
     @JsonKey(name: 'created_at') final String? createdAt,
     @JsonKey(name: 'updated_at') final String? updatedAt,
     @JsonKey(name: 'deleted_at') final String? deletedAt,
@@ -881,6 +942,10 @@ abstract class _SpecieApiModel implements SpecieApiModel {
   factory _SpecieApiModel.fromJson(Map<String, dynamic> json) =
       _$SpecieApiModelImpl.fromJson;
 
+  @override
+  int? get id;
+  @override
+  String? get name;
   @override
   @JsonKey(name: 'created_at')
   String? get createdAt;
@@ -945,6 +1010,10 @@ mixin _$CatchApiModel {
   String? get updatedAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'deleted_at')
   String? get deletedAt => throw _privateConstructorUsedError;
+  @JsonKey(name: 'location_name')
+  String? get locationName => throw _privateConstructorUsedError;
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude => throw _privateConstructorUsedError;
   String? get uid =>
       throw _privateConstructorUsedError; // Legacy fields for compatibility with old cached data
   @Deprecated('Use specie.uid instead')
@@ -995,6 +1064,9 @@ abstract class $CatchApiModelCopyWith<$Res> {
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
+    @JsonKey(name: 'location_name') String? locationName,
+    double? latitude,
+    double? longitude,
     String? uid,
     @Deprecated('Use specie.uid instead') SpeciesModel? species,
     @Deprecated('Backend no longer sends these') String? name,
@@ -1043,6 +1115,9 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? deletedAt = freezed,
+    Object? locationName = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
     Object? uid = freezed,
     Object? species = freezed,
     Object? name = freezed,
@@ -1138,6 +1213,18 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
                 ? _value.deletedAt
                 : deletedAt // ignore: cast_nullable_to_non_nullable
                       as String?,
+            locationName: freezed == locationName
+                ? _value.locationName
+                : locationName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
             uid: freezed == uid
                 ? _value.uid
                 : uid // ignore: cast_nullable_to_non_nullable
@@ -1235,6 +1322,9 @@ abstract class _$$CatchApiModelImplCopyWith<$Res>
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
+    @JsonKey(name: 'location_name') String? locationName,
+    double? latitude,
+    double? longitude,
     String? uid,
     @Deprecated('Use specie.uid instead') SpeciesModel? species,
     @Deprecated('Backend no longer sends these') String? name,
@@ -1285,6 +1375,9 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? deletedAt = freezed,
+    Object? locationName = freezed,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
     Object? uid = freezed,
     Object? species = freezed,
     Object? name = freezed,
@@ -1380,6 +1473,18 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
             ? _value.deletedAt
             : deletedAt // ignore: cast_nullable_to_non_nullable
                   as String?,
+        locationName: freezed == locationName
+            ? _value.locationName
+            : locationName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
         uid: freezed == uid
             ? _value.uid
             : uid // ignore: cast_nullable_to_non_nullable
@@ -1429,6 +1534,9 @@ class _$CatchApiModelImpl implements _CatchApiModel {
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'updated_at') this.updatedAt,
     @JsonKey(name: 'deleted_at') this.deletedAt,
+    @JsonKey(name: 'location_name') this.locationName,
+    this.latitude,
+    this.longitude,
     this.uid,
     @Deprecated('Use specie.uid instead') this.species,
     @Deprecated('Backend no longer sends these') this.name,
@@ -1504,6 +1612,13 @@ class _$CatchApiModelImpl implements _CatchApiModel {
   @JsonKey(name: 'deleted_at')
   final String? deletedAt;
   @override
+  @JsonKey(name: 'location_name')
+  final String? locationName;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  @override
   final String? uid;
   // Legacy fields for compatibility with old cached data
   @override
@@ -1518,7 +1633,7 @@ class _$CatchApiModelImpl implements _CatchApiModel {
 
   @override
   String toString() {
-    return 'CatchApiModel(id: $id, observationId: $observationId, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, specie: $specie, estimatedWeightInGrams: $estimatedWeightInGrams, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, published: $published, publishedWeightInGrams: $publishedWeightInGrams, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, fishCatchImages: $fishCatchImages, note: $note, status: $status, gear: $gear, account: $account, obsSynced: $obsSynced, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid, species: $species, name: $name, market: $market)';
+    return 'CatchApiModel(id: $id, observationId: $observationId, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, specie: $specie, estimatedWeightInGrams: $estimatedWeightInGrams, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, published: $published, publishedWeightInGrams: $publishedWeightInGrams, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, fishCatchImages: $fishCatchImages, note: $note, status: $status, gear: $gear, account: $account, obsSynced: $obsSynced, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, locationName: $locationName, latitude: $latitude, longitude: $longitude, uid: $uid, species: $species, name: $name, market: $market)';
   }
 
   @override
@@ -1566,6 +1681,12 @@ class _$CatchApiModelImpl implements _CatchApiModel {
                 other.updatedAt == updatedAt) &&
             (identical(other.deletedAt, deletedAt) ||
                 other.deletedAt == deletedAt) &&
+            (identical(other.locationName, locationName) ||
+                other.locationName == locationName) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
             (identical(other.uid, uid) || other.uid == uid) &&
             (identical(other.species, species) || other.species == species) &&
             (identical(other.name, name) || other.name == name) &&
@@ -1598,6 +1719,9 @@ class _$CatchApiModelImpl implements _CatchApiModel {
     createdAt,
     updatedAt,
     deletedAt,
+    locationName,
+    latitude,
+    longitude,
     uid,
     species,
     name,
@@ -1646,6 +1770,9 @@ abstract class _CatchApiModel implements CatchApiModel {
     @JsonKey(name: 'created_at') final String? createdAt,
     @JsonKey(name: 'updated_at') final String? updatedAt,
     @JsonKey(name: 'deleted_at') final String? deletedAt,
+    @JsonKey(name: 'location_name') final String? locationName,
+    final double? latitude,
+    final double? longitude,
     final String? uid,
     @Deprecated('Use specie.uid instead') final SpeciesModel? species,
     @Deprecated('Backend no longer sends these') final String? name,
@@ -1713,6 +1840,13 @@ abstract class _CatchApiModel implements CatchApiModel {
   @override
   @JsonKey(name: 'deleted_at')
   String? get deletedAt;
+  @override
+  @JsonKey(name: 'location_name')
+  String? get locationName;
+  @override
+  double? get latitude;
+  @override
+  double? get longitude;
   @override
   String? get uid; // Legacy fields for compatibility with old cached data
   @override
@@ -1895,12 +2029,13 @@ CreateCatchRequest _$CreateCatchRequestFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CreateCatchRequest {
-  String get specie => throw _privateConstructorUsedError;
-  String get subgroup => throw _privateConstructorUsedError;
+  int get specie => throw _privateConstructorUsedError;
   @JsonKey(name: 'gear_mesh_size_in_finger')
   double get gearMeshSizeInFinger => throw _privateConstructorUsedError;
   @JsonKey(name: 'gear_length_in_meter')
   double get gearLengthInMeter => throw _privateConstructorUsedError;
+  @JsonKey(name: 'gear_width_in_meter')
+  double get gearWidthInMeter => throw _privateConstructorUsedError;
   @JsonKey(name: 'gear_nature')
   String get gearNature => throw _privateConstructorUsedError;
   @JsonKey(name: 'water_depth_in_meter')
@@ -1924,9 +2059,12 @@ mixin _$CreateCatchRequest {
   String? get note => throw _privateConstructorUsedError;
   List<CatchImageRequest> get images => throw _privateConstructorUsedError;
   String? get alpha => throw _privateConstructorUsedError;
+  String get size => throw _privateConstructorUsedError;
   bool get dead => throw _privateConstructorUsedError;
-  double get coordX => throw _privateConstructorUsedError;
-  double get coordY => throw _privateConstructorUsedError;
+  @JsonKey(name: 'location_name')
+  String? get locationName => throw _privateConstructorUsedError;
+  double get latitude => throw _privateConstructorUsedError;
+  double get longitude => throw _privateConstructorUsedError;
   String get date => throw _privateConstructorUsedError;
   int get market => throw _privateConstructorUsedError;
   String? get observationType => throw _privateConstructorUsedError;
@@ -1951,10 +2089,10 @@ abstract class $CreateCatchRequestCopyWith<$Res> {
   ) = _$CreateCatchRequestCopyWithImpl<$Res, CreateCatchRequest>;
   @useResult
   $Res call({
-    String specie,
-    String subgroup,
+    int specie,
     @JsonKey(name: 'gear_mesh_size_in_finger') double gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter') double gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter') double gearWidthInMeter,
     @JsonKey(name: 'gear_nature') String gearNature,
     @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
@@ -1968,9 +2106,11 @@ abstract class $CreateCatchRequestCopyWith<$Res> {
     String? note,
     List<CatchImageRequest> images,
     String? alpha,
+    String size,
     bool dead,
-    double coordX,
-    double coordY,
+    @JsonKey(name: 'location_name') String? locationName,
+    double latitude,
+    double longitude,
     String date,
     int market,
     String? observationType,
@@ -1995,9 +2135,9 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
   @override
   $Res call({
     Object? specie = null,
-    Object? subgroup = null,
     Object? gearMeshSizeInFinger = null,
     Object? gearLengthInMeter = null,
+    Object? gearWidthInMeter = null,
     Object? gearNature = null,
     Object? waterDepthInMeter = null,
     Object? fishingTimeInHour = null,
@@ -2011,9 +2151,11 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
     Object? note = freezed,
     Object? images = null,
     Object? alpha = freezed,
+    Object? size = null,
     Object? dead = null,
-    Object? coordX = null,
-    Object? coordY = null,
+    Object? locationName = freezed,
+    Object? latitude = null,
+    Object? longitude = null,
     Object? date = null,
     Object? market = null,
     Object? observationType = freezed,
@@ -2025,11 +2167,7 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
             specie: null == specie
                 ? _value.specie
                 : specie // ignore: cast_nullable_to_non_nullable
-                      as String,
-            subgroup: null == subgroup
-                ? _value.subgroup
-                : subgroup // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as int,
             gearMeshSizeInFinger: null == gearMeshSizeInFinger
                 ? _value.gearMeshSizeInFinger
                 : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
@@ -2037,6 +2175,10 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
             gearLengthInMeter: null == gearLengthInMeter
                 ? _value.gearLengthInMeter
                 : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+                      as double,
+            gearWidthInMeter: null == gearWidthInMeter
+                ? _value.gearWidthInMeter
+                : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
                       as double,
             gearNature: null == gearNature
                 ? _value.gearNature
@@ -2090,17 +2232,25 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
                 ? _value.alpha
                 : alpha // ignore: cast_nullable_to_non_nullable
                       as String?,
+            size: null == size
+                ? _value.size
+                : size // ignore: cast_nullable_to_non_nullable
+                      as String,
             dead: null == dead
                 ? _value.dead
                 : dead // ignore: cast_nullable_to_non_nullable
                       as bool,
-            coordX: null == coordX
-                ? _value.coordX
-                : coordX // ignore: cast_nullable_to_non_nullable
+            locationName: freezed == locationName
+                ? _value.locationName
+                : locationName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            latitude: null == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
                       as double,
-            coordY: null == coordY
-                ? _value.coordY
-                : coordY // ignore: cast_nullable_to_non_nullable
+            longitude: null == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
                       as double,
             date: null == date
                 ? _value.date
@@ -2138,10 +2288,10 @@ abstract class _$$CreateCatchRequestImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    String specie,
-    String subgroup,
+    int specie,
     @JsonKey(name: 'gear_mesh_size_in_finger') double gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter') double gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter') double gearWidthInMeter,
     @JsonKey(name: 'gear_nature') String gearNature,
     @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
@@ -2155,9 +2305,11 @@ abstract class _$$CreateCatchRequestImplCopyWith<$Res>
     String? note,
     List<CatchImageRequest> images,
     String? alpha,
+    String size,
     bool dead,
-    double coordX,
-    double coordY,
+    @JsonKey(name: 'location_name') String? locationName,
+    double latitude,
+    double longitude,
     String date,
     int market,
     String? observationType,
@@ -2181,9 +2333,9 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? specie = null,
-    Object? subgroup = null,
     Object? gearMeshSizeInFinger = null,
     Object? gearLengthInMeter = null,
+    Object? gearWidthInMeter = null,
     Object? gearNature = null,
     Object? waterDepthInMeter = null,
     Object? fishingTimeInHour = null,
@@ -2197,9 +2349,11 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
     Object? note = freezed,
     Object? images = null,
     Object? alpha = freezed,
+    Object? size = null,
     Object? dead = null,
-    Object? coordX = null,
-    Object? coordY = null,
+    Object? locationName = freezed,
+    Object? latitude = null,
+    Object? longitude = null,
     Object? date = null,
     Object? market = null,
     Object? observationType = freezed,
@@ -2211,11 +2365,7 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
         specie: null == specie
             ? _value.specie
             : specie // ignore: cast_nullable_to_non_nullable
-                  as String,
-        subgroup: null == subgroup
-            ? _value.subgroup
-            : subgroup // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as int,
         gearMeshSizeInFinger: null == gearMeshSizeInFinger
             ? _value.gearMeshSizeInFinger
             : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
@@ -2223,6 +2373,10 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
         gearLengthInMeter: null == gearLengthInMeter
             ? _value.gearLengthInMeter
             : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+                  as double,
+        gearWidthInMeter: null == gearWidthInMeter
+            ? _value.gearWidthInMeter
+            : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
                   as double,
         gearNature: null == gearNature
             ? _value.gearNature
@@ -2276,17 +2430,25 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
             ? _value.alpha
             : alpha // ignore: cast_nullable_to_non_nullable
                   as String?,
+        size: null == size
+            ? _value.size
+            : size // ignore: cast_nullable_to_non_nullable
+                  as String,
         dead: null == dead
             ? _value.dead
             : dead // ignore: cast_nullable_to_non_nullable
                   as bool,
-        coordX: null == coordX
-            ? _value.coordX
-            : coordX // ignore: cast_nullable_to_non_nullable
+        locationName: freezed == locationName
+            ? _value.locationName
+            : locationName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        latitude: null == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
                   as double,
-        coordY: null == coordY
-            ? _value.coordY
-            : coordY // ignore: cast_nullable_to_non_nullable
+        longitude: null == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
                   as double,
         date: null == date
             ? _value.date
@@ -2318,10 +2480,10 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
 class _$CreateCatchRequestImpl implements _CreateCatchRequest {
   const _$CreateCatchRequestImpl({
     required this.specie,
-    required this.subgroup,
     @JsonKey(name: 'gear_mesh_size_in_finger')
     required this.gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter') required this.gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter') required this.gearWidthInMeter,
     @JsonKey(name: 'gear_nature') required this.gearNature,
     @JsonKey(name: 'water_depth_in_meter') required this.waterDepthInMeter,
     @JsonKey(name: 'fishing_time_in_hour') required this.fishingTimeInHour,
@@ -2338,9 +2500,11 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     this.note,
     required this.images,
     this.alpha,
+    required this.size,
     required this.dead,
-    required this.coordX,
-    required this.coordY,
+    @JsonKey(name: 'location_name') this.locationName,
+    required this.latitude,
+    required this.longitude,
     required this.date,
     required this.market,
     this.observationType,
@@ -2352,15 +2516,16 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
       _$$CreateCatchRequestImplFromJson(json);
 
   @override
-  final String specie;
-  @override
-  final String subgroup;
+  final int specie;
   @override
   @JsonKey(name: 'gear_mesh_size_in_finger')
   final double gearMeshSizeInFinger;
   @override
   @JsonKey(name: 'gear_length_in_meter')
   final double gearLengthInMeter;
+  @override
+  @JsonKey(name: 'gear_width_in_meter')
+  final double gearWidthInMeter;
   @override
   @JsonKey(name: 'gear_nature')
   final String gearNature;
@@ -2398,11 +2563,16 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
   @override
   final String? alpha;
   @override
+  final String size;
+  @override
   final bool dead;
   @override
-  final double coordX;
+  @JsonKey(name: 'location_name')
+  final String? locationName;
   @override
-  final double coordY;
+  final double latitude;
+  @override
+  final double longitude;
   @override
   final String date;
   @override
@@ -2416,7 +2586,7 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
 
   @override
   String toString() {
-    return 'CreateCatchRequest(specie: $specie, subgroup: $subgroup, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearNature: $gearNature, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInGrams: $estimatedWeightInGrams, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInGrams: $publishedWeightInGrams, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, note: $note, images: $images, alpha: $alpha, dead: $dead, coordX: $coordX, coordY: $coordY, date: $date, market: $market, observationType: $observationType, patrol: $patrol, segment: $segment)';
+    return 'CreateCatchRequest(specie: $specie, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearWidthInMeter: $gearWidthInMeter, gearNature: $gearNature, waterDepthInMeter: $waterDepthInMeter, fishingTimeInHour: $fishingTimeInHour, estimatedWeightInGrams: $estimatedWeightInGrams, averageSizeInCm: $averageSizeInCm, estimatedSize: $estimatedSize, publishedWeightInGrams: $publishedWeightInGrams, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedInMarketPlace: $publishedInMarketPlace, note: $note, images: $images, alpha: $alpha, size: $size, dead: $dead, locationName: $locationName, latitude: $latitude, longitude: $longitude, date: $date, market: $market, observationType: $observationType, patrol: $patrol, segment: $segment)';
   }
 
   @override
@@ -2425,12 +2595,12 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
         (other.runtimeType == runtimeType &&
             other is _$CreateCatchRequestImpl &&
             (identical(other.specie, specie) || other.specie == specie) &&
-            (identical(other.subgroup, subgroup) ||
-                other.subgroup == subgroup) &&
             (identical(other.gearMeshSizeInFinger, gearMeshSizeInFinger) ||
                 other.gearMeshSizeInFinger == gearMeshSizeInFinger) &&
             (identical(other.gearLengthInMeter, gearLengthInMeter) ||
                 other.gearLengthInMeter == gearLengthInMeter) &&
+            (identical(other.gearWidthInMeter, gearWidthInMeter) ||
+                other.gearWidthInMeter == gearWidthInMeter) &&
             (identical(other.gearNature, gearNature) ||
                 other.gearNature == gearNature) &&
             (identical(other.waterDepthInMeter, waterDepthInMeter) ||
@@ -2454,9 +2624,14 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
             (identical(other.note, note) || other.note == note) &&
             const DeepCollectionEquality().equals(other.images, images) &&
             (identical(other.alpha, alpha) || other.alpha == alpha) &&
+            (identical(other.size, size) || other.size == size) &&
             (identical(other.dead, dead) || other.dead == dead) &&
-            (identical(other.coordX, coordX) || other.coordX == coordX) &&
-            (identical(other.coordY, coordY) || other.coordY == coordY) &&
+            (identical(other.locationName, locationName) ||
+                other.locationName == locationName) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude) &&
             (identical(other.date, date) || other.date == date) &&
             (identical(other.market, market) || other.market == market) &&
             (identical(other.observationType, observationType) ||
@@ -2470,9 +2645,9 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
   int get hashCode => Object.hashAll([
     runtimeType,
     specie,
-    subgroup,
     gearMeshSizeInFinger,
     gearLengthInMeter,
+    gearWidthInMeter,
     gearNature,
     waterDepthInMeter,
     fishingTimeInHour,
@@ -2486,9 +2661,11 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
     note,
     const DeepCollectionEquality().hash(images),
     alpha,
+    size,
     dead,
-    coordX,
-    coordY,
+    locationName,
+    latitude,
+    longitude,
     date,
     market,
     observationType,
@@ -2515,12 +2692,13 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
 
 abstract class _CreateCatchRequest implements CreateCatchRequest {
   const factory _CreateCatchRequest({
-    required final String specie,
-    required final String subgroup,
+    required final int specie,
     @JsonKey(name: 'gear_mesh_size_in_finger')
     required final double gearMeshSizeInFinger,
     @JsonKey(name: 'gear_length_in_meter')
     required final double gearLengthInMeter,
+    @JsonKey(name: 'gear_width_in_meter')
+    required final double gearWidthInMeter,
     @JsonKey(name: 'gear_nature') required final String gearNature,
     @JsonKey(name: 'water_depth_in_meter')
     required final double waterDepthInMeter,
@@ -2539,9 +2717,11 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
     final String? note,
     required final List<CatchImageRequest> images,
     final String? alpha,
+    required final String size,
     required final bool dead,
-    required final double coordX,
-    required final double coordY,
+    @JsonKey(name: 'location_name') final String? locationName,
+    required final double latitude,
+    required final double longitude,
     required final String date,
     required final int market,
     final String? observationType,
@@ -2553,15 +2733,16 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
       _$CreateCatchRequestImpl.fromJson;
 
   @override
-  String get specie;
-  @override
-  String get subgroup;
+  int get specie;
   @override
   @JsonKey(name: 'gear_mesh_size_in_finger')
   double get gearMeshSizeInFinger;
   @override
   @JsonKey(name: 'gear_length_in_meter')
   double get gearLengthInMeter;
+  @override
+  @JsonKey(name: 'gear_width_in_meter')
+  double get gearWidthInMeter;
   @override
   @JsonKey(name: 'gear_nature')
   String get gearNature;
@@ -2599,11 +2780,16 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
   @override
   String? get alpha;
   @override
+  String get size;
+  @override
   bool get dead;
   @override
-  double get coordX;
+  @JsonKey(name: 'location_name')
+  String? get locationName;
   @override
-  double get coordY;
+  double get latitude;
+  @override
+  double get longitude;
   @override
   String get date;
   @override

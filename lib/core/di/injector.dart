@@ -17,6 +17,8 @@ import '../data/datasources/api/media_api_data_source.dart';
 import '../data/datasources/api/offers_api_data_source.dart';
 import '../data/datasources/api/species_api_data_source.dart';
 import '../data/datasources/api/user_api_datasource.dart';
+import '../data/datasources/api/products_api_data_source.dart';
+import '../data/datasources/api/subgroups_api_data_source.dart';
 import '../data/api/api_config.dart';
 
 import 'package:dio/dio.dart';
@@ -28,6 +30,7 @@ import '../data/repositories/order_repository_impl.dart';
 import '../data/repositories/review_repository_impl.dart';
 import '../data/repositories/session_repository_impl.dart';
 import '../data/repositories/user_repository_impl.dart';
+import '../data/repositories/product_repository_impl.dart';
 import '../domain/repositories/i_catch_repository.dart';
 import '../domain/repositories/i_conversation_repository.dart';
 import '../domain/repositories/i_message_repository.dart';
@@ -36,6 +39,7 @@ import '../domain/repositories/i_order_repository.dart';
 import '../domain/repositories/i_review_repository.dart';
 import '../domain/repositories/i_session_repository.dart';
 import '../domain/repositories/i_user_repository.dart';
+import '../domain/repositories/i_product_repository.dart';
 import '../domain/services/expiration_service.dart';
 import '../domain/services/marketplace_service.dart';
 import '../domain/services/message_service.dart';
@@ -301,9 +305,7 @@ void _initApiMode(DatabaseHelper dbHelper) {
       remoteDataSource: CatchesApiDataSource(
         client: sl(instanceName: 'marketplaceApiClient'),
         mediaDataSource: sl<MediaApiDataSource>(),
-        speciesDataSource: SpeciesApiDataSource(
-          client: sl(instanceName: 'marketplaceApiClient'),
-        ),
+        subgroupsDataSource: sl<SubgroupsApiDataSource>(),
       ),
       localDataSource: local.catchDataSource,
     ),
@@ -339,5 +341,17 @@ void _initApiMode(DatabaseHelper dbHelper) {
     () => ConversationRepositoryImpl(
       dataSource: LocalConversationDataSource(dbHelper: dbHelper),
     ),
+  );
+
+  // Register Product Repository
+  sl.registerLazySingleton<IProductRepository>(
+    () => ProductRepositoryImpl(
+      ProductsApiDataSource(sl(instanceName: 'marketplaceApiClient')),
+    ),
+  );
+
+  // Register Subgroups API Data Source
+  sl.registerLazySingleton<SubgroupsApiDataSource>(
+    () => SubgroupsApiDataSource(sl(instanceName: 'marketplaceApiClient')),
   );
 }

@@ -12,6 +12,7 @@ _$GearApiModelImpl _$$GearApiModelImplFromJson(Map<String, dynamic> json) =>
       gearMeshSizeInFinger: (json['gear_mesh_size_in_finger'] as num?)
           ?.toDouble(),
       gearLengthInMeter: (json['gear_length_in_meter'] as num?)?.toDouble(),
+      gearWidthInMeter: (json['gear_width_in_meter'] as num?)?.toDouble(),
       gearNature: json['gear_nature'] as String?,
       account: json['account'] == null
           ? null
@@ -26,6 +27,7 @@ Map<String, dynamic> _$$GearApiModelImplToJson(_$GearApiModelImpl instance) =>
       'id': instance.id,
       'gear_mesh_size_in_finger': instance.gearMeshSizeInFinger,
       'gear_length_in_meter': instance.gearLengthInMeter,
+      'gear_width_in_meter': instance.gearWidthInMeter,
       'gear_nature': instance.gearNature,
       'account': instance.account?.toJson(),
       'created_at': instance.createdAt,
@@ -57,6 +59,8 @@ Map<String, dynamic> _$$FishCatchImageApiModelImplToJson(
 
 _$SpecieApiModelImpl _$$SpecieApiModelImplFromJson(Map<String, dynamic> json) =>
     _$SpecieApiModelImpl(
+      id: (json['id'] as num?)?.toInt(),
+      name: json['name'] as String?,
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
       deletedAt: json['deleted_at'] as String?,
@@ -66,6 +70,8 @@ _$SpecieApiModelImpl _$$SpecieApiModelImplFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$$SpecieApiModelImplToJson(
   _$SpecieApiModelImpl instance,
 ) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
   'created_at': instance.createdAt,
   'updated_at': instance.updatedAt,
   'deleted_at': instance.deletedAt,
@@ -111,6 +117,9 @@ _$CatchApiModelImpl _$$CatchApiModelImplFromJson(Map<String, dynamic> json) =>
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
       deletedAt: json['deleted_at'] as String?,
+      locationName: json['location_name'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
       uid: json['uid'] as String?,
       species: json['species'] == null
           ? null
@@ -144,6 +153,9 @@ Map<String, dynamic> _$$CatchApiModelImplToJson(
   'created_at': instance.createdAt,
   'updated_at': instance.updatedAt,
   'deleted_at': instance.deletedAt,
+  'location_name': instance.locationName,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
   'uid': instance.uid,
   'species': instance.species?.toJson(),
   'name': instance.name,
@@ -161,10 +173,10 @@ Map<String, dynamic> _$$CatchImageRequestImplToJson(
 _$CreateCatchRequestImpl _$$CreateCatchRequestImplFromJson(
   Map<String, dynamic> json,
 ) => _$CreateCatchRequestImpl(
-  specie: json['specie'] as String,
-  subgroup: json['subgroup'] as String,
+  specie: (json['specie'] as num).toInt(),
   gearMeshSizeInFinger: (json['gear_mesh_size_in_finger'] as num).toDouble(),
   gearLengthInMeter: (json['gear_length_in_meter'] as num).toDouble(),
+  gearWidthInMeter: (json['gear_width_in_meter'] as num).toDouble(),
   gearNature: json['gear_nature'] as String,
   waterDepthInMeter: (json['water_depth_in_meter'] as num).toDouble(),
   fishingTimeInHour: (json['fishing_time_in_hour'] as num).toDouble(),
@@ -180,9 +192,11 @@ _$CreateCatchRequestImpl _$$CreateCatchRequestImplFromJson(
       .map((e) => CatchImageRequest.fromJson(e as Map<String, dynamic>))
       .toList(),
   alpha: json['alpha'] as String?,
+  size: json['size'] as String,
   dead: json['dead'] as bool,
-  coordX: (json['coordX'] as num).toDouble(),
-  coordY: (json['coordY'] as num).toDouble(),
+  locationName: json['location_name'] as String?,
+  latitude: (json['latitude'] as num).toDouble(),
+  longitude: (json['longitude'] as num).toDouble(),
   date: json['date'] as String,
   market: (json['market'] as num).toInt(),
   observationType: json['observationType'] as String?,
@@ -194,9 +208,9 @@ Map<String, dynamic> _$$CreateCatchRequestImplToJson(
   _$CreateCatchRequestImpl instance,
 ) => <String, dynamic>{
   'specie': instance.specie,
-  'subgroup': instance.subgroup,
   'gear_mesh_size_in_finger': instance.gearMeshSizeInFinger,
   'gear_length_in_meter': instance.gearLengthInMeter,
+  'gear_width_in_meter': instance.gearWidthInMeter,
   'gear_nature': instance.gearNature,
   'water_depth_in_meter': instance.waterDepthInMeter,
   'fishing_time_in_hour': instance.fishingTimeInHour,
@@ -210,9 +224,11 @@ Map<String, dynamic> _$$CreateCatchRequestImplToJson(
   'note': instance.note,
   'images': instance.images.map((e) => e.toJson()).toList(),
   'alpha': instance.alpha,
+  'size': instance.size,
   'dead': instance.dead,
-  'coordX': instance.coordX,
-  'coordY': instance.coordY,
+  'location_name': instance.locationName,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
   'date': instance.date,
   'market': instance.market,
   'observationType': instance.observationType,
