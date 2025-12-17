@@ -14,6 +14,8 @@ import 'package:siren_marketplace/core/providers/order_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
+import 'package:siren_marketplace/core/providers/product_providers.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/for_sale_card.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/sold_card.dart';
 
@@ -28,6 +30,7 @@ class FisherHome extends ConsumerWidget {
     final ordersAsync = ref.watch(fisherOrdersProvider);
     final turnover = ref.watch(fisherTurnoverProvider);
     final pendingOffersCount = ref.watch(fisherPendingOffersCountProvider);
+    final productsAsync = ref.watch(fisherProductsProvider(1));
 
     return Scaffold(
       appBar: AppBar(
@@ -86,41 +89,34 @@ class FisherHome extends ConsumerWidget {
           ),
         ],
       ),
-      body: catchesAsync.when(
-        data: (catches) {
-          return offersAsync.when(
-            data: (offers) {
-              // Filter for sale catches - those published in marketplace
-              // Note: status is derived from backend's published_in_market_place flag
-              final forSaleCatches = catches
-                  .where(
-                    (c) => c.isAvailable,
-                  ) // isAvailable = status == available
-                  .where((c) => c.availableWeight.kilograms > 0)
-                  .toList();
+      body: offersAsync.when(
+        data: (offers) {
+          // Check which products/catches have unviewed offers
+          final productsWithUnviewedOffers = <String>{};
+          for (final offer in offers) {
+            if (offer.hasUpdateForFisher) {
+              productsWithUnviewedOffers.add(
+                offer.catchId,
+              ); // catchId maps to product ID
+            }
+          }
 
-              // Check which catches have unviewed offers OR unread messages
-              final catchesWithUnviewedOffers = <String>{};
-              for (final offer in offers) {
-                if (offer.hasUpdateForFisher) {
-                  catchesWithUnviewedOffers.add(offer.catchId);
-                }
-              }
+          // Check for any unread messages
+          final user = ref.watch(currentUserProvider).value;
+          final hasUnreadMessages =
+              user != null &&
+              ref
+                  .watch(userConversationsProvider(user.id))
+                  .when(
+                    data: (conversations) => conversations.any(
+                      (c) => c.hasUnreadMessagesFor(user.id),
+                    ),
+                    loading: () => false,
+                    error: (_, __) => false,
+                  );
 
-              // Also check for any unread messages (we show notification if there are ANY unread messages)
-              final user = ref.watch(currentUserProvider).value;
-              final hasUnreadMessages =
-                  user != null &&
-                  ref
-                      .watch(userConversationsProvider(user.id))
-                      .when(
-                        data: (conversations) => conversations.any(
-                          (c) => c.hasUnreadMessagesFor(user.id),
-                        ),
-                        loading: () => false,
-                        error: (_, __) => false,
-                      );
-
+          return catchesAsync.when(
+            data: (catches) {
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -178,8 +174,8 @@ class FisherHome extends ConsumerWidget {
                                 children: [
                                   // For Sale Tab (Products)
                                   _buildForSaleTab(
-                                    forSaleCatches,
-                                    catchesWithUnviewedOffers,
+                                    productsAsync,
+                                    productsWithUnviewedOffers,
                                     hasUnreadMessages,
                                     context,
                                   ),
@@ -203,71 +199,85 @@ class FisherHome extends ConsumerWidget {
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) =>
-                Center(child: Text("Error loading offers: $error")),
+                Center(child: Text("Error loading catches: $error")),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>
-            Center(child: Text("Error loading catches: $error")),
+            Center(child: Text("Error loading offers: $error")),
       ),
     );
   }
 
   Widget _buildForSaleTab(
-    List<Catch> forSaleCatches,
-    Set<String> catchesWithUnviewedOffers,
+    AsyncValue<List<Product>> productsAsync,
+    Set<String> productsWithUnviewedOffers,
     bool hasUnreadMessages,
     BuildContext context,
   ) {
-    // Sort by date posted descending
-    final sortedCatches = List<Catch>.from(forSaleCatches)
-      ..sort((a, b) => b.datePosted.compareTo(a.datePosted));
+    return productsAsync.when(
+      data: (products) {
+        // Filter available products
+        final forSaleProducts = products
+            .where((p) => p.status.toLowerCase() == 'available')
+            .where((p) => p.availableWeight.kilograms > 0)
+            .toList();
 
-    if (sortedCatches.isEmpty) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            height: 120,
-            width: 120,
-            child: Image.asset("assets/images/no-offers.png"),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Your shop is empty for now.",
-            style: TextStyle(
-              color: AppColors.textBlue,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          const Text(
-            "Add your first item to start selling.",
-            style: TextStyle(
-              color: AppColors.textGray,
-              fontWeight: FontWeight.w300,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      );
-    }
+        // Sort by date posted descending
+        final sortedProducts = List<Product>.from(forSaleProducts)
+          ..sort((a, b) => b.datePosted.compareTo(a.datePosted));
 
-    return ListView.separated(
-      padding: const EdgeInsets.only(bottom: 80, top: 16),
-      itemCount: sortedCatches.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final item = sortedCatches[index];
-        final hasNotifications =
-            catchesWithUnviewedOffers.contains(item.id) || hasUnreadMessages;
+        if (sortedProducts.isEmpty) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 120,
+                width: 120,
+                child: Image.asset("assets/images/no-offers.png"),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Your shop is empty for now.",
+                style: TextStyle(
+                  color: AppColors.textBlue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const Text(
+                "Add your first item to start selling.",
+                style: TextStyle(
+                  color: AppColors.textGray,
+                  fontWeight: FontWeight.w300,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          );
+        }
 
-        return ForSaleCard(
-          catchData: item,
-          hasNotifications: hasNotifications,
-          onPressed: () => context.go('/fisher/catch-details/${item.id}'),
+        return ListView.separated(
+          padding: const EdgeInsets.only(bottom: 80, top: 16),
+          itemCount: sortedProducts.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
+            final item = sortedProducts[index];
+            final hasNotifications =
+                productsWithUnviewedOffers.contains(item.id) ||
+                hasUnreadMessages;
+
+            return ForSaleCard(
+              product: item,
+              hasNotifications: hasNotifications,
+              onPressed: () => context.go('/fisher/catch-details/${item.id}'),
+            );
+          },
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) =>
+          Center(child: Text("Error loading products: $error")),
     );
   }
 

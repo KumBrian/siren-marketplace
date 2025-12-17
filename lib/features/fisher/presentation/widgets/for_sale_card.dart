@@ -2,18 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 
 class ForSaleCard extends StatelessWidget {
   const ForSaleCard({
     super.key,
     required this.onPressed,
-    required this.catchData,
+    required this.product,
     required this.hasNotifications, // Includes both offer updates AND unread messages
   });
 
   final VoidCallback onPressed;
-  final Catch catchData;
+  final Product product;
   final bool hasNotifications;
 
   @override
@@ -32,23 +32,11 @@ class ForSaleCard extends StatelessWidget {
                 topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
               ),
-              // round corners
-              child: catchData.images[0].contains("http")
-                  ? Image.network(
-                      catchData.images[0],
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Image.asset(
-                        "assets/images/shrimp.jpg",
-                        height: 120,
-                        width: 120,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : (catchData.images[0].startsWith("assets/")
-                        ? Image.asset(
-                            catchData.images[0],
+              // Use species image from Product entity
+              child: product.species.image.isNotEmpty
+                  ? (product.species.image.contains("http")
+                        ? Image.network(
+                            product.species.image,
                             width: 120,
                             height: 120,
                             fit: BoxFit.cover,
@@ -60,19 +48,39 @@ class ForSaleCard extends StatelessWidget {
                                   fit: BoxFit.cover,
                                 ),
                           )
-                        : Image.file(
-                            File(catchData.images[0]),
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Image.asset(
-                                  "assets/images/shrimp.jpg",
-                                  height: 120,
+                        : (product.species.image.startsWith("assets/")
+                              ? Image.asset(
+                                  product.species.image,
                                   width: 120,
+                                  height: 120,
                                   fit: BoxFit.cover,
-                                ),
-                          )),
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Image.asset(
+                                        "assets/images/shrimp.jpg",
+                                        height: 120,
+                                        width: 120,
+                                        fit: BoxFit.cover,
+                                      ),
+                                )
+                              : Image.file(
+                                  File(product.species.image),
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Image.asset(
+                                        "assets/images/shrimp.jpg",
+                                        height: 120,
+                                        width: 120,
+                                        fit: BoxFit.cover,
+                                      ),
+                                )))
+                  : Image.asset(
+                      "assets/images/shrimp.jpg",
+                      height: 120,
+                      width: 120,
+                      fit: BoxFit.cover,
+                    ),
             ),
             Expanded(
               child: Padding(
@@ -89,7 +97,7 @@ class ForSaleCard extends StatelessWidget {
                           child: SizedBox(
                             width: 140,
                             child: Text(
-                              catchData.name,
+                              product.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -108,12 +116,12 @@ class ForSaleCard extends StatelessWidget {
                             Icon(
                               Icons.access_time,
                               size: 12,
-                              color: catchData.daysLeftLabel == "1 day left"
+                              color: product.daysLeftLabel == "1 day left"
                                   ? AppColors.fail500
                                   : AppColors.textBlue,
                             ),
                             Text(
-                              catchData.daysLeftLabel,
+                              product.daysLeftLabel,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w400,
@@ -131,7 +139,7 @@ class ForSaleCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 8,
                           children: [
-                            catchData.species.id == "prawns"
+                            product.species.id == "prawns"
                                 ? RichText(
                                     text: TextSpan(
                                       text: "Size: ",
@@ -142,7 +150,7 @@ class ForSaleCard extends StatelessWidget {
 
                                       children: [
                                         TextSpan(
-                                          text: catchData.size,
+                                          text: product.size,
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
@@ -153,7 +161,7 @@ class ForSaleCard extends StatelessWidget {
                                     ),
                                   )
                                 : Container(),
-                            catchData.species.id != "prawns"
+                            product.species.id != "prawns"
                                 ? RichText(
                                     text: TextSpan(
                                       text: "Size: ",
@@ -164,7 +172,7 @@ class ForSaleCard extends StatelessWidget {
 
                                       children: [
                                         TextSpan(
-                                          text: catchData.size,
+                                          text: product.size,
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
@@ -186,7 +194,7 @@ class ForSaleCard extends StatelessWidget {
                                 children: [
                                   TextSpan(
                                     text:
-                                        "${catchData.availableWeight.kilograms} kg",
+                                        "${product.availableWeight.kilograms} kg",
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
