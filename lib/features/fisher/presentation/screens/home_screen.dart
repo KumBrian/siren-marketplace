@@ -219,7 +219,6 @@ class FisherHome extends ConsumerWidget {
       data: (products) {
         // Filter available products
         final forSaleProducts = products
-            .where((p) => p.status.toLowerCase() == 'available')
             .where((p) => p.availableWeight.kilograms > 0)
             .toList();
 
