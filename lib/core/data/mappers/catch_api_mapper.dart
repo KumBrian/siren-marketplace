@@ -168,14 +168,43 @@ class CatchApiMapper {
     );
   }
 
-  /// Map domain CatchModel to API Update Request body (Partial)
-  static Map<String, dynamic> toUpdateRequest(CatchModel model) {
+  /// Map domain CatchModel to API Update Request body
+  /// Backend expects FULL catch body with all fields, not just changed fields
+  static Map<String, dynamic> toUpdateRequest(
+    CatchModel model, {
+    List<String> imageUrls = const [],
+  }) {
+    final isForSale = model.status == 'available';
+
     return {
-      'publishedInMarketPlace': model.status == 'available',
-      'pricePerKg': (model.pricePerKgAmount / 100.0),
-      'publishedWeightInGrams': model.availableWeightGrams.toDouble(),
-      'finalPrice': (model.totalPriceAmount / 100.0),
-      'status': model.status == 'available' ? 'PUBLISHED' : 'UPLOADED',
+      'specie': int.tryParse(model.species.id) ?? 1,
+      'gear_mesh_size_in_finger': model.meshSize ?? 0.0,
+      'gear_length_in_meter': model.gearLength ?? 0.0,
+      'gear_width_in_meter': model.gearWidth ?? 0.0,
+      'gear_nature': model.gearNature ?? 'Unknown',
+      'water_depth_in_meter': model.waterDepth ?? 0.0,
+      'fishing_time_in_hour': model.fishingTime ?? 0.0,
+      'estimated_weight_in_grams': model.initialWeightGrams.toDouble(),
+      'average_size_in_cm': double.tryParse(model.size) ?? 0.0,
+      'estimated_size': model.numberOfShrimps ?? 0,
+      'published_weight_in_grams': isForSale
+          ? model.availableWeightGrams.toDouble()
+          : 0.0,
+      'price_per_kg': isForSale ? (model.pricePerKgAmount / 100.0) : 0.0,
+      'final_price': isForSale ? (model.totalPriceAmount / 100.0) : 0.0,
+      'published_in_market_place': isForSale,
+      'note': '',
+      'location_name': model.locationName,
+      'latitude': model.latitude,
+      'longitude': model.longitude,
+      'images': imageUrls.isNotEmpty
+          ? imageUrls.map((url) => {'mediaUrl': url}).toList()
+          : [],
+      'alpha': '',
+      'size': model.size,
+      'dead': false,
+      'date': DateTime.now().toIso8601String(),
+      'market': 1,
     };
   }
 }

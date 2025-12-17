@@ -323,8 +323,11 @@ class CatchesApiDataSource implements ICatchDataSource {
         }
       }
 
-      // Use Partial Update for publishing/updating info
-      final requestBody = CatchApiMapper.toUpdateRequest(catchItem);
+      // Use Full Update request body
+      final requestBody = CatchApiMapper.toUpdateRequest(
+        catchItem,
+        imageUrls: finalImageUrls,
+      );
 
       final url = ApiConfig.fishCatchUpdate(catchItem.id);
 
