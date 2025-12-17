@@ -509,11 +509,49 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                         AnimatedBuilder(
                           animation: _tabController,
                           builder: (context, _) {
+                            final currentUserAsync = ref.watch(
+                              currentUserProvider,
+                            );
+
                             return offersAsync.when(
                               data: (offers) {
                                 final offersWithUpdates = offers
                                     .where((o) => o.hasUpdateForFisher)
                                     .length;
+
+                                // Get unread messages count
+                                final unreadMessagesCount = currentUserAsync.maybeWhen(
+                                  data: (user) {
+                                    if (user == null) return 0;
+
+                                    final conversationsAsync = ref.watch(
+                                      userConversationsProvider(user.id),
+                                    );
+
+                                    return conversationsAsync.maybeWhen(
+                                      data: (conversations) {
+                                        // Get buyer IDs from offers on this catch
+                                        final buyerIds = offers
+                                            .map((o) => o.buyerId)
+                                            .toSet();
+
+                                        // Count unread conversations with buyers who made offers
+                                        return conversations.where((conv) {
+                                          final otherUserId = conv
+                                              .getOtherParticipantId(user.id);
+                                          return buyerIds.contains(
+                                                otherUserId,
+                                              ) &&
+                                              conv.hasUnreadMessagesFor(
+                                                user.id,
+                                              );
+                                        }).length;
+                                      },
+                                      orElse: () => 0,
+                                    );
+                                  },
+                                  orElse: () => 0,
+                                );
 
                                 return TabBar(
                                   controller: _tabController,
@@ -555,7 +593,38 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                                         ],
                                       ),
                                     ),
-                                    const Tab(text: "Messages"),
+                                    Tab(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Text("Messages"),
+                                          if (unreadMessagesCount > 0)
+                                            Container(
+                                              margin: const EdgeInsets.only(
+                                                left: 8,
+                                              ),
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: _tabController.index == 1
+                                                    ? AppColors.textBlue
+                                                    : AppColors.textBlue
+                                                          .withValues(
+                                                            alpha: .6,
+                                                          ),
+                                              ),
+                                              child: Text(
+                                                "$unreadMessagesCount",
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppColors.textWhite,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
                                   ],
                                 );
                               },

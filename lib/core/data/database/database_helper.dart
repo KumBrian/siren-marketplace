@@ -9,7 +9,7 @@ extension CatchStatusExtension on CatchStatus {
 
 class DatabaseHelper {
   static const _databaseName = "siren_marketplace.db";
-  static const _databaseVersion = 23;
+  static const _databaseVersion = 30;
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();

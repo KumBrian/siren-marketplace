@@ -15,6 +15,7 @@ import 'package:siren_marketplace/core/models/info_row.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
 import 'package:siren_marketplace/core/providers/failed_transaction_provider.dart';
 import 'package:siren_marketplace/core/providers/order_providers.dart';
+import 'package:siren_marketplace/core/providers/review_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
@@ -419,6 +420,12 @@ class BuyerOrderDetails extends ConsumerWidget {
                                                 // Invalidate user to refresh partner card
                                                 ref.invalidate(
                                                   userProvider(ratedUserId),
+                                                );
+                                                // Invalidate reviews to show new review
+                                                ref.invalidate(
+                                                  reviewsForUserProvider(
+                                                    ratedUserId,
+                                                  ),
                                                 );
 
                                                 // Show success message

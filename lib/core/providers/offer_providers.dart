@@ -4,6 +4,7 @@ import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
 import 'package:siren_marketplace/core/providers/catch_filter_provider.dart';
+import 'package:siren_marketplace/core/providers/conversation_providers.dart';
 import 'package:siren_marketplace/core/providers/notification_filter_provider.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
@@ -46,25 +47,55 @@ final buyerOffersProvider = FutureProvider.autoDispose<List<Offer>>((
 });
 
 /// Provider to count pending offers with updates for fisher
-/// Derived state that automatically updates
+/// Combined count: offer updates + unread messages
 final fisherPendingOffersCountProvider = Provider.autoDispose<int>((ref) {
+  final user = ref.watch(currentUserProvider).value;
+  if (user == null) return 0;
+
+  // Count offer updates
   final offersAsync = ref.watch(fisherOffersProvider);
-  return offersAsync.when(
+  final offerCount = offersAsync.when(
     data: (offers) => offers.where((o) => o.hasUpdateForFisher).length,
     loading: () => 0,
     error: (_, __) => 0,
   );
+
+  // Count unread conversations
+  final conversationsAsync = ref.watch(userConversationsProvider(user.id));
+  final messageCount = conversationsAsync.when(
+    data: (conversations) =>
+        conversations.where((c) => c.hasUnreadMessagesFor(user.id)).length,
+    loading: () => 0,
+    error: (_, __) => 0,
+  );
+
+  return offerCount + messageCount;
 });
 
 /// Provider to count offers with updates for buyer (for notification badge)
-/// Derived state that automatically updates
+/// Combined count: offer updates + unread messages
 final buyerNotificationCountProvider = Provider.autoDispose<int>((ref) {
+  final user = ref.watch(currentUserProvider).value;
+  if (user == null) return 0;
+
+  // Count offer updates
   final offersAsync = ref.watch(buyerOffersProvider);
-  return offersAsync.when(
+  final offerCount = offersAsync.when(
     data: (offers) => offers.where((o) => o.hasUpdateForBuyer).length,
     loading: () => 0,
     error: (_, __) => 0,
   );
+
+  // Count unread conversations
+  final conversationsAsync = ref.watch(userConversationsProvider(user.id));
+  final messageCount = conversationsAsync.when(
+    data: (conversations) =>
+        conversations.where((c) => c.hasUnreadMessagesFor(user.id)).length,
+    loading: () => 0,
+    error: (_, __) => 0,
+  );
+
+  return offerCount + messageCount;
 });
 
 /// Provider for filtered and sorted offers for a specific catch
@@ -120,10 +151,10 @@ final filteredNotificationOffersProvider =
           return filterState.activeStatuses.contains(offer.status);
         }).toList();
 
-        // Apply sort
+        // Apply sort by dateUpdated (most recent updates first)
         filtered.sort((a, b) {
-          final dateA = a.dateCreated;
-          final dateB = b.dateCreated;
+          final dateA = a.dateUpdated;
+          final dateB = b.dateUpdated;
           return filterState.activeSortBy == "ascending"
               ? dateA.compareTo(dateB)
               : dateB.compareTo(dateA);

@@ -80,10 +80,16 @@ class Offer extends Equatable {
       throw StateError('Offer cannot be accepted in status: $status');
     }
 
+    // Use waitingFor to determine who is accepting and notify the opposite party
+    // If waitingFor is fisher (fisher's turn), buyer gets notification
+    // If waitingFor is buyer (buyer's turn), fisher gets notification
     return copyWith(
       status: OfferStatus.accepted,
       dateUpdated: DateTime.now(),
       waitingFor: null,
+      clearWaitingFor: true,
+      hasUpdateForFisher: waitingFor == UserRole.buyer ? true : false,
+      hasUpdateForBuyer: waitingFor == UserRole.fisher ? true : false,
     );
   }
 
@@ -92,10 +98,16 @@ class Offer extends Equatable {
       throw StateError('Offer cannot be rejected in status: $status');
     }
 
+    // Use waitingFor to determine who is rejecting and notify the opposite party
+    // If waitingFor is fisher (fisher's turn), buyer gets notification
+    // If waitingFor is buyer (buyer's turn), fisher gets notification
     return copyWith(
       status: OfferStatus.rejected,
       dateUpdated: DateTime.now(),
       waitingFor: null,
+      clearWaitingFor: true,
+      hasUpdateForFisher: waitingFor == UserRole.buyer ? true : false,
+      hasUpdateForBuyer: waitingFor == UserRole.fisher ? true : false,
     );
   }
 
@@ -112,12 +124,18 @@ class Offer extends Equatable {
         ? UserRole.buyer
         : UserRole.fisher;
 
+    // Set hasUpdate flag for the OTHER party (the one receiving the counter)
+    // The countering party has already seen it (they created it), so hasUpdate=false
     return copyWith(
       currentTerms: newTerms,
       previousTerms: currentTerms,
       status: OfferStatus.pending,
       dateUpdated: DateTime.now(),
       waitingFor: nextWaitingFor,
+      // If fisher counters, buyer needs notification (hasUpdateForBuyer=true)
+      // If buyer counters, fisher needs notification (hasUpdateForFisher=true)
+      hasUpdateForFisher: byUserId == buyerId ? true : false,
+      hasUpdateForBuyer: byUserId == fisherId ? true : false,
     );
   }
 
