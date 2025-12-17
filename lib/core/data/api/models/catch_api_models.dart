@@ -147,3 +147,16 @@ class CreateCatchRequest with _$CreateCatchRequest {
   factory CreateCatchRequest.fromJson(Map<String, dynamic> json) =>
       _$CreateCatchRequestFromJson(json);
 }
+
+/// Response model for catch update when publishing to marketplace
+/// Backend returns both the updated catch and newly created product
+@freezed
+class UpdateCatchResponse with _$UpdateCatchResponse {
+  const factory UpdateCatchResponse({
+    required CatchApiModel fishCatch,
+    required dynamic product, // ProductApiModel or Map - we'll handle both
+  }) = _UpdateCatchResponse;
+
+  factory UpdateCatchResponse.fromJson(Map<String, dynamic> json) =>
+      _$UpdateCatchResponseFromJson(json);
+}

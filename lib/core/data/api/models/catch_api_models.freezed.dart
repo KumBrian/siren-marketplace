@@ -2808,3 +2808,197 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
   _$$CreateCatchRequestImplCopyWith<_$CreateCatchRequestImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
+
+UpdateCatchResponse _$UpdateCatchResponseFromJson(Map<String, dynamic> json) {
+  return _UpdateCatchResponse.fromJson(json);
+}
+
+/// @nodoc
+mixin _$UpdateCatchResponse {
+  CatchApiModel get fishCatch => throw _privateConstructorUsedError;
+  dynamic get product => throw _privateConstructorUsedError;
+
+  /// Serializes this UpdateCatchResponse to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of UpdateCatchResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $UpdateCatchResponseCopyWith<UpdateCatchResponse> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $UpdateCatchResponseCopyWith<$Res> {
+  factory $UpdateCatchResponseCopyWith(
+    UpdateCatchResponse value,
+    $Res Function(UpdateCatchResponse) then,
+  ) = _$UpdateCatchResponseCopyWithImpl<$Res, UpdateCatchResponse>;
+  @useResult
+  $Res call({CatchApiModel fishCatch, dynamic product});
+
+  $CatchApiModelCopyWith<$Res> get fishCatch;
+}
+
+/// @nodoc
+class _$UpdateCatchResponseCopyWithImpl<$Res, $Val extends UpdateCatchResponse>
+    implements $UpdateCatchResponseCopyWith<$Res> {
+  _$UpdateCatchResponseCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of UpdateCatchResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? fishCatch = null, Object? product = freezed}) {
+    return _then(
+      _value.copyWith(
+            fishCatch: null == fishCatch
+                ? _value.fishCatch
+                : fishCatch // ignore: cast_nullable_to_non_nullable
+                      as CatchApiModel,
+            product: freezed == product
+                ? _value.product
+                : product // ignore: cast_nullable_to_non_nullable
+                      as dynamic,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of UpdateCatchResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $CatchApiModelCopyWith<$Res> get fishCatch {
+    return $CatchApiModelCopyWith<$Res>(_value.fishCatch, (value) {
+      return _then(_value.copyWith(fishCatch: value) as $Val);
+    });
+  }
+}
+
+/// @nodoc
+abstract class _$$UpdateCatchResponseImplCopyWith<$Res>
+    implements $UpdateCatchResponseCopyWith<$Res> {
+  factory _$$UpdateCatchResponseImplCopyWith(
+    _$UpdateCatchResponseImpl value,
+    $Res Function(_$UpdateCatchResponseImpl) then,
+  ) = __$$UpdateCatchResponseImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({CatchApiModel fishCatch, dynamic product});
+
+  @override
+  $CatchApiModelCopyWith<$Res> get fishCatch;
+}
+
+/// @nodoc
+class __$$UpdateCatchResponseImplCopyWithImpl<$Res>
+    extends _$UpdateCatchResponseCopyWithImpl<$Res, _$UpdateCatchResponseImpl>
+    implements _$$UpdateCatchResponseImplCopyWith<$Res> {
+  __$$UpdateCatchResponseImplCopyWithImpl(
+    _$UpdateCatchResponseImpl _value,
+    $Res Function(_$UpdateCatchResponseImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of UpdateCatchResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? fishCatch = null, Object? product = freezed}) {
+    return _then(
+      _$UpdateCatchResponseImpl(
+        fishCatch: null == fishCatch
+            ? _value.fishCatch
+            : fishCatch // ignore: cast_nullable_to_non_nullable
+                  as CatchApiModel,
+        product: freezed == product
+            ? _value.product
+            : product // ignore: cast_nullable_to_non_nullable
+                  as dynamic,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$UpdateCatchResponseImpl implements _UpdateCatchResponse {
+  const _$UpdateCatchResponseImpl({
+    required this.fishCatch,
+    required this.product,
+  });
+
+  factory _$UpdateCatchResponseImpl.fromJson(Map<String, dynamic> json) =>
+      _$$UpdateCatchResponseImplFromJson(json);
+
+  @override
+  final CatchApiModel fishCatch;
+  @override
+  final dynamic product;
+
+  @override
+  String toString() {
+    return 'UpdateCatchResponse(fishCatch: $fishCatch, product: $product)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$UpdateCatchResponseImpl &&
+            (identical(other.fishCatch, fishCatch) ||
+                other.fishCatch == fishCatch) &&
+            const DeepCollectionEquality().equals(other.product, product));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    fishCatch,
+    const DeepCollectionEquality().hash(product),
+  );
+
+  /// Create a copy of UpdateCatchResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$UpdateCatchResponseImplCopyWith<_$UpdateCatchResponseImpl> get copyWith =>
+      __$$UpdateCatchResponseImplCopyWithImpl<_$UpdateCatchResponseImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$UpdateCatchResponseImplToJson(this);
+  }
+}
+
+abstract class _UpdateCatchResponse implements UpdateCatchResponse {
+  const factory _UpdateCatchResponse({
+    required final CatchApiModel fishCatch,
+    required final dynamic product,
+  }) = _$UpdateCatchResponseImpl;
+
+  factory _UpdateCatchResponse.fromJson(Map<String, dynamic> json) =
+      _$UpdateCatchResponseImpl.fromJson;
+
+  @override
+  CatchApiModel get fishCatch;
+  @override
+  dynamic get product;
+
+  /// Create a copy of UpdateCatchResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$UpdateCatchResponseImplCopyWith<_$UpdateCatchResponseImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}

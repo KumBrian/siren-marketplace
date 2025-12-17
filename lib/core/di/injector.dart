@@ -50,6 +50,9 @@ import '../domain/services/session_service.dart';
 import '../data/api/api_client.dart';
 import '../data/storage/token_storage.dart';
 import '../data/sources/api/auth_api_data_source.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/catch_providers.dart';
+import '../providers/product_providers.dart';
 
 // ============================================================================
 // GET_IT INSTANCE
@@ -300,13 +303,18 @@ void _initApiMode(DatabaseHelper dbHelper) {
   });
 
   // Register Catches Repository with API Data Source
+  // First register the data source as a singleton so we can set callbacks
+  sl.registerLazySingleton<CatchesApiDataSource>(
+    () => CatchesApiDataSource(
+      client: sl(instanceName: 'marketplaceApiClient'),
+      mediaDataSource: sl<MediaApiDataSource>(),
+      subgroupsDataSource: sl<SubgroupsApiDataSource>(),
+    ),
+  );
+
   sl.registerLazySingleton<ICatchRepository>(
     () => CatchRepositoryImpl(
-      remoteDataSource: CatchesApiDataSource(
-        client: sl(instanceName: 'marketplaceApiClient'),
-        mediaDataSource: sl<MediaApiDataSource>(),
-        subgroupsDataSource: sl<SubgroupsApiDataSource>(),
-      ),
+      remoteDataSource: sl<CatchesApiDataSource>(),
       localDataSource: local.catchDataSource,
     ),
   );
@@ -353,5 +361,39 @@ void _initApiMode(DatabaseHelper dbHelper) {
   // Register Subgroups API Data Source
   sl.registerLazySingleton<SubgroupsApiDataSource>(
     () => SubgroupsApiDataSource(sl(instanceName: 'marketplaceApiClient')),
+  );
+
+  // Set up callback for catch published event
+  // This will be called after ProviderScope is initialized
+  _setupCatchPublishedCallback();
+}
+
+/// Set up callback for catch published to marketplace event
+/// Must be called after ProviderScope is created in main()
+void setupProviderInvalidation(ProviderContainer container) {
+  // Import at top of file
+  // import '../providers/provider_invalidator.dart';
+
+  if (sl.isRegistered<CatchesApiDataSource>()) {
+    final catchesDataSource = sl<CatchesApiDataSource>();
+
+    // Set callback to invalidate both catch and product providers
+    catchesDataSource.setOnCatchPublishedCallback(() {
+      print(
+        'DEBUG: Catch published callback triggered, invalidating providers',
+      );
+      container.invalidate(fisherCatchesProvider);
+      container.invalidate(fisherProductsProvider);
+    });
+
+    print('DEBUG: Provider invalidation callback set up successfully');
+  }
+}
+
+void _setupCatchPublishedCallback() {
+  // This will be called later from main() after ProviderScope is created
+  // For now, just log that we're in API mode
+  print(
+    'DEBUG: API mode initialized, provider callback will be set in setupProviderInvalidation()',
   );
 }

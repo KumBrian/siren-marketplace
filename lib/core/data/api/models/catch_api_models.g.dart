@@ -235,3 +235,17 @@ Map<String, dynamic> _$$CreateCatchRequestImplToJson(
   'patrol': instance.patrol,
   'segment': instance.segment,
 };
+
+_$UpdateCatchResponseImpl _$$UpdateCatchResponseImplFromJson(
+  Map<String, dynamic> json,
+) => _$UpdateCatchResponseImpl(
+  fishCatch: CatchApiModel.fromJson(json['fishCatch'] as Map<String, dynamic>),
+  product: json['product'],
+);
+
+Map<String, dynamic> _$$UpdateCatchResponseImplToJson(
+  _$UpdateCatchResponseImpl instance,
+) => <String, dynamic>{
+  'fishCatch': instance.fishCatch.toJson(),
+  'product': instance.product,
+};

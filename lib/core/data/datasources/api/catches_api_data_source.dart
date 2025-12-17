@@ -275,6 +275,15 @@ class CatchesApiDataSource implements ICatchDataSource {
     return catches;
   }
 
+  // Callback for invalidating providers after update
+  Function()? _onCatchPublished;
+
+  /// Set callback to be called when a catch is published to marketplace
+  /// This should invalidate both catch and product providers
+  void setOnCatchPublishedCallback(Function() callback) {
+    _onCatchPublished = callback;
+  }
+
   @override
   Future<void> update(CatchModel catchItem) async {
     try {
@@ -319,11 +328,42 @@ class CatchesApiDataSource implements ICatchDataSource {
 
       final url = ApiConfig.fishCatchUpdate(catchItem.id);
 
-      await _client.patch(
+      print('DEBUG: Updating catch ${catchItem.id} with body: $requestBody');
+
+      final response = await _client.patch(
         url,
         data: requestBody,
         options: Options(contentType: 'application/merge-patch+json'),
       );
+
+      print('DEBUG: Update response status: ${response.statusCode}');
+      print('DEBUG: Update response data: ${response.data}');
+
+      // Check if response contains both fishCatch and product (publish to marketplace)
+      final responseData = response.data['data'] ?? response.data;
+
+      if (responseData is Map && responseData.containsKey('product')) {
+        print('DEBUG: Catch published to marketplace! Product created.');
+
+        // Parse the update response
+        try {
+          final updateResponse = UpdateCatchResponse.fromJson(
+            Map<String, dynamic>.from(responseData),
+          );
+          print('DEBUG: Parsed UpdateCatchResponse successfully');
+          print('DEBUG: Product ID: ${updateResponse.product}');
+
+          // Trigger the callback to invalidate both catch and product providers
+          if (_onCatchPublished != null) {
+            print('DEBUG: Triggering provider invalidation callback');
+            _onCatchPublished!();
+          } else {
+            print('WARNING: No callback set for catch published event');
+          }
+        } catch (e) {
+          print('ERROR: Failed to parse UpdateCatchResponse: $e');
+        }
+      }
 
       // Invalidate cache
       _catchCache.remove(catchItem.id);

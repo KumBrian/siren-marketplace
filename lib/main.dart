@@ -24,8 +24,16 @@ Future<void> main() async {
     await seeder.seedAll();
   }
 
+  // Create provider container
+  final container = ProviderContainer();
+
+  // Set up provider invalidation for catch published events (API mode only)
+  if (AppConfig.isApiMode) {
+    setupProviderInvalidation(container);
+  }
+
   // Run app
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }
 
 class MyApp extends ConsumerWidget {
