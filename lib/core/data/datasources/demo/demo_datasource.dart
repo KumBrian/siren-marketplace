@@ -193,7 +193,7 @@ class DemoOfferDataSource implements IOfferDataSource {
   @override
   Future<List<OfferModel>> getByCatchId(String catchId) async {
     await Future.delayed(Duration(milliseconds: 100));
-    return _offers.values.where((o) => o.catchId == catchId).toList();
+    return _offers.values.where((o) => o.productId == catchId).toList();
   }
 
   @override
@@ -211,7 +211,7 @@ class DemoOfferDataSource implements IOfferDataSource {
   @override
   Future<List<OfferModel>> getByCatchIds(List<String> catchIds) async {
     await Future.delayed(Duration(milliseconds: 100));
-    return _offers.values.where((o) => catchIds.contains(o.catchId)).toList();
+    return _offers.values.where((o) => catchIds.contains(o.productId)).toList();
   }
 
   @override
@@ -648,7 +648,7 @@ class DemoDataSourceFactory {
     // Seed Offers
     final offer1 = OfferModel(
       id: 'OFF12345678',
-      catchId: catch1.id,
+      productId: catch1.id,
       fisherId: fisher1.id,
       buyerId: buyer1.id,
       currentPriceAmount: 7000,
@@ -669,7 +669,7 @@ class DemoDataSourceFactory {
 
     final offer2 = OfferModel(
       id: 'OFF23456789',
-      catchId: catch2.id,
+      productId: catch2.id,
       fisherId: fisher2.id,
       buyerId: buyer2.id,
       currentPriceAmount: 5500,
@@ -690,7 +690,7 @@ class DemoDataSourceFactory {
 
     final offer3 = OfferModel(
       id: 'OFF34567890',
-      catchId: catch3.id,
+      productId: catch3.id,
       fisherId: fisher1.id,
       buyerId: buyer1.id,
       currentPriceAmount: 2400,

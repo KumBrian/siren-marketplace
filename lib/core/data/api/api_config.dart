@@ -52,9 +52,11 @@ class ApiConfig {
   static const String reviews = '/reviews';
   static const String speciesList = '/species/list';
   static const String products = '/products';
+  static const String myProducts = '/products/my-products';
   static const String markets = '/markets';
   static const String species = '/species';
   static const String gears = '/gears';
+  static const String productsAvailable = '/products/available';
 
   /// Get endpoint for specific fish catch
   static String fishCatch(String id) => '$fishCatches/$id';
@@ -64,6 +66,14 @@ class ApiConfig {
 
   /// Delete endpoint for specific fish catch
   static String fishCatchDelete(String id) => '$fishCatches/$id/delete';
+
+  /// Delete endpoint for specific product
+  static String productDelete(String id) => '$products/$id/delete';
+
+  /// Update endpoint for specific product
+  static String productUpdate(String id) => '$products/$id';
+
+  static const String makeOffer = '/offers/make-offer';
 
   /// Get endpoint for specific offer
   static String offer(String id) => '$offers/$id';

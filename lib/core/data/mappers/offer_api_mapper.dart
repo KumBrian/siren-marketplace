@@ -1,23 +1,15 @@
 import '../api/models/offer_api_models.dart';
 import '../models/offer_model.dart';
+import '../mappers/product_mapper.dart';
 // import '../../domain/enums/offer_status.dart';
 
 class OfferApiMapper {
   static OfferModel toDomain(OfferApiModel apiModel) {
     return OfferModel(
       id: apiModel.id.toString(),
-      catchId:
-          apiModel.catchId?.toString() ??
-          apiModel.catchDetails?.id?.toString() ??
-          'unknown_catch',
-      fisherId:
-          apiModel.fisherId?.toString() ??
-          apiModel.fisher?.id?.toString() ??
-          'unknown_fisher',
-      buyerId:
-          apiModel.buyerId?.toString() ??
-          apiModel.buyer?.id?.toString() ??
-          'unknown_buyer',
+      productId: apiModel.product?.id?.toString() ?? 'unknown_catch',
+      fisherId: apiModel.product?.account?.uid ?? 'unknown_fisher',
+      buyerId: apiModel.buyer?.id.toString() ?? 'unknown_buyer',
       currentPriceAmount: apiModel.currentPriceAmount ?? 0,
       currentWeightGrams: apiModel.currentWeightGrams ?? 0,
       currentPricePerKgAmount: apiModel.currentPricePerKgAmount ?? 0,
@@ -27,18 +19,27 @@ class OfferApiMapper {
       status: apiModel.status ?? 'pending',
       dateCreated: apiModel.createdAt ?? DateTime.now().toIso8601String(),
       dateUpdated: apiModel.updatedAt ?? DateTime.now().toIso8601String(),
-      waitingFor: 'fisher', // Default or derived from status logic
-      hasUpdateForFisher: true,
-      hasUpdateForBuyer: true,
+      waitingFor: apiModel.waitingFor ?? 'fisher',
+      hasUpdateForFisher: apiModel.hasUpdateForFisher ?? true,
+      hasUpdateForBuyer: apiModel.hasUpdateForBuyer ?? true,
+      product: apiModel.product != null
+          ? ProductMapper.toDomain(apiModel.product!)
+          : null,
     );
   }
 
   static CreateOfferRequest toRequest(OfferModel model) {
+    dynamic productId = model.productId;
+    // Try to parse to int if it looks like an int, because backend examples show int product ID
+    if (int.tryParse(model.productId) != null) {
+      productId = int.parse(model.productId);
+    }
+
     return CreateOfferRequest(
-      catchId: model.catchId,
-      priceAmount: model.currentPriceAmount,
-      weightGrams: model.currentWeightGrams,
-      pricePerKgAmount: model.currentPricePerKgAmount,
+      product: productId, // catchId is the product ID
+      price: model.currentPriceAmount.toDouble(),
+      weightInGrams: model.currentWeightGrams.toDouble(),
+      pricePerKg: model.currentPricePerKgAmount.toDouble(),
     );
   }
 }

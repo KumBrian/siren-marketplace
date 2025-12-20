@@ -4,6 +4,8 @@ import '../enums/offer_status.dart';
 import '../enums/order_status.dart';
 import '../enums/user_role.dart';
 import '../repositories/i_catch_repository.dart';
+import '../repositories/i_product_repository.dart';
+import '../entities/product.dart';
 import '../repositories/i_offer_repository.dart';
 import '../repositories/i_order_repository.dart';
 import '../value_objects/offer_terms.dart';
@@ -15,6 +17,7 @@ class NegotiationService {
   final IOfferRepository _offerRepository;
   final IOrderRepository _orderRepository;
   final ICatchRepository _catchRepository;
+  final IProductRepository _productRepository;
   final MessageService?
   _messageService; // Optional for now to avoid breaking changes
   static const _uuid = Uuid();
@@ -23,35 +26,55 @@ class NegotiationService {
     required IOfferRepository offerRepository,
     required IOrderRepository orderRepository,
     required ICatchRepository catchRepository,
+    required IProductRepository productRepository,
     MessageService? messageService,
   }) : _offerRepository = offerRepository,
        _orderRepository = orderRepository,
        _catchRepository = catchRepository,
+       _productRepository = productRepository,
        _messageService = messageService;
 
-  /// Create a new offer for a catch
+  /// Create a new offer for a catch or product
   Future<Offer> createOffer({
     required String catchId,
     required String buyerId,
     required String fisherId,
     required OfferTerms terms,
   }) async {
-    // Validate catch exists and can receive offers
-    final catchItem = await _catchRepository.getById(catchId);
-    if (catchItem == null) {
-      throw ArgumentError('Catch not found');
+    // Try to find as product first (migration preference)
+    final productResult = await _productRepository.getProductById(catchId);
+    // Check product first
+    double availableWeightGrams = 0;
+    Product? product;
+    if (productResult.isRight) {
+      product = productResult.getOrElse(() => null);
     }
 
-    if (!catchItem.canReceiveOffers) {
-      throw StateError(
-        'Catch cannot receive offers (status: ${catchItem.status})',
-      );
+    if (product != null) {
+      availableWeightGrams = product.availableWeight.grams.toDouble();
+      // Product doesn't have explicit "canReceiveOffers" other than weight > 0 and implicit status
+      if (availableWeightGrams <= 0) {
+        throw StateError('Product available weight is zero');
+      }
+    } else {
+      // Fallback to Catch
+      final catchItem = await _catchRepository.getById(catchId);
+      if (catchItem == null) {
+        throw ArgumentError('Product/Catch not found');
+      }
+
+      if (!catchItem.canReceiveOffers) {
+        throw StateError(
+          'Catch cannot receive offers (status: ${catchItem.status})',
+        );
+      }
+      availableWeightGrams = catchItem.availableWeight.grams.toDouble();
     }
 
     // Validate weight doesn't exceed available
-    if (terms.weight > catchItem.availableWeight) {
+    if (terms.weight.grams > availableWeightGrams) {
       throw ArgumentError(
-        'Offer weight (${terms.weight}) exceeds available weight (${catchItem.availableWeight})',
+        'Offer weight (${terms.weight}) exceeds available weight ($availableWeightGrams)',
       );
     }
 
@@ -67,6 +90,7 @@ class NegotiationService {
       dateCreated: DateTime.now(),
       dateUpdated: DateTime.now(),
       waitingFor: UserRole.fisher, // Fisher must respond first
+      product: product,
     );
 
     await _offerRepository.create(offer);

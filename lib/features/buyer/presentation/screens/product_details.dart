@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
-import 'package:siren_marketplace/core/providers/catch_providers.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/product_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
@@ -50,15 +50,15 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
 
   void _showMakeOfferDialog(
     BuildContext context,
-    Catch catchItem,
+    Product productItem,
     String currentUserId,
   ) {
     _weightController.clear();
     _priceController.clear();
     _pricePerKgController.clear();
 
-    // Prefill with the catch's current price per kg
-    final initialPricePerKg = catchItem.pricePerKg.amountPerKg;
+    // Prefill with the product's current price per kg
+    final initialPricePerKg = productItem.pricePerKg.amountPerKg;
     _pricePerKgController.text = initialPricePerKg.toStringAsFixed(0);
 
     bool userEditingTotal = false;
@@ -165,7 +165,7 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                                   .round();
 
                               if (weightInGrams >
-                                  catchItem.availableWeight.grams) {
+                                  productItem.availableWeight.grams) {
                                 return "Cannot exceed available weight";
                               }
                               return null;
@@ -237,19 +237,12 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                                 ref
                                     .read(offerActionsProvider.notifier)
                                     .createOffer(
-                                      catchItem.id,
+                                      productItem.id,
                                       currentUserId,
-                                      catchItem.fisherId,
+                                      productItem.fisherId,
                                       terms,
                                     );
 
-                                // Close dialog immediately or wait for success?
-                                // Usually better to wait, but the dialog is blocking.
-                                // I'll listen to state changes in the parent widget to close/show success.
-                                // But here I'm inside a dialog.
-                                // I can listen here too if I use Consumer.
-                                // However, the success dialog is shown AFTER this one closes.
-                                // So I'll just trigger the action. The listener in the main build method will handle success.
                                 Navigator.of(dialogContext).pop();
                               }
                             }
@@ -269,7 +262,8 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final catchAsync = ref.watch(catchProvider(widget.productId));
+    // Switch to productByIdProvider
+    final productAsync = ref.watch(productByIdProvider(widget.productId));
     final currentUserAsync = ref.watch(currentUserProvider);
     final buyerOffersAsync = ref.watch(buyerOffersProvider);
 
@@ -324,22 +318,22 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
       }
     });
 
-    return catchAsync.when(
+    return productAsync.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, stack) => Scaffold(
         appBar: AppBar(leading: const BackButton()),
         body: Center(child: Text("Error loading product: $error")),
       ),
-      data: (catchItem) {
-        if (catchItem == null) {
+      data: (productItem) {
+        if (productItem == null) {
           return Scaffold(
             appBar: AppBar(
               leading: const BackButton(),
               title: const Text("Details"),
             ),
             body: const Center(
-              child: Text("Catch not found in marketplace listings."),
+              child: Text("Product not found in marketplace listings."),
             ),
           );
         }
@@ -361,14 +355,14 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
               data: (offers) => offers.any(
                 (offer) =>
                     offer.status == OfferStatus.pending &&
-                    offer.catchId == catchItem.id &&
+                    offer.catchId == productItem.id &&
                     offer.buyerId == currentUser.id,
               ),
               orElse: () => false,
             );
 
-            // Fetch fisher details
-            final fisherAsync = ref.watch(userProvider(catchItem.fisherId));
+            // Fetch fisher details using productItem.fisherId
+            final fisherAsync = ref.watch(userProvider(productItem.fisherId));
 
             return Scaffold(
               appBar: AppBar(
@@ -378,10 +372,10 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
               ),
               body: RefreshIndicator(
                 onRefresh: () async {
-                  ref.invalidate(catchProvider(widget.productId));
+                  ref.invalidate(productByIdProvider(widget.productId));
                   ref.invalidate(buyerOffersProvider);
                   await Future.wait([
-                    ref.read(catchProvider(widget.productId).future),
+                    ref.read(productByIdProvider(widget.productId).future),
                     ref.read(buyerOffersProvider.future),
                   ]);
                 },
@@ -397,9 +391,9 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                       spacing: 8,
                       children: [
                         // Images
-                        ProductImagesCarousel(images: catchItem.images),
+                        ProductImagesCarousel(images: productItem.images),
 
-                        SectionHeader(catchItem.name),
+                        SectionHeader(productItem.name),
                         Row(
                           children: [
                             Container(
@@ -414,7 +408,9 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                               ),
                               child: Center(
                                 child: Text(
-                                  formatPrice(catchItem.pricePerKg.amountPerKg),
+                                  formatPrice(
+                                    productItem.pricePerKg.amountPerKg,
+                                  ),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
@@ -439,23 +435,23 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                             rows: [
                               InfoRow(
                                 label: "Market",
-                                value: catchItem.market.capitalize(),
+                                value: productItem.marketName.capitalize(),
                               ),
-                              if (catchItem.species.id == "prawns")
-                                InfoRow(label: "Size", value: catchItem.size)
+                              if (productItem.species.id == "prawns")
+                                InfoRow(label: "Size", value: productItem.size)
                               else
                                 InfoRow(
                                   label: "Average Size",
-                                  value: catchItem.size,
+                                  value: productItem.size,
                                 ),
                               InfoRow(
                                 label: "Available",
                                 value:
-                                    "${catchItem.availableWeight.kilograms} kg",
+                                    "${productItem.availableWeight.kilograms} kg",
                               ),
                               InfoRow(
                                 label: "Date Posted",
-                                value: catchItem.datePosted
+                                value: productItem.datePosted
                                     .toIso8601String()
                                     .toFormattedDate(),
                               ),
@@ -474,7 +470,7 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                                     final conversation = await repo
                                         .getOrCreateConversation(
                                           currentUser.id,
-                                          catchItem.fisherId,
+                                          productItem.fisherId,
                                         );
                                     if (context.mounted) {
                                       context.push(
@@ -508,11 +504,11 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                                     ? () {}
                                     : () => _showMakeOfferDialog(
                                         context,
-                                        catchItem,
+                                        productItem,
                                         currentUser.id,
                                       ),
                                 disabled:
-                                    catchItem.availableWeight.isZero ||
+                                    productItem.availableWeight.isZero ||
                                     hasPendingOffer,
                               ),
                             ),

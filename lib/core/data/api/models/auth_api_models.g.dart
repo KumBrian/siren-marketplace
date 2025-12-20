@@ -56,7 +56,7 @@ Map<String, dynamic> _$$AuthorizeResponseImplToJson(
 _$AccountApiModelImpl _$$AccountApiModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$AccountApiModelImpl(
-  id: json['id'],
+  id: _readId(json, 'id'),
   firstName: json['firstName'] as String?,
   lastName: json['lastName'] as String?,
   username: json['username'] as String?,

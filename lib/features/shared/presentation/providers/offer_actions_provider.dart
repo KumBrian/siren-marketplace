@@ -9,6 +9,7 @@ import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/shared_offer_details_provider.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/product_providers.dart';
 import 'package:siren_marketplace/core/providers/order_providers.dart';
 
 class OfferActionState {
@@ -75,7 +76,9 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       // Invalidate catch-related providers using the authoritative catchId from the order
       ref.invalidate(offersByCatchProvider(order.catchId));
       ref.invalidate(catchByIdProvider(order.catchId));
+      ref.invalidate(catchByIdProvider(order.catchId));
       ref.invalidate(availableCatchesProvider);
+      ref.invalidate(availableProductsProvider);
       ref.invalidate(fisherCatchesProvider);
 
       // Invalidate order providers to show new order

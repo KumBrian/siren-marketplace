@@ -28,9 +28,23 @@ class SessionService {
     return await _sessionRepository.getCurrentUser();
   }
 
-  /// Get current user
+  /// Get current user (verifying token if in API mode)
   Future<User?> getCurrentUser() async {
-    return await _sessionRepository.getCurrentUser();
+    final user = await _sessionRepository.getCurrentUser();
+
+    // In API mode, verify we have a valid token
+    if (user != null && _tokenStorage != null) {
+      final hasToken = await _tokenStorage.isAuthenticated();
+      if (!hasToken) {
+        print(
+          'DEBUG: SessionService: User found but token missing/expired. Clearing session.',
+        );
+        await logout();
+        return null;
+      }
+    }
+
+    return user;
   }
 
   /// Get current role

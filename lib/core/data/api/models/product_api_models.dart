@@ -75,6 +75,7 @@ class ProductApiModel with _$ProductApiModel {
     String? gearNature,
     ProductSpeciesApiModel? specie,
     ProductAccountApiModel? account,
+    @JsonKey(name: 'offers_count') @Default(0) int offersCount,
     @Default([]) List<String> images,
   }) = _ProductApiModel;
 

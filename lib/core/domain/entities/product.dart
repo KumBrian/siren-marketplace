@@ -27,6 +27,9 @@ class Product extends Equatable {
   final double? gearWidth;
   final String? gearNature;
   final Species species;
+  final int offersCount;
+  final List<String> images;
+  final String fisherId;
 
   const Product({
     required this.id,
@@ -49,6 +52,9 @@ class Product extends Equatable {
     this.gearWidth,
     this.gearNature,
     required this.species,
+    this.offersCount = 0,
+    this.images = const [],
+    required this.fisherId,
   });
 
   bool get isExpired {
@@ -95,10 +101,10 @@ class Product extends Equatable {
     longitude,
     soldAt,
     isSold,
-    meshSize,
-    gearLength,
-    gearWidth,
     gearNature,
     species,
+    offersCount,
+    images,
+    fisherId,
   ];
 }

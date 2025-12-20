@@ -9,23 +9,47 @@ import 'package:siren_marketplace/core/domain/enums/order_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/services/negotiation_service.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_product_repository.dart';
+import 'package:dart_either/dart_either.dart';
+import 'package:siren_marketplace/core/network/api_result.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
+import 'package:siren_marketplace/core/domain/services/message_service.dart';
 import '../../../helpers/mocks.mocks.dart';
 import '../../../helpers/test_data.dart';
+
+class MockIProductRepository extends Mock implements IProductRepository {
+  @override
+  Future<Either<Failure, Product?>> getProductById(String? id) =>
+      (super.noSuchMethod(
+            Invocation.method(#getProductById, [id]),
+            returnValue: Future.value(const Right(null)),
+          )
+          as Future<Either<Failure, Product?>>);
+}
+
+class MockMessageService extends Mock implements MessageService {}
 
 void main() {
   late NegotiationService service;
   late MockIOfferRepository mockOfferRepository;
   late MockIOrderRepository mockOrderRepository;
   late MockICatchRepository mockCatchRepository;
+  late MockIProductRepository mockProductRepository;
+  late MockMessageService mockMessageService;
 
   setUp(() {
     mockOfferRepository = MockIOfferRepository();
     mockOrderRepository = MockIOrderRepository();
     mockCatchRepository = MockICatchRepository();
+    mockProductRepository = MockIProductRepository();
+    mockMessageService = MockMessageService();
+
     service = NegotiationService(
       offerRepository: mockOfferRepository,
       orderRepository: mockOrderRepository,
       catchRepository: mockCatchRepository,
+      productRepository: mockProductRepository,
+      messageService: mockMessageService,
     );
   });
 

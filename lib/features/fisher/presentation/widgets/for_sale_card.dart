@@ -32,55 +32,96 @@ class ForSaleCard extends StatelessWidget {
                 topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
               ),
-              // Use species image from Product entity
-              child: product.species.image.isNotEmpty
-                  ? (product.species.image.contains("http")
-                        ? Image.network(
-                            product.species.image,
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Image.asset(
-                                  "assets/images/shrimp.jpg",
-                                  height: 120,
-                                  width: 120,
-                                  fit: BoxFit.cover,
-                                ),
-                          )
-                        : (product.species.image.startsWith("assets/")
-                              ? Image.asset(
-                                  product.species.image,
-                                  width: 120,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Image.asset(
-                                        "assets/images/shrimp.jpg",
-                                        height: 120,
-                                        width: 120,
-                                        fit: BoxFit.cover,
-                                      ),
-                                )
-                              : Image.file(
-                                  File(product.species.image),
-                                  width: 120,
-                                  height: 120,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Image.asset(
-                                        "assets/images/shrimp.jpg",
-                                        height: 120,
-                                        width: 120,
-                                        fit: BoxFit.cover,
-                                      ),
-                                )))
-                  : Image.asset(
-                      "assets/images/shrimp.jpg",
-                      height: 120,
-                      width: 120,
-                      fit: BoxFit.cover,
-                    ),
+              // Use product images first, then fallback to species image
+              child: Builder(
+                builder: (context) {
+                  // 1. Try product images
+                  if (product.images.isNotEmpty) {
+                    final imagePath = product.images.first;
+                    if (imagePath.startsWith('http')) {
+                      return Image.network(
+                        imagePath,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Image.asset(
+                          "assets/images/shrimp.jpg",
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      );
+                    } else if (imagePath.startsWith('assets/')) {
+                      return Image.asset(
+                        imagePath,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                      );
+                    } else {
+                      return Image.file(
+                        File(imagePath),
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Image.asset(
+                          "assets/images/shrimp.jpg",
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      );
+                    }
+                  }
+
+                  // 2. Fallback to species image
+                  if (product.species.image.isNotEmpty) {
+                    final imagePath = product.species.image;
+                    if (imagePath.contains("http")) {
+                      return Image.network(
+                        imagePath,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Image.asset(
+                          "assets/images/shrimp.jpg",
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      );
+                    } else if (imagePath.startsWith("assets/")) {
+                      return Image.asset(
+                        imagePath,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                      );
+                    } else {
+                      return Image.file(
+                        File(imagePath),
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Image.asset(
+                          "assets/images/shrimp.jpg",
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      );
+                    }
+                  }
+
+                  // 3. Fallback to placeholder
+                  return Image.asset(
+                    "assets/images/shrimp.jpg",
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  );
+                },
+              ),
             ),
             Expanded(
               child: Padding(

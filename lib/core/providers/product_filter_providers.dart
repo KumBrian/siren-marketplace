@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/domain/entities/species.dart';
-import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/product_providers.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 
 /// Filter state for products
@@ -47,11 +47,6 @@ class ProductsFilter {
     if (minWeightGrams > 0) count++;
     return count;
   }
-
-  void clear() {
-    // This method is kept for API compatibility but state is immutable
-    // Use the provider's update method instead
-  }
 }
 
 /// Provider for product filter state
@@ -59,43 +54,43 @@ final productsFilterProvider = StateProvider<ProductsFilter>((ref) {
   return const ProductsFilter();
 });
 
-/// Provider for filtered and sorted catches
-final filteredCatchesProvider = Provider<AsyncValue<List<Catch>>>((ref) {
-  final catchesAsync = ref.watch(availableCatchesProvider);
+/// Provider for filtered and sorted products
+final filteredProductsProvider = Provider<AsyncValue<List<Product>>>((ref) {
+  final productsAsync = ref.watch(availableProductsProvider);
   final filter = ref.watch(productsFilterProvider);
 
-  return catchesAsync.when(
-    data: (catches) {
-      var filtered = catches;
+  return productsAsync.when(
+    data: (products) {
+      var filtered = products;
 
       // Apply species filter
       if (filter.selectedSpecies.isNotEmpty) {
-        filtered = filtered.where((c) {
-          return filter.selectedSpecies.any((s) => s.id == c.species.id);
+        filtered = filtered.where((p) {
+          return filter.selectedSpecies.any((s) => s.id == p.species.id);
         }).toList();
       }
 
       // Apply location filter
       if (filter.selectedLocations.isNotEmpty) {
-        filtered = filtered.where((c) {
-          return filter.selectedLocations.contains(c.market);
+        filtered = filtered.where((p) {
+          return filter.selectedLocations.contains(p.marketName);
         }).toList();
       }
 
       // Apply min weight filter
       if (filter.minWeightGrams > 0) {
-        filtered = filtered.where((c) {
-          return c.availableWeight.grams >= filter.minWeightGrams;
+        filtered = filtered.where((p) {
+          return p.availableWeight.grams >= filter.minWeightGrams;
         }).toList();
       }
 
       // Apply search filter
       if (filter.searchQuery.isNotEmpty) {
         final query = filter.searchQuery.toLowerCase();
-        filtered = filtered.where((c) {
-          return c.name.toLowerCase().contains(query) ||
-              c.species.name.toLowerCase().contains(query) ||
-              c.market.toLowerCase().contains(query);
+        filtered = filtered.where((p) {
+          return p.name.toLowerCase().contains(query) ||
+              p.species.name.toLowerCase().contains(query) ||
+              p.marketName.toLowerCase().contains(query);
         }).toList();
       }
 
@@ -126,12 +121,12 @@ final filteredCatchesProvider = Provider<AsyncValue<List<Catch>>>((ref) {
 
 /// Provider for unique species (for filter dropdown)
 final uniqueSpeciesProvider = Provider<List<Species>>((ref) {
-  final catchesAsync = ref.watch(availableCatchesProvider);
-  return catchesAsync.when(
-    data: (catches) {
+  final productsAsync = ref.watch(availableProductsProvider);
+  return productsAsync.when(
+    data: (products) {
       final speciesMap = <String, Species>{};
-      for (var c in catches) {
-        speciesMap[c.species.id] = c.species;
+      for (var p in products) {
+        speciesMap[p.species.id] = p.species;
       }
       return speciesMap.values.toList();
     },
@@ -142,10 +137,10 @@ final uniqueSpeciesProvider = Provider<List<Species>>((ref) {
 
 /// Provider for unique locations (for filter dropdown)
 final uniqueLocationsProvider = Provider<List<String>>((ref) {
-  final catchesAsync = ref.watch(availableCatchesProvider);
-  return catchesAsync.when(
-    data: (catches) {
-      return catches.map((c) => c.market).toSet().toList()..sort();
+  final productsAsync = ref.watch(availableProductsProvider);
+  return productsAsync.when(
+    data: (products) {
+      return products.map((p) => p.marketName).toSet().toList()..sort();
     },
     loading: () => [],
     error: (_, __) => [],

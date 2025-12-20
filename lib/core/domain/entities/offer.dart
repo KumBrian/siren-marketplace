@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../enums/offer_status.dart';
 import '../enums/user_role.dart';
 import '../value_objects/offer_terms.dart';
+import 'product.dart';
 
 class Offer extends Equatable {
   final String id;
@@ -17,6 +18,7 @@ class Offer extends Equatable {
   final UserRole? waitingFor;
   final bool hasUpdateForFisher;
   final bool hasUpdateForBuyer;
+  final Product? product;
 
   const Offer({
     required this.id,
@@ -31,6 +33,7 @@ class Offer extends Equatable {
     this.waitingFor,
     this.hasUpdateForFisher = true,
     this.hasUpdateForBuyer = true,
+    this.product,
   });
 
   // Business Logic
@@ -149,6 +152,7 @@ class Offer extends Equatable {
     bool clearWaitingFor = false,
     bool? hasUpdateForFisher,
     bool? hasUpdateForBuyer,
+    Product? product,
   }) {
     return Offer(
       id: id,
@@ -163,6 +167,7 @@ class Offer extends Equatable {
       waitingFor: clearWaitingFor ? null : (waitingFor ?? this.waitingFor),
       hasUpdateForFisher: hasUpdateForFisher ?? this.hasUpdateForFisher,
       hasUpdateForBuyer: hasUpdateForBuyer ?? this.hasUpdateForBuyer,
+      product: product ?? this.product,
     );
   }
 
@@ -178,5 +183,6 @@ class Offer extends Equatable {
     dateCreated,
     dateUpdated,
     waitingFor,
+    product,
   ];
 }

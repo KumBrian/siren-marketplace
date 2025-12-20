@@ -1,44 +1,47 @@
+import '../api/models/product_api_models.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/entities/species.dart';
 import '../../domain/value_objects/price.dart';
 import '../../domain/value_objects/price_per_kg.dart';
 import '../../domain/value_objects/weight.dart';
-import '../api/models/product_api_models.dart';
 
 class ProductMapper {
-  static Product toDomain(ProductApiModel apiModel) {
-    // Map status from API to domain (Available, Sold, etc.)
-    // Note: API returns "available" string, need to match logic if necessary.
-    // For now, passing string directly or we could check against enum.
+  static Product toDomain(
+    ProductApiModel apiModel, [
+    List<Species> speciesList = const [],
+  ]) {
+    // Helper to find species
+    Species getSpecies() {
+      if (apiModel.specie != null) {
+        if (apiModel.specie!.uid != null && speciesList.isNotEmpty) {
+          try {
+            return speciesList.firstWhere((s) => s.uid == apiModel.specie!.uid);
+          } catch (_) {}
+        }
 
-    // Weights
-    final initialWeight = Weight.fromKg(apiModel.initialWeight ?? 0.0);
-    final availableWeightKg = (apiModel.publishedWeightInGrams ?? 0.0) / 1000.0;
-    final availableWeight = Weight.fromKg(availableWeightKg);
-
-    // Prices
-    // Note: API might send price as raw amount or something else.
-    // User JSON shows "price_per_kg": 0, "final_price": 0.
-    // Let's assume these are currency amounts.
-    final pricePerKg = PricePerKg.fromAmount(
-      (apiModel.pricePerKg ?? 0).toInt(),
-    );
-    final totalPrice = Price.fromAmount((apiModel.finalPrice ?? 0).toInt());
-
-    // Species
-    // Simplified mapping since we don't have full species object in ProductApiModel yet
-    // Need to safeguard against nulls
-    final speciesId = apiModel.specie?.uid ?? 'unknown';
+        return Species(
+          id: apiModel.specie!.uid ?? 'unknown',
+          name: apiModel.specie!.name ?? 'Unknown',
+          image: apiModel.specie!.image ?? '',
+          uid: apiModel.specie!.uid ?? '',
+        );
+      }
+      return const Species(id: 'unknown', name: 'Unknown', image: '', uid: '');
+    }
 
     return Product(
       id: apiModel.id.toString(),
       name: apiModel.name ?? 'Product #${apiModel.id}',
-      marketName: 'Market', // Placeholder or parse from apiModel.market
+      marketName:
+          apiModel.market?.uid ??
+          'Unknown Market', // Adjust based on actual data
       status: apiModel.status ?? 'unknown',
-      pricePerKg: pricePerKg,
-      totalPrice: totalPrice,
-      initialWeight: initialWeight,
-      availableWeight: availableWeight,
+      pricePerKg: PricePerKg.fromAmount(
+        ((apiModel.pricePerKg ?? 0) * 100).toInt(),
+      ),
+      totalPrice: Price.fromAmount(((apiModel.finalPrice ?? 0) * 100).toInt()),
+      initialWeight: Weight.fromKg(apiModel.initialWeight ?? 0),
+      availableWeight: Weight.fromKg(apiModel.availableWeight ?? 0),
       size: apiModel.size ?? 'Unknown',
       datePosted:
           DateTime.tryParse(apiModel.datePosted ?? '') ?? DateTime.now(),
@@ -49,17 +52,11 @@ class ProductMapper {
           ? DateTime.tryParse(apiModel.soldAt!)
           : null,
       isSold: apiModel.isSold ?? false,
-      meshSize: apiModel.gearMeshSizeInFinger,
-      gearLength: apiModel.gearLengthInMeter,
-      gearWidth: apiModel.gearWidthInMeter,
       gearNature: apiModel.gearNature,
-      species: Species(
-        id: speciesId,
-        name: apiModel.specie?.name ?? 'Species $speciesId',
-        image: apiModel.specie?.image ?? '',
-        uid: speciesId,
-        scientificName: '',
-      ),
+      species: getSpecies(),
+      offersCount: apiModel.offersCount,
+      images: apiModel.images,
+      fisherId: apiModel.account?.uid ?? '',
     );
   }
 }

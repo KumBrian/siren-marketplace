@@ -6,9 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/species.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
-import 'package:siren_marketplace/core/providers/catch_providers.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/product_filter_providers.dart';
+import 'package:siren_marketplace/core/providers/product_providers.dart';
 import 'package:siren_marketplace/core/types/enum.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
@@ -44,7 +44,7 @@ class _BuyerHomeState extends ConsumerState<BuyerHome> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredCatchesAsync = ref.watch(filteredCatchesProvider);
+    final filteredProductsAsync = ref.watch(filteredProductsProvider);
     final notificationCount = ref.watch(buyerNotificationCountProvider);
 
     return Scaffold(
@@ -77,8 +77,8 @@ class _BuyerHomeState extends ConsumerState<BuyerHome> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(availableCatchesProvider);
-          await ref.read(availableCatchesProvider.future);
+          ref.invalidate(availableProductsProvider);
+          await ref.read(availableProductsProvider.future);
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -87,7 +87,7 @@ class _BuyerHomeState extends ConsumerState<BuyerHome> {
               SizedBox(height: 56, child: _buildSearchAndFilterRow(context)),
               const SizedBox(height: 8),
               Expanded(
-                child: filteredCatchesAsync.when(
+                child: filteredProductsAsync.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (error, stack) => Center(
@@ -96,11 +96,11 @@ class _BuyerHomeState extends ConsumerState<BuyerHome> {
                       style: const TextStyle(color: AppColors.fail500),
                     ),
                   ),
-                  data: (filteredCatches) {
-                    if (filteredCatches.isEmpty) {
-                      final allCatches =
-                          ref.read(availableCatchesProvider).valueOrNull ?? [];
-                      if (allCatches.isNotEmpty) {
+                  data: (filteredProducts) {
+                    if (filteredProducts.isEmpty) {
+                      final allProducts =
+                          ref.read(availableProductsProvider).valueOrNull ?? [];
+                      if (allProducts.isNotEmpty) {
                         return const Center(
                           child: Text("No products match your filters."),
                         );
@@ -120,14 +120,14 @@ class _BuyerHomeState extends ConsumerState<BuyerHome> {
                             mainAxisSpacing: 8,
                             mainAxisExtent: 250,
                           ),
-                      itemCount: filteredCatches.length,
+                      itemCount: filteredProducts.length,
                       itemBuilder: (context, index) {
-                        final c = filteredCatches[index];
+                        final p = filteredProducts[index];
                         return ProductCard(
                           onTap: () {
-                            context.go("/buyer/product-details/${c.id}");
+                            context.go("/buyer/product-details/${p.id}");
                           },
-                          catchModel: c,
+                          product: p,
                         );
                       },
                     );

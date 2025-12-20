@@ -53,7 +53,8 @@ class AuthorizeResponse with _$AuthorizeResponse {
 @freezed
 class AccountApiModel with _$AccountApiModel {
   const factory AccountApiModel({
-    required dynamic id, // ID can be int
+    @JsonKey(readValue: _readId)
+    required dynamic id, // ID can be int or string (uid)
     String? firstName,
     String? lastName,
     String? username,
@@ -66,4 +67,11 @@ class AccountApiModel with _$AccountApiModel {
 
   factory AccountApiModel.fromJson(Map<String, dynamic> json) =>
       _$AccountApiModelFromJson(json);
+}
+
+// Helper to read ID from either 'id' or 'uid'
+Object? _readId(Map json, String key) {
+  if (json.containsKey('id')) return json['id'];
+  if (json.containsKey('uid')) return json['uid'];
+  return null;
 }

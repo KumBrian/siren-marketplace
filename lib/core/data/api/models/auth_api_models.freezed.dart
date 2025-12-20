@@ -593,7 +593,8 @@ AccountApiModel _$AccountApiModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$AccountApiModel {
-  dynamic get id => throw _privateConstructorUsedError; // ID can be int
+  @JsonKey(readValue: _readId)
+  dynamic get id => throw _privateConstructorUsedError; // ID can be int or string (uid)
   String? get firstName => throw _privateConstructorUsedError;
   String? get lastName => throw _privateConstructorUsedError;
   String? get username => throw _privateConstructorUsedError;
@@ -622,7 +623,7 @@ abstract class $AccountApiModelCopyWith<$Res> {
   ) = _$AccountApiModelCopyWithImpl<$Res, AccountApiModel>;
   @useResult
   $Res call({
-    dynamic id,
+    @JsonKey(readValue: _readId) dynamic id,
     String? firstName,
     String? lastName,
     String? username,
@@ -713,7 +714,7 @@ abstract class _$$AccountApiModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
-    dynamic id,
+    @JsonKey(readValue: _readId) dynamic id,
     String? firstName,
     String? lastName,
     String? username,
@@ -796,7 +797,7 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$AccountApiModelImpl implements _AccountApiModel {
   const _$AccountApiModelImpl({
-    required this.id,
+    @JsonKey(readValue: _readId) required this.id,
     this.firstName,
     this.lastName,
     this.username,
@@ -811,8 +812,9 @@ class _$AccountApiModelImpl implements _AccountApiModel {
       _$$AccountApiModelImplFromJson(json);
 
   @override
+  @JsonKey(readValue: _readId)
   final dynamic id;
-  // ID can be int
+  // ID can be int or string (uid)
   @override
   final String? firstName;
   @override
@@ -897,7 +899,7 @@ class _$AccountApiModelImpl implements _AccountApiModel {
 
 abstract class _AccountApiModel implements AccountApiModel {
   const factory _AccountApiModel({
-    required final dynamic id,
+    @JsonKey(readValue: _readId) required final dynamic id,
     final String? firstName,
     final String? lastName,
     final String? username,
@@ -912,7 +914,8 @@ abstract class _AccountApiModel implements AccountApiModel {
       _$AccountApiModelImpl.fromJson;
 
   @override
-  dynamic get id; // ID can be int
+  @JsonKey(readValue: _readId)
+  dynamic get id; // ID can be int or string (uid)
   @override
   String? get firstName;
   @override

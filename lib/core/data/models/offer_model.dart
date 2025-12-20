@@ -1,6 +1,8 @@
+import '../../domain/entities/product.dart';
+
 class OfferModel {
   final String id;
-  final String catchId;
+  final String productId;
   final String fisherId;
   final String buyerId;
   final int currentPriceAmount;
@@ -15,10 +17,11 @@ class OfferModel {
   final String? waitingFor; // 'fisher' or 'buyer'
   final bool hasUpdateForFisher;
   final bool hasUpdateForBuyer;
+  final Product? product;
 
   const OfferModel({
     required this.id,
-    required this.catchId,
+    required this.productId,
     required this.fisherId,
     required this.buyerId,
     required this.currentPriceAmount,
@@ -33,11 +36,12 @@ class OfferModel {
     this.waitingFor,
     this.hasUpdateForFisher = true,
     this.hasUpdateForBuyer = true,
+    this.product,
   });
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'catch_id': catchId,
+    'catch_id': productId,
     'fisher_id': fisherId,
     'buyer_id': buyerId,
     'current_price_amount': currentPriceAmount,
@@ -56,7 +60,7 @@ class OfferModel {
 
   factory OfferModel.fromJson(Map<String, dynamic> json) => OfferModel(
     id: json['id'] as String,
-    catchId: json['catch_id'] as String,
+    productId: json['catch_id'] as String,
     fisherId: json['fisher_id'] as String,
     buyerId: json['buyer_id'] as String,
     currentPriceAmount: (json['current_price_amount'] as num).toInt(),
@@ -78,7 +82,7 @@ class OfferModel {
   // SQLite mapping
   Map<String, dynamic> toMap() => {
     'offer_id': id,
-    'catch_id': catchId,
+    'catch_id': productId,
     'fisher_id': fisherId,
     'buyer_id': buyerId,
     'price': currentPriceAmount,
@@ -97,7 +101,7 @@ class OfferModel {
 
   factory OfferModel.fromMap(Map<String, dynamic> map) => OfferModel(
     id: map['offer_id'] as String,
-    catchId: map['catch_id'] as String,
+    productId: map['catch_id'] as String,
     fisherId: map['fisher_id'] as String,
     buyerId: map['buyer_id'] as String,
     currentPriceAmount: (map['price'] as num).toInt(),

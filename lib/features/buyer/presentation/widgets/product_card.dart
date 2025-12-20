@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 
@@ -11,9 +11,9 @@ import 'package:siren_marketplace/core/widgets/section_header.dart';
 const String _localErrorAsset = 'assets/images/shrimp.jpg';
 
 class ProductCard extends StatelessWidget {
-  const ProductCard({super.key, required this.onTap, required this.catchModel});
+  const ProductCard({super.key, required this.onTap, required this.product});
 
-  final Catch catchModel;
+  final Product product;
   final VoidCallback onTap;
 
   // Helper method to display the local placeholder image
@@ -33,9 +33,9 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final priceDisplay = catchModel.pricePerKg.amountPerKg.toInt();
-    final imageUrl = catchModel.images.isNotEmpty
-        ? catchModel.images.first
+    final priceDisplay = product.pricePerKg.amountPerKg.toInt();
+    final imageUrl = product.images.isNotEmpty
+        ? product.images.first
         // Use the local placeholder path if no image URL is provided initially
         : _localErrorAsset;
 
@@ -110,7 +110,7 @@ class ProductCard extends StatelessWidget {
             // --- End Image Display Block ---
             const SizedBox(height: 8),
 
-            SectionHeader(catchModel.name, maxLines: 1),
+            SectionHeader(product.name, maxLines: 1),
 
             const SizedBox(height: 4),
 

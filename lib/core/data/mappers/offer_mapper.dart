@@ -11,7 +11,7 @@ class OfferMapper {
   static OfferModel toModel(Offer entity) {
     return OfferModel(
       id: entity.id,
-      catchId: entity.catchId,
+      productId: entity.catchId,
       fisherId: entity.fisherId,
       buyerId: entity.buyerId,
       currentPriceAmount: entity.currentTerms.totalPrice.amount,
@@ -26,6 +26,7 @@ class OfferMapper {
       waitingFor: entity.waitingFor?.name,
       hasUpdateForFisher: entity.hasUpdateForFisher,
       hasUpdateForBuyer: entity.hasUpdateForBuyer,
+      product: entity.product,
     );
   }
 
@@ -47,7 +48,7 @@ class OfferMapper {
 
     return Offer(
       id: model.id,
-      catchId: model.catchId,
+      catchId: model.productId,
       fisherId: model.fisherId,
       buyerId: model.buyerId,
       currentTerms: currentTerms,
@@ -60,6 +61,7 @@ class OfferMapper {
           : null,
       hasUpdateForFisher: model.hasUpdateForFisher,
       hasUpdateForBuyer: model.hasUpdateForBuyer,
+      product: model.product,
     );
   }
 

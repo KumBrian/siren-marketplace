@@ -15,11 +15,10 @@ import '../data/datasources/local/local_message_datasource.dart';
 import '../data/datasources/api/catches_api_data_source.dart';
 import '../data/datasources/api/media_api_data_source.dart';
 import '../data/datasources/api/offers_api_data_source.dart';
-import '../data/datasources/api/species_api_data_source.dart';
+
 import '../data/datasources/api/user_api_datasource.dart';
 import '../data/datasources/api/products_api_data_source.dart';
 import '../data/datasources/api/subgroups_api_data_source.dart';
-import '../data/api/api_config.dart';
 
 import 'package:dio/dio.dart';
 import '../data/repositories/catch_repository_impl.dart';
@@ -51,6 +50,13 @@ import '../data/api/api_client.dart';
 import '../data/storage/token_storage.dart';
 import '../data/sources/api/auth_api_data_source.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dart_either/dart_either.dart';
+import 'package:siren_marketplace/core/network/api_result.dart';
+
+import 'package:siren_marketplace/core/domain/entities/product.dart';
+import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import '../providers/catch_providers.dart';
 import '../providers/product_providers.dart';
 
@@ -120,6 +126,7 @@ Future<void> initDependencies() async {
       offerRepository: sl(),
       orderRepository: sl(),
       catchRepository: sl(),
+      productRepository: sl(),
       messageService: sl(),
     ),
   );
@@ -209,6 +216,10 @@ void _initDemoMode() {
       dataSource: LocalConversationDataSource(dbHelper: sl()),
     ),
   );
+
+  sl.registerLazySingleton<IProductRepository>(
+    () => _DemoProductRepository(sl()),
+  );
 }
 
 // ============================================================================
@@ -258,6 +269,10 @@ void _initLocalMode(DatabaseHelper dbHelper) {
     () => ConversationRepositoryImpl(
       dataSource: LocalConversationDataSource(dbHelper: dbHelper),
     ),
+  );
+
+  sl.registerLazySingleton<IProductRepository>(
+    () => _DemoProductRepository(sl()),
   );
 }
 
@@ -396,4 +411,83 @@ void _setupCatchPublishedCallback() {
   print(
     'DEBUG: API mode initialized, provider callback will be set in setupProviderInvalidation()',
   );
+}
+
+// ============================================================================
+// DEMO/LOCAL PRODUCT REPOSITORY ADAPTER
+// ============================================================================
+class _DemoProductRepository implements IProductRepository {
+  final ICatchRepository _catchRepository;
+
+  _DemoProductRepository(this._catchRepository);
+
+  @override
+  Future<Either<Failure, List<Product>>> getFisherProducts({
+    int page = 1,
+  }) async {
+    // Basic implementation: fetch all catches for fisher, map to products
+    return Right([]);
+  }
+
+  @override
+  Future<Either<Failure, Product?>> getProductById(String id) async {
+    final catchItem = await _catchRepository.getById(id);
+    if (catchItem == null) return Right(null);
+    return Right(_mapCatchToProduct(catchItem));
+  }
+
+  @override
+  Future<Either<Failure, List<Offer>>> getProductOffers(
+    String productId,
+  ) async {
+    return Right([]);
+  }
+
+  @override
+  Future<Either<Failure, bool>> deleteProduct(String id) async {
+    await _catchRepository.delete(id);
+    return Right(true);
+  }
+
+  @override
+  Future<Either<Failure, Product>> updateProduct(
+    String id, {
+    required double pricePerKg,
+    required double finalPrice,
+    required double availableWeight,
+  }) async {
+    // Not implemented for demo offer creation flow
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, List<Product>>> getAvailableProducts() async {
+    final catches = await _catchRepository.getAvailableCatches();
+    return Right(catches.map(_mapCatchToProduct).toList());
+  }
+
+  Product _mapCatchToProduct(Catch catchItem) {
+    return Product(
+      id: catchItem.id,
+      name: catchItem.name,
+      marketName: catchItem.market,
+      status: catchItem.status.name,
+      pricePerKg: catchItem.pricePerKg,
+      totalPrice: catchItem.totalPrice,
+      initialWeight: catchItem.initialWeight,
+      availableWeight: catchItem.availableWeight,
+      size: catchItem.size,
+      datePosted: catchItem.datePosted,
+      locationName: catchItem.locationName,
+      latitude: catchItem.latitude,
+      longitude: catchItem.longitude,
+      soldAt: null,
+      isSold: false,
+      gearNature: catchItem.gearNature,
+      species: catchItem.species,
+      offersCount: 0,
+      images: catchItem.images,
+      fisherId: catchItem.fisherId,
+    );
+  }
 }

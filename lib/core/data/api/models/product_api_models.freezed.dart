@@ -845,6 +845,8 @@ mixin _$ProductApiModel {
   String? get gearNature => throw _privateConstructorUsedError;
   ProductSpeciesApiModel? get specie => throw _privateConstructorUsedError;
   ProductAccountApiModel? get account => throw _privateConstructorUsedError;
+  @JsonKey(name: 'offers_count')
+  int get offersCount => throw _privateConstructorUsedError;
   List<String> get images => throw _privateConstructorUsedError;
 
   /// Serializes this ProductApiModel to a JSON map.
@@ -893,6 +895,7 @@ abstract class $ProductApiModelCopyWith<$Res> {
     String? gearNature,
     ProductSpeciesApiModel? specie,
     ProductAccountApiModel? account,
+    @JsonKey(name: 'offers_count') int offersCount,
     List<String> images,
   });
 
@@ -944,6 +947,7 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
     Object? gearNature = freezed,
     Object? specie = freezed,
     Object? account = freezed,
+    Object? offersCount = null,
     Object? images = null,
   }) {
     return _then(
@@ -1060,6 +1064,10 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
                 ? _value.account
                 : account // ignore: cast_nullable_to_non_nullable
                       as ProductAccountApiModel?,
+            offersCount: null == offersCount
+                ? _value.offersCount
+                : offersCount // ignore: cast_nullable_to_non_nullable
+                      as int,
             images: null == images
                 ? _value.images
                 : images // ignore: cast_nullable_to_non_nullable
@@ -1150,6 +1158,7 @@ abstract class _$$ProductApiModelImplCopyWith<$Res>
     String? gearNature,
     ProductSpeciesApiModel? specie,
     ProductAccountApiModel? account,
+    @JsonKey(name: 'offers_count') int offersCount,
     List<String> images,
   });
 
@@ -1203,6 +1212,7 @@ class __$$ProductApiModelImplCopyWithImpl<$Res>
     Object? gearNature = freezed,
     Object? specie = freezed,
     Object? account = freezed,
+    Object? offersCount = null,
     Object? images = null,
   }) {
     return _then(
@@ -1319,6 +1329,10 @@ class __$$ProductApiModelImplCopyWithImpl<$Res>
             ? _value.account
             : account // ignore: cast_nullable_to_non_nullable
                   as ProductAccountApiModel?,
+        offersCount: null == offersCount
+            ? _value.offersCount
+            : offersCount // ignore: cast_nullable_to_non_nullable
+                  as int,
         images: null == images
             ? _value._images
             : images // ignore: cast_nullable_to_non_nullable
@@ -1360,6 +1374,7 @@ class _$ProductApiModelImpl implements _ProductApiModel {
     this.gearNature,
     this.specie,
     this.account,
+    @JsonKey(name: 'offers_count') this.offersCount = 0,
     final List<String> images = const [],
   }) : _images = images;
 
@@ -1433,6 +1448,9 @@ class _$ProductApiModelImpl implements _ProductApiModel {
   final ProductSpeciesApiModel? specie;
   @override
   final ProductAccountApiModel? account;
+  @override
+  @JsonKey(name: 'offers_count')
+  final int offersCount;
   final List<String> _images;
   @override
   @JsonKey()
@@ -1444,7 +1462,7 @@ class _$ProductApiModelImpl implements _ProductApiModel {
 
   @override
   String toString() {
-    return 'ProductApiModel(id: $id, name: $name, market: $market, status: $status, rejectReason: $rejectReason, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedWeightInGrams: $publishedWeightInGrams, expireAt: $expireAt, locationName: $locationName, latitude: $latitude, longitude: $longitude, size: $size, datePosted: $datePosted, isSold: $isSold, soldAt: $soldAt, initialWeight: $initialWeight, availableWeight: $availableWeight, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearWidthInMeter: $gearWidthInMeter, gearNature: $gearNature, specie: $specie, account: $account, images: $images)';
+    return 'ProductApiModel(id: $id, name: $name, market: $market, status: $status, rejectReason: $rejectReason, pricePerKg: $pricePerKg, finalPrice: $finalPrice, publishedWeightInGrams: $publishedWeightInGrams, expireAt: $expireAt, locationName: $locationName, latitude: $latitude, longitude: $longitude, size: $size, datePosted: $datePosted, isSold: $isSold, soldAt: $soldAt, initialWeight: $initialWeight, availableWeight: $availableWeight, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid, gearMeshSizeInFinger: $gearMeshSizeInFinger, gearLengthInMeter: $gearLengthInMeter, gearWidthInMeter: $gearWidthInMeter, gearNature: $gearNature, specie: $specie, account: $account, offersCount: $offersCount, images: $images)';
   }
 
   @override
@@ -1498,6 +1516,8 @@ class _$ProductApiModelImpl implements _ProductApiModel {
                 other.gearNature == gearNature) &&
             (identical(other.specie, specie) || other.specie == specie) &&
             (identical(other.account, account) || other.account == account) &&
+            (identical(other.offersCount, offersCount) ||
+                other.offersCount == offersCount) &&
             const DeepCollectionEquality().equals(other._images, _images));
   }
 
@@ -1533,6 +1553,7 @@ class _$ProductApiModelImpl implements _ProductApiModel {
     gearNature,
     specie,
     account,
+    offersCount,
     const DeepCollectionEquality().hash(_images),
   ]);
 
@@ -1584,6 +1605,7 @@ abstract class _ProductApiModel implements ProductApiModel {
     final String? gearNature,
     final ProductSpeciesApiModel? specie,
     final ProductAccountApiModel? account,
+    @JsonKey(name: 'offers_count') final int offersCount,
     final List<String> images,
   }) = _$ProductApiModelImpl;
 
@@ -1657,6 +1679,9 @@ abstract class _ProductApiModel implements ProductApiModel {
   ProductSpeciesApiModel? get specie;
   @override
   ProductAccountApiModel? get account;
+  @override
+  @JsonKey(name: 'offers_count')
+  int get offersCount;
   @override
   List<String> get images;
 

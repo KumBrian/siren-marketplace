@@ -31,7 +31,7 @@ class OffersApiDataSource implements IOfferDataSource {
   Future<String> create(OfferModel offer) async {
     final request = OfferApiMapper.toRequest(offer);
     final response = await _client.post(
-      ApiConfig.offers,
+      ApiConfig.makeOffer,
       data: request.toJson(),
     );
     final data = response.data['data'] ?? response.data;
@@ -155,10 +155,11 @@ class OffersApiDataSource implements IOfferDataSource {
 
   @override
   Future<List<OfferModel>> getByFisherId(String fisherId) async {
-    // In API mode, use the authenticated received-offers endpoint
+    // In API mode, use the authenticated my-offers endpoint
     // (These are offers received by the fisher on their catches)
     // The fisherId parameter is ignored since API uses the token
-    return await getReceivedOffers(fisherId);
+    // The backend now handles role-based "my offers" logic on this single endpoint
+    return await getMyOffers();
   }
 
   /// Get authenticated user's offers (buyer's offers)

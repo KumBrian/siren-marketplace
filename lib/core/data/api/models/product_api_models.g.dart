@@ -104,6 +104,7 @@ _$ProductApiModelImpl _$$ProductApiModelImplFromJson(
       : ProductAccountApiModel.fromJson(
           json['account'] as Map<String, dynamic>,
         ),
+  offersCount: (json['offers_count'] as num?)?.toInt() ?? 0,
   images:
       (json['images'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
@@ -140,5 +141,6 @@ Map<String, dynamic> _$$ProductApiModelImplToJson(
   'gearNature': instance.gearNature,
   'specie': instance.specie?.toJson(),
   'account': instance.account?.toJson(),
+  'offers_count': instance.offersCount,
   'images': instance.images,
 };
