@@ -39,7 +39,7 @@ void main() {
     OfferModel createModelFromEntity(Offer entity) {
       return OfferModel(
         id: entity.id,
-        productId: entity.catchId,
+        productId: entity.productId,
         fisherId: entity.fisherId,
         buyerId: entity.buyerId,
         currentPriceAmount: entity.currentTerms.totalPrice.amount,

@@ -61,39 +61,6 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
     final initialPricePerKg = productItem.pricePerKg.amountPerKg;
     _pricePerKgController.text = initialPricePerKg.toStringAsFixed(0);
 
-    bool userEditingTotal = false;
-
-    void updateTotalFromWeight() {
-      if (userEditingTotal) return;
-      final weight = double.tryParse(_weightController.text);
-      final pricePerKg = int.tryParse(_pricePerKgController.text);
-      if (weight != null && pricePerKg != null) {
-        final total = weight * pricePerKg;
-        _priceController.text = total.toStringAsFixed(0);
-      }
-    }
-
-    void updatePricePerKgFromTotal() {
-      final weight = double.tryParse(_weightController.text);
-      final total = int.tryParse(_priceController.text);
-      if (weight != null && weight > 0 && total != null) {
-        final pricePerKg = total / weight;
-        _pricePerKgController.text = pricePerKg.toStringAsFixed(0);
-      }
-    }
-
-    _weightController.addListener(() {
-      updateTotalFromWeight();
-    });
-
-    _priceController.addListener(() {
-      userEditingTotal = true;
-      updatePricePerKgFromTotal();
-      Future.delayed(const Duration(milliseconds: 200), () {
-        userEditingTotal = false;
-      });
-    });
-
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -114,20 +81,26 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
         ),
         content: StatefulBuilder(
           builder: (context, setState) {
-            void updateCalculations(String _) {
-              final weightInputKg =
+            void onWeightChanged(String value) {
+              final weightInput = double.tryParse(value) ?? 0.0;
+              final currentPricePerKg =
+                  int.tryParse(_pricePerKgController.text) ?? 0;
+
+              final total = (weightInput * currentPricePerKg).round();
+              if (_priceController.text != total.toString()) {
+                _priceController.text = total.toString();
+              }
+            }
+
+            void onTotalChanged(String value) {
+              final totalInput = int.tryParse(value) ?? 0;
+              final currentWeight =
                   double.tryParse(_weightController.text) ?? 0.0;
-              final totalPrice = int.tryParse(_priceController.text) ?? 0;
 
-              final weightInGrams = (weightInputKg * 1000).round();
-
-              if (weightInGrams > 0 && totalPrice > 0) {
-                final calculatedPricePerKg =
-                    ((totalPrice * 1000) / weightInGrams).round();
-
-                if (_pricePerKgController.text !=
-                    calculatedPricePerKg.toString()) {
-                  _pricePerKgController.text = calculatedPricePerKg.toString();
+              if (currentWeight > 0) {
+                final pricePerKg = (totalInput / currentWeight).round();
+                if (_pricePerKgController.text != pricePerKg.toString()) {
+                  _pricePerKgController.text = pricePerKg.toString();
                 }
               }
             }
@@ -151,7 +124,7 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                             controller: _weightController,
                             label: "Weight",
                             suffix: "Kg",
-                            onChanged: updateCalculations,
+                            onChanged: onWeightChanged,
                             validator: (value) {
                               final weightInputKg = double.tryParse(
                                 value ?? "",
@@ -177,7 +150,7 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                             label: "Total Price",
                             suffix: "CFA",
                             decimal: false,
-                            onChanged: updateCalculations,
+                            onChanged: onTotalChanged,
                             validator: (value) {
                               final price = int.tryParse(value ?? "");
                               if (price == null || price <= 0) {
@@ -355,14 +328,16 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
               data: (offers) => offers.any(
                 (offer) =>
                     offer.status == OfferStatus.pending &&
-                    offer.catchId == productItem.id &&
+                    offer.productId == productItem.id &&
                     offer.buyerId == currentUser.id,
               ),
               orElse: () => false,
             );
 
-            // Fetch fisher details using productItem.fisherId
-            final fisherAsync = ref.watch(userProvider(productItem.fisherId));
+            // Fetch fisher details if not available in product
+            final fisherAsync = productItem.fisher != null
+                ? AsyncValue.data(productItem.fisher)
+                : ref.watch(userProvider(productItem.fisherId));
 
             return Scaffold(
               appBar: AppBar(
@@ -528,7 +503,9 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                               borderRadius: BorderRadius.circular(16),
                               child: InkWell(
                                 onTap: () {
-                                  context.push("/buyer/reviews/${fisher.id}");
+                                  context.push(
+                                    "/buyer/reviews/${productItem.fisherId}",
+                                  );
                                 },
                                 borderRadius: BorderRadius.circular(16),
                                 splashColor: AppColors.blue700.withValues(
@@ -543,7 +520,7 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       ErrorHandlingCircleAvatar(
-                                        avatarUrl: fisher.avatarUrl!,
+                                        avatarUrl: fisher.avatarUrl ?? "",
                                       ),
                                       const SizedBox(width: 10),
                                       Expanded(

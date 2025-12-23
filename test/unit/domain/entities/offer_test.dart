@@ -243,7 +243,7 @@ void main() {
         final result = pendingOffer.accept();
 
         expect(result.id, pendingOffer.id);
-        expect(result.catchId, pendingOffer.catchId);
+        expect(result.productId, pendingOffer.productId);
         expect(result.fisherId, pendingOffer.fisherId);
         expect(result.buyerId, pendingOffer.buyerId);
         expect(result.currentTerms, pendingOffer.currentTerms);
@@ -449,7 +449,7 @@ void main() {
         final original = testOffer;
         final updated = original.copyWith(status: OfferStatus.rejected);
 
-        expect(updated.catchId, original.catchId);
+        expect(updated.productId, original.productId);
         expect(updated.fisherId, original.fisherId);
         expect(updated.buyerId, original.buyerId);
         expect(updated.currentTerms, original.currentTerms);

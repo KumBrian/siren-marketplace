@@ -839,7 +839,7 @@ class OrderDetails extends ConsumerWidget {
 
                         // Refresh catch data (to show restored weight)
                         ref.invalidate(catchByIdProvider(order.catchId));
-                        ref.invalidate(offersByCatchProvider(order.catchId));
+                        ref.invalidate(offersByProductProvider(order.catchId));
                       }
 
                       // Refresh lists

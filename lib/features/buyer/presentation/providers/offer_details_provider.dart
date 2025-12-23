@@ -36,7 +36,7 @@ final offerDetailsProvider = FutureProvider.family<OfferDetailsState, String>((
   // but here we need offer to get IDs.
 
   final fisherFuture = ref.watch(userProvider(offer.fisherId).future);
-  final catchFuture = ref.watch(catchProvider(offer.catchId).future);
+  final catchFuture = ref.watch(catchProvider(offer.productId).future);
 
   final results = await Future.wait([fisherFuture, catchFuture]);
   final fisher = results[0] as User?;
@@ -53,7 +53,7 @@ final offerDetailsProvider = FutureProvider.family<OfferDetailsState, String>((
     throw NotFoundException(
       'Catch not found',
       entityType: 'Catch',
-      entityId: offer.catchId,
+      entityId: offer.productId,
     );
   }
 

@@ -17,19 +17,9 @@ import 'package:siren_marketplace/core/domain/services/message_service.dart';
 import '../../../helpers/mocks.mocks.dart';
 import '../../../helpers/test_data.dart';
 
-class MockIProductRepository extends Mock implements IProductRepository {
-  @override
-  Future<Either<Failure, Product?>> getProductById(String? id) =>
-      (super.noSuchMethod(
-            Invocation.method(#getProductById, [id]),
-            returnValue: Future.value(const Right(null)),
-          )
-          as Future<Either<Failure, Product?>>);
-}
-
-class MockMessageService extends Mock implements MessageService {}
-
 void main() {
+  provideDummy<Either<Failure, Product?>>(const Right(null));
+
   late NegotiationService service;
   late MockIOfferRepository mockOfferRepository;
   late MockIOrderRepository mockOrderRepository;
@@ -68,15 +58,18 @@ void main() {
           mockCatchRepository.getById(testCatch.id),
         ).thenAnswer((_) async => testCatch);
         when(mockOfferRepository.create(any)).thenAnswer((_) async => 'new-id');
+        when(
+          mockProductRepository.getProductById(testCatch.id),
+        ).thenAnswer((_) async => const Right(null));
 
         final result = await service.createOffer(
-          catchId: testCatch.id,
+          productId: testCatch.id,
           buyerId: buyerId,
           fisherId: fisherId,
           terms: testTerms,
         );
 
-        expect(result.catchId, testCatch.id);
+        expect(result.productId, testCatch.id);
         expect(result.buyerId, buyerId);
         expect(result.fisherId, fisherId);
         expect(result.currentTerms, testTerms);
@@ -88,10 +81,13 @@ void main() {
         when(
           mockCatchRepository.getById('unknown'),
         ).thenAnswer((_) async => null);
+        when(
+          mockProductRepository.getProductById('unknown'),
+        ).thenAnswer((_) async => const Right(null));
 
         expect(
           () => service.createOffer(
-            catchId: 'unknown',
+            productId: 'unknown',
             buyerId: buyerId,
             fisherId: fisherId,
             terms: testTerms,
@@ -105,10 +101,13 @@ void main() {
         when(
           mockCatchRepository.getById(soldCatch.id),
         ).thenAnswer((_) async => soldCatch);
+        when(
+          mockProductRepository.getProductById(soldCatch.id),
+        ).thenAnswer((_) async => const Right(null));
 
         expect(
           () => service.createOffer(
-            catchId: soldCatch.id,
+            productId: soldCatch.id,
             buyerId: buyerId,
             fisherId: fisherId,
             terms: testTerms,
@@ -124,10 +123,13 @@ void main() {
         when(
           mockCatchRepository.getById(testCatch.id),
         ).thenAnswer((_) async => testCatch);
+        when(
+          mockProductRepository.getProductById(testCatch.id),
+        ).thenAnswer((_) async => const Right(null));
 
         expect(
           () => service.createOffer(
-            catchId: testCatch.id,
+            productId: testCatch.id,
             buyerId: buyerId,
             fisherId: fisherId,
             terms: heavyTerms,
@@ -141,7 +143,7 @@ void main() {
       final pendingOffer = TestData.createOffer(
         status: OfferStatus.pending,
         waitingFor: UserRole.fisher,
-        catchId: testCatch.id,
+        productId: testCatch.id,
         currentTerms: testTerms,
       );
 
@@ -157,6 +159,9 @@ void main() {
         when(
           mockOrderRepository.create(any),
         ).thenAnswer((_) async => 'order-id');
+        when(
+          mockMessageService.sendOfferAcceptedMessage(any),
+        ).thenAnswer((_) async {});
 
         final result = await service.acceptOffer(
           offerId: pendingOffer.id,
@@ -245,7 +250,7 @@ void main() {
       final pendingOffer = TestData.createOffer(
         status: OfferStatus.pending,
         waitingFor: UserRole.fisher,
-        catchId: testCatch.id,
+        productId: testCatch.id,
         currentTerms: testTerms,
       );
       final newTerms = TestData.createOfferTerms(weight: Weight.fromKg(20));
@@ -258,6 +263,9 @@ void main() {
           mockCatchRepository.getById(testCatch.id),
         ).thenAnswer((_) async => testCatch);
         when(mockOfferRepository.update(any)).thenAnswer((_) async => {});
+        when(
+          mockProductRepository.getProductById(testCatch.id),
+        ).thenAnswer((_) async => const Right(null));
 
         final result = await service.counterOffer(
           offerId: pendingOffer.id,
@@ -295,6 +303,9 @@ void main() {
         when(
           mockCatchRepository.getById(testCatch.id),
         ).thenAnswer((_) async => testCatch);
+        when(
+          mockProductRepository.getProductById(testCatch.id),
+        ).thenAnswer((_) async => const Right(null));
 
         expect(
           () => service.counterOffer(

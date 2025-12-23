@@ -25,6 +25,7 @@ class OfferApiMapper {
       product: apiModel.product != null
           ? ProductMapper.toDomain(apiModel.product!)
           : null,
+      buyer: apiModel.buyer,
     );
   }
 

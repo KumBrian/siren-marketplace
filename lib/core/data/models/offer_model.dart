@@ -1,4 +1,7 @@
 import '../../domain/entities/product.dart';
+import '../api/models/product_api_models.dart';
+import '../mappers/product_mapper.dart';
+import '../api/models/auth_api_models.dart';
 
 class OfferModel {
   final String id;
@@ -18,6 +21,7 @@ class OfferModel {
   final bool hasUpdateForFisher;
   final bool hasUpdateForBuyer;
   final Product? product;
+  final AccountApiModel? buyer;
 
   const OfferModel({
     required this.id,
@@ -37,7 +41,52 @@ class OfferModel {
     this.hasUpdateForFisher = true,
     this.hasUpdateForBuyer = true,
     this.product,
+    this.buyer,
   });
+
+  OfferModel copyWith({
+    String? id,
+    String? productId,
+    String? fisherId,
+    String? buyerId,
+    int? currentPriceAmount,
+    int? currentWeightGrams,
+    int? currentPricePerKgAmount,
+    int? previousPriceAmount,
+    int? previousWeightGrams,
+    int? previousPricePerKgAmount,
+    String? status,
+    String? dateCreated,
+    String? dateUpdated,
+    String? waitingFor,
+    bool? hasUpdateForFisher,
+    bool? hasUpdateForBuyer,
+    Product? product,
+    AccountApiModel? buyer,
+  }) {
+    return OfferModel(
+      id: id ?? this.id,
+      productId: productId ?? this.productId,
+      fisherId: fisherId ?? this.fisherId,
+      buyerId: buyerId ?? this.buyerId,
+      currentPriceAmount: currentPriceAmount ?? this.currentPriceAmount,
+      currentWeightGrams: currentWeightGrams ?? this.currentWeightGrams,
+      currentPricePerKgAmount:
+          currentPricePerKgAmount ?? this.currentPricePerKgAmount,
+      previousPriceAmount: previousPriceAmount ?? this.previousPriceAmount,
+      previousWeightGrams: previousWeightGrams ?? this.previousWeightGrams,
+      previousPricePerKgAmount:
+          previousPricePerKgAmount ?? this.previousPricePerKgAmount,
+      status: status ?? this.status,
+      dateCreated: dateCreated ?? this.dateCreated,
+      dateUpdated: dateUpdated ?? this.dateUpdated,
+      waitingFor: waitingFor ?? this.waitingFor,
+      hasUpdateForFisher: hasUpdateForFisher ?? this.hasUpdateForFisher,
+      hasUpdateForBuyer: hasUpdateForBuyer ?? this.hasUpdateForBuyer,
+      product: product ?? this.product,
+      buyer: buyer ?? this.buyer,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -58,26 +107,127 @@ class OfferModel {
     'has_update_for_buyer': hasUpdateForBuyer,
   };
 
-  factory OfferModel.fromJson(Map<String, dynamic> json) => OfferModel(
-    id: json['id'] as String,
-    productId: json['catch_id'] as String,
-    fisherId: json['fisher_id'] as String,
-    buyerId: json['buyer_id'] as String,
-    currentPriceAmount: (json['current_price_amount'] as num).toInt(),
-    currentWeightGrams: (json['current_weight_grams'] as num).toInt(),
-    currentPricePerKgAmount: (json['current_price_per_kg_amount'] as num)
-        .toInt(),
-    previousPriceAmount: (json['previous_price_amount'] as num?)?.toInt(),
-    previousWeightGrams: (json['previous_weight_grams'] as num?)?.toInt(),
-    previousPricePerKgAmount: (json['previous_price_per_kg_amount'] as num?)
-        ?.toInt(),
-    status: json['status'] as String,
-    dateCreated: json['date_created'] as String,
-    dateUpdated: json['date_updated'] as String,
-    waitingFor: json['waiting_for'] as String?,
-    hasUpdateForFisher: (json['has_update_for_fisher'] as bool?) ?? true,
-    hasUpdateForBuyer: (json['has_update_for_buyer'] as bool?) ?? true,
-  );
+  factory OfferModel.fromJson(Map<String, dynamic> json) {
+    // Helper to safely get nested ID
+    String? getNestedId(dynamic data) {
+      if (data is Map) {
+        return data['uid'] as String?;
+      } else if (data is String) {
+        return data; // If it's already an ID string
+      }
+      return null;
+    }
+
+    // Parse nested product if available
+    Product? product;
+    String productId = '';
+    String fisherId = '';
+
+    if (json['product'] != null && json['product'] is Map) {
+      try {
+        final productApi = ProductApiModel.fromJson(
+          json['product'] as Map<String, dynamic>,
+        );
+        product = ProductMapper.toDomain(productApi);
+        productId = product!.id;
+        fisherId = product!
+            .fisherId; // Use fisherId from product mapping (account.uid)
+      } catch (e) {
+        print('Error parsing nested product in OfferModel: $e');
+      }
+    }
+
+    // Fallback for IDs if nested product parsing failed or fields are direct
+    if (productId.isEmpty) {
+      productId = json['catch_id'] as String? ?? '';
+    }
+    if (fisherId.isEmpty) {
+      // Check 'account' object at root or fisher_id string
+      fisherId =
+          getNestedId(json['account']) ??
+          json['fisher_id'] as String? ??
+          getNestedId(json['fisher']) ??
+          '';
+    }
+
+    final buyerId =
+        getNestedId(json['buyer']) ?? json['buyer_id'] as String? ?? '';
+
+    AccountApiModel? buyer;
+    if (json['buyer'] != null) {
+      print('DEBUG: Raw buyer JSON: ${json['buyer']}');
+      if (json['buyer'] is Map) {
+        try {
+          buyer = AccountApiModel.fromJson(
+            json['buyer'] as Map<String, dynamic>,
+          );
+          print('DEBUG: Parsed buyer: $buyer');
+        } catch (e) {
+          print('Error parsing nested buyer in OfferModel: $e');
+        }
+      } else {
+        print('DEBUG: buyer JSON is not a Map: ${json['buyer'].runtimeType}');
+      }
+    } else {
+      print('DEBUG: json["buyer"] is null in OfferModel');
+    }
+
+    // Handle amounts (support both camelCase and snake_case)
+    int getInt(String key1, String key2) {
+      return (json[key1] as num?)?.toInt() ??
+          (json[key2] as num?)?.toInt() ??
+          0;
+    }
+
+    int? getNullableInt(String key1, String key2) {
+      return (json[key1] as num?)?.toInt() ?? (json[key2] as num?)?.toInt();
+    }
+
+    return OfferModel(
+      id: json['uid'] as String? ?? json['id']?.toString() ?? '',
+      productId: productId,
+      fisherId: fisherId,
+      buyerId: buyerId,
+      currentPriceAmount: getInt('currentPriceAmount', 'current_price_amount'),
+      currentWeightGrams: getInt('currentWeightGrams', 'current_weight_grams'),
+      currentPricePerKgAmount: getInt(
+        'currentPricePerKgAmount',
+        'current_price_per_kg_amount',
+      ),
+      previousPriceAmount: getNullableInt(
+        'previousPriceAmount',
+        'previous_price_amount',
+      ),
+      previousWeightGrams: getNullableInt(
+        'previousWeightGrams',
+        'previous_weight_grams',
+      ),
+      previousPricePerKgAmount: getNullableInt(
+        'previousPricePerKgAmount',
+        'previous_price_per_kg_amount',
+      ),
+      status: json['status'] as String? ?? 'pending',
+      dateCreated:
+          json['created_at'] as String? ??
+          json['date_created'] as String? ??
+          DateTime.now().toIso8601String(),
+      dateUpdated:
+          json['updated_at'] as String? ??
+          json['date_updated'] as String? ??
+          DateTime.now().toIso8601String(),
+      waitingFor: json['waiting_for'] as String?,
+      hasUpdateForFisher:
+          (json['has_update_for_fisher'] as bool?) ??
+          (json['hasUpdateForFisher'] as bool?) ??
+          true,
+      hasUpdateForBuyer:
+          (json['has_update_for_buyer'] as bool?) ??
+          (json['hasUpdateForBuyer'] as bool?) ??
+          true,
+      product: product,
+      buyer: buyer,
+    );
+  }
 
   // SQLite mapping
   Map<String, dynamic> toMap() => {

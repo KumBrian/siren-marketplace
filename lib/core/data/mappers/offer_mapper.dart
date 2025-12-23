@@ -4,6 +4,8 @@ import '../../domain/enums/user_role.dart';
 import '../../domain/value_objects/offer_terms.dart';
 import '../../domain/value_objects/price.dart';
 import '../../domain/value_objects/weight.dart';
+import '../../domain/entities/user.dart';
+import '../../domain/value_objects/rating.dart';
 import '../models/offer_model.dart';
 
 class OfferMapper {
@@ -11,7 +13,7 @@ class OfferMapper {
   static OfferModel toModel(Offer entity) {
     return OfferModel(
       id: entity.id,
-      productId: entity.catchId,
+      productId: entity.productId,
       fisherId: entity.fisherId,
       buyerId: entity.buyerId,
       currentPriceAmount: entity.currentTerms.totalPrice.amount,
@@ -48,7 +50,7 @@ class OfferMapper {
 
     return Offer(
       id: model.id,
-      catchId: model.productId,
+      productId: model.productId,
       fisherId: model.fisherId,
       buyerId: model.buyerId,
       currentTerms: currentTerms,
@@ -62,6 +64,24 @@ class OfferMapper {
       hasUpdateForFisher: model.hasUpdateForFisher,
       hasUpdateForBuyer: model.hasUpdateForBuyer,
       product: model.product,
+      fisher: model.product?.fisher,
+      buyer: _mapBuyer(model),
+    );
+  }
+
+  static User? _mapBuyer(OfferModel model) {
+    final buyer = model.buyer;
+    if (buyer == null) return null;
+
+    return User(
+      id: buyer.id.toString(), // AccountApiModel id can be dynamic
+      name: '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim().isEmpty
+          ? (buyer.username ?? 'Unknown')
+          : '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim(),
+      rating: Rating.fromValue(buyer.rating ?? 0.0),
+      reviewCount: buyer.totalReviews ?? 0,
+      avatarUrl: buyer.avatar,
+      currentRole: UserRole.buyer,
     );
   }
 

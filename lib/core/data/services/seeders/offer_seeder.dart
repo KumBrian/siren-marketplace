@@ -80,7 +80,7 @@ class OfferSeeder {
 
         final pendingOffer = Offer(
           id: _uuid.v4(),
-          catchId: catchItem.id,
+          productId: catchItem.id,
           fisherId: catchItem.fisherId,
           buyerId: buyer.id,
           currentTerms: OfferTerms.create(

@@ -133,10 +133,8 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
       "",
     );
 
-    pricePerKgController.text = selectedCatch.pricePerKg.major.toStringAsFixed(
-      0,
-    );
-    final double initialTotal = selectedCatch.totalPrice.major;
+    pricePerKgController.text = selectedCatch.pricePerKg.amountPerKg.toString();
+    final double initialTotal = selectedCatch.totalPrice.amount.toDouble();
     totalController.text = initialTotal.toStringAsFixed(0);
 
     showDialog(
@@ -444,11 +442,13 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                         ),
                         InfoRow(
                           label: "Price/Kg",
-                          value: formatPrice(selectedCatch.pricePerKg.major),
+                          value: formatPrice(
+                            selectedCatch.pricePerKg.amountPerKg,
+                          ),
                         ),
                         InfoRow(
                           label: "Total",
-                          value: formatPrice(selectedCatch.totalPrice.major),
+                          value: formatPrice(selectedCatch.totalPrice.amount),
                         ),
                       ],
                     ),

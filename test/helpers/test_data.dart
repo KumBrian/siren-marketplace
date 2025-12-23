@@ -69,7 +69,7 @@ class TestData {
   /// Creates a test Offer entity with sensible defaults
   static Offer createOffer({
     String? id,
-    String? catchId,
+    String? productId,
     String? fisherId,
     String? buyerId,
     DateTime? dateCreated,
@@ -85,7 +85,9 @@ class TestData {
     final now = DateTime.now();
     return Offer(
       id: id ?? 'test-offer-1',
-      catchId: catchId ?? 'test-catch-1',
+      productId:
+          productId ??
+          'test-catch-1', // Assuming catchId was functioning as productId
       fisherId: fisherId ?? 'fisher-1',
       buyerId: buyerId ?? 'buyer-1',
       dateCreated: dateCreated ?? now,

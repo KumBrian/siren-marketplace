@@ -46,6 +46,7 @@ import '../domain/services/negotiation_service.dart';
 import '../domain/services/order_service.dart';
 import '../domain/services/rating_service.dart';
 import '../domain/services/session_service.dart';
+import '../domain/services/viewed_offers_service.dart';
 import '../data/api/api_client.dart';
 import '../data/storage/token_storage.dart';
 import '../data/sources/api/auth_api_data_source.dart';
@@ -56,7 +57,7 @@ import 'package:siren_marketplace/core/network/api_result.dart';
 import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
-import 'package:siren_marketplace/core/domain/entities/catch.dart';
+
 import '../providers/catch_providers.dart';
 import '../providers/product_providers.dart';
 
@@ -82,6 +83,10 @@ Future<void> initDependencies() async {
   // --------------------------------------------------
   // API Dependencies (Always register these if configured)
   // --------------------------------------------------
+  final viewedOffersService = ViewedOffersService();
+  await viewedOffersService.init();
+  sl.registerSingleton<IViewedOffersService>(viewedOffersService);
+
   sl.registerLazySingleton(() => TokenStorage());
 
   // Register Core API Client
@@ -338,6 +343,7 @@ void _initApiMode(DatabaseHelper dbHelper) {
     () => OfferRepositoryImpl(
       dataSource: OffersApiDataSource(
         client: sl(instanceName: 'marketplaceApiClient'),
+        viewedOffersService: sl<IViewedOffersService>(),
       ),
     ),
   );

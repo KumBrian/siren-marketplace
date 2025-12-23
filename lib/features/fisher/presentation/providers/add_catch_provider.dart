@@ -11,6 +11,7 @@ import 'package:siren_marketplace/core/domain/value_objects/price.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price_per_kg.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
+import 'package:siren_marketplace/core/providers/product_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 
 class AddCatchState {
@@ -450,6 +451,12 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
 
       // Invalidate providers
       ref.invalidate(fisherCatchesProvider);
+
+      if (state.isSelling) {
+        // Invalidate product providers to refresh the lists
+        ref.invalidate(fisherProductsProvider);
+        ref.invalidate(availableProductsProvider);
+      }
 
       // Clear state
       state = const AddCatchState();

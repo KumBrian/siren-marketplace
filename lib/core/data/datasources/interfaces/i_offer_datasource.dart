@@ -1,5 +1,6 @@
 import '../../../domain/enums/offer_status.dart';
 import '../../models/offer_model.dart';
+import '../../../domain/enums/user_role.dart';
 
 abstract class IOfferDataSource {
   Future<String> create(OfferModel offer);
@@ -8,7 +9,7 @@ abstract class IOfferDataSource {
 
   Future<OfferModel?> getById(String offerId);
 
-  Future<List<OfferModel>> getByCatchId(String catchId);
+  Future<List<OfferModel>> getByProductId(String productId, {UserRole? role});
 
   Future<List<OfferModel>> getByBuyerId(String buyerId);
 
@@ -24,4 +25,7 @@ abstract class IOfferDataSource {
 
   // Transaction support
   Future<T> transaction<T>(Future<T> Function() action);
+
+  /// Update local cache only (no API call)
+  void updateLocalCache(OfferModel offer);
 }

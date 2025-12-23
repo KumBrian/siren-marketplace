@@ -9,6 +9,7 @@ import '../../data/mappers/account_api_mapper.dart';
 /// Service managing user session and role switching
 class SessionService {
   final ISessionRepository _sessionRepository;
+  // ignore: unused_field
   final IUserRepository _userRepository;
   final IAuthApiDataSource? _authApiDataSource;
   final TokenStorage? _tokenStorage;
@@ -115,7 +116,16 @@ class SessionService {
 
   /// Logout
   Future<void> logout() async {
-    // Clear API token if using API mode
+    // 1. Call API logout if using API mode
+    if (_authApiDataSource != null) {
+      try {
+        await _authApiDataSource.logout();
+      } catch (e) {
+        print('Warning: API logout failed: $e. Proceeding with local logout.');
+      }
+    }
+
+    // 2. Clear API token if using API mode
     if (_tokenStorage != null) {
       await _tokenStorage.clearTokens();
     }

@@ -74,7 +74,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       ref.invalidate(sharedOfferDetailsProvider(offerId));
 
       // Invalidate catch-related providers using the authoritative catchId from the order
-      ref.invalidate(offersByCatchProvider(order.catchId));
+      ref.invalidate(offersByProductProvider(order.catchId));
       ref.invalidate(catchByIdProvider(order.catchId));
       ref.invalidate(catchByIdProvider(order.catchId));
       ref.invalidate(availableCatchesProvider);
@@ -112,7 +112,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       ref.invalidate(offerProvider(offerId));
       ref.invalidate(sharedOfferDetailsProvider(offerId));
       if (offer != null) {
-        ref.invalidate(offersByCatchProvider(offer.catchId));
+        ref.invalidate(offersByProductProvider(offer.productId));
       }
 
       // Invalidate role-specific providers to update UI
@@ -146,7 +146,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       ref.invalidate(offerProvider(offerId));
       ref.invalidate(sharedOfferDetailsProvider(offerId));
       if (offer != null) {
-        ref.invalidate(offersByCatchProvider(offer.catchId));
+        ref.invalidate(offersByProductProvider(offer.productId));
       }
 
       // Invalidate role-specific providers to update UI
@@ -171,7 +171,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       ref.invalidate(offerProvider(offerId));
       ref.invalidate(sharedOfferDetailsProvider(offerId));
       if (offer != null) {
-        ref.invalidate(offersByCatchProvider(offer.catchId));
+        ref.invalidate(offersByProductProvider(offer.productId));
       }
 
       // Force refresh role-specific offer lists to update badges/counts immediately
@@ -186,7 +186,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
   }
 
   Future<void> createOffer(
-    String catchId,
+    String productId,
     String buyerId,
     String fisherId,
     OfferTerms terms,
@@ -194,7 +194,7 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       await _negotiationService.createOffer(
-        catchId: catchId,
+        productId: productId,
         buyerId: buyerId,
         fisherId: fisherId,
         terms: terms,
@@ -204,8 +204,8 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
         successMessage: 'Offer sent successfully!',
       );
 
-      // Invalidate offers list for this catch
-      ref.invalidate(offersByCatchProvider(catchId));
+      // Invalidate offers list for this product
+      ref.invalidate(offersByProductProvider(productId));
       // Invalidate buyer offers list
       ref.invalidate(buyerOffersProvider);
     } catch (e) {

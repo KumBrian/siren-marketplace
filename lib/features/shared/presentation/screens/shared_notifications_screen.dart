@@ -8,7 +8,6 @@ import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
 import 'package:siren_marketplace/core/providers/conversation_providers.dart';
 import 'package:siren_marketplace/core/providers/notification_filter_provider.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
@@ -19,7 +18,6 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/presentation/widgets/conversation_card.dart';
-import 'package:siren_marketplace/core/di/injector.dart';
 
 class SharedNotificationsScreen extends ConsumerStatefulWidget {
   const SharedNotificationsScreen({super.key});
@@ -33,8 +31,6 @@ class _SharedNotificationsScreenState
     extends ConsumerState<SharedNotificationsScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  final Map<String, User> _userCache = {};
-
   @override
   void initState() {
     super.initState();
@@ -45,31 +41,6 @@ class _SharedNotificationsScreenState
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadUserData(List<Offer> offers, UserRole role) async {
-    final userIds = role == UserRole.fisher
-        ? offers.map((o) => o.buyerId).toSet()
-        : offers.map((o) => o.fisherId).toSet();
-
-    final idsToLoad = userIds
-        .where((id) => !_userCache.containsKey(id))
-        .toList();
-
-    if (idsToLoad.isEmpty) return;
-
-    for (final id in idsToLoad) {
-      try {
-        final user = await sl<IUserRepository>().getById(id);
-        if (user != null && mounted) {
-          setState(() {
-            _userCache[id] = user;
-          });
-        }
-      } catch (e) {
-        debugPrint("Error loading user $id: $e");
-      }
-    }
   }
 
   Widget _buildOffersTab(UserRole role) {
@@ -116,9 +87,6 @@ class _SharedNotificationsScreenState
           );
         }
 
-        // Load user data
-        _loadUserData(offers, role);
-
         return SingleChildScrollView(
           padding: const EdgeInsets.only(bottom: 80, top: 16),
           child: ListView.separated(
@@ -128,17 +96,13 @@ class _SharedNotificationsScreenState
             separatorBuilder: (context, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final offer = offers[index];
-              final userId = role == UserRole.fisher
-                  ? offer.buyerId
-                  : offer.fisherId;
-              final user = _userCache[userId];
 
               if (role == UserRole.fisher) {
                 // Fisher view - show buyer info
-                return _buildFisherOfferCard(offer, user);
+                return _buildFisherOfferCard(offer, offer.buyer);
               } else {
                 // Buyer view - show fisher info
-                return _buildBuyerOfferCard(offer, user);
+                return _buildBuyerOfferCard(offer, offer.fisher);
               }
             },
           ),

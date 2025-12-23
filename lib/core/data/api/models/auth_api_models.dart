@@ -25,7 +25,7 @@ class AuthorizeResponse with _$AuthorizeResponse {
     @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
     @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
     required dynamic id, // ID can be int
-    required String email,
+    String? email,
     String? firstName,
     String? lastName,
     String? username,
@@ -55,13 +55,15 @@ class AccountApiModel with _$AccountApiModel {
   const factory AccountApiModel({
     @JsonKey(readValue: _readId)
     required dynamic id, // ID can be int or string (uid)
-    String? firstName,
-    String? lastName,
+    @JsonKey(name: 'first_name', readValue: _readFirstName) String? firstName,
+    @JsonKey(name: 'last_name', readValue: _readLastName) String? lastName,
     String? username,
-    required String email,
+    String? email,
     String? phone,
     List<String>? roles, // Roles as list of strings
     double? rating,
+    @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+    int? totalReviews,
     String? avatar,
   }) = _AccountApiModel;
 
@@ -74,4 +76,16 @@ Object? _readId(Map json, String key) {
   if (json.containsKey('id')) return json['id'];
   if (json.containsKey('uid')) return json['uid'];
   return null;
+}
+
+Object? _readFirstName(Map json, String key) {
+  return json['first_name'] ?? json['firstName'];
+}
+
+Object? _readLastName(Map json, String key) {
+  return json['last_name'] ?? json['lastName'];
+}
+
+Object? _readTotalReviews(Map json, String key) {
+  return json['total_reviews'] ?? json['totalReviews'];
 }

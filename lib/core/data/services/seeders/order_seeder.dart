@@ -40,7 +40,7 @@ class OrderSeeder {
       final order = Order(
         id: 'ORD${_uuid.v4().substring(0, 8).toUpperCase()}',
         offerId: offer.id,
-        catchId: offer.catchId,
+        catchId: offer.productId,
         fisherId: offer.fisherId,
         buyerId: offer.buyerId,
         terms: offer.currentTerms,

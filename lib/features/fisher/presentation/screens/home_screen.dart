@@ -96,8 +96,8 @@ class FisherHome extends ConsumerWidget {
           for (final offer in offers) {
             if (offer.hasUpdateForFisher) {
               productsWithUnviewedOffers.add(
-                offer.catchId,
-              ); // catchId maps to product ID
+                offer.productId,
+              ); // productId maps to product ID
             }
           }
 

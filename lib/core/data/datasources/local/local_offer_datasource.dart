@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import '../../../../core/data/database/database_helper.dart';
 import '../../../../core/domain/enums/offer_status.dart';
+import '../../../../core/domain/enums/user_role.dart';
 import '../../models/offer_model.dart';
 import '../interfaces/i_offer_datasource.dart';
 
@@ -33,9 +34,21 @@ class LocalOfferDataSource implements IOfferDataSource {
   }
 
   @override
-  Future<List<OfferModel>> getByCatchId(String catchId) async {
-    final maps = await dbHelper.getOfferMapsByCatchId(catchId);
-    return maps.map((m) => OfferModel.fromMap(m)).toList();
+  Future<List<OfferModel>> getByProductId(
+    String productId, {
+    UserRole? role,
+  }) async {
+    // Local DB doesn't distinguish endpoints, filtering by role happens in UI/Provider logic if needed,
+    // or we assume local DB has all relevant data for the user.
+    // For now, ignore role.
+    final db = await dbHelper.database;
+    const _tableName = 'offers';
+    final maps = await db.query(
+      _tableName,
+      where: 'catchId = ?',
+      whereArgs: [productId],
+    );
+    return maps.map((e) => OfferModel.fromJson(e)).toList();
   }
 
   @override
@@ -82,5 +95,10 @@ class LocalOfferDataSource implements IOfferDataSource {
   @override
   Future<T> transaction<T>(Future<T> Function() action) async {
     return await dbHelper.transaction(action);
+  }
+
+  @override
+  void updateLocalCache(OfferModel offer) {
+    update(offer);
   }
 }

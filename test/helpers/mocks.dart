@@ -8,9 +8,11 @@ import 'package:siren_marketplace/core/domain/repositories/i_order_repository.da
 import 'package:siren_marketplace/core/domain/repositories/i_review_repository.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_session_repository.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_product_repository.dart';
 import 'package:siren_marketplace/core/domain/services/negotiation_service.dart';
 import 'package:siren_marketplace/core/domain/services/rating_service.dart';
 import 'package:siren_marketplace/core/domain/services/session_service.dart';
+import 'package:siren_marketplace/core/domain/services/message_service.dart';
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_catch_datasource.dart';
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_offer_datasource.dart';
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_order_datasource.dart';
@@ -26,6 +28,8 @@ import 'package:siren_marketplace/core/data/datasources/interfaces/i_user_dataso
   IReviewRepository,
   ISessionRepository,
   IUserRepository,
+  IProductRepository,
+  MessageService,
 ])
 void generateRepositoryMocks() {}
 

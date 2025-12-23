@@ -8,16 +8,16 @@ const String _localErrorAsset = 'assets/images/user-profile.png';
 class ErrorHandlingCircleAvatar extends StatelessWidget {
   const ErrorHandlingCircleAvatar({
     super.key,
-    required this.avatarUrl,
+    this.avatarUrl,
     this.radius = 30,
   });
 
-  final String avatarUrl;
+  final String? avatarUrl;
   final double radius;
 
   @override
   Widget build(BuildContext context) {
-    final isNetworkImage = avatarUrl.contains("http");
+    final isNetworkImage = avatarUrl != null && avatarUrl!.contains("http");
     final size = radius * 2;
 
     if (!isNetworkImage) {
@@ -34,7 +34,7 @@ class ErrorHandlingCircleAvatar extends StatelessWidget {
         width: size,
         height: size,
         child: Image.network(
-          avatarUrl,
+          avatarUrl!,
           fit: BoxFit.cover,
           // 1. Fallback to the local asset image when the network image fails
           errorBuilder: (context, error, stackTrace) {

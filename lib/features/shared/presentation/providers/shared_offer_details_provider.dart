@@ -7,6 +7,8 @@ import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/exceptions/not_found_exception.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
 
+import 'package:siren_marketplace/core/domain/entities/product.dart';
+import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
@@ -50,35 +52,50 @@ final sharedOfferDetailsProvider = FutureProvider.family
         );
       }
 
-      // 3. Fetch Catch
-      final catchRepo = sl<ICatchRepository>();
-      final catchItem = await catchRepo.getById(offer.catchId);
+      // 3. Get Catch (Use embedded product if available, else fetch)
+      Catch? catchItem;
+      if (offer.product != null) {
+        try {
+          catchItem = _mapProductToCatch(offer.product!);
+        } catch (e) {
+          print('DEBUG: Failed to map embedded product to catch: $e');
+        }
+      }
+
+      if (catchItem == null) {
+        final catchRepo = sl<ICatchRepository>();
+        catchItem = await catchRepo.getById(offer.productId);
+      }
 
       if (catchItem == null) {
         throw NotFoundException(
           'Catch not found',
           entityType: 'Catch',
-          entityId: offer.catchId,
+          entityId: offer.productId,
         );
       }
 
       // 4. Determine and Fetch Other Party
-      final userRepo = sl<IUserRepository>();
-      String otherPartyId;
+      final isBuyer = currentUser.currentRole == UserRole.buyer;
+      User? otherParty;
 
-      if (currentUser.currentRole == UserRole.buyer) {
-        otherPartyId = offer.fisherId;
-      } else {
-        otherPartyId = offer.buyerId;
+      if (isBuyer && offer.fisher != null) {
+        otherParty = offer.fisher;
+      } else if (!isBuyer && offer.buyer != null) {
+        otherParty = offer.buyer;
       }
 
-      final otherParty = await userRepo.getById(otherPartyId);
+      if (otherParty == null) {
+        final userRepo = sl<IUserRepository>();
+        final otherPartyId = isBuyer ? offer.fisherId : offer.buyerId;
+        otherParty = await userRepo.getById(otherPartyId);
+      }
 
       if (otherParty == null) {
         throw NotFoundException(
           'User not found',
           entityType: 'User',
-          entityId: otherPartyId,
+          entityId: isBuyer ? offer.fisherId : offer.buyerId,
         );
       }
 
@@ -103,3 +120,39 @@ final sharedOfferDetailsProvider = FutureProvider.family
         orderId: orderId,
       );
     });
+
+// Helper to map Product (embedded) to Catch
+Catch _mapProductToCatch(Product product) {
+  // Map status string to CatchStatus
+  CatchStatus status = CatchStatus.available;
+  try {
+    status = CatchStatus.values.firstWhere(
+      (e) => e.name.toLowerCase() == product.status.toLowerCase(),
+      orElse: () => CatchStatus.available,
+    );
+  } catch (_) {}
+
+  return Catch(
+    id: product.id,
+    name: product.name,
+    datePosted: product.datePosted,
+    initialWeight: product.initialWeight,
+    availableWeight: product.availableWeight,
+    pricePerKg: product.pricePerKg,
+    totalPrice: product.totalPrice,
+    size: product.size,
+    market: product.marketName,
+    images: product.images,
+    species: product.species,
+    fisherId: product.fisherId,
+    status: status,
+    observationId: '', // Not available in Product, safe to omit for display
+    locationName: product.locationName,
+    latitude: product.latitude,
+    longitude: product.longitude,
+    meshSize: product.meshSize,
+    gearLength: product.gearLength,
+    gearWidth: product.gearWidth,
+    gearNature: product.gearNature,
+  );
+}

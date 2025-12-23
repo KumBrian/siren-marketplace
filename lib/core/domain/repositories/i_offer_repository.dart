@@ -14,7 +14,7 @@ abstract class IOfferRepository {
   Future<Offer?> getById(String offerId);
 
   /// Get all offers for a specific catch
-  Future<List<Offer>> getByCatchId(String catchId);
+  Future<List<Offer>> getByProductId(String productId, {UserRole? role});
 
   /// Get all offers made by a buyer
   Future<List<Offer>> getByBuyerId(String buyerId);

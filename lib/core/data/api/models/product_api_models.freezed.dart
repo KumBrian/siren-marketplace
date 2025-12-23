@@ -569,6 +569,16 @@ mixin _$ProductAccountApiModel {
   @JsonKey(name: 'deleted_at')
   String? get deletedAt => throw _privateConstructorUsedError;
   String? get uid => throw _privateConstructorUsedError;
+  String? get firstName => throw _privateConstructorUsedError;
+  String? get lastName => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
+  String? get phoneNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'totalReviews')
+  int? get totalReviews => throw _privateConstructorUsedError;
+  @JsonKey(name: 'ratingDistribution')
+  List<dynamic>? get ratingDistribution => throw _privateConstructorUsedError;
+  double? get rating => throw _privateConstructorUsedError;
+  String? get avatar => throw _privateConstructorUsedError;
 
   /// Serializes this ProductAccountApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -592,6 +602,14 @@ abstract class $ProductAccountApiModelCopyWith<$Res> {
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
     String? uid,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phoneNumber,
+    @JsonKey(name: 'totalReviews') int? totalReviews,
+    @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
+    double? rating,
+    String? avatar,
   });
 }
 
@@ -617,6 +635,14 @@ class _$ProductAccountApiModelCopyWithImpl<
     Object? updatedAt = freezed,
     Object? deletedAt = freezed,
     Object? uid = freezed,
+    Object? firstName = freezed,
+    Object? lastName = freezed,
+    Object? email = freezed,
+    Object? phoneNumber = freezed,
+    Object? totalReviews = freezed,
+    Object? ratingDistribution = freezed,
+    Object? rating = freezed,
+    Object? avatar = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -635,6 +661,38 @@ class _$ProductAccountApiModelCopyWithImpl<
             uid: freezed == uid
                 ? _value.uid
                 : uid // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            firstName: freezed == firstName
+                ? _value.firstName
+                : firstName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lastName: freezed == lastName
+                ? _value.lastName
+                : lastName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            email: freezed == email
+                ? _value.email
+                : email // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            phoneNumber: freezed == phoneNumber
+                ? _value.phoneNumber
+                : phoneNumber // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            totalReviews: freezed == totalReviews
+                ? _value.totalReviews
+                : totalReviews // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            ratingDistribution: freezed == ratingDistribution
+                ? _value.ratingDistribution
+                : ratingDistribution // ignore: cast_nullable_to_non_nullable
+                      as List<dynamic>?,
+            rating: freezed == rating
+                ? _value.rating
+                : rating // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            avatar: freezed == avatar
+                ? _value.avatar
+                : avatar // ignore: cast_nullable_to_non_nullable
                       as String?,
           )
           as $Val,
@@ -656,6 +714,14 @@ abstract class _$$ProductAccountApiModelImplCopyWith<$Res>
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
     String? uid,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phoneNumber,
+    @JsonKey(name: 'totalReviews') int? totalReviews,
+    @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
+    double? rating,
+    String? avatar,
   });
 }
 
@@ -678,6 +744,14 @@ class __$$ProductAccountApiModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
     Object? deletedAt = freezed,
     Object? uid = freezed,
+    Object? firstName = freezed,
+    Object? lastName = freezed,
+    Object? email = freezed,
+    Object? phoneNumber = freezed,
+    Object? totalReviews = freezed,
+    Object? ratingDistribution = freezed,
+    Object? rating = freezed,
+    Object? avatar = freezed,
   }) {
     return _then(
       _$ProductAccountApiModelImpl(
@@ -697,6 +771,38 @@ class __$$ProductAccountApiModelImplCopyWithImpl<$Res>
             ? _value.uid
             : uid // ignore: cast_nullable_to_non_nullable
                   as String?,
+        firstName: freezed == firstName
+            ? _value.firstName
+            : firstName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lastName: freezed == lastName
+            ? _value.lastName
+            : lastName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        email: freezed == email
+            ? _value.email
+            : email // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        phoneNumber: freezed == phoneNumber
+            ? _value.phoneNumber
+            : phoneNumber // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        totalReviews: freezed == totalReviews
+            ? _value.totalReviews
+            : totalReviews // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        ratingDistribution: freezed == ratingDistribution
+            ? _value._ratingDistribution
+            : ratingDistribution // ignore: cast_nullable_to_non_nullable
+                  as List<dynamic>?,
+        rating: freezed == rating
+            ? _value.rating
+            : rating // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        avatar: freezed == avatar
+            ? _value.avatar
+            : avatar // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -710,7 +816,16 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
     @JsonKey(name: 'updated_at') this.updatedAt,
     @JsonKey(name: 'deleted_at') this.deletedAt,
     this.uid,
-  });
+    this.firstName,
+    this.lastName,
+    this.email,
+    this.phoneNumber,
+    @JsonKey(name: 'totalReviews') this.totalReviews,
+    @JsonKey(name: 'ratingDistribution')
+    final List<dynamic>? ratingDistribution,
+    this.rating,
+    this.avatar,
+  }) : _ratingDistribution = ratingDistribution;
 
   factory _$ProductAccountApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductAccountApiModelImplFromJson(json);
@@ -726,10 +841,37 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
   final String? deletedAt;
   @override
   final String? uid;
+  @override
+  final String? firstName;
+  @override
+  final String? lastName;
+  @override
+  final String? email;
+  @override
+  final String? phoneNumber;
+  @override
+  @JsonKey(name: 'totalReviews')
+  final int? totalReviews;
+  final List<dynamic>? _ratingDistribution;
+  @override
+  @JsonKey(name: 'ratingDistribution')
+  List<dynamic>? get ratingDistribution {
+    final value = _ratingDistribution;
+    if (value == null) return null;
+    if (_ratingDistribution is EqualUnmodifiableListView)
+      return _ratingDistribution;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  @override
+  final double? rating;
+  @override
+  final String? avatar;
 
   @override
   String toString() {
-    return 'ProductAccountApiModel(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid)';
+    return 'ProductAccountApiModel(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid, firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber, totalReviews: $totalReviews, ratingDistribution: $ratingDistribution, rating: $rating, avatar: $avatar)';
   }
 
   @override
@@ -743,13 +885,41 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
                 other.updatedAt == updatedAt) &&
             (identical(other.deletedAt, deletedAt) ||
                 other.deletedAt == deletedAt) &&
-            (identical(other.uid, uid) || other.uid == uid));
+            (identical(other.uid, uid) || other.uid == uid) &&
+            (identical(other.firstName, firstName) ||
+                other.firstName == firstName) &&
+            (identical(other.lastName, lastName) ||
+                other.lastName == lastName) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.phoneNumber, phoneNumber) ||
+                other.phoneNumber == phoneNumber) &&
+            (identical(other.totalReviews, totalReviews) ||
+                other.totalReviews == totalReviews) &&
+            const DeepCollectionEquality().equals(
+              other._ratingDistribution,
+              _ratingDistribution,
+            ) &&
+            (identical(other.rating, rating) || other.rating == rating) &&
+            (identical(other.avatar, avatar) || other.avatar == avatar));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, createdAt, updatedAt, deletedAt, uid);
+  int get hashCode => Object.hash(
+    runtimeType,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    uid,
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    totalReviews,
+    const DeepCollectionEquality().hash(_ratingDistribution),
+    rating,
+    avatar,
+  );
 
   /// Create a copy of ProductAccountApiModel
   /// with the given fields replaced by the non-null parameter values.
@@ -775,6 +945,15 @@ abstract class _ProductAccountApiModel implements ProductAccountApiModel {
     @JsonKey(name: 'updated_at') final String? updatedAt,
     @JsonKey(name: 'deleted_at') final String? deletedAt,
     final String? uid,
+    final String? firstName,
+    final String? lastName,
+    final String? email,
+    final String? phoneNumber,
+    @JsonKey(name: 'totalReviews') final int? totalReviews,
+    @JsonKey(name: 'ratingDistribution')
+    final List<dynamic>? ratingDistribution,
+    final double? rating,
+    final String? avatar,
   }) = _$ProductAccountApiModelImpl;
 
   factory _ProductAccountApiModel.fromJson(Map<String, dynamic> json) =
@@ -791,6 +970,24 @@ abstract class _ProductAccountApiModel implements ProductAccountApiModel {
   String? get deletedAt;
   @override
   String? get uid;
+  @override
+  String? get firstName;
+  @override
+  String? get lastName;
+  @override
+  String? get email;
+  @override
+  String? get phoneNumber;
+  @override
+  @JsonKey(name: 'totalReviews')
+  int? get totalReviews;
+  @override
+  @JsonKey(name: 'ratingDistribution')
+  List<dynamic>? get ratingDistribution;
+  @override
+  double? get rating;
+  @override
+  String? get avatar;
 
   /// Create a copy of ProductAccountApiModel
   /// with the given fields replaced by the non-null parameter values.

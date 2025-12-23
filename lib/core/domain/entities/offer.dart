@@ -4,10 +4,11 @@ import '../enums/offer_status.dart';
 import '../enums/user_role.dart';
 import '../value_objects/offer_terms.dart';
 import 'product.dart';
+import 'user.dart';
 
 class Offer extends Equatable {
   final String id;
-  final String catchId;
+  final String productId;
   final String fisherId;
   final String buyerId;
   final OfferTerms currentTerms;
@@ -19,10 +20,12 @@ class Offer extends Equatable {
   final bool hasUpdateForFisher;
   final bool hasUpdateForBuyer;
   final Product? product;
+  final User? fisher;
+  final User? buyer;
 
   const Offer({
     required this.id,
-    required this.catchId,
+    required this.productId,
     required this.fisherId,
     required this.buyerId,
     required this.currentTerms,
@@ -34,6 +37,8 @@ class Offer extends Equatable {
     this.hasUpdateForFisher = true,
     this.hasUpdateForBuyer = true,
     this.product,
+    this.fisher,
+    this.buyer,
   });
 
   // Business Logic
@@ -156,7 +161,7 @@ class Offer extends Equatable {
   }) {
     return Offer(
       id: id,
-      catchId: catchId,
+      productId: productId,
       fisherId: fisherId,
       buyerId: buyerId,
       currentTerms: currentTerms ?? this.currentTerms,
@@ -174,7 +179,7 @@ class Offer extends Equatable {
   @override
   List<Object?> get props => [
     id,
-    catchId,
+    productId,
     fisherId,
     buyerId,
     currentTerms,

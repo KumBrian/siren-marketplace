@@ -15,11 +15,15 @@ final offerProvider = FutureProvider.family<Offer?, String>((ref, id) async {
   return repository.getById(id);
 });
 
-/// Provider to fetch offers for a specific catch (auto-dispose)
-final offersByCatchProvider = FutureProvider.family
-    .autoDispose<List<Offer>, String>((ref, catchId) async {
+/// Provider to fetch offers for a specific product (auto-dispose)
+final offersByProductProvider = FutureProvider.family
+    .autoDispose<List<Offer>, String>((ref, productId) async {
+      // Get current user to determine role context
+      final user = await ref.watch(currentUserProvider.future);
+      final role = user?.currentRole;
+
       final repository = sl<IOfferRepository>();
-      return repository.getByCatchId(catchId);
+      return repository.getByProductId(productId, role: role);
     });
 
 /// Provider to fetch offers for the current fisher user
@@ -101,8 +105,8 @@ final buyerNotificationCountProvider = Provider.autoDispose<int>((ref) {
 /// Provider for filtered and sorted offers for a specific catch
 /// Combines offers with filter state for automatic updates
 final filteredOffersProvider = Provider.autoDispose.family<List<Offer>, String>(
-  (ref, catchId) {
-    final offersAsync = ref.watch(offersByCatchProvider(catchId));
+  (ref, productId) {
+    final offersAsync = ref.watch(offersByProductProvider(productId));
     final filterState = ref.watch(catchFilterProvider);
 
     return offersAsync.when(

@@ -34,8 +34,9 @@ class OfferRepositoryImpl implements IOfferRepository {
   }
 
   @override
-  Future<List<Offer>> getByCatchId(String catchId) async {
-    final models = await dataSource.getByCatchId(catchId);
+  @override
+  Future<List<Offer>> getByProductId(String productId, {UserRole? role}) async {
+    final models = await dataSource.getByProductId(productId, role: role);
     return models.map((m) => OfferMapper.toEntity(m)).toList();
   }
 
@@ -106,7 +107,7 @@ class OfferRepositoryImpl implements IOfferRepository {
     final order = Order(
       id: orderId,
       offerId: offer.id,
-      catchId: offer.catchId,
+      catchId: offer.productId,
       fisherId: offer.fisherId,
       buyerId: offer.buyerId,
       terms: offer.currentTerms,
@@ -170,6 +171,8 @@ class OfferRepositoryImpl implements IOfferRepository {
       updatedOffer = offer.copyWith(hasUpdateForBuyer: false);
     }
 
-    await update(updatedOffer);
+    // Use local cache update instead of API update for view status
+    // This avoids failing PATCH calls while updating the UI state
+    dataSource.updateLocalCache(OfferMapper.toModel(updatedOffer));
   }
 }

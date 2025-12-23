@@ -9,6 +9,7 @@ import '../../models/order_model.dart';
 import '../../models/review_model.dart';
 import '../../models/species_model.dart';
 import '../../models/user_model.dart';
+import '../../../domain/enums/user_role.dart';
 import '../interfaces/i_catch_datasource.dart';
 import '../interfaces/i_offer_datasource.dart';
 import '../interfaces/i_order_datasource.dart';
@@ -191,9 +192,16 @@ class DemoOfferDataSource implements IOfferDataSource {
   }
 
   @override
-  Future<List<OfferModel>> getByCatchId(String catchId) async {
-    await Future.delayed(Duration(milliseconds: 100));
-    return _offers.values.where((o) => o.productId == catchId).toList();
+  Future<List<OfferModel>> getByProductId(
+    String productId, {
+    UserRole? role,
+  }) async {
+    // Demo source ignores role, returns all offers for catch
+    await Future.delayed(const Duration(milliseconds: 300));
+    final offers = _offers.values
+        .where((offer) => offer.productId == productId)
+        .toList();
+    return offers;
   }
 
   @override
@@ -235,6 +243,11 @@ class DemoOfferDataSource implements IOfferDataSource {
   @override
   Future<T> transaction<T>(Future<T> Function() action) async {
     return await action();
+  }
+
+  @override
+  void updateLocalCache(OfferModel offer) {
+    _offers[offer.id] = offer;
   }
 }
 

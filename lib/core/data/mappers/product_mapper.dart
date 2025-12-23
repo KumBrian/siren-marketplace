@@ -4,6 +4,9 @@ import '../../domain/entities/species.dart';
 import '../../domain/value_objects/price.dart';
 import '../../domain/value_objects/price_per_kg.dart';
 import '../../domain/value_objects/weight.dart';
+import '../../domain/entities/user.dart';
+import '../../domain/enums/user_role.dart';
+import '../../domain/value_objects/rating.dart';
 
 class ProductMapper {
   static Product toDomain(
@@ -36,12 +39,12 @@ class ProductMapper {
           apiModel.market?.uid ??
           'Unknown Market', // Adjust based on actual data
       status: apiModel.status ?? 'unknown',
-      pricePerKg: PricePerKg.fromAmount(
-        ((apiModel.pricePerKg ?? 0) * 100).toInt(),
+      pricePerKg: PricePerKg.fromAmount((apiModel.pricePerKg ?? 0).toInt()),
+      totalPrice: Price.fromAmount((apiModel.finalPrice ?? 0).toInt()),
+      initialWeight: Weight.fromGrams((apiModel.initialWeight ?? 0).toInt()),
+      availableWeight: Weight.fromGrams(
+        (apiModel.availableWeight ?? 0).toInt(),
       ),
-      totalPrice: Price.fromAmount(((apiModel.finalPrice ?? 0) * 100).toInt()),
-      initialWeight: Weight.fromKg(apiModel.initialWeight ?? 0),
-      availableWeight: Weight.fromKg(apiModel.availableWeight ?? 0),
       size: apiModel.size ?? 'Unknown',
       datePosted:
           DateTime.tryParse(apiModel.datePosted ?? '') ?? DateTime.now(),
@@ -57,6 +60,24 @@ class ProductMapper {
       offersCount: apiModel.offersCount,
       images: apiModel.images,
       fisherId: apiModel.account?.uid ?? '',
+      fisher: apiModel.account != null
+          ? User(
+              id: apiModel.account!.uid ?? '',
+              name:
+                  '${apiModel.account!.firstName ?? ''} ${apiModel.account!.lastName ?? ''}'
+                      .trim()
+                      .isEmpty
+                  ? (apiModel.account!.uid ?? 'Unknown')
+                  : '${apiModel.account!.firstName ?? ''} ${apiModel.account!.lastName ?? ''}'
+                        .trim(),
+              rating: Rating.fromValue(
+                apiModel.account!.rating ?? 0.0,
+              ), // Assuming rating field exists or similar
+              reviewCount: apiModel.account!.totalReviews ?? 0,
+              avatarUrl: apiModel.account!.avatar,
+              currentRole: UserRole.fisher,
+            )
+          : null,
     );
   }
 }

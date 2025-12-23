@@ -19,8 +19,8 @@ class CatchApiMapper {
     final publishedWeightGrams = (apiModel.publishedWeightInGrams ?? 0).toInt();
 
     // Convert price_per_kg to cents
-    final pricePerKgCents = ((apiModel.pricePerKg ?? 0) * 100).toInt();
-    final finalPriceCents = ((apiModel.finalPrice ?? 0) * 100).toInt();
+    final pricePerKgCents = (apiModel.pricePerKg ?? 0).toInt();
+    final finalPriceCents = (apiModel.finalPrice ?? 0).toInt();
 
     // Determine status from published_in_market_place flag
     // If publishedInMarketPlace is true, status is 'available', else use API status or default to 'draft'
@@ -149,8 +149,8 @@ class CatchApiMapper {
           ? model.availableWeightGrams
                 .toDouble() // Send in grams
           : 0.0,
-      pricePerKg: isForSale ? (model.pricePerKgAmount / 100.0) : 0.0,
-      finalPrice: isForSale ? (model.totalPriceAmount / 100.0) : 0.0,
+      pricePerKg: isForSale ? model.pricePerKgAmount.toDouble() : 0.0,
+      finalPrice: isForSale ? model.totalPriceAmount.toDouble() : 0.0,
       publishedInMarketPlace: isForSale,
       note: '', // API expects empty string, not null
       images: imageUrls.map((url) => CatchImageRequest(mediaUrl: url)).toList(),
@@ -190,8 +190,8 @@ class CatchApiMapper {
       'published_weight_in_grams': isForSale
           ? model.availableWeightGrams.toDouble()
           : 0.0,
-      'price_per_kg': isForSale ? (model.pricePerKgAmount / 100.0) : 0.0,
-      'final_price': isForSale ? (model.totalPriceAmount / 100.0) : 0.0,
+      'price_per_kg': isForSale ? model.pricePerKgAmount.toDouble() : 0.0,
+      'final_price': isForSale ? model.totalPriceAmount.toDouble() : 0.0,
       'published_in_market_place': isForSale,
       'note': '',
       'location_name': model.locationName,

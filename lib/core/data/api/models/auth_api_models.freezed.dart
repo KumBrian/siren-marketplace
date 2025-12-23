@@ -199,7 +199,7 @@ mixin _$AuthorizeResponse {
   @JsonKey(name: 'tokenIssuedAt')
   DateTime? get tokenIssuedAt => throw _privateConstructorUsedError;
   dynamic get id => throw _privateConstructorUsedError; // ID can be int
-  String get email => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
   String? get firstName => throw _privateConstructorUsedError;
   String? get lastName => throw _privateConstructorUsedError;
   String? get username => throw _privateConstructorUsedError;
@@ -229,7 +229,7 @@ abstract class $AuthorizeResponseCopyWith<$Res> {
     @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
     @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
     dynamic id,
-    String email,
+    String? email,
     String? firstName,
     String? lastName,
     String? username,
@@ -258,7 +258,7 @@ class _$AuthorizeResponseCopyWithImpl<$Res, $Val extends AuthorizeResponse>
     Object? tokenExpireAt = freezed,
     Object? tokenIssuedAt = freezed,
     Object? id = freezed,
-    Object? email = null,
+    Object? email = freezed,
     Object? firstName = freezed,
     Object? lastName = freezed,
     Object? username = freezed,
@@ -284,10 +284,10 @@ class _$AuthorizeResponseCopyWithImpl<$Res, $Val extends AuthorizeResponse>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as dynamic,
-            email: null == email
+            email: freezed == email
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             firstName: freezed == firstName
                 ? _value.firstName
                 : firstName // ignore: cast_nullable_to_non_nullable
@@ -332,7 +332,7 @@ abstract class _$$AuthorizeResponseImplCopyWith<$Res>
     @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
     @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
     dynamic id,
-    String email,
+    String? email,
     String? firstName,
     String? lastName,
     String? username,
@@ -360,7 +360,7 @@ class __$$AuthorizeResponseImplCopyWithImpl<$Res>
     Object? tokenExpireAt = freezed,
     Object? tokenIssuedAt = freezed,
     Object? id = freezed,
-    Object? email = null,
+    Object? email = freezed,
     Object? firstName = freezed,
     Object? lastName = freezed,
     Object? username = freezed,
@@ -386,10 +386,10 @@ class __$$AuthorizeResponseImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as dynamic,
-        email: null == email
+        email: freezed == email
             ? _value.email
             : email // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         firstName: freezed == firstName
             ? _value.firstName
             : firstName // ignore: cast_nullable_to_non_nullable
@@ -427,7 +427,7 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
     @JsonKey(name: 'tokenExpireAt') this.tokenExpireAt,
     @JsonKey(name: 'tokenIssuedAt') this.tokenIssuedAt,
     required this.id,
-    required this.email,
+    this.email,
     this.firstName,
     this.lastName,
     this.username,
@@ -452,7 +452,7 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
   final dynamic id;
   // ID can be int
   @override
-  final String email;
+  final String? email;
   @override
   final String? firstName;
   @override
@@ -541,7 +541,7 @@ abstract class _AuthorizeResponse extends AuthorizeResponse {
     @JsonKey(name: 'tokenExpireAt') final DateTime? tokenExpireAt,
     @JsonKey(name: 'tokenIssuedAt') final DateTime? tokenIssuedAt,
     required final dynamic id,
-    required final String email,
+    final String? email,
     final String? firstName,
     final String? lastName,
     final String? username,
@@ -565,7 +565,7 @@ abstract class _AuthorizeResponse extends AuthorizeResponse {
   @override
   dynamic get id; // ID can be int
   @override
-  String get email;
+  String? get email;
   @override
   String? get firstName;
   @override
@@ -595,14 +595,18 @@ AccountApiModel _$AccountApiModelFromJson(Map<String, dynamic> json) {
 mixin _$AccountApiModel {
   @JsonKey(readValue: _readId)
   dynamic get id => throw _privateConstructorUsedError; // ID can be int or string (uid)
+  @JsonKey(name: 'first_name', readValue: _readFirstName)
   String? get firstName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'last_name', readValue: _readLastName)
   String? get lastName => throw _privateConstructorUsedError;
   String? get username => throw _privateConstructorUsedError;
-  String get email => throw _privateConstructorUsedError;
+  String? get email => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   List<String>? get roles =>
       throw _privateConstructorUsedError; // Roles as list of strings
   double? get rating => throw _privateConstructorUsedError;
+  @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+  int? get totalReviews => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
 
   /// Serializes this AccountApiModel to a JSON map.
@@ -624,13 +628,15 @@ abstract class $AccountApiModelCopyWith<$Res> {
   @useResult
   $Res call({
     @JsonKey(readValue: _readId) dynamic id,
-    String? firstName,
-    String? lastName,
+    @JsonKey(name: 'first_name', readValue: _readFirstName) String? firstName,
+    @JsonKey(name: 'last_name', readValue: _readLastName) String? lastName,
     String? username,
-    String email,
+    String? email,
     String? phone,
     List<String>? roles,
     double? rating,
+    @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+    int? totalReviews,
     String? avatar,
   });
 }
@@ -654,10 +660,11 @@ class _$AccountApiModelCopyWithImpl<$Res, $Val extends AccountApiModel>
     Object? firstName = freezed,
     Object? lastName = freezed,
     Object? username = freezed,
-    Object? email = null,
+    Object? email = freezed,
     Object? phone = freezed,
     Object? roles = freezed,
     Object? rating = freezed,
+    Object? totalReviews = freezed,
     Object? avatar = freezed,
   }) {
     return _then(
@@ -678,10 +685,10 @@ class _$AccountApiModelCopyWithImpl<$Res, $Val extends AccountApiModel>
                 ? _value.username
                 : username // ignore: cast_nullable_to_non_nullable
                       as String?,
-            email: null == email
+            email: freezed == email
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             phone: freezed == phone
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
@@ -694,6 +701,10 @@ class _$AccountApiModelCopyWithImpl<$Res, $Val extends AccountApiModel>
                 ? _value.rating
                 : rating // ignore: cast_nullable_to_non_nullable
                       as double?,
+            totalReviews: freezed == totalReviews
+                ? _value.totalReviews
+                : totalReviews // ignore: cast_nullable_to_non_nullable
+                      as int?,
             avatar: freezed == avatar
                 ? _value.avatar
                 : avatar // ignore: cast_nullable_to_non_nullable
@@ -715,13 +726,15 @@ abstract class _$$AccountApiModelImplCopyWith<$Res>
   @useResult
   $Res call({
     @JsonKey(readValue: _readId) dynamic id,
-    String? firstName,
-    String? lastName,
+    @JsonKey(name: 'first_name', readValue: _readFirstName) String? firstName,
+    @JsonKey(name: 'last_name', readValue: _readLastName) String? lastName,
     String? username,
-    String email,
+    String? email,
     String? phone,
     List<String>? roles,
     double? rating,
+    @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+    int? totalReviews,
     String? avatar,
   });
 }
@@ -744,10 +757,11 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
     Object? firstName = freezed,
     Object? lastName = freezed,
     Object? username = freezed,
-    Object? email = null,
+    Object? email = freezed,
     Object? phone = freezed,
     Object? roles = freezed,
     Object? rating = freezed,
+    Object? totalReviews = freezed,
     Object? avatar = freezed,
   }) {
     return _then(
@@ -768,10 +782,10 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
             ? _value.username
             : username // ignore: cast_nullable_to_non_nullable
                   as String?,
-        email: null == email
+        email: freezed == email
             ? _value.email
             : email // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         phone: freezed == phone
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
@@ -784,6 +798,10 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
             ? _value.rating
             : rating // ignore: cast_nullable_to_non_nullable
                   as double?,
+        totalReviews: freezed == totalReviews
+            ? _value.totalReviews
+            : totalReviews // ignore: cast_nullable_to_non_nullable
+                  as int?,
         avatar: freezed == avatar
             ? _value.avatar
             : avatar // ignore: cast_nullable_to_non_nullable
@@ -798,13 +816,15 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
 class _$AccountApiModelImpl implements _AccountApiModel {
   const _$AccountApiModelImpl({
     @JsonKey(readValue: _readId) required this.id,
-    this.firstName,
-    this.lastName,
+    @JsonKey(name: 'first_name', readValue: _readFirstName) this.firstName,
+    @JsonKey(name: 'last_name', readValue: _readLastName) this.lastName,
     this.username,
-    required this.email,
+    this.email,
     this.phone,
     final List<String>? roles,
     this.rating,
+    @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+    this.totalReviews,
     this.avatar,
   }) : _roles = roles;
 
@@ -816,13 +836,15 @@ class _$AccountApiModelImpl implements _AccountApiModel {
   final dynamic id;
   // ID can be int or string (uid)
   @override
+  @JsonKey(name: 'first_name', readValue: _readFirstName)
   final String? firstName;
   @override
+  @JsonKey(name: 'last_name', readValue: _readLastName)
   final String? lastName;
   @override
   final String? username;
   @override
-  final String email;
+  final String? email;
   @override
   final String? phone;
   final List<String>? _roles;
@@ -839,11 +861,14 @@ class _$AccountApiModelImpl implements _AccountApiModel {
   @override
   final double? rating;
   @override
+  @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+  final int? totalReviews;
+  @override
   final String? avatar;
 
   @override
   String toString() {
-    return 'AccountApiModel(id: $id, firstName: $firstName, lastName: $lastName, username: $username, email: $email, phone: $phone, roles: $roles, rating: $rating, avatar: $avatar)';
+    return 'AccountApiModel(id: $id, firstName: $firstName, lastName: $lastName, username: $username, email: $email, phone: $phone, roles: $roles, rating: $rating, totalReviews: $totalReviews, avatar: $avatar)';
   }
 
   @override
@@ -862,6 +887,8 @@ class _$AccountApiModelImpl implements _AccountApiModel {
             (identical(other.phone, phone) || other.phone == phone) &&
             const DeepCollectionEquality().equals(other._roles, _roles) &&
             (identical(other.rating, rating) || other.rating == rating) &&
+            (identical(other.totalReviews, totalReviews) ||
+                other.totalReviews == totalReviews) &&
             (identical(other.avatar, avatar) || other.avatar == avatar));
   }
 
@@ -877,6 +904,7 @@ class _$AccountApiModelImpl implements _AccountApiModel {
     phone,
     const DeepCollectionEquality().hash(_roles),
     rating,
+    totalReviews,
     avatar,
   );
 
@@ -900,13 +928,17 @@ class _$AccountApiModelImpl implements _AccountApiModel {
 abstract class _AccountApiModel implements AccountApiModel {
   const factory _AccountApiModel({
     @JsonKey(readValue: _readId) required final dynamic id,
+    @JsonKey(name: 'first_name', readValue: _readFirstName)
     final String? firstName,
+    @JsonKey(name: 'last_name', readValue: _readLastName)
     final String? lastName,
     final String? username,
-    required final String email,
+    final String? email,
     final String? phone,
     final List<String>? roles,
     final double? rating,
+    @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+    final int? totalReviews,
     final String? avatar,
   }) = _$AccountApiModelImpl;
 
@@ -917,19 +949,24 @@ abstract class _AccountApiModel implements AccountApiModel {
   @JsonKey(readValue: _readId)
   dynamic get id; // ID can be int or string (uid)
   @override
+  @JsonKey(name: 'first_name', readValue: _readFirstName)
   String? get firstName;
   @override
+  @JsonKey(name: 'last_name', readValue: _readLastName)
   String? get lastName;
   @override
   String? get username;
   @override
-  String get email;
+  String? get email;
   @override
   String? get phone;
   @override
   List<String>? get roles; // Roles as list of strings
   @override
   double? get rating;
+  @override
+  @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+  int? get totalReviews;
   @override
   String? get avatar;
 

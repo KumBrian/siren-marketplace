@@ -36,13 +36,13 @@ class NegotiationService {
 
   /// Create a new offer for a catch or product
   Future<Offer> createOffer({
-    required String catchId,
+    required String productId,
     required String buyerId,
     required String fisherId,
     required OfferTerms terms,
   }) async {
     // Try to find as product first (migration preference)
-    final productResult = await _productRepository.getProductById(catchId);
+    final productResult = await _productRepository.getProductById(productId);
     // Check product first
     double availableWeightGrams = 0;
     Product? product;
@@ -58,7 +58,7 @@ class NegotiationService {
       }
     } else {
       // Fallback to Catch
-      final catchItem = await _catchRepository.getById(catchId);
+      final catchItem = await _catchRepository.getById(productId);
       if (catchItem == null) {
         throw ArgumentError('Product/Catch not found');
       }
@@ -81,7 +81,7 @@ class NegotiationService {
     // Create offer
     final offer = Offer(
       id: _generateOfferId(),
-      catchId: catchId,
+      productId: productId,
       fisherId: fisherId,
       buyerId: buyerId,
       currentTerms: terms,
@@ -113,7 +113,7 @@ class NegotiationService {
     }
 
     // Validate catch still exists and is available
-    final catchItem = await _catchRepository.getById(offer.catchId);
+    final catchItem = await _catchRepository.getById(offer.productId);
     if (catchItem == null) {
       throw StateError('Associated catch not found');
     }
@@ -136,7 +136,7 @@ class NegotiationService {
     final order = Order(
       id: _generateOrderId(),
       offerId: acceptedOffer.id,
-      catchId: acceptedOffer.catchId,
+      catchId: acceptedOffer.productId,
       fisherId: acceptedOffer.fisherId,
       buyerId: acceptedOffer.buyerId,
       terms: acceptedOffer.currentTerms,
@@ -198,12 +198,31 @@ class NegotiationService {
     }
 
     // Validate weight against catch availability
-    final catchItem = await _catchRepository.getById(offer.catchId);
-    if (catchItem == null) {
-      throw StateError('Associated catch not found');
+    // Validate weight against product/catch availability
+    double availableWeightGrams = 0;
+
+    // Check product first
+    final productResult = await _productRepository.getProductById(
+      offer.productId,
+    );
+
+    Product? product;
+    if (productResult.isRight) {
+      product = productResult.getOrElse(() => null);
     }
 
-    if (newTerms.weight > catchItem.availableWeight) {
+    if (product != null) {
+      availableWeightGrams = product.availableWeight.grams.toDouble();
+    } else {
+      // Check catch
+      final catchItem = await _catchRepository.getById(offer.productId);
+      if (catchItem == null) {
+        throw StateError('Associated product/catch not found');
+      }
+      availableWeightGrams = catchItem.availableWeight.grams.toDouble();
+    }
+
+    if (newTerms.weight.grams > availableWeightGrams) {
       throw ArgumentError('Counter offer weight exceeds available weight');
     }
 

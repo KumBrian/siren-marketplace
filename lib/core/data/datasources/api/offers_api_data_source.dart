@@ -4,10 +4,14 @@ import '../../../../core/data/api/models/offer_api_models.dart';
 import '../../../../core/data/mappers/offer_api_mapper.dart';
 import '../../models/offer_model.dart';
 import '../../../domain/enums/offer_status.dart';
+import '../../../domain/enums/user_role.dart';
 import '../interfaces/i_offer_datasource.dart';
+
+import '../../../domain/services/viewed_offers_service.dart';
 
 class OffersApiDataSource implements IOfferDataSource {
   final ApiClient _client;
+  final IViewedOffersService _viewedOffersService;
 
   // Time-based caching for offers (marketplace data changes frequently)
   static const Duration _cacheStaleTime = Duration(seconds: 30);
@@ -22,10 +26,14 @@ class OffersApiDataSource implements IOfferDataSource {
   List<OfferModel>? _receivedOffersCache;
   DateTime? _receivedOffersCacheTime;
 
-  final Map<String, List<OfferModel>> _offersByCatchCache = {};
-  final Map<String, DateTime> _offersByCatchCacheTime = {};
+  final Map<String, List<OfferModel>> _offersByProductCache = {};
+  final Map<String, DateTime> _offersByProductCacheTime = {};
 
-  OffersApiDataSource({required ApiClient client}) : _client = client;
+  OffersApiDataSource({
+    required ApiClient client,
+    required IViewedOffersService viewedOffersService,
+  }) : _client = client,
+       _viewedOffersService = viewedOffersService;
 
   @override
   Future<String> create(OfferModel offer) async {
@@ -48,6 +56,7 @@ class OffersApiDataSource implements IOfferDataSource {
     final List data = response.data['data'] ?? [];
     return data
         .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
+        .map(_applyViewedState)
         .toList();
   }
 
@@ -71,7 +80,10 @@ class OffersApiDataSource implements IOfferDataSource {
       final response = await _client.get(ApiConfig.offer(offerId));
       final data = response.data['data'] ?? response.data;
       final apiModel = OfferApiModel.fromJson(data);
-      final offerModel = OfferApiMapper.toDomain(apiModel);
+      var offerModel = OfferApiMapper.toDomain(apiModel);
+
+      // Apply local viewed state
+      offerModel = _applyViewedState(offerModel);
 
       // Store in cache with timestamp
       _offerByIdCache[offerId] = offerModel;
@@ -84,33 +96,70 @@ class OffersApiDataSource implements IOfferDataSource {
   }
 
   @override
-  Future<List<OfferModel>> getByCatchId(String catchId) async {
+  Future<List<OfferModel>> getByProductId(
+    String productId, {
+    UserRole? role,
+  }) async {
     // Check cache with stale time
-    if (_offersByCatchCache.containsKey(catchId)) {
-      final cacheTime = _offersByCatchCacheTime[catchId];
+    if (_offersByProductCache.containsKey(productId)) {
+      final cacheTime = _offersByProductCacheTime[productId];
       if (cacheTime != null &&
           DateTime.now().difference(cacheTime) < _cacheStaleTime) {
-        print('DEBUG: Offers by catch cache HIT for catch $catchId');
-        return _offersByCatchCache[catchId]!;
+        print('DEBUG: Offers by product cache HIT for product $productId');
+        return _offersByProductCache[productId]!;
       }
     }
 
-    print('DEBUG: Offers by catch cache MISS for catch $catchId');
-
-    // Use my-offers endpoint with product filter
-    // More efficient than filtering all offers
-    final response = await _client.get(
-      ApiConfig.myOffers,
-      queryParameters: {'product': catchId, 'page': 1, 'itemsPerPage': 100},
+    print(
+      'DEBUG: Offers by product cache MISS for product $productId (Role: $role)',
     );
-    final List data = response.data['data']['member'] ?? [];
-    final offers = data
-        .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
-        .toList();
+
+    List<OfferModel> offers;
+
+    if (role == UserRole.fisher) {
+      // Fisher wants to see offers RECEIVED on their catch
+      // Use received-offers endpoint
+      try {
+        final response = await _client.get(
+          ApiConfig.receivedOffers,
+          queryParameters: {
+            'product': productId,
+            'page': 1,
+            'itemsPerPage': 100,
+          },
+        );
+        final List data = response.data['data']['member'] ?? [];
+        offers = data
+            .map(
+              (json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)),
+            )
+            .map(_applyViewedState)
+            .toList();
+      } catch (e) {
+        // Fallback: fetch all received offers and filter (if API doesn't support product filter on received-offers)
+        print(
+          "DEBUG: Fetching specific product failed, falling back to all received: $e",
+        );
+        final allReceived = await getReceivedOffers('me'); // 'me' is ignored
+        offers = allReceived.where((o) => o.productId == productId).toList();
+      }
+    } else {
+      // Buyer (or unknown) wants to see THEIR offers on this catch
+      // Use my-offers endpoint with product filter
+      final response = await _client.get(
+        ApiConfig.myOffers,
+        queryParameters: {'product': productId, 'page': 1, 'itemsPerPage': 100},
+      );
+      final List data = response.data['data']['member'] ?? [];
+      offers = data
+          .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
+          .map(_applyViewedState)
+          .toList();
+    }
 
     // Cache with timestamp
-    _offersByCatchCache[catchId] = offers;
-    _offersByCatchCacheTime[catchId] = DateTime.now();
+    _offersByProductCache[productId] = offers;
+    _offersByProductCacheTime[productId] = DateTime.now();
 
     return offers;
   }
@@ -123,7 +172,7 @@ class OffersApiDataSource implements IOfferDataSource {
     return await getMyOffers();
   }
 
-  @override
+  // NOTE: Removed @override as this is not in interface, but a public helper
   Future<List<OfferModel>> getReceivedOffers(String fisherId) async {
     // Check cache with stale time
     if (_receivedOffersCache != null && _receivedOffersCacheTime != null) {
@@ -144,6 +193,7 @@ class OffersApiDataSource implements IOfferDataSource {
     final List data = response.data['data']['member'] ?? [];
     final offers = data
         .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
+        .map(_applyViewedState)
         .toList();
 
     // Cache with timestamp
@@ -155,11 +205,10 @@ class OffersApiDataSource implements IOfferDataSource {
 
   @override
   Future<List<OfferModel>> getByFisherId(String fisherId) async {
-    // In API mode, use the authenticated my-offers endpoint
+    // In API mode, use the authenticated received-offers endpoint
     // (These are offers received by the fisher on their catches)
     // The fisherId parameter is ignored since API uses the token
-    // The backend now handles role-based "my offers" logic on this single endpoint
-    return await getMyOffers();
+    return await getReceivedOffers(fisherId);
   }
 
   /// Get authenticated user's offers (buyer's offers)
@@ -181,6 +230,7 @@ class OffersApiDataSource implements IOfferDataSource {
     final List data = response.data['data']['member'] ?? [];
     final offers = data
         .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
+        .map(_applyViewedState)
         .toList();
 
     // Cache with timestamp
@@ -196,7 +246,7 @@ class OffersApiDataSource implements IOfferDataSource {
     // Assuming API supports list filter or we loop
     // 'catch_id': catchIds.join(',') or similar?
     // Safety fallback: loop
-    final futures = catchIds.map((id) => getByCatchId(id));
+    final futures = catchIds.map((id) => getByProductId(id));
     final results = await Future.wait(futures);
     return results.expand((element) => element).toList();
   }
@@ -210,6 +260,7 @@ class OffersApiDataSource implements IOfferDataSource {
     final List data = response.data['data'] ?? [];
     return data
         .map((json) => OfferApiMapper.toDomain(OfferApiModel.fromJson(json)))
+        .map(_applyViewedState)
         .toList();
   }
 
@@ -248,14 +299,75 @@ class OffersApiDataSource implements IOfferDataSource {
     return await action();
   }
 
+  @override
+  void updateLocalCache(OfferModel offer) {
+    // Persist viewed state
+    try {
+      _viewedOffersService.markAsViewed(
+        offer.id,
+        DateTime.parse(offer.dateUpdated),
+      );
+    } catch (e) {
+      print('DEBUG: Failed to persist viewed state: $e');
+    }
+
+    // Update ID cache
+    if (_offerByIdCache.containsKey(offer.id)) {
+      _offerByIdCache[offer.id] = offer;
+      _offerByIdCacheTime[offer.id] =
+          DateTime.now(); // Refresh timestamp so it sticks
+    }
+
+    // Helper to update list
+    bool updateList(List<OfferModel>? list) {
+      if (list == null) return false;
+      final index = list.indexWhere((o) => o.id == offer.id);
+      if (index != -1) {
+        list[index] = offer;
+        return true;
+      }
+      return false;
+    }
+
+    // Update list caches
+    if (updateList(_myOffersCache)) _myOffersCacheTime = DateTime.now();
+    if (updateList(_receivedOffersCache))
+      _receivedOffersCacheTime = DateTime.now();
+    _offersByProductCache.values.forEach(updateList);
+    // Note: Not updating product cache times individually as it complicates map iteration
+
+    print('DEBUG: Updated local cache for offer ${offer.id}');
+  }
+
+  /// Apply local viewed state to override API flags
+  OfferModel _applyViewedState(OfferModel offer) {
+    try {
+      final isViewed = _viewedOffersService.isViewed(
+        offer.id,
+        DateTime.parse(offer.dateUpdated),
+      );
+
+      if (isViewed) {
+        // Force update flags to false locally
+        return offer.copyWith(
+          hasUpdateForFisher: false,
+          hasUpdateForBuyer: false,
+        );
+      }
+    } catch (e) {
+      // Ignore parsing errors
+    }
+    return offer;
+  }
+
   /// Clear all list caches (called on mutations)
   void _clearAllCaches() {
     _myOffersCache = null;
     _myOffersCacheTime = null;
     _receivedOffersCache = null;
     _receivedOffersCacheTime = null;
-    _offersByCatchCache.clear();
-    _offersByCatchCacheTime.clear();
+    _offersByProductCache.clear();
+    _offersByProductCacheTime.clear();
     print('DEBUG: All offer caches cleared');
   }
 }

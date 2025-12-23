@@ -53,6 +53,14 @@ _$ProductAccountApiModelImpl _$$ProductAccountApiModelImplFromJson(
   updatedAt: json['updated_at'] as String?,
   deletedAt: json['deleted_at'] as String?,
   uid: json['uid'] as String?,
+  firstName: json['firstName'] as String?,
+  lastName: json['lastName'] as String?,
+  email: json['email'] as String?,
+  phoneNumber: json['phoneNumber'] as String?,
+  totalReviews: (json['totalReviews'] as num?)?.toInt(),
+  ratingDistribution: json['ratingDistribution'] as List<dynamic>?,
+  rating: (json['rating'] as num?)?.toDouble(),
+  avatar: json['avatar'] as String?,
 );
 
 Map<String, dynamic> _$$ProductAccountApiModelImplToJson(
@@ -62,6 +70,14 @@ Map<String, dynamic> _$$ProductAccountApiModelImplToJson(
   'updated_at': instance.updatedAt,
   'deleted_at': instance.deletedAt,
   'uid': instance.uid,
+  'firstName': instance.firstName,
+  'lastName': instance.lastName,
+  'email': instance.email,
+  'phoneNumber': instance.phoneNumber,
+  'totalReviews': instance.totalReviews,
+  'ratingDistribution': instance.ratingDistribution,
+  'rating': instance.rating,
+  'avatar': instance.avatar,
 };
 
 _$ProductApiModelImpl _$$ProductApiModelImplFromJson(

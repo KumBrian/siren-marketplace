@@ -4,6 +4,7 @@ import '../value_objects/price.dart';
 import '../value_objects/price_per_kg.dart';
 import '../value_objects/weight.dart';
 import 'species.dart';
+import 'user.dart';
 
 class Product extends Equatable {
   final String id;
@@ -30,6 +31,7 @@ class Product extends Equatable {
   final int offersCount;
   final List<String> images;
   final String fisherId;
+  final User? fisher;
 
   const Product({
     required this.id,
@@ -55,6 +57,7 @@ class Product extends Equatable {
     this.offersCount = 0,
     this.images = const [],
     required this.fisherId,
+    this.fisher,
   });
 
   bool get isExpired {
@@ -106,5 +109,6 @@ class Product extends Equatable {
     offersCount,
     images,
     fisherId,
+    fisher,
   ];
 }

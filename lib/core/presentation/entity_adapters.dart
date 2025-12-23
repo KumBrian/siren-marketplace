@@ -23,10 +23,9 @@ extension CatchAdapter on Catch {
   String get statusName => status.name;
 
   // Helper for display
-  String get formattedPrice => '\$${totalPrice.major.toStringAsFixed(2)}';
+  String get formattedPrice => '\$${totalPrice.amount}';
 
-  String get formattedPricePerKg =>
-      '\$${pricePerKg.major.toStringAsFixed(2)}/kg';
+  String get formattedPricePerKg => '\$${pricePerKg.amountPerKg}/kg';
 
   String get formattedWeight =>
       '${availableWeight.kilograms.toStringAsFixed(1)}kg';
@@ -51,8 +50,7 @@ extension OfferAdapter on Offer {
   String get statusName => status.name;
 
   // Display helpers
-  String get formattedPrice =>
-      '\$${currentTerms.totalPrice.major.toStringAsFixed(2)}';
+  String get formattedPrice => '\$${currentTerms.totalPrice.amount}';
 
   String get formattedWeight =>
       '${currentTerms.weight.kilograms.toStringAsFixed(1)}kg';
@@ -68,7 +66,7 @@ extension OrderAdapter on Order {
   String get statusName => status.name;
 
   // Display helpers
-  String get formattedPrice => '\$${terms.totalPrice.major.toStringAsFixed(2)}';
+  String get formattedPrice => '\$${terms.totalPrice.amount}';
 
   String get formattedDate => DateFormat('MMM d, y').format(dateCreated);
 }

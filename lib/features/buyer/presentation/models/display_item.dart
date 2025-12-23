@@ -27,7 +27,7 @@ class DisplayItem {
   factory DisplayItem.fromOffer(Offer offer) {
     return DisplayItem(
       id: offer.id,
-      catchId: offer.catchId,
+      catchId: offer.productId,
       status: offer.status,
       dateCreated: offer.dateCreated,
       weight: offer.currentTerms.weight.kilograms,

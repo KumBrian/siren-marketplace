@@ -38,6 +38,14 @@ class ProductAccountApiModel with _$ProductAccountApiModel {
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
     String? uid,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phoneNumber,
+    @JsonKey(name: 'totalReviews') int? totalReviews,
+    @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
+    double? rating,
+    String? avatar,
   }) = _ProductAccountApiModel;
 
   factory ProductAccountApiModel.fromJson(Map<String, dynamic> json) =>
