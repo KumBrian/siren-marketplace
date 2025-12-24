@@ -19,6 +19,8 @@ class OrdersApiDataSource implements IOrderDataSource {
 
   @override
   Future<List<OrderModel>> getByUserId(String userId) async {
+    // Note: This now returns OrderModels temporarily to avoid interface changes
+    // But for efficiency, we should return OrderApiModel[] and map in repository
     final response = await _client.get(
       ApiConfig.mySaleOrders,
       queryParameters: {'page': 1, 'itemsPerPage': 20},
@@ -32,9 +34,29 @@ class OrdersApiDataSource implements IOrderDataSource {
       listData = rawData['data']?['member'] ?? rawData['data'] ?? [];
     }
 
+    // Return API models converted to OrderModel for now
+    // TODO: Update interface to return OrderApiModel directly
     return listData
         .map((json) => OrderApiMapper.toDomain(OrderApiModel.fromJson(json)))
         .toList();
+  }
+
+  /// Get orders with embedded data (returns API models for rich mapping)
+  Future<List<OrderApiModel>> getOrdersWithEmbeddedData(String userId) async {
+    final response = await _client.get(
+      ApiConfig.mySaleOrders,
+      queryParameters: {'page': 1, 'itemsPerPage': 20},
+    );
+
+    final rawData = response.data;
+    List listData = [];
+    if (rawData is List) {
+      listData = rawData;
+    } else if (rawData is Map) {
+      listData = rawData['data']?['member'] ?? rawData['data'] ?? [];
+    }
+
+    return listData.map((json) => OrderApiModel.fromJson(json)).toList();
   }
 
   @override
@@ -43,6 +65,17 @@ class OrdersApiDataSource implements IOrderDataSource {
       final response = await _client.get(ApiConfig.saleOrder(orderId));
       final data = response.data['data'] ?? response.data;
       return OrderApiMapper.toDomain(OrderApiModel.fromJson(data));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Get order by ID with embedded product data (more efficient)
+  Future<OrderApiModel?> getByIdWithEmbeddedData(String orderId) async {
+    try {
+      final response = await _client.get(ApiConfig.saleOrder(orderId));
+      final data = response.data['data'] ?? response.data;
+      return OrderApiModel.fromJson(data);
     } catch (e) {
       return null;
     }

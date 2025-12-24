@@ -4,8 +4,60 @@ import '../../domain/value_objects/offer_terms.dart';
 import '../../domain/value_objects/price.dart';
 import '../../domain/value_objects/weight.dart';
 import '../models/order_model.dart';
+import '../models/user_model.dart';
+import '../api/models/order_api_models.dart';
+import 'product_mapper.dart';
+import 'user_mapper.dart';
 
 class OrderMapper {
+  /// Convert API model directly to domain entity (for embedded data)
+  static Order fromApi(OrderApiModel apiModel) {
+    // Map offer terms from the terms_* fields
+    final terms = OfferTerms.create(
+      totalPrice: Price.fromAmount(apiModel.termsPrice ?? 0),
+      weight: Weight.fromGrams(apiModel.termsWeight ?? 0),
+    );
+
+    // Map embedded product if available
+    final product = apiModel.product != null
+        ? ProductMapper.toDomain(apiModel.product!)
+        : null;
+
+    // Map embedded buyer if available (from dynamic JSON)
+    final buyer = apiModel.buyer != null && apiModel.buyer is Map
+        ? UserMapper.toEntity(
+            UserModel.fromJson(apiModel.buyer as Map<String, dynamic>),
+          )
+        : null;
+
+    // Extract IDs - fisher from embedded product, buyer from embedded buyer
+    final String fisherId = product?.fisherId ?? '';
+    final String catchId = product?.id ?? '';
+    final String buyerId = buyer?.id ?? '';
+
+    return Order(
+      id: apiModel.id.toString(),
+      offerId: '', // Not in response currently
+      catchId: catchId,
+      fisherId: fisherId,
+      buyerId: buyerId,
+      terms: terms,
+      status: _parseStatus(apiModel.status ?? 'pending'),
+      orderNumber: apiModel.orderNumber,
+      product: product,
+      buyer: buyer,
+      dateCreated: apiModel.createdAt != null
+          ? DateTime.tryParse(apiModel.createdAt!) ?? DateTime.now()
+          : DateTime.now(),
+      dateUpdated: apiModel.updatedAt != null
+          ? DateTime.tryParse(apiModel.updatedAt!) ?? DateTime.now()
+          : DateTime.now(),
+      hasReviewFromFisher: apiModel.hasReviewFromFisher,
+      hasReviewFromBuyer: apiModel.hasReviewFromBuyer,
+      cancellationReason: apiModel.cancellationReason,
+    );
+  }
+
   /// Convert domain entity to data model
   static OrderModel toModel(Order entity) {
     return OrderModel(

@@ -61,7 +61,55 @@ class OffersApiDataSource implements IOfferDataSource {
   }
 
   @override
+  Future<String> counterOffer(
+    String offerId,
+    CounterOfferRequest request,
+  ) async {
+    final response = await _client.post(
+      ApiConfig.counterOffer(offerId),
+      data: request.toJson(),
+    );
+    final data = response.data['data'] ?? response.data;
+
+    // Invalidate caches
+    _offerByIdCache.remove(offerId);
+    _offerByIdCacheTime.remove(offerId);
+    _clearAllCaches();
+
+    return data['id'].toString();
+  }
+
+  @override
+  Future<OfferModel> respond(
+    String offerId,
+    OfferResponseRequest request,
+  ) async {
+    final response = await _client.post(
+      ApiConfig.respondToOffer(offerId),
+      data: request.toJson(),
+    );
+    final data = response.data['data'] ?? response.data;
+
+    // Invalidate caches
+    _offerByIdCache.remove(offerId);
+    _offerByIdCacheTime.remove(offerId);
+    _clearAllCaches();
+
+    return OfferApiMapper.toDomain(OfferApiModel.fromJson(data));
+  }
+
+  @override
   Future<OfferModel?> getById(String offerId) async {
+    // TEMPORARY: Force cache miss to pick up new ID format
+    // TODO: Remove this after migration is complete
+    if (_offerByIdCache.containsKey(offerId)) {
+      print(
+        'DEBUG: Force invalidating cached offer $offerId to pick up ID format changes',
+      );
+      _offerByIdCache.remove(offerId);
+      _offerByIdCacheTime.remove(offerId);
+    }
+
     // Check cache with stale time
     if (_offerByIdCache.containsKey(offerId)) {
       final cacheTime = _offerByIdCacheTime[offerId];

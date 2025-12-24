@@ -1,3 +1,4 @@
+import '../../api/models/offer_api_models.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../../../core/data/database/database_helper.dart';
 import '../../../../core/domain/enums/offer_status.dart';
@@ -19,6 +20,36 @@ class LocalOfferDataSource implements IOfferDataSource {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     return offer.id;
+  }
+
+  @override
+  Future<String> counterOffer(
+    String offerId,
+    CounterOfferRequest request,
+  ) async {
+    // For local mode, we just update the offer fields roughly
+    // final db = await dbHelper.database; // unused
+    final map = await dbHelper.getOfferMapById(offerId);
+    if (map != null) {
+      final offer = OfferModel.fromMap(map);
+      final updatedOffer = offer.copyWith(
+        currentPriceAmount: request.price.toInt(),
+        currentWeightGrams: request.weightInGrams.toInt(),
+        currentPricePerKgAmount: request.pricePerKg.toInt(),
+        status: OfferStatus.pending.name,
+      );
+      await update(updatedOffer);
+      return offerId;
+    }
+    throw Exception('Offer not found locally');
+  }
+
+  @override
+  Future<OfferModel> respond(
+    String offerId,
+    OfferResponseRequest request,
+  ) async {
+    throw UnimplementedError();
   }
 
   @override

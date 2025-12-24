@@ -5,11 +5,20 @@ import '../mappers/product_mapper.dart';
 
 class OfferApiMapper {
   static OfferModel toDomain(OfferApiModel apiModel) {
+    // Extract order ID from embedded saleOrder if present
+    String? orderId;
+    if (apiModel.saleOrder != null && apiModel.saleOrder!['id'] != null) {
+      orderId = apiModel.saleOrder!['id'].toString();
+    }
+
     return OfferModel(
       id: apiModel.id.toString(),
       productId: apiModel.product?.id?.toString() ?? 'unknown_catch',
-      fisherId: apiModel.product?.account?.uid ?? 'unknown_fisher',
-      buyerId: apiModel.buyer?.id.toString() ?? 'unknown_buyer',
+      fisherId:
+          apiModel.product?.account?.id?.toString() ??
+          apiModel.product?.account?.uid ??
+          'unknown_fisher',
+      buyerId: apiModel.buyer?.id?.toString() ?? 'unknown_buyer',
       currentPriceAmount: apiModel.currentPriceAmount ?? 0,
       currentWeightGrams: apiModel.currentWeightGrams ?? 0,
       currentPricePerKgAmount: apiModel.currentPricePerKgAmount ?? 0,
@@ -26,6 +35,7 @@ class OfferApiMapper {
           ? ProductMapper.toDomain(apiModel.product!)
           : null,
       buyer: apiModel.buyer,
+      orderUid: orderId,
     );
   }
 

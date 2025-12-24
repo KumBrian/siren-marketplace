@@ -7,6 +7,7 @@ import '../../domain/entities/product.dart';
 import '../../domain/repositories/i_product_repository.dart';
 import '../mappers/product_mapper.dart';
 import '../mappers/offer_api_mapper.dart';
+import '../mappers/offer_mapper.dart';
 
 class ProductRepositoryImpl implements IProductRepository {
   final ProductsApiDataSource _remoteDataSource;
@@ -45,11 +46,11 @@ class ProductRepositoryImpl implements IProductRepository {
   ) async {
     try {
       final apiModels = await _remoteDataSource.getProductOffers(productId);
-      // Assuming OfferApiMapper exists and works for this
+      // Map: OfferApiModel → OfferModel → Offer
       final offers = apiModels
-          .map((model) => OfferApiMapper.toDomain(model))
-          .toList()
-          .cast<Offer>();
+          .map((apiModel) => OfferApiMapper.toDomain(apiModel))
+          .map((model) => OfferMapper.toEntity(model))
+          .toList();
       return Right(offers);
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));

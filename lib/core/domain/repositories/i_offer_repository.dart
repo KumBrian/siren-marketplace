@@ -1,3 +1,5 @@
+import 'package:siren_marketplace/core/domain/entities/order.dart';
+
 import '../entities/offer.dart';
 import '../enums/offer_status.dart';
 import '../enums/user_role.dart';
@@ -36,8 +38,8 @@ abstract class IOfferRepository {
 
   /// Delete offer
   Future<void> delete(String offerId);
-  Future<void> acceptOffer(String offerId, UserRole role);
-  Future<void> rejectOffer(String offerId, UserRole role);
+  Future<Order?> acceptOffer(String offerId, UserRole role, {String? message});
+  Future<void> rejectOffer(String offerId, UserRole role, {String? message});
   Future<void> counterOffer(String offerId, UserRole role, OfferTerms terms);
   Future<void> markAsViewed(String offerId, UserRole role);
 

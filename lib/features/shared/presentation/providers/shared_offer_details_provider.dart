@@ -9,11 +9,10 @@ import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.da
 
 import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
-import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
+
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
+import 'package:siren_marketplace/core/domain/value_objects/rating.dart';
 
 class SharedOfferDetailsState {
   final Offer offer;
@@ -86,30 +85,23 @@ final sharedOfferDetailsProvider = FutureProvider.family
       }
 
       if (otherParty == null) {
-        final userRepo = sl<IUserRepository>();
+        // Fallback: Create placeholder user to avoid redundant network call
+        // User requested to remove the /accounts/{id} fetch
         final otherPartyId = isBuyer ? offer.fisherId : offer.buyerId;
-        otherParty = await userRepo.getById(otherPartyId);
-      }
-
-      if (otherParty == null) {
-        throw NotFoundException(
-          'User not found',
-          entityType: 'User',
-          entityId: isBuyer ? offer.fisherId : offer.buyerId,
+        otherParty = User(
+          id: otherPartyId,
+          name: 'Unknown',
+          rating: Rating.zero(),
+          reviewCount: 0,
+          currentRole: isBuyer ? UserRole.fisher : UserRole.buyer,
         );
       }
 
       // 5. Determine Turn
       final isUserTurn = offer.waitingFor == currentUser.currentRole;
 
-      // 6. Fetch Order ID if accepted/completed
-      String? orderId;
-      if (offer.status == OfferStatus.accepted ||
-          offer.status == OfferStatus.completed) {
-        final orderRepo = sl<IOrderRepository>();
-        final order = await orderRepo.getByOfferId(offerId);
-        orderId = order?.id;
-      }
+      // 6. Get Order ID from offer if available (set when offer is accepted)
+      final orderId = offer.orderId;
 
       return SharedOfferDetailsState(
         offer: offer,

@@ -1,5 +1,6 @@
 // lib/core/data/datasources/demo/demo_datasource.dart
 
+import '../../api/models/offer_api_models.dart';
 import '../../../domain/enums/catch_status.dart';
 import '../../../domain/enums/offer_status.dart';
 import '../../../domain/enums/order_status.dart';
@@ -177,6 +178,48 @@ class DemoOfferDataSource implements IOfferDataSource {
     await Future.delayed(Duration(milliseconds: 100));
     _offers[offer.id] = offer;
     return offer.id;
+  }
+
+  @override
+  Future<OfferModel> respond(
+    String offerId,
+    OfferResponseRequest request,
+  ) async {
+    // Demo implementation: just assume success and return updated offer
+    final offer = await getById(offerId);
+    if (offer == null) throw Exception('Offer not found');
+
+    // Simple state update logic for demo
+    final status = request.action == 'accept' ? 'accepted' : 'rejected';
+
+    // Note: This is simplified; assumes implicit type change
+    final updated = offer.copyWith(status: status);
+
+    // Update simple cache
+    // (This demo source is partial anyway)
+
+    return updated;
+  }
+
+  @override
+  Future<String> counterOffer(
+    String offerId,
+    CounterOfferRequest request,
+  ) async {
+    await Future.delayed(Duration(milliseconds: 100));
+    final offer = _offers[offerId];
+    if (offer != null) {
+      // Simulate update
+      final updatedOffer = offer.copyWith(
+        currentPriceAmount: request.price.toInt(),
+        currentWeightGrams: request.weightInGrams.toInt(),
+        currentPricePerKgAmount: request.pricePerKg.toInt(),
+        status: OfferStatus.pending.name,
+      );
+      _offers[offerId] = updatedOffer;
+      return offerId;
+    }
+    throw Exception('Offer not found');
   }
 
   @override

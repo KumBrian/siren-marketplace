@@ -32,7 +32,7 @@ class ProductMapper {
       return const Species(id: 'unknown', name: 'Unknown', image: '', uid: '');
     }
 
-    return Product(
+    final product = Product(
       id: apiModel.id.toString(),
       name: apiModel.name ?? 'Product #${apiModel.id}',
       marketName:
@@ -59,10 +59,13 @@ class ProductMapper {
       species: getSpecies(),
       offersCount: apiModel.offersCount,
       images: apiModel.images,
-      fisherId: apiModel.account?.uid ?? '',
+      fisherId: apiModel.account?.id?.toString() ?? apiModel.account?.uid ?? '',
       fisher: apiModel.account != null
           ? User(
-              id: apiModel.account!.uid ?? '',
+              id:
+                  apiModel.account!.id?.toString() ??
+                  apiModel.account!.uid ??
+                  '',
               name:
                   '${apiModel.account!.firstName ?? ''} ${apiModel.account!.lastName ?? ''}'
                       .trim()
@@ -79,5 +82,11 @@ class ProductMapper {
             )
           : null,
     );
+
+    print(
+      'DEBUG ProductMapper - Product ${product.id}: API offersCount = ${apiModel.offersCount}',
+    );
+
+    return product;
   }
 }

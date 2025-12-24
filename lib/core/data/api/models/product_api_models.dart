@@ -34,6 +34,7 @@ class ProductMarketApiModel with _$ProductMarketApiModel {
 @freezed
 class ProductAccountApiModel with _$ProductAccountApiModel {
   const factory ProductAccountApiModel({
+    int? id, // Integer ID for comparisons
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
@@ -83,7 +84,7 @@ class ProductApiModel with _$ProductApiModel {
     String? gearNature,
     ProductSpeciesApiModel? specie,
     ProductAccountApiModel? account,
-    @JsonKey(name: 'offers_count') @Default(0) int offersCount,
+    @JsonKey(name: 'offersCount') @Default(0) int offersCount,
     @Default([]) List<String> images,
   }) = _ProductApiModel;
 

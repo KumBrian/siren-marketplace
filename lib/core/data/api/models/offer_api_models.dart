@@ -30,6 +30,9 @@ class OfferApiModel with _$OfferApiModel {
     int? previousWeightGrams,
     int? previousPricePerKgAmount,
 
+    // Backend returns embedded order when offer is accepted
+    @JsonKey(name: 'saleOrder') Map<String, dynamic>? saleOrder,
+
     String? status,
     @JsonKey(name: 'waiting_for') String? waitingFor,
     @JsonKey(name: 'has_update_for_fisher') bool? hasUpdateForFisher,
@@ -58,4 +61,27 @@ class CreateOfferRequest with _$CreateOfferRequest {
 
   factory CreateOfferRequest.fromJson(Map<String, dynamic> json) =>
       _$CreateOfferRequestFromJson(json);
+}
+
+@freezed
+class CounterOfferRequest with _$CounterOfferRequest {
+  const factory CounterOfferRequest({
+    @JsonKey(name: 'weight_in_grams') required double weightInGrams,
+    required double price,
+    @JsonKey(name: 'price_per_kg') required double pricePerKg,
+  }) = _CounterOfferRequest;
+
+  factory CounterOfferRequest.fromJson(Map<String, dynamic> json) =>
+      _$CounterOfferRequestFromJson(json);
+}
+
+@freezed
+class OfferResponseRequest with _$OfferResponseRequest {
+  const factory OfferResponseRequest({
+    required String action,
+    required String message,
+  }) = _OfferResponseRequest;
+
+  factory OfferResponseRequest.fromJson(Map<String, dynamic> json) =>
+      _$OfferResponseRequestFromJson(json);
 }

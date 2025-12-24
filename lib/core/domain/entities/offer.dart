@@ -23,6 +23,9 @@ class Offer extends Equatable {
   final User? fisher;
   final User? buyer;
 
+  /// ID of the sale order created when offer is accepted (from saleOrder.uid)
+  final String? orderId;
+
   const Offer({
     required this.id,
     required this.productId,
@@ -39,6 +42,7 @@ class Offer extends Equatable {
     this.product,
     this.fisher,
     this.buyer,
+    this.orderId,
   });
 
   // Business Logic
@@ -189,5 +193,6 @@ class Offer extends Equatable {
     dateUpdated,
     waitingFor,
     product,
+    orderId,
   ];
 }

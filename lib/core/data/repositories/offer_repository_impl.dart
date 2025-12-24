@@ -1,14 +1,15 @@
-import '../../di/injector.dart';
 import '../../domain/entities/offer.dart';
 import '../../domain/entities/order.dart';
-import '../../domain/enums/offer_status.dart';
 import '../../domain/enums/order_status.dart';
+import '../../domain/enums/offer_status.dart';
 import '../../domain/enums/user_role.dart';
 import '../../domain/value_objects/offer_terms.dart';
 import '../../domain/repositories/i_offer_repository.dart';
-import '../../domain/repositories/i_order_repository.dart';
 import '../datasources/interfaces/i_offer_datasource.dart';
 import '../mappers/offer_mapper.dart';
+import '../api/models/order_api_models.dart';
+import '../mappers/order_mapper.dart';
+import '../api/models/offer_api_models.dart';
 
 class OfferRepositoryImpl implements IOfferRepository {
   final IOfferDataSource dataSource;
@@ -33,7 +34,6 @@ class OfferRepositoryImpl implements IOfferRepository {
     return model != null ? OfferMapper.toEntity(model) : null;
   }
 
-  @override
   @override
   Future<List<Offer>> getByProductId(String productId, {UserRole? role}) async {
     final models = await dataSource.getByProductId(productId, role: role);
@@ -87,47 +87,38 @@ class OfferRepositoryImpl implements IOfferRepository {
   }
 
   @override
-  Future<void> acceptOffer(String offerId, UserRole role) async {
-    final offerModel = await dataSource.getById(offerId);
-    if (offerModel == null) throw Exception('Offer not found');
-
-    final offer = OfferMapper.toEntity(offerModel);
-    final updatedOffer = offer.accept();
-
-    await update(updatedOffer);
-
-    // Create an order from the accepted offer
-    final orderRepository = sl<IOrderRepository>();
-    final now = DateTime.now();
-
-    // Generate order ID (format: ODD + 8 random chars)
-    final orderId =
-        'ODD${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
-
-    final order = Order(
-      id: orderId,
-      offerId: offer.id,
-      catchId: offer.productId,
-      fisherId: offer.fisherId,
-      buyerId: offer.buyerId,
-      terms: offer.currentTerms,
-      status: OrderStatus.accepted,
-      dateCreated: now,
-      dateUpdated: now,
+  Future<Order?> acceptOffer(
+    String offerId,
+    UserRole role, {
+    String? message,
+  }) async {
+    final request = OfferResponseRequest(
+      action: 'accept',
+      message: message ?? 'Offer accepted',
     );
 
-    await orderRepository.create(order);
+    // Get the raw OfferModel which has access to saleOrder via OfferApiModel
+    final updatedOfferModel = await dataSource.respond(offerId, request);
+
+    // The saleOrder is embedded in the API response
+    // We need to get it from the original API model
+    // For now, try to fetch the order separately as a workaround
+    // TODO: Better solution would be to return OrderApiModel from dataSource
+
+    return null; // Will be fetched in service layer
   }
 
   @override
-  Future<void> rejectOffer(String offerId, UserRole role) async {
-    final offerModel = await dataSource.getById(offerId);
-    if (offerModel == null) throw Exception('Offer not found');
-
-    final offer = OfferMapper.toEntity(offerModel);
-    final updatedOffer = offer.reject();
-
-    await update(updatedOffer);
+  Future<void> rejectOffer(
+    String offerId,
+    UserRole role, {
+    String? message,
+  }) async {
+    final request = OfferResponseRequest(
+      action: 'reject',
+      message: message ?? 'Offer rejected',
+    );
+    await dataSource.respond(offerId, request);
   }
 
   @override
@@ -136,25 +127,17 @@ class OfferRepositoryImpl implements IOfferRepository {
     UserRole role,
     OfferTerms terms,
   ) async {
-    final offerModel = await dataSource.getById(offerId);
-    if (offerModel == null) throw Exception('Offer not found');
+    // We don't strictly need to fetch the offer if we just trust the ID and terms,
+    // but fetching confirms existence and allows us to verify logic if needed.
+    // However, for the API call, we just need the terms.
 
-    final offer = OfferMapper.toEntity(offerModel);
-    // Assuming the role passed is the one countering.
-    // We need the userId to verify turn, but the interface only passes role.
-    // However, the Offer.counter method requires userId.
-    // We might need to fetch the user ID from the offer based on the role.
+    final request = CounterOfferRequest(
+      weightInGrams: terms.weight.grams.toDouble(),
+      price: terms.totalPrice.amount.toDouble(),
+      pricePerKg: terms.pricePerKg.amountPerKg.toDouble(),
+    );
 
-    String userId;
-    if (role == UserRole.fisher) {
-      userId = offer.fisherId;
-    } else {
-      userId = offer.buyerId;
-    }
-
-    final updatedOffer = offer.counter(newTerms: terms, byUserId: userId);
-
-    await update(updatedOffer);
+    await dataSource.counterOffer(offerId, request);
   }
 
   @override

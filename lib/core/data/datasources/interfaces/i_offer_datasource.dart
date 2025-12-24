@@ -1,9 +1,14 @@
+import '../../api/models/offer_api_models.dart';
 import '../../../domain/enums/offer_status.dart';
 import '../../models/offer_model.dart';
 import '../../../domain/enums/user_role.dart';
 
 abstract class IOfferDataSource {
   Future<String> create(OfferModel offer);
+
+  Future<String> counterOffer(String offerId, CounterOfferRequest request);
+
+  Future<OfferModel> respond(String offerId, OfferResponseRequest request);
 
   Future<List<OfferModel>> getAllOffers();
 

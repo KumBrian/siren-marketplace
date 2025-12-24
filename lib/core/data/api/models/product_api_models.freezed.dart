@@ -562,6 +562,8 @@ ProductAccountApiModel _$ProductAccountApiModelFromJson(
 
 /// @nodoc
 mixin _$ProductAccountApiModel {
+  int? get id =>
+      throw _privateConstructorUsedError; // Integer ID for comparisons
   @JsonKey(name: 'created_at')
   String? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
@@ -598,6 +600,7 @@ abstract class $ProductAccountApiModelCopyWith<$Res> {
   ) = _$ProductAccountApiModelCopyWithImpl<$Res, ProductAccountApiModel>;
   @useResult
   $Res call({
+    int? id,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
@@ -631,6 +634,7 @@ class _$ProductAccountApiModelCopyWithImpl<
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? deletedAt = freezed,
@@ -646,6 +650,10 @@ class _$ProductAccountApiModelCopyWithImpl<
   }) {
     return _then(
       _value.copyWith(
+            id: freezed == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int?,
             createdAt: freezed == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -710,6 +718,7 @@ abstract class _$$ProductAccountApiModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
+    int? id,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     @JsonKey(name: 'deleted_at') String? deletedAt,
@@ -740,6 +749,7 @@ class __$$ProductAccountApiModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? deletedAt = freezed,
@@ -755,6 +765,10 @@ class __$$ProductAccountApiModelImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$ProductAccountApiModelImpl(
+        id: freezed == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int?,
         createdAt: freezed == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -812,6 +826,7 @@ class __$$ProductAccountApiModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
   const _$ProductAccountApiModelImpl({
+    this.id,
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'updated_at') this.updatedAt,
     @JsonKey(name: 'deleted_at') this.deletedAt,
@@ -830,6 +845,9 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
   factory _$ProductAccountApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductAccountApiModelImplFromJson(json);
 
+  @override
+  final int? id;
+  // Integer ID for comparisons
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
@@ -871,7 +889,7 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
 
   @override
   String toString() {
-    return 'ProductAccountApiModel(createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid, firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber, totalReviews: $totalReviews, ratingDistribution: $ratingDistribution, rating: $rating, avatar: $avatar)';
+    return 'ProductAccountApiModel(id: $id, createdAt: $createdAt, updatedAt: $updatedAt, deletedAt: $deletedAt, uid: $uid, firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber, totalReviews: $totalReviews, ratingDistribution: $ratingDistribution, rating: $rating, avatar: $avatar)';
   }
 
   @override
@@ -879,6 +897,7 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$ProductAccountApiModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -907,6 +926,7 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
   @override
   int get hashCode => Object.hash(
     runtimeType,
+    id,
     createdAt,
     updatedAt,
     deletedAt,
@@ -941,6 +961,7 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
 
 abstract class _ProductAccountApiModel implements ProductAccountApiModel {
   const factory _ProductAccountApiModel({
+    final int? id,
     @JsonKey(name: 'created_at') final String? createdAt,
     @JsonKey(name: 'updated_at') final String? updatedAt,
     @JsonKey(name: 'deleted_at') final String? deletedAt,
@@ -959,6 +980,8 @@ abstract class _ProductAccountApiModel implements ProductAccountApiModel {
   factory _ProductAccountApiModel.fromJson(Map<String, dynamic> json) =
       _$ProductAccountApiModelImpl.fromJson;
 
+  @override
+  int? get id; // Integer ID for comparisons
   @override
   @JsonKey(name: 'created_at')
   String? get createdAt;
@@ -1042,7 +1065,7 @@ mixin _$ProductApiModel {
   String? get gearNature => throw _privateConstructorUsedError;
   ProductSpeciesApiModel? get specie => throw _privateConstructorUsedError;
   ProductAccountApiModel? get account => throw _privateConstructorUsedError;
-  @JsonKey(name: 'offers_count')
+  @JsonKey(name: 'offersCount')
   int get offersCount => throw _privateConstructorUsedError;
   List<String> get images => throw _privateConstructorUsedError;
 
@@ -1092,7 +1115,7 @@ abstract class $ProductApiModelCopyWith<$Res> {
     String? gearNature,
     ProductSpeciesApiModel? specie,
     ProductAccountApiModel? account,
-    @JsonKey(name: 'offers_count') int offersCount,
+    @JsonKey(name: 'offersCount') int offersCount,
     List<String> images,
   });
 
@@ -1355,7 +1378,7 @@ abstract class _$$ProductApiModelImplCopyWith<$Res>
     String? gearNature,
     ProductSpeciesApiModel? specie,
     ProductAccountApiModel? account,
-    @JsonKey(name: 'offers_count') int offersCount,
+    @JsonKey(name: 'offersCount') int offersCount,
     List<String> images,
   });
 
@@ -1571,7 +1594,7 @@ class _$ProductApiModelImpl implements _ProductApiModel {
     this.gearNature,
     this.specie,
     this.account,
-    @JsonKey(name: 'offers_count') this.offersCount = 0,
+    @JsonKey(name: 'offersCount') this.offersCount = 0,
     final List<String> images = const [],
   }) : _images = images;
 
@@ -1646,7 +1669,7 @@ class _$ProductApiModelImpl implements _ProductApiModel {
   @override
   final ProductAccountApiModel? account;
   @override
-  @JsonKey(name: 'offers_count')
+  @JsonKey(name: 'offersCount')
   final int offersCount;
   final List<String> _images;
   @override
@@ -1802,7 +1825,7 @@ abstract class _ProductApiModel implements ProductApiModel {
     final String? gearNature,
     final ProductSpeciesApiModel? specie,
     final ProductAccountApiModel? account,
-    @JsonKey(name: 'offers_count') final int offersCount,
+    @JsonKey(name: 'offersCount') final int offersCount,
     final List<String> images,
   }) = _$ProductApiModelImpl;
 
@@ -1877,7 +1900,7 @@ abstract class _ProductApiModel implements ProductApiModel {
   @override
   ProductAccountApiModel? get account;
   @override
-  @JsonKey(name: 'offers_count')
+  @JsonKey(name: 'offersCount')
   int get offersCount;
   @override
   List<String> get images;

@@ -108,578 +108,469 @@ class OrderDetails extends ConsumerWidget {
           );
         }
 
-        // Watch catch and buyer data using Riverpod providers
-        final catchAsync = ref.watch(catchProvider(selectedOrder.catchId));
-        final buyerAsync = ref.watch(userProvider(selectedOrder.buyerId));
+        // Check if order has embedded product data
+        if (selectedOrder.product == null) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: BackButton(onPressed: () => context.pop()),
+              title: const Text("Order Details"),
+            ),
+            body: const Center(
+              child: Text("Product information not available"),
+            ),
+          );
+        }
+
+        // Use embedded product data directly
+        final product = selectedOrder.product!;
+
         final currentUserAsync = ref.watch(currentUserProvider);
 
-        return catchAsync.when(
+        return currentUserAsync.when(
           loading: () => Scaffold(
             appBar: AppBar(leading: BackButton(onPressed: () => context.pop())),
             body: const Center(child: CircularProgressIndicator()),
           ),
           error: (error, stack) => Scaffold(
             appBar: AppBar(leading: BackButton(onPressed: () => context.pop())),
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 48,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Failed to load critical order data.",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textBlue,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Reason: $error",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.gray650,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    CustomButton(
-                      title: "Retry Loading",
-                      onPressed: () => ref.invalidate(orderProvider(orderId)),
-                      icon: Icons.refresh,
-                      bordered: true,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            body: Center(child: Text("Error: $error")),
           ),
-          data: (catchItem) {
-            if (catchItem == null) {
+          data: (user) {
+            if (user == null) {
               return Scaffold(
                 appBar: AppBar(
                   leading: BackButton(onPressed: () => context.pop()),
                 ),
-                body: const Center(child: Text("Catch not found")),
+                body: const Center(child: Text("User not found")),
               );
             }
 
-            return buyerAsync.when(
-              loading: () => Scaffold(
-                appBar: AppBar(
-                  leading: BackButton(onPressed: () => context.pop()),
-                ),
-                body: const Center(child: CircularProgressIndicator()),
-              ),
-              error: (error, stack) => Scaffold(
-                appBar: AppBar(
-                  leading: BackButton(onPressed: () => context.pop()),
-                ),
-                body: Center(child: Text("Error loading buyer: $error")),
-              ),
-              data: (buyer) {
-                return currentUserAsync.when(
-                  loading: () => Scaffold(
-                    appBar: AppBar(
-                      leading: BackButton(onPressed: () => context.pop()),
-                    ),
-                    body: const Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (error, stack) => Scaffold(
-                    appBar: AppBar(
-                      leading: BackButton(onPressed: () => context.pop()),
-                    ),
-                    body: Center(child: Text("Error: $error")),
-                  ),
-                  data: (user) {
-                    if (user == null) {
-                      return Scaffold(
-                        appBar: AppBar(
-                          leading: BackButton(onPressed: () => context.pop()),
-                        ),
-                        body: const Center(child: Text("User not found")),
-                      );
-                    }
+            final int acceptedWeight = selectedOrder.terms.weight.grams;
+            final int acceptedPrice = selectedOrder.terms.totalPrice.amount
+                .toInt();
+            final OrderStatus orderStatus = selectedOrder.status;
+            // Use embedded buyer data from order
+            final buyerName = selectedOrder.buyer?.name ?? 'Buyer';
+            final String imageUrl = product.images.isNotEmpty
+                ? product.images.first
+                : "assets/images/prawns.jpg";
 
-                    final int acceptedWeight = selectedOrder.terms.weight.grams;
-                    final int acceptedPrice = selectedOrder
-                        .terms
-                        .totalPrice
-                        .amount
-                        .toInt();
-                    final OrderStatus orderStatus = selectedOrder.status;
-                    final buyerName =
-                        buyer?.name ?? 'Buyer ID: ${selectedOrder.buyerId}';
-                    final String imageUrl = catchItem.images.isNotEmpty
-                        ? catchItem.images.first
-                        : "assets/images/prawns.jpg";
-
-                    return Scaffold(
-                      appBar: AppBar(
-                        leading: BackButton(onPressed: () => context.pop()),
-                        title: const Text(
-                          "Order Details",
-                          style: TextStyle(
+            return Scaffold(
+              appBar: AppBar(
+                leading: BackButton(onPressed: () => context.pop()),
+                title: const Text(
+                  "Order Details",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textBlue,
+                    fontSize: 24,
+                  ),
+                ),
+                actions: [
+                  if (orderStatus == OrderStatus.accepted)
+                    IconButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.white,
+                          useSafeArea: true,
+                          showDragHandle: true,
+                          builder: (context) =>
+                              _buildFailedTransactionModal(ref, orderId),
+                        );
+                      },
+                      icon: const Icon(Icons.autorenew),
+                    ),
+                ],
+              ),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Order ID and Date
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "${selectedOrder.orderNumber}",
+                          style: const TextStyle(
                             fontWeight: FontWeight.w600,
+                            fontSize: 16,
                             color: AppColors.textBlue,
-                            fontSize: 24,
                           ),
                         ),
-                        actions: [
-                          if (orderStatus == OrderStatus.accepted)
-                            IconButton(
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.white,
-                                  useSafeArea: true,
-                                  showDragHandle: true,
-                                  builder: (context) =>
-                                      _buildFailedTransactionModal(
-                                        ref,
-                                        orderId,
-                                      ),
-                                );
-                              },
-                              icon: const Icon(Icons.autorenew),
-                            ),
-                        ],
-                      ),
-                      body: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Order ID and Date
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "Order #${selectedOrder.id}",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                    color: AppColors.textBlue,
-                                  ),
-                                ),
-                                Text(
-                                  selectedOrder.dateUpdated
-                                      .toIso8601String()
-                                      .toFormattedDate(),
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.gray650,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
+                        Text(
+                          selectedOrder.dateUpdated
+                              .toIso8601String()
+                              .toFormattedDate(),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.gray650,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
-                            // Product/Catch Details
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    final ImageProvider imageProvider =
-                                        imageUrl.startsWith('http')
-                                        ? NetworkImage(imageUrl)
-                                              as ImageProvider
-                                        : (imageUrl.startsWith('assets/')
-                                              ? AssetImage(imageUrl)
-                                              : FileImage(File(imageUrl)));
+                    // Product/Catch Details
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            final ImageProvider imageProvider =
+                                imageUrl.startsWith('http')
+                                ? NetworkImage(imageUrl) as ImageProvider
+                                : (imageUrl.startsWith('assets/')
+                                      ? AssetImage(imageUrl)
+                                      : FileImage(File(imageUrl)));
 
-                                    showImageViewer(
-                                      context,
-                                      imageProvider,
-                                      swipeDismissible: true,
-                                      immersive: true,
-                                      useSafeArea: true,
-                                      doubleTapZoomable: true,
-                                      backgroundColor: Colors.black.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                    );
-                                  },
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: imageUrl.startsWith('http')
-                                        ? Image.network(
-                                            imageUrl,
-                                            width: 60,
-                                            height: 60,
-                                            fit: BoxFit.cover,
-                                            errorBuilder:
-                                                (
-                                                  context,
-                                                  error,
-                                                  stackTrace,
-                                                ) => Image.asset(
-                                                  "assets/images/prawns.jpg",
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                          )
-                                        : (imageUrl.startsWith('assets/')
-                                              ? Image.asset(
-                                                  imageUrl,
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
-                                                )
-                                              : Image.file(
-                                                  File(imageUrl),
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder:
-                                                      (
-                                                        context,
-                                                        error,
-                                                        stackTrace,
-                                                      ) => Image.asset(
-                                                        "assets/images/shrimp.jpg",
-                                                        width: 60,
-                                                        height: 60,
-                                                        fit: BoxFit.cover,
-                                                      ),
-                                                )),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        catchItem.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                          color: AppColors.textBlue,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            orderStatus.name.capitalize(),
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color:
-                                                  AppColors.getOrderStatusColor(
-                                                    orderStatus,
+                            showImageViewer(
+                              context,
+                              imageProvider,
+                              swipeDismissible: true,
+                              immersive: true,
+                              useSafeArea: true,
+                              doubleTapZoomable: true,
+                              backgroundColor: Colors.black.withValues(
+                                alpha: 0.4,
+                              ),
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: imageUrl.startsWith('http')
+                                ? Image.network(
+                                    imageUrl,
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Image.asset(
+                                              "assets/images/prawns.jpg",
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                            ),
+                                  )
+                                : (imageUrl.startsWith('assets/')
+                                      ? Image.asset(
+                                          imageUrl,
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.file(
+                                          File(imageUrl),
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Image.asset(
+                                                    "assets/images/shrimp.jpg",
+                                                    width: 60,
+                                                    height: 60,
+                                                    fit: BoxFit.cover,
                                                   ),
-                                            ),
-                                          ),
-                                          Container(
-                                            width: 10,
-                                            height: 10,
-                                            margin: const EdgeInsets.only(
-                                              left: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: Colors.white,
-                                              ),
-                                              color:
-                                                  AppColors.getOrderStatusColor(
-                                                    orderStatus,
-                                                  ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Info Table
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: AppColors.gray200),
-                              ),
-                              child: InfoTable(
-                                rows: [
-                                  InfoRow(
-                                    label: "Market",
-                                    value: catchItem.market,
-                                  ),
-                                  InfoRow(
-                                    label: "Species",
-                                    value: catchItem.species.name,
-                                  ),
-                                  if (catchItem.species.id == "prawns")
-                                    InfoRow(
-                                      label: "Size",
-                                      value: catchItem.size,
-                                    ),
-                                  InfoRow(
-                                    label: "Weight",
-                                    value: formatWeight(acceptedWeight),
-                                  ),
-                                  InfoRow(
-                                    label: "Total Price",
-                                    value: acceptedPrice.toStringAsFixed(0),
-                                    suffix: "CFA",
-                                  ),
-                                ].whereType<InfoRow>().toList(),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Buyer Details
-                            if (buyer != null)
-                              PartnerCard(
-                                partner: buyer,
-                                myRole: UserRole.fisher,
-                              ),
-
-                            // Cancellation Reason Display
-                            if (orderStatus == OrderStatus.cancelled &&
-                                selectedOrder.cancellationReason != null) ...[
-                              const SizedBox(height: 16),
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.fail50.withValues(
-                                    alpha: 0.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: AppColors.fail200),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.info_outline,
-                                          color: AppColors.fail500,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          "Order Cancelled",
-                                          style: TextStyle(
-                                            color: AppColors.fail500,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "Reason: ${selectedOrder.cancellationReason}",
-                                      style: const TextStyle(
-                                        color: AppColors.fail500,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
+                                        )),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                product.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: AppColors.textBlue,
                                 ),
                               ),
-                            ],
-
-                            // Action Buttons
-                            if (orderStatus == OrderStatus.accepted) ...[
-                              const SizedBox(height: 16),
-                              Column(
-                                spacing: 8,
+                              const SizedBox(height: 8),
+                              Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  CustomButton(
-                                    title: "Call Buyer",
-                                    onPressed: () =>
-                                        makePhoneCall('651204966', context),
-                                    bordered: true,
-                                    hugeIcon: HugeIcons.strokeRoundedCall02,
-                                  ),
-                                  CustomButton(
-                                    title: "Message Buyer",
-                                    onPressed: () {
-                                      final conversationId =
-                                          _generateConversationId(
-                                            selectedOrder.buyerId,
-                                            selectedOrder.fisherId,
-                                          );
-                                      context.push(
-                                        "/fisher/chat/$conversationId",
-                                      );
-                                    },
-                                    bordered: true,
-                                    icon: CustomIcons.chatbubble,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  CustomButton(
-                                    title: "Mark as Completed",
-                                    onPressed: () => _showCompleteOrderModal(
-                                      context,
-                                      ref,
-                                      selectedOrder.id,
+                                  Text(
+                                    orderStatus.name.capitalize(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.getOrderStatusColor(
+                                        orderStatus,
+                                      ),
                                     ),
-                                    icon: Icons.check,
+                                  ),
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    margin: const EdgeInsets.only(left: 4),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white),
+                                      color: AppColors.getOrderStatusColor(
+                                        orderStatus,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                             ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
-                            if (orderStatus == OrderStatus.completed) ...[
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                child: CustomButton(
-                                  title: "Marketplace",
-                                  onPressed: () => context.go("/fisher"),
-                                  icon: Icons.storefront,
-                                  bordered: true,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
+                    // Info Table
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.gray200),
+                      ),
+                      child: InfoTable(
+                        rows: [
+                          InfoRow(label: "Market", value: product.marketName),
+                          InfoRow(
+                            label: "Species",
+                            value: product.species.name,
+                          ),
+                          // if (product.size != null)
+                          //   InfoRow(
+                          //     label: "Size",
+                          //     value: product.size!,
+                          //   ),
+                          InfoRow(
+                            label: "Weight",
+                            value: formatWeight(acceptedWeight),
+                          ),
+                          InfoRow(
+                            label: "Total Price",
+                            value: acceptedPrice.toStringAsFixed(0),
+                            suffix: "CFA",
+                          ),
+                        ].whereType<InfoRow>().toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
-                            // Rating Section
-                            if (orderStatus == OrderStatus.completed &&
-                                !selectedOrder.hasReviewFromFisher) ...[
-                              CustomButton(
-                                title: "Rate the buyer",
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.white,
-                                    useSafeArea: true,
-                                    showDragHandle: true,
-                                    builder: (context) {
-                                      return RatingModalContent(
-                                        orderId: selectedOrder.id,
-                                        raterId: user.id,
-                                        ratedUserId: buyer?.id ?? '',
-                                        ratedUserName: buyerName,
-                                        onSubmitRating:
-                                            ({
-                                              required String orderId,
-                                              required String raterId,
-                                              required String ratedUserId,
-                                              required double ratingValue,
-                                              String? message,
-                                            }) async {
-                                              await sl<RatingService>()
-                                                  .submitReview(
-                                                    orderId: orderId,
-                                                    reviewerId: raterId,
-                                                    reviewedUserId: ratedUserId,
-                                                    rating: Rating.fromValue(
-                                                      ratingValue,
-                                                    ),
-                                                    comment: message ?? '',
-                                                  );
-                                              ref.invalidate(
-                                                orderProvider(orderId),
-                                              );
-                                              // Invalidate user to refresh partner card
-                                              ref.invalidate(
-                                                userProvider(ratedUserId),
-                                              );
-                                              // Invalidate reviews to show new review
-                                              ref.invalidate(
-                                                reviewsForUserProvider(
-                                                  ratedUserId,
-                                                ),
-                                              );
-                                            },
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ] else if (orderStatus == OrderStatus.completed &&
-                                selectedOrder.hasReviewFromFisher) ...[
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8.0,
-                                ),
-                                child: Row(
-                                  children: [
-                                    const HugeIcon(
-                                      icon: HugeIcons
-                                          .strokeRoundedCheckmarkBadge01,
-                                      color: AppColors.success500,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      "You rated the Buyer",
-                                      style: TextStyle(
-                                        color: AppColors.textBlue,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
+                    // Buyer Details
+                    if (selectedOrder.buyer != null)
+                      PartnerCard(
+                        partner: selectedOrder.buyer!,
+                        myRole: UserRole.fisher,
+                      ),
 
-                            if (orderStatus == OrderStatus.completed) ...[
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Row(
-                                  children: [
-                                    HugeIcon(
-                                      icon: selectedOrder.hasReviewFromBuyer
-                                          ? HugeIcons
-                                                .strokeRoundedCheckmarkBadge01
-                                          : HugeIcons.strokeRoundedClock01,
-                                      color: selectedOrder.hasReviewFromBuyer
-                                          ? AppColors.success500
-                                          : AppColors.shellOrange,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      selectedOrder.hasReviewFromBuyer
-                                          ? "The Buyer has rated you."
-                                          : "Waiting for Buyer to rate you.",
-                                      style: const TextStyle(
-                                        color: AppColors.textBlue,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
+                    // Cancellation Reason Display
+                    if (orderStatus == OrderStatus.cancelled &&
+                        selectedOrder.cancellationReason != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.fail50.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.fail200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: AppColors.fail500,
                                 ),
+                                SizedBox(width: 8),
+                                Text(
+                                  "Order Cancelled",
+                                  style: TextStyle(
+                                    color: AppColors.fail500,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "Reason: ${selectedOrder.cancellationReason}",
+                              style: const TextStyle(
+                                color: AppColors.fail500,
+                                fontSize: 14,
                               ),
-                            ],
+                            ),
                           ],
                         ),
                       ),
-                    );
-                  },
-                );
-              },
+                    ],
+
+                    // Action Buttons
+                    if (orderStatus == OrderStatus.accepted) ...[
+                      const SizedBox(height: 16),
+                      Column(
+                        spacing: 8,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomButton(
+                            title: "Call Buyer",
+                            onPressed: () =>
+                                makePhoneCall('651204966', context),
+                            bordered: true,
+                            hugeIcon: HugeIcons.strokeRoundedCall02,
+                          ),
+                          CustomButton(
+                            title: "Message Buyer",
+                            onPressed: () {
+                              final conversationId = _generateConversationId(
+                                selectedOrder.buyerId,
+                                selectedOrder.fisherId,
+                              );
+                              context.push("/fisher/chat/$conversationId");
+                            },
+                            bordered: true,
+                            icon: CustomIcons.chatbubble,
+                          ),
+                          const SizedBox(height: 16),
+                          CustomButton(
+                            title: "Mark as Completed",
+                            onPressed: () => _showCompleteOrderModal(
+                              context,
+                              ref,
+                              selectedOrder.id,
+                            ),
+                            icon: Icons.check,
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    if (orderStatus == OrderStatus.completed) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          title: "Marketplace",
+                          onPressed: () => context.go("/fisher"),
+                          icon: Icons.storefront,
+                          bordered: true,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Rating Section
+                    if (orderStatus == OrderStatus.completed &&
+                        !selectedOrder.hasReviewFromFisher) ...[
+                      CustomButton(
+                        title: "Rate the buyer",
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.white,
+                            useSafeArea: true,
+                            showDragHandle: true,
+                            builder: (context) {
+                              return RatingModalContent(
+                                orderId: selectedOrder.id,
+                                raterId: user.id,
+                                ratedUserId: selectedOrder.buyer?.id ?? '',
+                                ratedUserName: buyerName,
+                                onSubmitRating:
+                                    ({
+                                      required String orderId,
+                                      required String raterId,
+                                      required String ratedUserId,
+                                      required double ratingValue,
+                                      String? message,
+                                    }) async {
+                                      await sl<RatingService>().submitReview(
+                                        orderId: orderId,
+                                        reviewerId: raterId,
+                                        reviewedUserId: ratedUserId,
+                                        rating: Rating.fromValue(ratingValue),
+                                        comment: message ?? '',
+                                      );
+                                      ref.invalidate(orderProvider(orderId));
+                                      // Invalidate user to refresh partner card
+                                      ref.invalidate(userProvider(ratedUserId));
+                                      // Invalidate reviews to show new review
+                                      ref.invalidate(
+                                        reviewsForUserProvider(ratedUserId),
+                                      );
+                                    },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ] else if (orderStatus == OrderStatus.completed &&
+                        selectedOrder.hasReviewFromFisher) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          children: [
+                            const HugeIcon(
+                              icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+                              color: AppColors.success500,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              "You rated the Buyer",
+                              style: TextStyle(
+                                color: AppColors.textBlue,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    if (orderStatus == OrderStatus.completed) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Row(
+                          children: [
+                            HugeIcon(
+                              icon: selectedOrder.hasReviewFromBuyer
+                                  ? HugeIcons.strokeRoundedCheckmarkBadge01
+                                  : HugeIcons.strokeRoundedClock01,
+                              color: selectedOrder.hasReviewFromBuyer
+                                  ? AppColors.success500
+                                  : AppColors.shellOrange,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              selectedOrder.hasReviewFromBuyer
+                                  ? "The Buyer has rated you."
+                                  : "Waiting for Buyer to rate you.",
+                              style: const TextStyle(
+                                color: AppColors.textBlue,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             );
           },
         );

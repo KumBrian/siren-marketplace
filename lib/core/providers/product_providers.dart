@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_product_repository.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 
 final fisherProductsProvider = FutureProvider.family<List<Product>, int>((
   ref,
@@ -32,12 +34,13 @@ final productOffersProvider = FutureProvider.family<List<Offer>, String>((
   ref,
   productId,
 ) async {
-  final repository = sl<IProductRepository>();
-  final result = await repository.getProductOffers(productId);
-  return result.fold(
-    ifLeft: (failure) => throw failure,
-    ifRight: (offers) => offers,
-  );
+  // Use OfferRepository instead of ProductRepository to get viewed state management
+  // Get current user to determine role context
+  final user = await ref.watch(currentUserProvider.future);
+  final role = user?.currentRole;
+
+  final offerRepository = sl<IOfferRepository>();
+  return offerRepository.getByProductId(productId, role: role);
 });
 
 final availableProductsProvider = FutureProvider<List<Product>>((ref) async {

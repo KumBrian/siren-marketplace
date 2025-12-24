@@ -64,7 +64,12 @@ class ProductsApiDataSource {
         '${ApiConfig.products}/$productId/offers',
       );
 
-      final List<dynamic> data = response.data['data'] ?? response.data;
+      // Handle paginated response format: { "data": { "member": [...] } }
+      final responseData = response.data['data'] ?? response.data;
+      final List<dynamic> data = responseData is Map
+          ? (responseData['member'] ?? [])
+          : responseData;
+
       return data.map((json) => OfferApiModel.fromJson(json)).toList();
     } catch (e) {
       rethrow;

@@ -49,6 +49,7 @@ Map<String, dynamic> _$$ProductMarketApiModelImplToJson(
 _$ProductAccountApiModelImpl _$$ProductAccountApiModelImplFromJson(
   Map<String, dynamic> json,
 ) => _$ProductAccountApiModelImpl(
+  id: (json['id'] as num?)?.toInt(),
   createdAt: json['created_at'] as String?,
   updatedAt: json['updated_at'] as String?,
   deletedAt: json['deleted_at'] as String?,
@@ -66,6 +67,7 @@ _$ProductAccountApiModelImpl _$$ProductAccountApiModelImplFromJson(
 Map<String, dynamic> _$$ProductAccountApiModelImplToJson(
   _$ProductAccountApiModelImpl instance,
 ) => <String, dynamic>{
+  'id': instance.id,
   'created_at': instance.createdAt,
   'updated_at': instance.updatedAt,
   'deleted_at': instance.deletedAt,
@@ -120,7 +122,7 @@ _$ProductApiModelImpl _$$ProductApiModelImplFromJson(
       : ProductAccountApiModel.fromJson(
           json['account'] as Map<String, dynamic>,
         ),
-  offersCount: (json['offers_count'] as num?)?.toInt() ?? 0,
+  offersCount: (json['offersCount'] as num?)?.toInt() ?? 0,
   images:
       (json['images'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
@@ -157,6 +159,6 @@ Map<String, dynamic> _$$ProductApiModelImplToJson(
   'gearNature': instance.gearNature,
   'specie': instance.specie?.toJson(),
   'account': instance.account?.toJson(),
-  'offers_count': instance.offersCount,
+  'offersCount': instance.offersCount,
   'images': instance.images,
 };

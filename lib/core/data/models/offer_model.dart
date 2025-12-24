@@ -22,6 +22,7 @@ class OfferModel {
   final bool hasUpdateForBuyer;
   final Product? product;
   final AccountApiModel? buyer;
+  final String? orderUid; // UID of sale order when offer is accepted
 
   const OfferModel({
     required this.id,
@@ -42,6 +43,7 @@ class OfferModel {
     this.hasUpdateForBuyer = true,
     this.product,
     this.buyer,
+    this.orderUid,
   });
 
   OfferModel copyWith({
@@ -63,6 +65,7 @@ class OfferModel {
     bool? hasUpdateForBuyer,
     Product? product,
     AccountApiModel? buyer,
+    String? orderUid,
   }) {
     return OfferModel(
       id: id ?? this.id,
@@ -85,6 +88,7 @@ class OfferModel {
       hasUpdateForBuyer: hasUpdateForBuyer ?? this.hasUpdateForBuyer,
       product: product ?? this.product,
       buyer: buyer ?? this.buyer,
+      orderUid: orderUid ?? this.orderUid,
     );
   }
 
@@ -130,8 +134,7 @@ class OfferModel {
         );
         product = ProductMapper.toDomain(productApi);
         productId = product!.id;
-        fisherId = product!
-            .fisherId; // Use fisherId from product mapping (account.uid)
+        fisherId = product!.fisherId; // Use fisherId from product mapping
       } catch (e) {
         print('Error parsing nested product in OfferModel: $e');
       }
@@ -142,34 +145,35 @@ class OfferModel {
       productId = json['catch_id'] as String? ?? '';
     }
     if (fisherId.isEmpty) {
-      // Check 'account' object at root or fisher_id string
-      fisherId =
-          getNestedId(json['account']) ??
-          json['fisher_id'] as String? ??
-          getNestedId(json['fisher']) ??
-          '';
+      // Check 'account' object at root for id (integer) first, fallback to uid
+      if (json['account'] != null && json['account'] is Map) {
+        fisherId =
+            (json['account']['id'] ?? json['account']['uid'])?.toString() ?? '';
+      } else {
+        fisherId = json['fisher_id']?.toString() ?? '';
+        if (fisherId.isEmpty && json['fisher'] is Map) {
+          fisherId =
+              (json['fisher']['id'] ?? json['fisher']['uid'])?.toString() ?? '';
+        }
+      }
     }
 
-    final buyerId =
-        getNestedId(json['buyer']) ?? json['buyer_id'] as String? ?? '';
+    // For buyerId, use the integer 'id' field to match how currentUser.id is stored
+    // NOT the 'uid' field
+    String buyerId = '';
+    if (json['buyer'] != null && json['buyer'] is Map) {
+      buyerId = (json['buyer']['id'] ?? json['buyer']['uid'])?.toString() ?? '';
+    } else if (json['buyer_id'] != null) {
+      buyerId = json['buyer_id'].toString();
+    }
 
     AccountApiModel? buyer;
-    if (json['buyer'] != null) {
-      print('DEBUG: Raw buyer JSON: ${json['buyer']}');
-      if (json['buyer'] is Map) {
-        try {
-          buyer = AccountApiModel.fromJson(
-            json['buyer'] as Map<String, dynamic>,
-          );
-          print('DEBUG: Parsed buyer: $buyer');
-        } catch (e) {
-          print('Error parsing nested buyer in OfferModel: $e');
-        }
-      } else {
-        print('DEBUG: buyer JSON is not a Map: ${json['buyer'].runtimeType}');
+    if (json['buyer'] != null && json['buyer'] is Map) {
+      try {
+        buyer = AccountApiModel.fromJson(json['buyer'] as Map<String, dynamic>);
+      } catch (e) {
+        print('Error parsing nested buyer in OfferModel: $e');
       }
-    } else {
-      print('DEBUG: json["buyer"] is null in OfferModel');
     }
 
     // Handle amounts (support both camelCase and snake_case)

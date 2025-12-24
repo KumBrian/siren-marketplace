@@ -103,8 +103,7 @@ Future<void> showCounterOfferDialog({
                           label: "Weight",
                           role: role,
                           suffix: "Kg",
-                          // Changing weight updates the unit price
-                          onChanged: updateCalculatedPricePerKg,
+                          editable: false,
                         ),
                         const SizedBox(height: 12),
                         NumberInputField(

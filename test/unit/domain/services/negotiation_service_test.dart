@@ -10,6 +10,7 @@ import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/services/negotiation_service.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_product_repository.dart';
+import 'package:siren_marketplace/core/domain/value_objects/price.dart';
 import 'package:dart_either/dart_either.dart';
 import 'package:siren_marketplace/core/network/api_result.dart';
 import 'package:siren_marketplace/core/domain/entities/product.dart';
@@ -25,21 +26,20 @@ void main() {
   late MockIOrderRepository mockOrderRepository;
   late MockICatchRepository mockCatchRepository;
   late MockIProductRepository mockProductRepository;
-  late MockMessageService mockMessageService;
+  // late MockIProductRepository mockProductRepository; // duplicate
 
   setUp(() {
     mockOfferRepository = MockIOfferRepository();
     mockOrderRepository = MockIOrderRepository();
     mockCatchRepository = MockICatchRepository();
     mockProductRepository = MockIProductRepository();
-    mockMessageService = MockMessageService();
+    // mockMessageService = MockMessageService(); // unused
 
     service = NegotiationService(
       offerRepository: mockOfferRepository,
       orderRepository: mockOrderRepository,
       catchRepository: mockCatchRepository,
       productRepository: mockProductRepository,
-      messageService: mockMessageService,
     );
   });
 
@@ -148,20 +148,32 @@ void main() {
       );
 
       test('accepts offer, updates catch, creates order', () async {
+        final acceptedOrder = TestData.createOrder(
+          status: OrderStatus.accepted,
+          catchId: testCatch.id,
+          offerId: pendingOffer.id,
+          terms: testTerms,
+        );
+
         when(
           mockOfferRepository.getById(pendingOffer.id),
         ).thenAnswer((_) async => pendingOffer);
+
+        when(
+          mockOfferRepository.acceptOffer(
+            any,
+            any,
+            message: anyNamed('message'),
+          ),
+        ).thenAnswer((_) async => {});
+
+        when(
+          mockOrderRepository.getByOfferId(pendingOffer.id),
+        ).thenAnswer((_) async => acceptedOrder);
+
         when(
           mockCatchRepository.getById(testCatch.id),
         ).thenAnswer((_) async => testCatch);
-        when(mockOfferRepository.update(any)).thenAnswer((_) async => {});
-        when(mockCatchRepository.update(any)).thenAnswer((_) async => {});
-        when(
-          mockOrderRepository.create(any),
-        ).thenAnswer((_) async => 'order-id');
-        when(
-          mockMessageService.sendOfferAcceptedMessage(any),
-        ).thenAnswer((_) async {});
 
         final result = await service.acceptOffer(
           offerId: pendingOffer.id,
@@ -169,24 +181,19 @@ void main() {
         );
 
         expect(result.status, OrderStatus.accepted);
+        expect(result.id, acceptedOrder.id);
 
-        // Verify offer updated
-        final capturedOffer =
-            verify(mockOfferRepository.update(captureAny)).captured.first
-                as Offer;
-        expect(capturedOffer.status, OfferStatus.accepted);
+        // Verify acceptOffer called with correct parameters
+        verify(
+          mockOfferRepository.acceptOffer(
+            pendingOffer.id,
+            UserRole.fisher,
+            message: 'Offer accepted',
+          ),
+        ).called(1);
 
-        // Verify catch weight reduced
-        final capturedCatch =
-            verify(mockCatchRepository.update(captureAny)).captured.first
-                as Catch;
-        expect(
-          capturedCatch.availableWeight.grams,
-          testCatch.availableWeight.grams - testTerms.weight.grams,
-        );
-
-        // Verify order created
-        verify(mockOrderRepository.create(any)).called(1);
+        // Verify order fetched
+        verify(mockOrderRepository.getByOfferId(pendingOffer.id)).called(1);
       });
 
       test('throws ArgumentError when offer not found', () async {
@@ -220,10 +227,18 @@ void main() {
       );
 
       test('rejects offer', () async {
-        when(
-          mockOfferRepository.getById(pendingOffer.id),
-        ).thenAnswer((_) async => pendingOffer);
-        when(mockOfferRepository.update(any)).thenAnswer((_) async => {});
+        final rejectedOffer = pendingOffer.reject();
+
+        var getByIdCallCount = 0;
+        when(mockOfferRepository.getById(pendingOffer.id)).thenAnswer((
+          _,
+        ) async {
+          if (getByIdCallCount == 0) {
+            getByIdCallCount++;
+            return pendingOffer;
+          }
+          return rejectedOffer;
+        });
 
         final result = await service.rejectOffer(
           offerId: pendingOffer.id,
@@ -231,7 +246,14 @@ void main() {
         );
 
         expect(result.status, OfferStatus.rejected);
-        verify(mockOfferRepository.update(any)).called(1);
+
+        verify(
+          mockOfferRepository.rejectOffer(
+            pendingOffer.id,
+            UserRole.fisher,
+            message: 'Offer rejected',
+          ),
+        ).called(1);
       });
 
       test('throws StateError when user cannot reject', () async {
@@ -253,16 +275,50 @@ void main() {
         productId: testCatch.id,
         currentTerms: testTerms,
       );
-      final newTerms = TestData.createOfferTerms(weight: Weight.fromKg(20));
+      // Fixed weight: must allow changing price but weight must remain same
+      final newTerms = TestData.createOfferTerms(
+        weight: testTerms.weight,
+        totalPrice: Price.fromAmount(200), // Changed price
+      );
 
       test('counters offer', () async {
+        final counteredOffer = pendingOffer.copyWith(
+          currentTerms: newTerms,
+          waitingFor: UserRole.buyer,
+          status: OfferStatus.pending,
+        );
+
         when(
           mockOfferRepository.getById(pendingOffer.id),
         ).thenAnswer((_) async => pendingOffer);
+
+        // Second call returns updated offer
+        // Note: Mockito sequencing needs careful handling if we use same matcher.
+        // But here we can use thenAnswer with a counter or side effect,
+        // or just rely on Mockito's ability to return different values if we use different invocations (but arguments are same).
+        // Actually, Mockito.when(...).thenAnswer() overrides previous when.
+        // We can't easily sequence multiple calls with identical arguments using standard `when` syntax
+        // unless we use `thenAnswer` with a mutable variable or `responses` list.
+
+        var getByIdCallCount = 0;
+        when(mockOfferRepository.getById(pendingOffer.id)).thenAnswer((
+          _,
+        ) async {
+          if (getByIdCallCount == 0) {
+            getByIdCallCount++;
+            return pendingOffer;
+          }
+          return counteredOffer;
+        });
+
         when(
           mockCatchRepository.getById(testCatch.id),
         ).thenAnswer((_) async => testCatch);
-        when(mockOfferRepository.update(any)).thenAnswer((_) async => {});
+
+        when(
+          mockOfferRepository.counterOffer(any, any, any),
+        ).thenAnswer((_) async => {});
+
         when(
           mockProductRepository.getProductById(testCatch.id),
         ).thenAnswer((_) async => const Right(null));
@@ -273,9 +329,13 @@ void main() {
           newTerms: newTerms,
         );
 
-        expect(result.currentTerms, newTerms);
-        expect(result.waitingFor, UserRole.buyer); // Switched
-        verify(mockOfferRepository.update(any)).called(1);
+        verify(
+          mockOfferRepository.counterOffer(
+            pendingOffer.id,
+            UserRole.fisher,
+            newTerms,
+          ),
+        ).called(1);
       });
 
       test('throws ArgumentError when new terms are same', () async {

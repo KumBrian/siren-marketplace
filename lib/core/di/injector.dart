@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:siren_marketplace/core/data/api/api_config.dart';
 // DB, Notifier, Feature Repos
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
+import 'package:siren_marketplace/core/data/datasources/api/orders_api_data_source.dart';
 import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
 
 import '../config/app_config.dart';
@@ -132,7 +133,6 @@ Future<void> initDependencies() async {
       orderRepository: sl(),
       catchRepository: sl(),
       productRepository: sl(),
-      messageService: sl(),
     ),
   );
 
@@ -349,7 +349,11 @@ void _initApiMode(DatabaseHelper dbHelper) {
   );
 
   sl.registerLazySingleton<IOrderRepository>(
-    () => OrderRepositoryImpl(dataSource: local.orderDataSource),
+    () => OrderRepositoryImpl(
+      dataSource: OrdersApiDataSource(
+        client: sl(instanceName: 'marketplaceApiClient'),
+      ),
+    ),
   );
 
   sl.registerLazySingleton<IReviewRepository>(

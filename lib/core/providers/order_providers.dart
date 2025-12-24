@@ -4,16 +4,20 @@ import 'package:siren_marketplace/core/domain/entities/order.dart';
 import 'package:siren_marketplace/core/domain/enums/order_status.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
+import 'package:siren_marketplace/core/data/repositories/order_repository_impl.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/domain/services/order_service.dart';
 
-/// Provider to fetch an Order by ID
+/// Provider to fetch an Order by ID (with embedded product data if available)
 final orderProvider = FutureProvider.family<Order?, String>((ref, id) async {
   final repository = sl<IOrderRepository>();
-  // Repository returns Future<Order>, but we want nullable for consistency/safety
   try {
+    // Use embedded data method if available for better performance
+    if (repository is OrderRepositoryImpl) {
+      return await repository.getByIdWithEmbeddedData(id);
+    }
     return await repository.getById(id);
   } catch (_) {
     return null;
@@ -40,6 +44,25 @@ final fisherOrdersProvider = FutureProvider.autoDispose<List<Order>>((
   final repository = sl<IOrderRepository>();
   return repository.getByUserId(user.id);
 });
+
+/// Provider to fetch fisher orders with embedded product data (more efficient)
+/// No additional fetches needed for product info
+final fisherOrdersWithProductProvider = FutureProvider.autoDispose<List<Order>>(
+  (ref) async {
+    final user = await ref.watch(currentUserProvider.future);
+    if (user == null) return [];
+
+    final repository = sl<IOrderRepository>();
+    // Cast to access the optimized method
+    if (repository is OrderRepositoryImpl) {
+      return (repository as OrderRepositoryImpl).getByUserIdWithEmbeddedData(
+        user.id,
+      );
+    }
+    // Fallback to regular method
+    return repository.getByUserId(user.id);
+  },
+);
 
 /// Provider to calculate turnover from completed orders
 /// Derived state that automatically updates

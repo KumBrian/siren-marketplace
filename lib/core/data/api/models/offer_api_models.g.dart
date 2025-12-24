@@ -22,6 +22,7 @@ _$OfferApiModelImpl _$$OfferApiModelImplFromJson(
   previousPriceAmount: (json['previousPriceAmount'] as num?)?.toInt(),
   previousWeightGrams: (json['previousWeightGrams'] as num?)?.toInt(),
   previousPricePerKgAmount: (json['previousPricePerKgAmount'] as num?)?.toInt(),
+  saleOrder: json['saleOrder'] as Map<String, dynamic>?,
   status: json['status'] as String?,
   waitingFor: json['waiting_for'] as String?,
   hasUpdateForFisher: json['has_update_for_fisher'] as bool?,
@@ -41,6 +42,7 @@ Map<String, dynamic> _$$OfferApiModelImplToJson(_$OfferApiModelImpl instance) =>
       'previousPriceAmount': instance.previousPriceAmount,
       'previousWeightGrams': instance.previousWeightGrams,
       'previousPricePerKgAmount': instance.previousPricePerKgAmount,
+      'saleOrder': instance.saleOrder,
       'status': instance.status,
       'waiting_for': instance.waitingFor,
       'has_update_for_fisher': instance.hasUpdateForFisher,
@@ -66,3 +68,30 @@ Map<String, dynamic> _$$CreateOfferRequestImplToJson(
   'price': instance.price,
   'price_per_kg': instance.pricePerKg,
 };
+
+_$CounterOfferRequestImpl _$$CounterOfferRequestImplFromJson(
+  Map<String, dynamic> json,
+) => _$CounterOfferRequestImpl(
+  weightInGrams: (json['weight_in_grams'] as num).toDouble(),
+  price: (json['price'] as num).toDouble(),
+  pricePerKg: (json['price_per_kg'] as num).toDouble(),
+);
+
+Map<String, dynamic> _$$CounterOfferRequestImplToJson(
+  _$CounterOfferRequestImpl instance,
+) => <String, dynamic>{
+  'weight_in_grams': instance.weightInGrams,
+  'price': instance.price,
+  'price_per_kg': instance.pricePerKg,
+};
+
+_$OfferResponseRequestImpl _$$OfferResponseRequestImplFromJson(
+  Map<String, dynamic> json,
+) => _$OfferResponseRequestImpl(
+  action: json['action'] as String,
+  message: json['message'] as String,
+);
+
+Map<String, dynamic> _$$OfferResponseRequestImplToJson(
+  _$OfferResponseRequestImpl instance,
+) => <String, dynamic>{'action': instance.action, 'message': instance.message};

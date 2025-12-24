@@ -34,6 +34,8 @@ class OfferMapper {
 
   /// Convert data model to domain entity
   static Offer toEntity(OfferModel model) {
+    print('DEBUG OfferMapper.toEntity - model.buyer: ${model.buyer}');
+
     final currentTerms = OfferTerms.create(
       totalPrice: Price.fromAmount(model.currentPriceAmount),
       weight: Weight.fromGrams(model.currentWeightGrams),
@@ -48,7 +50,12 @@ class OfferMapper {
       );
     }
 
-    return Offer(
+    final mappedBuyer = _mapBuyer(model);
+    print(
+      'DEBUG OfferMapper.toEntity - mappedBuyer: $mappedBuyer, name: ${mappedBuyer?.name}',
+    );
+
+    final offer = Offer(
       id: model.id,
       productId: model.productId,
       fisherId: model.fisherId,
@@ -65,13 +72,27 @@ class OfferMapper {
       hasUpdateForBuyer: model.hasUpdateForBuyer,
       product: model.product,
       fisher: model.product?.fisher,
-      buyer: _mapBuyer(model),
+      buyer: mappedBuyer,
+      orderId: model.orderUid,
     );
+
+    return offer;
   }
 
   static User? _mapBuyer(OfferModel model) {
     final buyer = model.buyer;
-    if (buyer == null) return null;
+    print('DEBUG _mapBuyer - buyer data: $buyer');
+    if (buyer == null) {
+      print('DEBUG _mapBuyer - buyer is null, returning null');
+      return null;
+    }
+
+    final name =
+        '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim().isEmpty
+        ? (buyer.username ?? 'Unknown')
+        : '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim();
+
+    print('DEBUG _mapBuyer - mapped name: $name, id: ${buyer.id}');
 
     return User(
       id: buyer.id.toString(), // AccountApiModel id can be dynamic

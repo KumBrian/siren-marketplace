@@ -78,6 +78,10 @@ class ApiConfig {
   /// Get endpoint for specific offer
   static String offer(String id) => '$offers/$id';
 
+  /// Counter offer endpoint
+  static String counterOffer(String id) => '$offers/$id/counter-offer';
+  static String respondToOffer(String id) => '/offers/$id/respond';
+
   // Pulsebox API (Media Server)
   static String get pulseboxBaseUrl =>
       'https://api.pulsebox.dev.siren.dhi-cm.com/api/v1';

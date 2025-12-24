@@ -3,6 +3,7 @@ import '../../domain/enums/order_status.dart';
 import '../../domain/exceptions/not_found_exception.dart';
 import '../../domain/repositories/i_order_repository.dart';
 import '../datasources/interfaces/i_order_datasource.dart';
+import '../datasources/api/orders_api_data_source.dart';
 import '../mappers/order_mapper.dart';
 
 class OrderRepositoryImpl implements IOrderRepository {
@@ -45,6 +46,33 @@ class OrderRepositoryImpl implements IOrderRepository {
   Future<List<Order>> getByUserId(String userId) async {
     final models = await dataSource.getByUserId(userId);
     return models.map((m) => OrderMapper.toEntity(m)).toList();
+  }
+
+  /// Get orders with embedded product data (more efficient, no extra fetches needed)
+  Future<List<Order>> getByUserIdWithEmbeddedData(String userId) async {
+    print(
+      '🔄 REPO: getByUserIdWithEmbeddedData called, dataSource type: ${dataSource.runtimeType}',
+    );
+    // Cast to access the new method
+    if (dataSource is OrdersApiDataSource) {
+      final apiModels = await (dataSource as OrdersApiDataSource)
+          .getOrdersWithEmbeddedData(userId);
+      return apiModels.map((api) => OrderMapper.fromApi(api)).toList();
+    }
+    // Fallback to old method
+    return getByUserId(userId);
+  }
+
+  /// Get single order by ID with embedded product data (more efficient)
+  Future<Order?> getByIdWithEmbeddedData(String orderId) async {
+    // Cast to access the new method
+    if (dataSource is OrdersApiDataSource) {
+      final apiModel = await (dataSource as OrdersApiDataSource)
+          .getByIdWithEmbeddedData(orderId);
+      return apiModel != null ? OrderMapper.fromApi(apiModel) : null;
+    }
+    // Fallback to old method
+    return getById(orderId);
   }
 
   @override

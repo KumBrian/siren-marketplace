@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 
 import '../enums/order_status.dart';
 import '../value_objects/offer_terms.dart';
+import 'product.dart';
+import 'user.dart';
 
 class Order extends Equatable {
   final String id;
@@ -13,6 +15,15 @@ class Order extends Equatable {
   final OrderStatus status;
   final DateTime dateCreated;
   final DateTime dateUpdated;
+
+  // Order number for display
+  final String? orderNumber;
+
+  // Embedded product data
+  final Product? product;
+
+  // Embedded buyer data
+  final User? buyer;
 
   // Review tracking
   final bool hasReviewFromFisher;
@@ -31,6 +42,9 @@ class Order extends Equatable {
     required this.status,
     required this.dateCreated,
     required this.dateUpdated,
+    this.orderNumber,
+    this.product,
+    this.buyer,
     this.hasReviewFromFisher = false,
     this.hasReviewFromBuyer = false,
     this.cancellationReason,
@@ -107,6 +121,9 @@ class Order extends Equatable {
     bool? hasReviewFromFisher,
     bool? hasReviewFromBuyer,
     String? cancellationReason,
+    String? orderNumber,
+    Product? product,
+    User? buyer,
   }) {
     return Order(
       id: id,
@@ -118,6 +135,9 @@ class Order extends Equatable {
       status: status ?? this.status,
       dateCreated: dateCreated,
       dateUpdated: dateUpdated ?? this.dateUpdated,
+      orderNumber: orderNumber ?? this.orderNumber,
+      product: product ?? this.product,
+      buyer: buyer ?? this.buyer,
       hasReviewFromFisher: hasReviewFromFisher ?? this.hasReviewFromFisher,
       hasReviewFromBuyer: hasReviewFromBuyer ?? this.hasReviewFromBuyer,
       cancellationReason: cancellationReason ?? this.cancellationReason,
@@ -135,6 +155,9 @@ class Order extends Equatable {
     status,
     dateCreated,
     dateUpdated,
+    orderNumber,
+    product,
+    buyer,
     hasReviewFromFisher,
     hasReviewFromBuyer,
     cancellationReason,

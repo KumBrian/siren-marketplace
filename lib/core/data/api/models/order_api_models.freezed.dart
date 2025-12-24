@@ -23,11 +23,26 @@ OrderApiModel _$OrderApiModelFromJson(Map<String, dynamic> json) {
 mixin _$OrderApiModel {
   dynamic get id => throw _privateConstructorUsedError; // ID can be int in JSON
   @JsonKey(name: 'review')
-  dynamic get review => throw _privateConstructorUsedError; // Can be object or string URI
+  dynamic get review => throw _privateConstructorUsedError; // Can be object or null
+  @JsonKey(name: 'orderNumber')
   String? get orderNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'cancellationReason')
   String? get cancellationReason => throw _privateConstructorUsedError;
   String? get status => throw _privateConstructorUsedError;
-  bool? get completed => throw _privateConstructorUsedError;
+  bool? get completed => throw _privateConstructorUsedError; // Order terms
+  @JsonKey(name: 'terms_price')
+  int? get termsPrice => throw _privateConstructorUsedError;
+  @JsonKey(name: 'terms_weight')
+  int? get termsWeight => throw _privateConstructorUsedError;
+  @JsonKey(name: 'terms_price_per_kg')
+  int? get termsPricePerKg => throw _privateConstructorUsedError; // Review tracking
+  @JsonKey(name: 'has_review_from_fisher')
+  bool get hasReviewFromFisher => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_review_from_buyer')
+  bool get hasReviewFromBuyer => throw _privateConstructorUsedError; // Embedded product data
+  ProductApiModel? get product =>
+      throw _privateConstructorUsedError; // Embedded buyer data (will be mapped manually in mapper)
+  dynamic get buyer => throw _privateConstructorUsedError; // Timestamps
   @JsonKey(name: 'created_at')
   String? get createdAt => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at')
@@ -54,14 +69,23 @@ abstract class $OrderApiModelCopyWith<$Res> {
   $Res call({
     dynamic id,
     @JsonKey(name: 'review') dynamic review,
-    String? orderNumber,
-    String? cancellationReason,
+    @JsonKey(name: 'orderNumber') String? orderNumber,
+    @JsonKey(name: 'cancellationReason') String? cancellationReason,
     String? status,
     bool? completed,
+    @JsonKey(name: 'terms_price') int? termsPrice,
+    @JsonKey(name: 'terms_weight') int? termsWeight,
+    @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
+    @JsonKey(name: 'has_review_from_fisher') bool hasReviewFromFisher,
+    @JsonKey(name: 'has_review_from_buyer') bool hasReviewFromBuyer,
+    ProductApiModel? product,
+    dynamic buyer,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     String? uid,
   });
+
+  $ProductApiModelCopyWith<$Res>? get product;
 }
 
 /// @nodoc
@@ -85,6 +109,13 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
     Object? cancellationReason = freezed,
     Object? status = freezed,
     Object? completed = freezed,
+    Object? termsPrice = freezed,
+    Object? termsWeight = freezed,
+    Object? termsPricePerKg = freezed,
+    Object? hasReviewFromFisher = null,
+    Object? hasReviewFromBuyer = null,
+    Object? product = freezed,
+    Object? buyer = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? uid = freezed,
@@ -115,6 +146,34 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
                 ? _value.completed
                 : completed // ignore: cast_nullable_to_non_nullable
                       as bool?,
+            termsPrice: freezed == termsPrice
+                ? _value.termsPrice
+                : termsPrice // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            termsWeight: freezed == termsWeight
+                ? _value.termsWeight
+                : termsWeight // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            termsPricePerKg: freezed == termsPricePerKg
+                ? _value.termsPricePerKg
+                : termsPricePerKg // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            hasReviewFromFisher: null == hasReviewFromFisher
+                ? _value.hasReviewFromFisher
+                : hasReviewFromFisher // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            hasReviewFromBuyer: null == hasReviewFromBuyer
+                ? _value.hasReviewFromBuyer
+                : hasReviewFromBuyer // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            product: freezed == product
+                ? _value.product
+                : product // ignore: cast_nullable_to_non_nullable
+                      as ProductApiModel?,
+            buyer: freezed == buyer
+                ? _value.buyer
+                : buyer // ignore: cast_nullable_to_non_nullable
+                      as dynamic,
             createdAt: freezed == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -131,6 +190,20 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
           as $Val,
     );
   }
+
+  /// Create a copy of OrderApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ProductApiModelCopyWith<$Res>? get product {
+    if (_value.product == null) {
+      return null;
+    }
+
+    return $ProductApiModelCopyWith<$Res>(_value.product!, (value) {
+      return _then(_value.copyWith(product: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -145,14 +218,24 @@ abstract class _$$OrderApiModelImplCopyWith<$Res>
   $Res call({
     dynamic id,
     @JsonKey(name: 'review') dynamic review,
-    String? orderNumber,
-    String? cancellationReason,
+    @JsonKey(name: 'orderNumber') String? orderNumber,
+    @JsonKey(name: 'cancellationReason') String? cancellationReason,
     String? status,
     bool? completed,
+    @JsonKey(name: 'terms_price') int? termsPrice,
+    @JsonKey(name: 'terms_weight') int? termsWeight,
+    @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
+    @JsonKey(name: 'has_review_from_fisher') bool hasReviewFromFisher,
+    @JsonKey(name: 'has_review_from_buyer') bool hasReviewFromBuyer,
+    ProductApiModel? product,
+    dynamic buyer,
     @JsonKey(name: 'created_at') String? createdAt,
     @JsonKey(name: 'updated_at') String? updatedAt,
     String? uid,
   });
+
+  @override
+  $ProductApiModelCopyWith<$Res>? get product;
 }
 
 /// @nodoc
@@ -175,6 +258,13 @@ class __$$OrderApiModelImplCopyWithImpl<$Res>
     Object? cancellationReason = freezed,
     Object? status = freezed,
     Object? completed = freezed,
+    Object? termsPrice = freezed,
+    Object? termsWeight = freezed,
+    Object? termsPricePerKg = freezed,
+    Object? hasReviewFromFisher = null,
+    Object? hasReviewFromBuyer = null,
+    Object? product = freezed,
+    Object? buyer = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? uid = freezed,
@@ -205,6 +295,34 @@ class __$$OrderApiModelImplCopyWithImpl<$Res>
             ? _value.completed
             : completed // ignore: cast_nullable_to_non_nullable
                   as bool?,
+        termsPrice: freezed == termsPrice
+            ? _value.termsPrice
+            : termsPrice // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        termsWeight: freezed == termsWeight
+            ? _value.termsWeight
+            : termsWeight // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        termsPricePerKg: freezed == termsPricePerKg
+            ? _value.termsPricePerKg
+            : termsPricePerKg // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        hasReviewFromFisher: null == hasReviewFromFisher
+            ? _value.hasReviewFromFisher
+            : hasReviewFromFisher // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        hasReviewFromBuyer: null == hasReviewFromBuyer
+            ? _value.hasReviewFromBuyer
+            : hasReviewFromBuyer // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        product: freezed == product
+            ? _value.product
+            : product // ignore: cast_nullable_to_non_nullable
+                  as ProductApiModel?,
+        buyer: freezed == buyer
+            ? _value.buyer
+            : buyer // ignore: cast_nullable_to_non_nullable
+                  as dynamic,
         createdAt: freezed == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -228,10 +346,17 @@ class _$OrderApiModelImpl implements _OrderApiModel {
   const _$OrderApiModelImpl({
     required this.id,
     @JsonKey(name: 'review') this.review,
-    this.orderNumber,
-    this.cancellationReason,
+    @JsonKey(name: 'orderNumber') this.orderNumber,
+    @JsonKey(name: 'cancellationReason') this.cancellationReason,
     this.status,
     this.completed,
+    @JsonKey(name: 'terms_price') this.termsPrice,
+    @JsonKey(name: 'terms_weight') this.termsWeight,
+    @JsonKey(name: 'terms_price_per_kg') this.termsPricePerKg,
+    @JsonKey(name: 'has_review_from_fisher') this.hasReviewFromFisher = false,
+    @JsonKey(name: 'has_review_from_buyer') this.hasReviewFromBuyer = false,
+    this.product,
+    this.buyer,
     @JsonKey(name: 'created_at') this.createdAt,
     @JsonKey(name: 'updated_at') this.updatedAt,
     this.uid,
@@ -246,15 +371,41 @@ class _$OrderApiModelImpl implements _OrderApiModel {
   @override
   @JsonKey(name: 'review')
   final dynamic review;
-  // Can be object or string URI
+  // Can be object or null
   @override
+  @JsonKey(name: 'orderNumber')
   final String? orderNumber;
   @override
+  @JsonKey(name: 'cancellationReason')
   final String? cancellationReason;
   @override
   final String? status;
   @override
   final bool? completed;
+  // Order terms
+  @override
+  @JsonKey(name: 'terms_price')
+  final int? termsPrice;
+  @override
+  @JsonKey(name: 'terms_weight')
+  final int? termsWeight;
+  @override
+  @JsonKey(name: 'terms_price_per_kg')
+  final int? termsPricePerKg;
+  // Review tracking
+  @override
+  @JsonKey(name: 'has_review_from_fisher')
+  final bool hasReviewFromFisher;
+  @override
+  @JsonKey(name: 'has_review_from_buyer')
+  final bool hasReviewFromBuyer;
+  // Embedded product data
+  @override
+  final ProductApiModel? product;
+  // Embedded buyer data (will be mapped manually in mapper)
+  @override
+  final dynamic buyer;
+  // Timestamps
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
@@ -266,7 +417,7 @@ class _$OrderApiModelImpl implements _OrderApiModel {
 
   @override
   String toString() {
-    return 'OrderApiModel(id: $id, review: $review, orderNumber: $orderNumber, cancellationReason: $cancellationReason, status: $status, completed: $completed, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid)';
+    return 'OrderApiModel(id: $id, review: $review, orderNumber: $orderNumber, cancellationReason: $cancellationReason, status: $status, completed: $completed, termsPrice: $termsPrice, termsWeight: $termsWeight, termsPricePerKg: $termsPricePerKg, hasReviewFromFisher: $hasReviewFromFisher, hasReviewFromBuyer: $hasReviewFromBuyer, product: $product, buyer: $buyer, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid)';
   }
 
   @override
@@ -283,6 +434,18 @@ class _$OrderApiModelImpl implements _OrderApiModel {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.completed, completed) ||
                 other.completed == completed) &&
+            (identical(other.termsPrice, termsPrice) ||
+                other.termsPrice == termsPrice) &&
+            (identical(other.termsWeight, termsWeight) ||
+                other.termsWeight == termsWeight) &&
+            (identical(other.termsPricePerKg, termsPricePerKg) ||
+                other.termsPricePerKg == termsPricePerKg) &&
+            (identical(other.hasReviewFromFisher, hasReviewFromFisher) ||
+                other.hasReviewFromFisher == hasReviewFromFisher) &&
+            (identical(other.hasReviewFromBuyer, hasReviewFromBuyer) ||
+                other.hasReviewFromBuyer == hasReviewFromBuyer) &&
+            (identical(other.product, product) || other.product == product) &&
+            const DeepCollectionEquality().equals(other.buyer, buyer) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -300,6 +463,13 @@ class _$OrderApiModelImpl implements _OrderApiModel {
     cancellationReason,
     status,
     completed,
+    termsPrice,
+    termsWeight,
+    termsPricePerKg,
+    hasReviewFromFisher,
+    hasReviewFromBuyer,
+    product,
+    const DeepCollectionEquality().hash(buyer),
     createdAt,
     updatedAt,
     uid,
@@ -323,10 +493,17 @@ abstract class _OrderApiModel implements OrderApiModel {
   const factory _OrderApiModel({
     required final dynamic id,
     @JsonKey(name: 'review') final dynamic review,
-    final String? orderNumber,
-    final String? cancellationReason,
+    @JsonKey(name: 'orderNumber') final String? orderNumber,
+    @JsonKey(name: 'cancellationReason') final String? cancellationReason,
     final String? status,
     final bool? completed,
+    @JsonKey(name: 'terms_price') final int? termsPrice,
+    @JsonKey(name: 'terms_weight') final int? termsWeight,
+    @JsonKey(name: 'terms_price_per_kg') final int? termsPricePerKg,
+    @JsonKey(name: 'has_review_from_fisher') final bool hasReviewFromFisher,
+    @JsonKey(name: 'has_review_from_buyer') final bool hasReviewFromBuyer,
+    final ProductApiModel? product,
+    final dynamic buyer,
     @JsonKey(name: 'created_at') final String? createdAt,
     @JsonKey(name: 'updated_at') final String? updatedAt,
     final String? uid,
@@ -339,15 +516,36 @@ abstract class _OrderApiModel implements OrderApiModel {
   dynamic get id; // ID can be int in JSON
   @override
   @JsonKey(name: 'review')
-  dynamic get review; // Can be object or string URI
+  dynamic get review; // Can be object or null
   @override
+  @JsonKey(name: 'orderNumber')
   String? get orderNumber;
   @override
+  @JsonKey(name: 'cancellationReason')
   String? get cancellationReason;
   @override
   String? get status;
   @override
-  bool? get completed;
+  bool? get completed; // Order terms
+  @override
+  @JsonKey(name: 'terms_price')
+  int? get termsPrice;
+  @override
+  @JsonKey(name: 'terms_weight')
+  int? get termsWeight;
+  @override
+  @JsonKey(name: 'terms_price_per_kg')
+  int? get termsPricePerKg; // Review tracking
+  @override
+  @JsonKey(name: 'has_review_from_fisher')
+  bool get hasReviewFromFisher;
+  @override
+  @JsonKey(name: 'has_review_from_buyer')
+  bool get hasReviewFromBuyer; // Embedded product data
+  @override
+  ProductApiModel? get product; // Embedded buyer data (will be mapped manually in mapper)
+  @override
+  dynamic get buyer; // Timestamps
   @override
   @JsonKey(name: 'created_at')
   String? get createdAt;
