@@ -76,7 +76,6 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       // Invalidate catch-related providers using the authoritative catchId from the order
       ref.invalidate(offersByProductProvider(order.catchId));
       ref.invalidate(catchByIdProvider(order.catchId));
-      ref.invalidate(catchByIdProvider(order.catchId));
       ref.invalidate(availableCatchesProvider);
       ref.invalidate(availableProductsProvider);
       ref.invalidate(fisherCatchesProvider);

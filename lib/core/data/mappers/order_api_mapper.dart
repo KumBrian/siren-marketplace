@@ -18,7 +18,7 @@ class OrderApiMapper {
       dateUpdated: apiModel.updatedAt ?? DateTime.now().toIso8601String(),
       hasReviewFromFisher: false,
       hasReviewFromBuyer:
-          apiModel.review != null, // Assuming presence means review exists
+          apiModel.hasReviewFromBuyer, // Assuming presence means review exists
       cancellationReason: apiModel.cancellationReason,
     );
   }

@@ -11,17 +11,21 @@ class SoldCard extends StatelessWidget {
   const SoldCard({
     super.key,
     required this.onPressed,
-    required this.offer,
-    required this.catchImageUrl, // 🆕 The primary image URL, derived from the Catch
-    required this.catchTitle, // 🆕 The catch name/title, derived from the Catch
+    this.offer, // Made optional
+    required this.catchImageUrl,
+    required this.catchTitle,
     this.orderStatus,
+    this.weight, // Order terms weight in kg
+    this.price, // Order terms price in cents
   });
 
-  final Offer offer;
-  final String catchImageUrl; // New required field
-  final String catchTitle; // New required field
+  final Offer? offer;
+  final String catchImageUrl;
+  final String catchTitle;
   final OrderStatus? orderStatus;
   final VoidCallback onPressed;
+  final double? weight; // kg
+  final int? price; // cents
 
   @override
   Widget build(BuildContext context) {
@@ -75,56 +79,61 @@ class SoldCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Column holding the RichText widgets (Price and Weight)
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            RichText(
-                              text: TextSpan(
-                                text: "Weight: ",
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.gray650,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        "${offer.currentTerms.weight.kilograms} kg",
-                                    // Use toStringAsFixed
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textBlue,
-                                    ),
+                        // Use offer data or direct weight/price params
+                        if (offer != null ||
+                            (weight != null && price != null)) ...[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              RichText(
+                                text: TextSpan(
+                                  text: "Weight: ",
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.gray650,
                                   ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            // Added spacing
-                            RichText(
-                              text: TextSpan(
-                                text: "Selling Price: ",
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.gray650,
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          "${weight ?? offer!.currentTerms.weight.kilograms} kg",
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textBlue,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                children: [
-                                  TextSpan(
-                                    text: formatPrice(
-                                      offer.currentTerms.totalPrice.amount,
-                                    ),
-                                    // Use toStringAsFixed
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textBlue,
-                                    ),
-                                  ),
-                                ],
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(height: 4),
+                              RichText(
+                                text: TextSpan(
+                                  text: "Selling Price: ",
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.gray650,
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: formatPrice(
+                                        price ??
+                                            offer!
+                                                .currentTerms
+                                                .totalPrice
+                                                .amount,
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textBlue,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         // Status Icon
                         if (orderStatus != null) ...[
                           if (orderStatus == OrderStatus.accepted)
@@ -146,7 +155,9 @@ class SoldCard extends StatelessWidget {
                               color: AppColors.fail500,
                               size: 16,
                             ),
-                        ] else if (offer.status != OfferStatus.completed) ...[
+                        ] else if (offer != null &&
+                            offer!.status != OfferStatus.completed) ...[
+                          // Added null check
                           // Fallback for legacy usage if any
                           const Icon(
                             Icons.notifications,

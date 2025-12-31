@@ -89,6 +89,8 @@ class ApiConfig {
 
   /// Get endpoint for specific sale order
   static String saleOrder(String id) => '$saleOrders/$id';
+  static String completeOrder(String id) => '$saleOrders/$id/complete';
+  static String relistOrder(String id) => '$saleOrders/$id/relist';
 
   /// Get endpoint for specific message
   static String message(String id) => '$messages/$id';

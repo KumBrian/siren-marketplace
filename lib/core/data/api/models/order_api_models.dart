@@ -8,7 +8,6 @@ part 'order_api_models.g.dart';
 class OrderApiModel with _$OrderApiModel {
   const factory OrderApiModel({
     required dynamic id, // ID can be int in JSON
-    @JsonKey(name: 'review') dynamic review, // Can be object or null
     @JsonKey(name: 'orderNumber') String? orderNumber,
     @JsonKey(name: 'cancellationReason') String? cancellationReason,
     String? status,
@@ -19,13 +18,17 @@ class OrderApiModel with _$OrderApiModel {
     @JsonKey(name: 'terms_weight') int? termsWeight,
     @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
 
-    // Review tracking
+    // Review tracking flags
     @JsonKey(name: 'has_review_from_fisher')
     @Default(false)
     bool hasReviewFromFisher,
     @JsonKey(name: 'has_review_from_buyer')
     @Default(false)
     bool hasReviewFromBuyer,
+
+    // Review objects (not parsed, just kept as dynamic)
+    @JsonKey(name: 'buyerReview') dynamic buyerReview,
+    @JsonKey(name: 'fisherReview') dynamic fisherReview,
 
     // Embedded product data
     ProductApiModel? product,

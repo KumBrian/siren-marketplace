@@ -686,7 +686,8 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                               offersAsync.when(
                                 data: (offers) {
                                   // Apply filtering and sorting based on filterState
-                                  var filteredOffers = offers;
+                                  // Create a mutable copy of the list for sorting
+                                  var filteredOffers = offers.toList();
 
                                   // Filter by status - only if filters are active
                                   if (filterState.activeStatuses.isNotEmpty) {

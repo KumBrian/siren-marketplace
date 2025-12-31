@@ -7,7 +7,7 @@ import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/entities/order.dart';
 
 import 'package:siren_marketplace/core/domain/enums/order_status.dart';
-import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
+
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
 import 'package:siren_marketplace/core/providers/conversation_providers.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
@@ -357,26 +357,7 @@ class FisherHome extends ConsumerWidget {
             // Use embedded product data (no need to search catches!)
             final product = order.product;
             if (product == null) {
-              // Fallback: try to find catch manually if product not embedded
-              try {
-                final catchItem = allCatches.firstWhere(
-                  (c) => c.id == order.catchId,
-                );
-                final offer = offers.firstWhere((o) => o.id == order.offerId);
-
-                return SoldCard(
-                  offer: offer,
-                  catchImageUrl: catchItem.images.isNotEmpty
-                      ? catchItem.images.first
-                      : "",
-                  catchTitle: catchItem.species.name,
-                  orderStatus: order.status,
-                  onPressed: () =>
-                      context.push("/fisher/order-details/${order.id}"),
-                );
-              } catch (_) {
-                return const SizedBox.shrink(); // Skip if data not found
-              }
+              return const SizedBox.shrink(); // Skip if no embedded product
             }
 
             // Use product data from embedded object
@@ -385,23 +366,14 @@ class FisherHome extends ConsumerWidget {
                 : "";
             final catchTitle = product.species.name;
 
-            // Create a minimal offer object for SoldCard (using order terms)
-            final offerForCard = Offer(
-              id: order.offerId,
-              productId: product.id,
-              buyerId: order.buyerId,
-              fisherId: order.fisherId,
-              currentTerms: order.terms,
-              status: OfferStatus.accepted, // Order implies accepted offer
-              dateCreated: order.dateCreated,
-              dateUpdated: order.dateUpdated,
-            );
-
+            // Display order with embedded product data and order terms
             return SoldCard(
-              offer: offerForCard,
+              offer: null,
               catchImageUrl: catchImageUrl,
               catchTitle: catchTitle,
               orderStatus: order.status,
+              weight: order.terms.weight.kilograms,
+              price: order.terms.totalPrice.amount,
               onPressed: () =>
                   context.push("/fisher/order-details/${order.id}"),
             );

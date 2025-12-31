@@ -194,8 +194,12 @@ AuthorizeResponse _$AuthorizeResponseFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$AuthorizeResponse {
   String get token => throw _privateConstructorUsedError;
+
+  /// Token expiration date
   @JsonKey(name: 'tokenExpireAt')
   DateTime? get tokenExpireAt => throw _privateConstructorUsedError;
+
+  /// Token issuance date
   @JsonKey(name: 'tokenIssuedAt')
   DateTime? get tokenIssuedAt => throw _privateConstructorUsedError;
   dynamic get id => throw _privateConstructorUsedError; // ID can be int
@@ -442,9 +446,13 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
 
   @override
   final String token;
+
+  /// Token expiration date
   @override
   @JsonKey(name: 'tokenExpireAt')
   final DateTime? tokenExpireAt;
+
+  /// Token issuance date
   @override
   @JsonKey(name: 'tokenIssuedAt')
   final DateTime? tokenIssuedAt;
@@ -556,9 +564,13 @@ abstract class _AuthorizeResponse extends AuthorizeResponse {
 
   @override
   String get token;
+
+  /// Token expiration date
   @override
   @JsonKey(name: 'tokenExpireAt')
   DateTime? get tokenExpireAt;
+
+  /// Token issuance date
   @override
   @JsonKey(name: 'tokenIssuedAt')
   DateTime? get tokenIssuedAt;
@@ -593,10 +605,14 @@ AccountApiModel _$AccountApiModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$AccountApiModel {
+  /// Unique identifier
   @JsonKey(readValue: _readId)
   dynamic get id => throw _privateConstructorUsedError; // ID can be int or string (uid)
+  /// First name
   @JsonKey(name: 'first_name', readValue: _readFirstName)
   String? get firstName => throw _privateConstructorUsedError;
+
+  /// Last name
   @JsonKey(name: 'last_name', readValue: _readLastName)
   String? get lastName => throw _privateConstructorUsedError;
   String? get username => throw _privateConstructorUsedError;
@@ -605,6 +621,8 @@ mixin _$AccountApiModel {
   List<String>? get roles =>
       throw _privateConstructorUsedError; // Roles as list of strings
   double? get rating => throw _privateConstructorUsedError;
+
+  /// Total number of reviews
   @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
   int? get totalReviews => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
@@ -831,13 +849,17 @@ class _$AccountApiModelImpl implements _AccountApiModel {
   factory _$AccountApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$AccountApiModelImplFromJson(json);
 
+  /// Unique identifier
   @override
   @JsonKey(readValue: _readId)
   final dynamic id;
   // ID can be int or string (uid)
+  /// First name
   @override
   @JsonKey(name: 'first_name', readValue: _readFirstName)
   final String? firstName;
+
+  /// Last name
   @override
   @JsonKey(name: 'last_name', readValue: _readLastName)
   final String? lastName;
@@ -860,6 +882,8 @@ class _$AccountApiModelImpl implements _AccountApiModel {
   // Roles as list of strings
   @override
   final double? rating;
+
+  /// Total number of reviews
   @override
   @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
   final int? totalReviews;
@@ -945,12 +969,16 @@ abstract class _AccountApiModel implements AccountApiModel {
   factory _AccountApiModel.fromJson(Map<String, dynamic> json) =
       _$AccountApiModelImpl.fromJson;
 
+  /// Unique identifier
   @override
   @JsonKey(readValue: _readId)
   dynamic get id; // ID can be int or string (uid)
+  /// First name
   @override
   @JsonKey(name: 'first_name', readValue: _readFirstName)
   String? get firstName;
+
+  /// Last name
   @override
   @JsonKey(name: 'last_name', readValue: _readLastName)
   String? get lastName;
@@ -964,6 +992,8 @@ abstract class _AccountApiModel implements AccountApiModel {
   List<String>? get roles; // Roles as list of strings
   @override
   double? get rating;
+
+  /// Total number of reviews
   @override
   @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
   int? get totalReviews;

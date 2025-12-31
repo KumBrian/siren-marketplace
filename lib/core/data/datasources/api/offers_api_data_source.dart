@@ -100,6 +100,10 @@ class OffersApiDataSource implements IOfferDataSource {
 
   @override
   Future<OfferModel?> getById(String offerId) async {
+    if (offerId.trim().isEmpty) {
+      return null;
+    }
+
     // TEMPORARY: Force cache miss to pick up new ID format
     // TODO: Remove this after migration is complete
     if (_offerByIdCache.containsKey(offerId)) {

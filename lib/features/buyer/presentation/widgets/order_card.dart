@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
@@ -11,7 +12,8 @@ class OrderCard extends StatelessWidget {
   const OrderCard({
     super.key,
     required this.onPressed,
-    required this.catchItem,
+    this.catchItem,
+    this.product,
     required this.status,
     required this.weight,
     required this.price,
@@ -19,7 +21,8 @@ class OrderCard extends StatelessWidget {
   });
 
   final VoidCallback onPressed;
-  final Catch catchItem;
+  final Catch? catchItem;
+  final Product? product;
   final OfferStatus status;
   final double weight;
   final int price;
@@ -27,8 +30,12 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = catchItem.images.isNotEmpty
-        ? catchItem.images.first
+    final images = product?.images ?? catchItem?.images ?? [];
+    final name = product?.name ?? catchItem?.name ?? '';
+    final market = product?.marketName ?? catchItem?.market ?? '';
+
+    final imageUrl = images.isNotEmpty
+        ? images.first
         : 'https://via.placeholder.com/140';
 
     return Material(
@@ -98,7 +105,7 @@ class OrderCard extends StatelessWidget {
                         SizedBox(
                           width: 140,
                           child: Text(
-                            catchItem.name,
+                            name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -181,7 +188,7 @@ class OrderCard extends StatelessWidget {
                                   ),
                                   children: [
                                     TextSpan(
-                                      text: catchItem.market,
+                                      text: market,
                                       style: const TextStyle(
                                         overflow: TextOverflow.ellipsis,
                                         fontSize: 10,

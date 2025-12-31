@@ -94,8 +94,29 @@ class OrdersApiDataSource implements IOrderDataSource {
 
   @override
   Future<void> update(OrderModel order) async {
-    // TODO: Implement update
-    throw UnimplementedError();
+    // POST /api/v1/sale-orders/{id}/complete with completion status
+    await _client.post(
+      ApiConfig.completeOrder(order.id),
+      data: {'completed': order.status == 'completed'},
+    );
+  }
+
+  @override
+  Future<OrderModel?> relistOrder(
+    String orderId,
+    String cancellationReason,
+  ) async {
+    try {
+      final response = await _client.post(
+        ApiConfig.relistOrder(orderId),
+        data: {'cancellationReason': cancellationReason},
+      );
+      final data = response.data['data'] ?? response.data;
+      return OrderApiMapper.toDomain(OrderApiModel.fromJson(data));
+    } catch (e) {
+      // Re-throw or handle error? For now rethrow to let repo handle
+      rethrow;
+    }
   }
 
   @override

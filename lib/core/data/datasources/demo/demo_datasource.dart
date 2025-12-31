@@ -370,6 +370,28 @@ class DemoOrderDataSource implements IOrderDataSource {
   Future<T> transaction<T>(Future<T> Function() action) async {
     return await action();
   }
+
+  @override
+  Future<OrderModel?> relistOrder(
+    String orderId,
+    String cancellationReason,
+  ) async {
+    await Future.delayed(Duration(milliseconds: 100));
+    final order = _orders[orderId];
+    if (order != null) {
+      // Demo logic: just change status to cancelled and update reason (if model supported it)
+      // Since model doesn't support cancellationReason yet, we just return it.
+      // Ideally we'd update status to cancelled or some specific state.
+      // But user said relist means "cancellationReason" involved.
+      // Assuming relist sets status to cancelled? Or is relist strictly for failed orders?
+      // Based on context: "relist endpoint... cancellationReason... display on screen when cancelled"
+      // So relist -> Cancelled state.
+      final updated = order.copyWith(status: OrderStatus.cancelled.name);
+      _orders[orderId] = updated;
+      return updated;
+    }
+    return null;
+  }
 }
 
 class DemoReviewDataSource implements IReviewDataSource {

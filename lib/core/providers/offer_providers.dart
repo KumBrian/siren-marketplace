@@ -40,9 +40,7 @@ final fisherOffersProvider = FutureProvider.autoDispose<List<Offer>>((
 
 /// Provider to fetch offers for the current buyer user
 /// Automatically refreshes when user changes
-final buyerOffersProvider = FutureProvider.autoDispose<List<Offer>>((
-  ref,
-) async {
+final buyerOffersProvider = FutureProvider<List<Offer>>((ref) async {
   final user = await ref.watch(currentUserProvider.future);
   if (user == null || user.currentRole != UserRole.buyer) return [];
 

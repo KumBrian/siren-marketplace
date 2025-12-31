@@ -47,27 +47,40 @@ final fisherOrdersProvider = FutureProvider.autoDispose<List<Order>>((
 
 /// Provider to fetch fisher orders with embedded product data (more efficient)
 /// No additional fetches needed for product info
-final fisherOrdersWithProductProvider = FutureProvider.autoDispose<List<Order>>(
-  (ref) async {
-    final user = await ref.watch(currentUserProvider.future);
-    if (user == null) return [];
+final fisherOrdersWithProductProvider = FutureProvider<List<Order>>((
+  ref,
+) async {
+  final user = await ref.watch(currentUserProvider.future);
+  if (user == null) return [];
 
-    final repository = sl<IOrderRepository>();
-    // Cast to access the optimized method
-    if (repository is OrderRepositoryImpl) {
-      return (repository as OrderRepositoryImpl).getByUserIdWithEmbeddedData(
-        user.id,
-      );
-    }
-    // Fallback to regular method
-    return repository.getByUserId(user.id);
-  },
-);
+  final repository = sl<IOrderRepository>();
+  // Cast to access the optimized method
+  if (repository is OrderRepositoryImpl) {
+    return (repository).getByUserIdWithEmbeddedData(user.id);
+  }
+  // Fallback to regular method
+  return repository.getByUserId(user.id);
+});
+
+/// Provider to fetch buyer orders with embedded product data
+/// No additional fetches needed for product info
+final buyerOrdersWithProductProvider = FutureProvider<List<Order>>((ref) async {
+  final user = await ref.watch(currentUserProvider.future);
+  if (user == null) return [];
+
+  final repository = sl<IOrderRepository>();
+  // Cast to access the optimized method
+  if (repository is OrderRepositoryImpl) {
+    return (repository).getByUserIdWithEmbeddedData(user.id);
+  }
+  // Fallback to regular method
+  return repository.getByUserId(user.id);
+});
 
 /// Provider to calculate turnover from completed orders
 /// Derived state that automatically updates
-final fisherTurnoverProvider = Provider.autoDispose<double>((ref) {
-  final ordersAsync = ref.watch(fisherOrdersProvider);
+final fisherTurnoverProvider = Provider<double>((ref) {
+  final ordersAsync = ref.watch(fisherOrdersWithProductProvider);
   return ordersAsync.when(
     data: (orders) => orders
         .where((o) => o.status == OrderStatus.completed)
@@ -104,6 +117,7 @@ final completeOrderProvider = FutureProvider.family<Order, String>((
   // Invalidate related providers to refresh data
   ref.invalidate(orderProvider(orderId));
   ref.invalidate(fisherOrdersProvider);
+  ref.invalidate(fisherOrdersWithProductProvider);
   ref.invalidate(offerProvider(order.offerId));
 
   return completedOrder;
@@ -126,6 +140,7 @@ final cancelOrderProvider = FutureProvider.family<Order, String>((
   // Invalidate related providers to refresh data
   ref.invalidate(orderProvider(orderId));
   ref.invalidate(fisherOrdersProvider);
+  ref.invalidate(fisherOrdersWithProductProvider);
   // TODO: Add fisherOffersProvider import and invalidate
   // ref.invalidate(fisherOffersProvider); // Also invalidate offers
 

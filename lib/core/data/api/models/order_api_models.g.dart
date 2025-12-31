@@ -9,7 +9,6 @@ part of 'order_api_models.dart';
 _$OrderApiModelImpl _$$OrderApiModelImplFromJson(Map<String, dynamic> json) =>
     _$OrderApiModelImpl(
       id: json['id'],
-      review: json['review'],
       orderNumber: json['orderNumber'] as String?,
       cancellationReason: json['cancellationReason'] as String?,
       status: json['status'] as String?,
@@ -19,6 +18,8 @@ _$OrderApiModelImpl _$$OrderApiModelImplFromJson(Map<String, dynamic> json) =>
       termsPricePerKg: (json['terms_price_per_kg'] as num?)?.toInt(),
       hasReviewFromFisher: json['has_review_from_fisher'] as bool? ?? false,
       hasReviewFromBuyer: json['has_review_from_buyer'] as bool? ?? false,
+      buyerReview: json['buyerReview'],
+      fisherReview: json['fisherReview'],
       product: json['product'] == null
           ? null
           : ProductApiModel.fromJson(json['product'] as Map<String, dynamic>),
@@ -31,7 +32,6 @@ _$OrderApiModelImpl _$$OrderApiModelImplFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$$OrderApiModelImplToJson(_$OrderApiModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'review': instance.review,
       'orderNumber': instance.orderNumber,
       'cancellationReason': instance.cancellationReason,
       'status': instance.status,
@@ -41,6 +41,8 @@ Map<String, dynamic> _$$OrderApiModelImplToJson(_$OrderApiModelImpl instance) =>
       'terms_price_per_kg': instance.termsPricePerKg,
       'has_review_from_fisher': instance.hasReviewFromFisher,
       'has_review_from_buyer': instance.hasReviewFromBuyer,
+      'buyerReview': instance.buyerReview,
+      'fisherReview': instance.fisherReview,
       'product': instance.product?.toJson(),
       'buyer': instance.buyer,
       'created_at': instance.createdAt,

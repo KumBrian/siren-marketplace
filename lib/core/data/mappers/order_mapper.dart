@@ -2,6 +2,7 @@ import '../../domain/entities/order.dart';
 import '../../domain/enums/order_status.dart';
 import '../../domain/value_objects/offer_terms.dart';
 import '../../domain/value_objects/price.dart';
+import '../../domain/value_objects/price_per_kg.dart';
 import '../../domain/value_objects/weight.dart';
 import '../models/order_model.dart';
 import '../models/user_model.dart';
@@ -13,10 +14,14 @@ class OrderMapper {
   /// Convert API model directly to domain entity (for embedded data)
   static Order fromApi(OrderApiModel apiModel) {
     // Map offer terms from the terms_* fields
-    final terms = OfferTerms.create(
-      totalPrice: Price.fromAmount(apiModel.termsPrice ?? 0),
-      weight: Weight.fromGrams(apiModel.termsWeight ?? 0),
-    );
+    // Handle zero weight case to avoid division by zero
+    final totalPrice = Price.fromAmount(apiModel.termsPrice ?? 0);
+    final weight = Weight.fromGrams(apiModel.termsWeight ?? 0);
+    final pricePerKg = PricePerKg.fromAmount(apiModel.termsPricePerKg ?? 0);
+
+    final terms = weight.isZero
+        ? OfferTerms.fromPricePerKg(pricePerKg: pricePerKg, weight: weight)
+        : OfferTerms.create(totalPrice: totalPrice, weight: weight);
 
     // Map embedded product if available
     final product = apiModel.product != null
@@ -80,10 +85,14 @@ class OrderMapper {
 
   /// Convert data model to domain entity
   static Order toEntity(OrderModel model) {
-    final terms = OfferTerms.create(
-      totalPrice: Price.fromAmount(model.termsPrice),
-      weight: Weight.fromGrams(model.termsWeight),
-    );
+    // Handle zero weight case
+    final totalPrice = Price.fromAmount(model.termsPrice);
+    final weight = Weight.fromGrams(model.termsWeight);
+    final pricePerKg = PricePerKg.fromAmount(model.termsPricePerKg);
+
+    final terms = weight.isZero
+        ? OfferTerms.fromPricePerKg(pricePerKg: pricePerKg, weight: weight)
+        : OfferTerms.create(totalPrice: totalPrice, weight: weight);
 
     return Order(
       id: model.id,
@@ -102,9 +111,18 @@ class OrderMapper {
   }
 
   static OrderStatus _parseStatus(String status) {
-    return OrderStatus.values.firstWhere(
-      (s) => s.name == status,
-      orElse: () => OrderStatus.accepted,
-    );
+    switch (status.toLowerCase()) {
+      case 'pending':
+      case 'accepted':
+        return OrderStatus.accepted;
+      case 'delivered':
+      case 'completed':
+        return OrderStatus.completed;
+      case 'cancelled':
+      case 'canceled':
+        return OrderStatus.cancelled;
+      default:
+        return OrderStatus.accepted;
+    }
   }
 }

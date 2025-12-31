@@ -22,7 +22,11 @@ class AuthorizeResponse with _$AuthorizeResponse {
 
   const factory AuthorizeResponse({
     required String token,
+
+    /// Token expiration date
     @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
+
+    /// Token issuance date
     @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
     required dynamic id, // ID can be int
     String? email,
@@ -53,15 +57,21 @@ class AuthorizeResponse with _$AuthorizeResponse {
 @freezed
 class AccountApiModel with _$AccountApiModel {
   const factory AccountApiModel({
+    /// Unique identifier
     @JsonKey(readValue: _readId)
     required dynamic id, // ID can be int or string (uid)
+    /// First name
     @JsonKey(name: 'first_name', readValue: _readFirstName) String? firstName,
+
+    /// Last name
     @JsonKey(name: 'last_name', readValue: _readLastName) String? lastName,
     String? username,
     String? email,
     String? phone,
     List<String>? roles, // Roles as list of strings
     double? rating,
+
+    /// Total number of reviews
     @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
     int? totalReviews,
     String? avatar,

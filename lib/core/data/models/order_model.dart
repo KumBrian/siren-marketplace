@@ -65,6 +65,40 @@ class OrderModel {
     cancellationReason: json['cancellation_reason'] as String?,
   );
 
+  OrderModel copyWith({
+    String? id,
+    String? offerId,
+    String? catchId,
+    String? fisherId,
+    String? buyerId,
+    int? termsPrice,
+    int? termsWeight,
+    int? termsPricePerKg,
+    String? status,
+    String? dateCreated,
+    String? dateUpdated,
+    bool? hasReviewFromFisher,
+    bool? hasReviewFromBuyer,
+    String? cancellationReason,
+  }) {
+    return OrderModel(
+      id: id ?? this.id,
+      offerId: offerId ?? this.offerId,
+      catchId: catchId ?? this.catchId,
+      fisherId: fisherId ?? this.fisherId,
+      buyerId: buyerId ?? this.buyerId,
+      termsPrice: termsPrice ?? this.termsPrice,
+      termsWeight: termsWeight ?? this.termsWeight,
+      termsPricePerKg: termsPricePerKg ?? this.termsPricePerKg,
+      status: status ?? this.status,
+      dateCreated: dateCreated ?? this.dateCreated,
+      dateUpdated: dateUpdated ?? this.dateUpdated,
+      hasReviewFromFisher: hasReviewFromFisher ?? this.hasReviewFromFisher,
+      hasReviewFromBuyer: hasReviewFromBuyer ?? this.hasReviewFromBuyer,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
+    );
+  }
+
   // SQLite mapping
   Map<String, dynamic> toMap() => {
     'order_id': id,

@@ -23,7 +23,9 @@ class PricePerKg extends Equatable {
     required Weight weight,
   }) {
     if (weight.isZero) {
-      throw ArgumentError('Cannot calculate price per kg with zero weight');
+      // Avoid division by zero, return 0 instead of throwing
+      // This handles cases where data might be incomplete during transitions
+      return const PricePerKg._(0);
     }
 
     // Formula: (Total Price * 1000) / Weight in Grams

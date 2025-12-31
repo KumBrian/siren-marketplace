@@ -83,4 +83,13 @@ class LocalOrderDataSource implements IOrderDataSource {
   Future<T> transaction<T>(Future<T> Function() action) async {
     return await dbHelper.transaction(action);
   }
+
+  @override
+  Future<OrderModel?> relistOrder(
+    String orderId,
+    String cancellationReason,
+  ) async {
+    // Local implementation pending - just return null or generic update
+    return null;
+  }
 }

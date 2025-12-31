@@ -1,5 +1,6 @@
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/entities/order.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/order_status.dart';
 
@@ -12,6 +13,7 @@ class DisplayItem {
   final int price;
   final bool hasUpdate;
   final bool isOrder;
+  final Product? product;
 
   DisplayItem({
     required this.id,
@@ -22,6 +24,7 @@ class DisplayItem {
     required this.price,
     required this.hasUpdate,
     required this.isOrder,
+    this.product,
   });
 
   factory DisplayItem.fromOffer(Offer offer) {
@@ -34,6 +37,7 @@ class DisplayItem {
       price: offer.currentTerms.totalPrice.amount,
       hasUpdate: offer.hasUpdateForBuyer,
       isOrder: false,
+      product: offer.product,
     );
   }
 
@@ -60,6 +64,7 @@ class DisplayItem {
       price: order.terms.totalPrice.amount,
       hasUpdate: false,
       isOrder: true,
+      product: order.product,
     );
   }
 }

@@ -37,4 +37,7 @@ abstract class IOrderRepository {
 
   /// Execute multiple operations in a transaction
   Future<T> transaction<T>(Future<T> Function() action);
+
+  /// Relist a cancelled order
+  Future<Order> relistOrder(String orderId, String cancellationReason);
 }

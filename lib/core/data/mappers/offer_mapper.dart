@@ -4,6 +4,7 @@ import '../../domain/enums/user_role.dart';
 import '../../domain/value_objects/offer_terms.dart';
 import '../../domain/value_objects/price.dart';
 import '../../domain/value_objects/weight.dart';
+import '../../domain/value_objects/price_per_kg.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/value_objects/rating.dart';
 import '../models/offer_model.dart';
@@ -36,18 +37,29 @@ class OfferMapper {
   static Offer toEntity(OfferModel model) {
     print('DEBUG OfferMapper.toEntity - model.buyer: ${model.buyer}');
 
-    final currentTerms = OfferTerms.create(
-      totalPrice: Price.fromAmount(model.currentPriceAmount),
-      weight: Weight.fromGrams(model.currentWeightGrams),
-    );
+    final currentWeight = Weight.fromGrams(model.currentWeightGrams);
+    final currentPrice = Price.fromAmount(model.currentPriceAmount);
+    final currentPpk = PricePerKg.fromAmount(model.currentPricePerKgAmount);
+
+    final currentTerms = currentWeight.isZero
+        ? OfferTerms.fromPricePerKg(
+            pricePerKg: currentPpk,
+            weight: currentWeight,
+          )
+        : OfferTerms.create(totalPrice: currentPrice, weight: currentWeight);
 
     OfferTerms? previousTerms;
     if (model.previousPriceAmount != null &&
         model.previousWeightGrams != null) {
-      previousTerms = OfferTerms.create(
-        totalPrice: Price.fromAmount(model.previousPriceAmount!),
-        weight: Weight.fromGrams(model.previousWeightGrams!),
+      final prevWeight = Weight.fromGrams(model.previousWeightGrams!);
+      final prevPrice = Price.fromAmount(model.previousPriceAmount!);
+      final prevPpk = PricePerKg.fromAmount(
+        model.previousPricePerKgAmount ?? 0,
       );
+
+      previousTerms = prevWeight.isZero
+          ? OfferTerms.fromPricePerKg(pricePerKg: prevPpk, weight: prevWeight)
+          : OfferTerms.create(totalPrice: prevPrice, weight: prevWeight);
     }
 
     final mappedBuyer = _mapBuyer(model);

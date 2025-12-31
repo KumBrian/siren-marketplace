@@ -29,7 +29,6 @@ import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
-import 'package:siren_marketplace/features/shared/presentation/providers/shared_offer_details_provider.dart';
 
 class OrderDetails extends ConsumerWidget {
   const OrderDetails({super.key, required this.orderId});
@@ -49,6 +48,9 @@ class OrderDetails extends ConsumerWidget {
     try {
       await ref.read(completeOrderProvider(orderId).future);
       ref.invalidate(fisherOffersProvider);
+      ref.invalidate(fisherOrdersProvider);
+      ref.invalidate(fisherOrdersWithProductProvider);
+      ref.invalidate(orderProvider(orderId));
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -58,6 +60,7 @@ class OrderDetails extends ConsumerWidget {
           ),
         );
       }
+      rethrow;
     }
   }
 
@@ -425,7 +428,7 @@ class OrderDetails extends ConsumerWidget {
                           CustomButton(
                             title: "Call Buyer",
                             onPressed: () =>
-                                makePhoneCall('651204966', context),
+                                makePhoneCall("651204966", context),
                             bordered: true,
                             hugeIcon: HugeIcons.strokeRoundedCall02,
                           ),
@@ -723,10 +726,8 @@ class OrderDetails extends ConsumerWidget {
                         orderProvider(orderId).future,
                       );
                       if (order != null) {
-                        ref.invalidate(offerProvider(order.offerId));
-                        ref.invalidate(
-                          sharedOfferDetailsProvider(order.offerId),
-                        );
+                        // Invalidate all offers instead of specific one (offerId not available)
+                        ref.invalidate(fisherOffersProvider);
 
                         // Refresh catch data (to show restored weight)
                         ref.invalidate(catchByIdProvider(order.catchId));
@@ -776,98 +777,164 @@ class OrderDetails extends ConsumerWidget {
         return DraggableScrollableSheet(
           expand: false,
           builder: (context, scrollController) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Confirm Order Completion",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textBlue,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Are you sure you want to mark this order as completed? This action cannot be undone.",
-                    style: TextStyle(fontSize: 14, color: AppColors.gray650),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  CustomButton(
-                    title: "Confirm",
-                    onPressed: () {
-                      context.pop();
-                      _markOrderAsCompleted(ref, context);
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: Container(
-                              height: 100,
-                              width: 100,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.shell300,
-                              ),
-                              child: Center(
-                                child: SvgPicture.asset(
-                                  "assets/icons/confetti.svg",
-                                  width: 50,
-                                ),
+            return _OrderCompletionContent(
+              scrollController: scrollController,
+              onConfirm: () async {
+                try {
+                  await _markOrderAsCompleted(ref, context);
+                  if (context.mounted) {
+                    context.pop();
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Container(
+                            height: 100,
+                            width: 100,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.shell300,
+                            ),
+                            child: Center(
+                              child: SvgPicture.asset(
+                                "assets/icons/confetti.svg",
+                                width: 50,
                               ),
                             ),
-                            content: const Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SectionHeader("Well done!"),
-                                SectionHeader("You've completed this order."),
-                              ],
-                            ),
-                            actions: [
-                              CustomButton(
-                                title: "Thanks",
-                                onPressed: () => context.pop(),
-                              ),
+                          ),
+                          content: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SectionHeader("Well done!"),
+                              SectionHeader("You've completed this order."),
                             ],
-                          );
-                        },
-                      );
-                    },
-                    icon: Icons.check,
-                  ),
-                  const SizedBox(height: 8),
-                  CustomButton(
-                    title: "Cancel",
-                    onPressed: () async {
-                      try {
-                        await ref.read(cancelOrderProvider(orderId).future);
-                        if (context.mounted) {
-                          ref.invalidate(fisherOffersProvider);
-                          context.pop();
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Failed to cancel order: $e"),
+                          ),
+                          actions: [
+                            CustomButton(
+                              title: "Thanks",
+                              onPressed: () => context.pop(),
                             ),
-                          );
-                        }
-                      }
-                    },
-                    bordered: true,
-                    icon: Icons.cancel_outlined,
-                  ),
-                ],
-              ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                } catch (_) {
+                  rethrow;
+                }
+              },
+              onCancel: () async {
+                try {
+                  await ref.read(cancelOrderProvider(orderId).future);
+                  if (context.mounted) {
+                    ref.invalidate(fisherOffersProvider);
+                    context.pop();
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Failed to cancel: $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
             );
           },
         );
       },
+    );
+  }
+}
+
+class _OrderCompletionContent extends StatefulWidget {
+  const _OrderCompletionContent({
+    required this.scrollController,
+    required this.onConfirm,
+    required this.onCancel,
+  });
+
+  final ScrollController scrollController;
+  final Future<void> Function() onConfirm;
+  final Future<void> Function() onCancel;
+
+  @override
+  State<_OrderCompletionContent> createState() =>
+      _OrderCompletionContentState();
+}
+
+class _OrderCompletionContentState extends State<_OrderCompletionContent> {
+  bool _isLoading = false;
+  bool _isCancelling = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      controller: widget.scrollController,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              "Confirm Order Completion",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textBlue,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "Are you sure you want to mark this order as completed? This action cannot be undone.",
+              style: TextStyle(fontSize: 14, color: AppColors.gray650),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            CustomButton(
+              title: "Confirm",
+              loading: _isLoading,
+              disabled: _isCancelling,
+              onPressed: () async {
+                if (_isLoading || _isCancelling) return;
+                setState(() => _isLoading = true);
+                try {
+                  await widget.onConfirm();
+                } finally {
+                  if (mounted) {
+                    setState(() => _isLoading = false);
+                  }
+                }
+              },
+              icon: Icons.check,
+            ),
+            const SizedBox(height: 8),
+            CustomButton(
+              title: "Cancel",
+              loading: _isCancelling,
+              disabled: _isLoading,
+              onPressed: () async {
+                if (_isLoading || _isCancelling) return;
+                setState(() => _isCancelling = true);
+                try {
+                  await widget.onCancel();
+                } finally {
+                  if (mounted) {
+                    setState(() => _isCancelling = false);
+                  }
+                }
+              },
+              bordered: true,
+              cancel: true,
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
     );
   }
 }

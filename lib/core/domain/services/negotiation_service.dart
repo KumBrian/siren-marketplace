@@ -245,35 +245,12 @@ class NegotiationService {
     required String orderId,
     required String reason,
   }) async {
-    final order = await _orderRepository.getById(orderId);
+    // Determine if we should perform complex client-side logic or call the dedicated endpoint
+    // Since we added relistOrder to the repo, we should use it.
+    // However, existing logic attempts to do it manually.
+    // The requirement is to call the API endpoint.
 
-    // Validate order can be cancelled
-    if (order.status != OrderStatus.accepted) {
-      throw StateError('Can only relist active orders');
-    }
-
-    // 1. Cancel order with reason
-    final cancelledOrder = order.markAsCancelled(reason: reason);
-    await _orderRepository.update(cancelledOrder);
-
-    // 2. Reject the related offer
-    final offer = await _offerRepository.getById(order.offerId);
-    if (offer != null) {
-      final rejectedOffer = offer.copyWith(
-        status: OfferStatus.rejected,
-        waitingFor: null,
-      );
-      await _offerRepository.update(rejectedOffer);
-    }
-
-    // 3. Restore catch weight
-    final catchItem = await _catchRepository.getById(order.catchId);
-    if (catchItem != null) {
-      final restoredCatch = catchItem.copyWith(
-        availableWeight: catchItem.availableWeight + order.terms.weight,
-      );
-      await _catchRepository.update(restoredCatch);
-    }
+    await _orderRepository.relistOrder(orderId, reason);
   }
 
   /// Get pending offers requiring user's action

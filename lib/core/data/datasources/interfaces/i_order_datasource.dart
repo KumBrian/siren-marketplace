@@ -22,6 +22,8 @@ abstract class IOrderDataSource {
 
   Future<void> delete(String orderId);
 
+  Future<OrderModel?> relistOrder(String orderId, String cancellationReason);
+
   // Transaction support
   Future<T> transaction<T>(Future<T> Function() action);
 }

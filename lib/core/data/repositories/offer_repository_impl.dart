@@ -1,14 +1,11 @@
 import '../../domain/entities/offer.dart';
 import '../../domain/entities/order.dart';
-import '../../domain/enums/order_status.dart';
 import '../../domain/enums/offer_status.dart';
 import '../../domain/enums/user_role.dart';
-import '../../domain/value_objects/offer_terms.dart';
-import '../../domain/repositories/i_offer_repository.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_offer_repository.dart';
+import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart';
 import '../datasources/interfaces/i_offer_datasource.dart';
 import '../mappers/offer_mapper.dart';
-import '../api/models/order_api_models.dart';
-import '../mappers/order_mapper.dart';
 import '../api/models/offer_api_models.dart';
 
 class OfferRepositoryImpl implements IOfferRepository {
@@ -98,7 +95,8 @@ class OfferRepositoryImpl implements IOfferRepository {
     );
 
     // Get the raw OfferModel which has access to saleOrder via OfferApiModel
-    final updatedOfferModel = await dataSource.respond(offerId, request);
+    // Get the raw OfferModel which has access to saleOrder via OfferApiModel
+    await dataSource.respond(offerId, request);
 
     // The saleOrder is embedded in the API response
     // We need to get it from the original API model

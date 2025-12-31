@@ -25,15 +25,16 @@ class OrderRepositoryImpl implements IOrderRepository {
 
   @override
   Future<Order> getById(String orderId) async {
-    final model = await dataSource.getById(orderId);
-    if (model == null) {
+    // Use embedded data fetch if available
+    final order = await getByIdWithEmbeddedData(orderId);
+    if (order == null) {
       throw NotFoundException(
         "Order not found",
         entityType: 'Order',
         entityId: orderId,
       );
     }
-    return OrderMapper.toEntity(model);
+    return order;
   }
 
   @override
@@ -113,5 +114,14 @@ class OrderRepositoryImpl implements IOrderRepository {
   @override
   Future<T> transaction<T>(Future<T> Function() action) async {
     return await dataSource.transaction(action);
+  }
+
+  @override
+  Future<Order> relistOrder(String orderId, String cancellationReason) async {
+    final model = await dataSource.relistOrder(orderId, cancellationReason);
+    if (model == null) {
+      throw Exception('Failed to relist order');
+    }
+    return OrderMapper.toEntity(model);
   }
 }

@@ -65,11 +65,11 @@ class _BuyerOrdersState extends ConsumerState<BuyerOrders> {
         onRefresh: () async {
           // Refresh both offers and orders
           ref.invalidate(buyerOffersProvider);
-          ref.invalidate(myOrdersProvider);
+          ref.invalidate(buyerOrdersWithProductProvider);
           // Wait for them to reload
           await Future.wait([
             ref.read(buyerOffersProvider.future),
-            ref.read(myOrdersProvider.future),
+            ref.read(buyerOrdersWithProductProvider.future),
           ]);
         },
         child: Padding(
@@ -247,6 +247,22 @@ class _OrderListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // If we have embedded product data, use it directly!
+    if (item.product != null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: OrderCard(
+          product: item.product,
+          status: item.status,
+          weight: item.weight,
+          price: item.price,
+          hasUpdate: item.hasUpdate,
+          onPressed: () => _handlePressed(context),
+        ),
+      );
+    }
+
+    // Fallback to fetching catch if product data is missing
     final catchAsync = ref.watch(catchProvider(item.catchId));
 
     return catchAsync.when(
@@ -266,35 +282,21 @@ class _OrderListItem extends ConsumerWidget {
             weight: item.weight,
             price: item.price,
             hasUpdate: item.hasUpdate,
-            onPressed: () {
-              // Navigation Logic:
-              // If status is NOT (pending or rejected) -> Order Details
-              // Else -> Shared Offers Screen
-
-              final isPendingOrRejected =
-                  item.status == OfferStatus.pending ||
-                  item.status == OfferStatus.rejected;
-
-              if (!isPendingOrRejected) {
-                // Navigate to Order Details
-                context.push("/buyer/order-details/${item.id}");
-              } else {
-                // Navigate to Shared Offer Details
-                // Assuming the route is /shared/offer-details/:id based on user request
-                // Or maybe /buyer/offer-details/:id if shared route doesn't exist yet
-                // The user said "to the shared offers screen".
-                // I'll check if I should use /shared/... or keep /buyer/...
-                // Previous code used /buyer/offer-details/${item.id}
-                // I'll stick to /buyer/offer-details/${item.id} for now as it likely maps to the shared screen
-                // or I can try /shared/offer-details/${item.id} if I'm sure.
-                // Let's use /buyer/offer-details/${item.id} to be safe, assuming it shows the shared screen.
-                context.push("/buyer/offer-details/${item.id}");
-              }
-            },
+            onPressed: () => _handlePressed(context),
           ),
         );
       },
     );
+  }
+
+  void _handlePressed(BuildContext context) {
+    if (item.isOrder) {
+      // Always navigate to order details for orders (accepted, completed, cancelled)
+      context.push("/buyer/order-details/${item.id}");
+    } else {
+      // Navigate to Offer Details for offers (pending, rejected, counter-offers)
+      context.push("/buyer/offer-details/${item.id}");
+    }
   }
 }
 

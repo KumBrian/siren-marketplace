@@ -207,7 +207,6 @@ class CatchesApiDataSource implements ICatchDataSource {
     return catches;
   }
 
-  @override
   Future<List<CatchModel>> getMyCatches(String fisherId) async {
     // API uses token, ignores fisherId but interface requires it
     final response = await _client.get(
