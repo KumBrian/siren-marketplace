@@ -2,38 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/domain/entities/review.dart';
+import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/providers/review_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/rating_card.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/review_card.dart';
 
+/// Screen to display reviews for a specific user.
+///
+/// Can optionally accept [userName] to avoid fetching user details if already known.
 class SharedReviewScreen extends ConsumerWidget {
+  /// The ID of the user whose reviews are being displayed.
   final String userId;
 
-  const SharedReviewScreen({super.key, required this.userId});
+  /// Optional name of the user. If provided, skips fetching user details from [userProvider].
+  final String? userName;
+
+  const SharedReviewScreen({super.key, required this.userId, this.userName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(userProvider(userId));
+    // Only fetch user if name is not provided
+    final shouldFetchUser = userName == null;
+    final userAsync = shouldFetchUser
+        ? ref.watch(userProvider(userId))
+        : const AsyncValue<User?>.loading();
+
     final reviewsAsync = ref.watch(reviewsForUserProvider(userId));
     final statsAsync = ref.watch(userReviewStatsProvider(userId));
 
+    final displayName = userName ?? userAsync.value?.name ?? "User";
+
     return Scaffold(
       appBar: AppBar(
-        title: userAsync.when(
-          data: (user) => Text(
-            'Reviews for ${user?.name ?? "User"}',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
-          loading: () => const Text(
-            'User Reviews',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
-          error: (_, __) => const Text(
-            'User Reviews',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
+        title: Text(
+          'Reviews for $displayName',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         centerTitle: true,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -42,13 +47,7 @@ class SharedReviewScreen extends ConsumerWidget {
       body: reviewsAsync.when(
         data: (reviews) {
           if (reviews.isEmpty) {
-            return Center(
-              child: userAsync.maybeWhen(
-                data: (user) =>
-                    Text('No reviews yet for ${user?.name ?? "this user"}.'),
-                orElse: () => const Text('No reviews yet for this user.'),
-              ),
-            );
+            return Center(child: Text('No reviews yet for $displayName.'));
           }
 
           // Sort reviews by date descending
@@ -84,7 +83,22 @@ class SharedReviewScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final review = sortedReviews[index];
 
-                      // Fetch reviewer info
+                      // Use reviewerName if available from API, otherwise fetch
+                      if (review.reviewerName != null) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ReviewCard(
+                            rating: review.rating.value.toInt(),
+                            name: review.reviewerName!,
+                            date: review.timestamp.toFormattedDate(),
+                            image:
+                                '', // Avatar URL not available in this simplified flow yet
+                            message: review.comment ?? 'No comment provided.',
+                          ),
+                        );
+                      }
+
+                      // Fallback to fetching reviewer info
                       return Consumer(
                         builder: (context, ref, _) {
                           final reviewerAsync = ref.watch(

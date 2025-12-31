@@ -63,7 +63,7 @@ _$AccountApiModelImpl _$$AccountApiModelImplFromJson(
   email: json['email'] as String?,
   phone: json['phone'] as String?,
   roles: (json['roles'] as List<dynamic>?)?.map((e) => e as String).toList(),
-  rating: (json['rating'] as num?)?.toDouble(),
+  rating: (json['averageRating'] as num?)?.toDouble(),
   totalReviews: (_readTotalReviews(json, 'total_reviews') as num?)?.toInt(),
   avatar: json['avatar'] as String?,
 );
@@ -78,7 +78,7 @@ Map<String, dynamic> _$$AccountApiModelImplToJson(
   'email': instance.email,
   'phone': instance.phone,
   'roles': instance.roles,
-  'rating': instance.rating,
+  'averageRating': instance.rating,
   'total_reviews': instance.totalReviews,
   'avatar': instance.avatar,
 };

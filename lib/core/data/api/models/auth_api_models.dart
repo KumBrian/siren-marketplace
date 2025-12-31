@@ -69,7 +69,7 @@ class AccountApiModel with _$AccountApiModel {
     String? email,
     String? phone,
     List<String>? roles, // Roles as list of strings
-    double? rating,
+    @JsonKey(name: 'averageRating') double? rating,
 
     /// Total number of reviews
     @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)

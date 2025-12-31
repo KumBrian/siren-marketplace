@@ -180,6 +180,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: "reviews/:userId",
             builder: (context, state) {
               final String? userId = state.pathParameters['userId'];
+              final String? userName = state.uri.queryParameters['name'];
 
               if (userId == null) {
                 return const Scaffold(
@@ -187,7 +188,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 );
               }
 
-              return SharedReviewScreen(userId: userId);
+              return SharedReviewScreen(userId: userId, userName: userName);
             },
           ),
         ],
@@ -235,6 +236,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: "reviews/:userId",
             builder: (context, state) {
               final String? userId = state.pathParameters['userId'];
+              final String? userName = state.uri.queryParameters['name'];
 
               if (userId == null) {
                 return const Scaffold(
@@ -242,7 +244,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 );
               }
 
-              return SharedReviewScreen(userId: userId);
+              return SharedReviewScreen(userId: userId, userName: userName);
             },
           ),
         ],
@@ -268,6 +270,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: "reviews/:userId",
                 builder: (context, state) {
                   final String? userId = state.pathParameters['userId'];
+                  final String? userName = state.uri.queryParameters['name'];
 
                   if (userId == null) {
                     return const Scaffold(
@@ -275,7 +278,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     );
                   }
 
-                  return SharedReviewScreen(userId: userId);
+                  return SharedReviewScreen(userId: userId, userName: userName);
                 },
               ),
             ],

@@ -579,6 +579,7 @@ mixin _$ProductAccountApiModel {
   int? get totalReviews => throw _privateConstructorUsedError;
   @JsonKey(name: 'ratingDistribution')
   List<dynamic>? get ratingDistribution => throw _privateConstructorUsedError;
+  @JsonKey(name: 'averageRating')
   double? get rating => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
 
@@ -611,7 +612,7 @@ abstract class $ProductAccountApiModelCopyWith<$Res> {
     String? phoneNumber,
     @JsonKey(name: 'totalReviews') int? totalReviews,
     @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
-    double? rating,
+    @JsonKey(name: 'averageRating') double? rating,
     String? avatar,
   });
 }
@@ -729,7 +730,7 @@ abstract class _$$ProductAccountApiModelImplCopyWith<$Res>
     String? phoneNumber,
     @JsonKey(name: 'totalReviews') int? totalReviews,
     @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
-    double? rating,
+    @JsonKey(name: 'averageRating') double? rating,
     String? avatar,
   });
 }
@@ -838,7 +839,7 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
     @JsonKey(name: 'totalReviews') this.totalReviews,
     @JsonKey(name: 'ratingDistribution')
     final List<dynamic>? ratingDistribution,
-    this.rating,
+    @JsonKey(name: 'averageRating') this.rating,
     this.avatar,
   }) : _ratingDistribution = ratingDistribution;
 
@@ -883,6 +884,7 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
   }
 
   @override
+  @JsonKey(name: 'averageRating')
   final double? rating;
   @override
   final String? avatar;
@@ -973,7 +975,7 @@ abstract class _ProductAccountApiModel implements ProductAccountApiModel {
     @JsonKey(name: 'totalReviews') final int? totalReviews,
     @JsonKey(name: 'ratingDistribution')
     final List<dynamic>? ratingDistribution,
-    final double? rating,
+    @JsonKey(name: 'averageRating') final double? rating,
     final String? avatar,
   }) = _$ProductAccountApiModelImpl;
 
@@ -1008,6 +1010,7 @@ abstract class _ProductAccountApiModel implements ProductAccountApiModel {
   @JsonKey(name: 'ratingDistribution')
   List<dynamic>? get ratingDistribution;
   @override
+  @JsonKey(name: 'averageRating')
   double? get rating;
   @override
   String? get avatar;

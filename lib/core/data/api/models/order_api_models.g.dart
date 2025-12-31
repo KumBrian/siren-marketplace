@@ -16,10 +16,16 @@ _$OrderApiModelImpl _$$OrderApiModelImplFromJson(Map<String, dynamic> json) =>
       termsPrice: (json['terms_price'] as num?)?.toInt(),
       termsWeight: (json['terms_weight'] as num?)?.toInt(),
       termsPricePerKg: (json['terms_price_per_kg'] as num?)?.toInt(),
-      hasReviewFromFisher: json['has_review_from_fisher'] as bool? ?? false,
-      hasReviewFromBuyer: json['has_review_from_buyer'] as bool? ?? false,
-      buyerReview: json['buyerReview'],
-      fisherReview: json['fisherReview'],
+      buyerReview: json['buyerReview'] == null
+          ? null
+          : ReviewApiResponse.fromJson(
+              json['buyerReview'] as Map<String, dynamic>,
+            ),
+      fisherReview: json['fisherReview'] == null
+          ? null
+          : ReviewApiResponse.fromJson(
+              json['fisherReview'] as Map<String, dynamic>,
+            ),
       product: json['product'] == null
           ? null
           : ProductApiModel.fromJson(json['product'] as Map<String, dynamic>),
@@ -39,10 +45,8 @@ Map<String, dynamic> _$$OrderApiModelImplToJson(_$OrderApiModelImpl instance) =>
       'terms_price': instance.termsPrice,
       'terms_weight': instance.termsWeight,
       'terms_price_per_kg': instance.termsPricePerKg,
-      'has_review_from_fisher': instance.hasReviewFromFisher,
-      'has_review_from_buyer': instance.hasReviewFromBuyer,
-      'buyerReview': instance.buyerReview,
-      'fisherReview': instance.fisherReview,
+      'buyerReview': instance.buyerReview?.toJson(),
+      'fisherReview': instance.fisherReview?.toJson(),
       'product': instance.product?.toJson(),
       'buyer': instance.buyer,
       'created_at': instance.createdAt,

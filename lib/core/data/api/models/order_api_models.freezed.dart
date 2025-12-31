@@ -33,15 +33,11 @@ mixin _$OrderApiModel {
   @JsonKey(name: 'terms_weight')
   int? get termsWeight => throw _privateConstructorUsedError;
   @JsonKey(name: 'terms_price_per_kg')
-  int? get termsPricePerKg => throw _privateConstructorUsedError; // Review tracking flags
-  @JsonKey(name: 'has_review_from_fisher')
-  bool get hasReviewFromFisher => throw _privateConstructorUsedError;
-  @JsonKey(name: 'has_review_from_buyer')
-  bool get hasReviewFromBuyer => throw _privateConstructorUsedError; // Review objects (not parsed, just kept as dynamic)
+  int? get termsPricePerKg => throw _privateConstructorUsedError; // Review objects
   @JsonKey(name: 'buyerReview')
-  dynamic get buyerReview => throw _privateConstructorUsedError;
+  ReviewApiResponse? get buyerReview => throw _privateConstructorUsedError;
   @JsonKey(name: 'fisherReview')
-  dynamic get fisherReview => throw _privateConstructorUsedError; // Embedded product data
+  ReviewApiResponse? get fisherReview => throw _privateConstructorUsedError; // Embedded product data
   ProductApiModel? get product =>
       throw _privateConstructorUsedError; // Embedded buyer data (will be mapped manually in mapper)
   dynamic get buyer => throw _privateConstructorUsedError; // Timestamps
@@ -77,10 +73,8 @@ abstract class $OrderApiModelCopyWith<$Res> {
     @JsonKey(name: 'terms_price') int? termsPrice,
     @JsonKey(name: 'terms_weight') int? termsWeight,
     @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
-    @JsonKey(name: 'has_review_from_fisher') bool hasReviewFromFisher,
-    @JsonKey(name: 'has_review_from_buyer') bool hasReviewFromBuyer,
-    @JsonKey(name: 'buyerReview') dynamic buyerReview,
-    @JsonKey(name: 'fisherReview') dynamic fisherReview,
+    @JsonKey(name: 'buyerReview') ReviewApiResponse? buyerReview,
+    @JsonKey(name: 'fisherReview') ReviewApiResponse? fisherReview,
     ProductApiModel? product,
     dynamic buyer,
     @JsonKey(name: 'created_at') String? createdAt,
@@ -88,6 +82,8 @@ abstract class $OrderApiModelCopyWith<$Res> {
     String? uid,
   });
 
+  $ReviewApiResponseCopyWith<$Res>? get buyerReview;
+  $ReviewApiResponseCopyWith<$Res>? get fisherReview;
   $ProductApiModelCopyWith<$Res>? get product;
 }
 
@@ -114,8 +110,6 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
     Object? termsPrice = freezed,
     Object? termsWeight = freezed,
     Object? termsPricePerKg = freezed,
-    Object? hasReviewFromFisher = null,
-    Object? hasReviewFromBuyer = null,
     Object? buyerReview = freezed,
     Object? fisherReview = freezed,
     Object? product = freezed,
@@ -158,22 +152,14 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
                 ? _value.termsPricePerKg
                 : termsPricePerKg // ignore: cast_nullable_to_non_nullable
                       as int?,
-            hasReviewFromFisher: null == hasReviewFromFisher
-                ? _value.hasReviewFromFisher
-                : hasReviewFromFisher // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            hasReviewFromBuyer: null == hasReviewFromBuyer
-                ? _value.hasReviewFromBuyer
-                : hasReviewFromBuyer // ignore: cast_nullable_to_non_nullable
-                      as bool,
             buyerReview: freezed == buyerReview
                 ? _value.buyerReview
                 : buyerReview // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
+                      as ReviewApiResponse?,
             fisherReview: freezed == fisherReview
                 ? _value.fisherReview
                 : fisherReview // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
+                      as ReviewApiResponse?,
             product: freezed == product
                 ? _value.product
                 : product // ignore: cast_nullable_to_non_nullable
@@ -197,6 +183,34 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of OrderApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ReviewApiResponseCopyWith<$Res>? get buyerReview {
+    if (_value.buyerReview == null) {
+      return null;
+    }
+
+    return $ReviewApiResponseCopyWith<$Res>(_value.buyerReview!, (value) {
+      return _then(_value.copyWith(buyerReview: value) as $Val);
+    });
+  }
+
+  /// Create a copy of OrderApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ReviewApiResponseCopyWith<$Res>? get fisherReview {
+    if (_value.fisherReview == null) {
+      return null;
+    }
+
+    return $ReviewApiResponseCopyWith<$Res>(_value.fisherReview!, (value) {
+      return _then(_value.copyWith(fisherReview: value) as $Val);
+    });
   }
 
   /// Create a copy of OrderApiModel
@@ -232,10 +246,8 @@ abstract class _$$OrderApiModelImplCopyWith<$Res>
     @JsonKey(name: 'terms_price') int? termsPrice,
     @JsonKey(name: 'terms_weight') int? termsWeight,
     @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
-    @JsonKey(name: 'has_review_from_fisher') bool hasReviewFromFisher,
-    @JsonKey(name: 'has_review_from_buyer') bool hasReviewFromBuyer,
-    @JsonKey(name: 'buyerReview') dynamic buyerReview,
-    @JsonKey(name: 'fisherReview') dynamic fisherReview,
+    @JsonKey(name: 'buyerReview') ReviewApiResponse? buyerReview,
+    @JsonKey(name: 'fisherReview') ReviewApiResponse? fisherReview,
     ProductApiModel? product,
     dynamic buyer,
     @JsonKey(name: 'created_at') String? createdAt,
@@ -243,6 +255,10 @@ abstract class _$$OrderApiModelImplCopyWith<$Res>
     String? uid,
   });
 
+  @override
+  $ReviewApiResponseCopyWith<$Res>? get buyerReview;
+  @override
+  $ReviewApiResponseCopyWith<$Res>? get fisherReview;
   @override
   $ProductApiModelCopyWith<$Res>? get product;
 }
@@ -269,8 +285,6 @@ class __$$OrderApiModelImplCopyWithImpl<$Res>
     Object? termsPrice = freezed,
     Object? termsWeight = freezed,
     Object? termsPricePerKg = freezed,
-    Object? hasReviewFromFisher = null,
-    Object? hasReviewFromBuyer = null,
     Object? buyerReview = freezed,
     Object? fisherReview = freezed,
     Object? product = freezed,
@@ -313,22 +327,14 @@ class __$$OrderApiModelImplCopyWithImpl<$Res>
             ? _value.termsPricePerKg
             : termsPricePerKg // ignore: cast_nullable_to_non_nullable
                   as int?,
-        hasReviewFromFisher: null == hasReviewFromFisher
-            ? _value.hasReviewFromFisher
-            : hasReviewFromFisher // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        hasReviewFromBuyer: null == hasReviewFromBuyer
-            ? _value.hasReviewFromBuyer
-            : hasReviewFromBuyer // ignore: cast_nullable_to_non_nullable
-                  as bool,
         buyerReview: freezed == buyerReview
             ? _value.buyerReview
             : buyerReview // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
+                  as ReviewApiResponse?,
         fisherReview: freezed == fisherReview
             ? _value.fisherReview
             : fisherReview // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
+                  as ReviewApiResponse?,
         product: freezed == product
             ? _value.product
             : product // ignore: cast_nullable_to_non_nullable
@@ -366,8 +372,6 @@ class _$OrderApiModelImpl implements _OrderApiModel {
     @JsonKey(name: 'terms_price') this.termsPrice,
     @JsonKey(name: 'terms_weight') this.termsWeight,
     @JsonKey(name: 'terms_price_per_kg') this.termsPricePerKg,
-    @JsonKey(name: 'has_review_from_fisher') this.hasReviewFromFisher = false,
-    @JsonKey(name: 'has_review_from_buyer') this.hasReviewFromBuyer = false,
     @JsonKey(name: 'buyerReview') this.buyerReview,
     @JsonKey(name: 'fisherReview') this.fisherReview,
     this.product,
@@ -403,20 +407,13 @@ class _$OrderApiModelImpl implements _OrderApiModel {
   @override
   @JsonKey(name: 'terms_price_per_kg')
   final int? termsPricePerKg;
-  // Review tracking flags
-  @override
-  @JsonKey(name: 'has_review_from_fisher')
-  final bool hasReviewFromFisher;
-  @override
-  @JsonKey(name: 'has_review_from_buyer')
-  final bool hasReviewFromBuyer;
-  // Review objects (not parsed, just kept as dynamic)
+  // Review objects
   @override
   @JsonKey(name: 'buyerReview')
-  final dynamic buyerReview;
+  final ReviewApiResponse? buyerReview;
   @override
   @JsonKey(name: 'fisherReview')
-  final dynamic fisherReview;
+  final ReviewApiResponse? fisherReview;
   // Embedded product data
   @override
   final ProductApiModel? product;
@@ -435,7 +432,7 @@ class _$OrderApiModelImpl implements _OrderApiModel {
 
   @override
   String toString() {
-    return 'OrderApiModel(id: $id, orderNumber: $orderNumber, cancellationReason: $cancellationReason, status: $status, completed: $completed, termsPrice: $termsPrice, termsWeight: $termsWeight, termsPricePerKg: $termsPricePerKg, hasReviewFromFisher: $hasReviewFromFisher, hasReviewFromBuyer: $hasReviewFromBuyer, buyerReview: $buyerReview, fisherReview: $fisherReview, product: $product, buyer: $buyer, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid)';
+    return 'OrderApiModel(id: $id, orderNumber: $orderNumber, cancellationReason: $cancellationReason, status: $status, completed: $completed, termsPrice: $termsPrice, termsWeight: $termsWeight, termsPricePerKg: $termsPricePerKg, buyerReview: $buyerReview, fisherReview: $fisherReview, product: $product, buyer: $buyer, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid)';
   }
 
   @override
@@ -457,18 +454,10 @@ class _$OrderApiModelImpl implements _OrderApiModel {
                 other.termsWeight == termsWeight) &&
             (identical(other.termsPricePerKg, termsPricePerKg) ||
                 other.termsPricePerKg == termsPricePerKg) &&
-            (identical(other.hasReviewFromFisher, hasReviewFromFisher) ||
-                other.hasReviewFromFisher == hasReviewFromFisher) &&
-            (identical(other.hasReviewFromBuyer, hasReviewFromBuyer) ||
-                other.hasReviewFromBuyer == hasReviewFromBuyer) &&
-            const DeepCollectionEquality().equals(
-              other.buyerReview,
-              buyerReview,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other.fisherReview,
-              fisherReview,
-            ) &&
+            (identical(other.buyerReview, buyerReview) ||
+                other.buyerReview == buyerReview) &&
+            (identical(other.fisherReview, fisherReview) ||
+                other.fisherReview == fisherReview) &&
             (identical(other.product, product) || other.product == product) &&
             const DeepCollectionEquality().equals(other.buyer, buyer) &&
             (identical(other.createdAt, createdAt) ||
@@ -490,10 +479,8 @@ class _$OrderApiModelImpl implements _OrderApiModel {
     termsPrice,
     termsWeight,
     termsPricePerKg,
-    hasReviewFromFisher,
-    hasReviewFromBuyer,
-    const DeepCollectionEquality().hash(buyerReview),
-    const DeepCollectionEquality().hash(fisherReview),
+    buyerReview,
+    fisherReview,
     product,
     const DeepCollectionEquality().hash(buyer),
     createdAt,
@@ -525,10 +512,8 @@ abstract class _OrderApiModel implements OrderApiModel {
     @JsonKey(name: 'terms_price') final int? termsPrice,
     @JsonKey(name: 'terms_weight') final int? termsWeight,
     @JsonKey(name: 'terms_price_per_kg') final int? termsPricePerKg,
-    @JsonKey(name: 'has_review_from_fisher') final bool hasReviewFromFisher,
-    @JsonKey(name: 'has_review_from_buyer') final bool hasReviewFromBuyer,
-    @JsonKey(name: 'buyerReview') final dynamic buyerReview,
-    @JsonKey(name: 'fisherReview') final dynamic fisherReview,
+    @JsonKey(name: 'buyerReview') final ReviewApiResponse? buyerReview,
+    @JsonKey(name: 'fisherReview') final ReviewApiResponse? fisherReview,
     final ProductApiModel? product,
     final dynamic buyer,
     @JsonKey(name: 'created_at') final String? createdAt,
@@ -559,19 +544,13 @@ abstract class _OrderApiModel implements OrderApiModel {
   int? get termsWeight;
   @override
   @JsonKey(name: 'terms_price_per_kg')
-  int? get termsPricePerKg; // Review tracking flags
-  @override
-  @JsonKey(name: 'has_review_from_fisher')
-  bool get hasReviewFromFisher;
-  @override
-  @JsonKey(name: 'has_review_from_buyer')
-  bool get hasReviewFromBuyer; // Review objects (not parsed, just kept as dynamic)
+  int? get termsPricePerKg; // Review objects
   @override
   @JsonKey(name: 'buyerReview')
-  dynamic get buyerReview;
+  ReviewApiResponse? get buyerReview;
   @override
   @JsonKey(name: 'fisherReview')
-  dynamic get fisherReview; // Embedded product data
+  ReviewApiResponse? get fisherReview; // Embedded product data
   @override
   ProductApiModel? get product; // Embedded buyer data (will be mapped manually in mapper)
   @override

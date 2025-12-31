@@ -1,8 +1,18 @@
 import '../entities/review.dart';
+import '../value_objects/rating.dart';
 
 abstract class IReviewRepository {
   /// Create a new review
   Future<String> create(Review review);
+
+  /// Submit a review via API
+  Future<Review> submitReview({
+    required String orderId,
+    required String reviewerId,
+    required String reviewedUserId,
+    required Rating rating,
+    String? comment,
+  });
 
   /// Get review by ID
   Future<Review?> getById(String reviewId);

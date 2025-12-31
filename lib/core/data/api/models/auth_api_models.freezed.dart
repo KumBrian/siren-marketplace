@@ -620,6 +620,7 @@ mixin _$AccountApiModel {
   String? get phone => throw _privateConstructorUsedError;
   List<String>? get roles =>
       throw _privateConstructorUsedError; // Roles as list of strings
+  @JsonKey(name: 'averageRating')
   double? get rating => throw _privateConstructorUsedError;
 
   /// Total number of reviews
@@ -652,7 +653,7 @@ abstract class $AccountApiModelCopyWith<$Res> {
     String? email,
     String? phone,
     List<String>? roles,
-    double? rating,
+    @JsonKey(name: 'averageRating') double? rating,
     @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
     int? totalReviews,
     String? avatar,
@@ -750,7 +751,7 @@ abstract class _$$AccountApiModelImplCopyWith<$Res>
     String? email,
     String? phone,
     List<String>? roles,
-    double? rating,
+    @JsonKey(name: 'averageRating') double? rating,
     @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
     int? totalReviews,
     String? avatar,
@@ -840,7 +841,7 @@ class _$AccountApiModelImpl implements _AccountApiModel {
     this.email,
     this.phone,
     final List<String>? roles,
-    this.rating,
+    @JsonKey(name: 'averageRating') this.rating,
     @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
     this.totalReviews,
     this.avatar,
@@ -881,6 +882,7 @@ class _$AccountApiModelImpl implements _AccountApiModel {
 
   // Roles as list of strings
   @override
+  @JsonKey(name: 'averageRating')
   final double? rating;
 
   /// Total number of reviews
@@ -960,7 +962,7 @@ abstract class _AccountApiModel implements AccountApiModel {
     final String? email,
     final String? phone,
     final List<String>? roles,
-    final double? rating,
+    @JsonKey(name: 'averageRating') final double? rating,
     @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
     final int? totalReviews,
     final String? avatar,
@@ -991,6 +993,7 @@ abstract class _AccountApiModel implements AccountApiModel {
   @override
   List<String>? get roles; // Roles as list of strings
   @override
+  @JsonKey(name: 'averageRating')
   double? get rating;
 
   /// Total number of reviews

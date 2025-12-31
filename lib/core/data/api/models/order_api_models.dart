@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'product_api_models.dart';
+import 'review_api_models.dart';
 
 part 'order_api_models.freezed.dart';
 part 'order_api_models.g.dart';
@@ -18,17 +19,9 @@ class OrderApiModel with _$OrderApiModel {
     @JsonKey(name: 'terms_weight') int? termsWeight,
     @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
 
-    // Review tracking flags
-    @JsonKey(name: 'has_review_from_fisher')
-    @Default(false)
-    bool hasReviewFromFisher,
-    @JsonKey(name: 'has_review_from_buyer')
-    @Default(false)
-    bool hasReviewFromBuyer,
-
-    // Review objects (not parsed, just kept as dynamic)
-    @JsonKey(name: 'buyerReview') dynamic buyerReview,
-    @JsonKey(name: 'fisherReview') dynamic fisherReview,
+    // Review objects
+    @JsonKey(name: 'buyerReview') ReviewApiResponse? buyerReview,
+    @JsonKey(name: 'fisherReview') ReviewApiResponse? fisherReview,
 
     // Embedded product data
     ProductApiModel? product,

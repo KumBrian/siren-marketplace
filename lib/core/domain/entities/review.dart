@@ -10,6 +10,7 @@ class Review extends Equatable {
   final Rating rating;
   final String? comment;
   final DateTime timestamp;
+  final String? reviewerName;
 
   const Review({
     required this.id,
@@ -19,6 +20,7 @@ class Review extends Equatable {
     required this.rating,
     this.comment,
     required this.timestamp,
+    this.reviewerName,
   });
 
   bool get hasComment => comment != null && comment!.isNotEmpty;
@@ -32,5 +34,6 @@ class Review extends Equatable {
     rating,
     comment,
     timestamp,
+    reviewerName,
   ];
 }

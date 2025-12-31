@@ -16,9 +16,8 @@ class OrderApiMapper {
       status: apiModel.status ?? 'pending',
       dateCreated: apiModel.createdAt ?? DateTime.now().toIso8601String(),
       dateUpdated: apiModel.updatedAt ?? DateTime.now().toIso8601String(),
-      hasReviewFromFisher: false,
-      hasReviewFromBuyer:
-          apiModel.hasReviewFromBuyer, // Assuming presence means review exists
+      hasReviewFromFisher: apiModel.fisherReview != null,
+      hasReviewFromBuyer: apiModel.buyerReview != null,
       cancellationReason: apiModel.cancellationReason,
     );
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 
 import 'animated_rating_stars.dart';
@@ -80,7 +80,13 @@ class _RatingModalContentState extends State<RatingModalContent> {
 
       // Close modal after successful submission
       if (context.mounted) {
-        context.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Rating submitted successfully!'),
+            backgroundColor: AppColors.success500,
+          ),
+        );
+        Navigator.of(context).pop();
       }
     } catch (e) {
       if (context.mounted) {
@@ -117,7 +123,7 @@ class _RatingModalContentState extends State<RatingModalContent> {
               Row(
                 children: [
                   IconButton(
-                    onPressed: context.pop,
+                    onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                   ),
                   const SizedBox(width: 8),

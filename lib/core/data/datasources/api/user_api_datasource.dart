@@ -15,15 +15,25 @@ class UserApiDataSource implements IUserDataSource {
   @override
   Future<UserModel?> getById(String userId) async {
     try {
-      final response = await _client.get(ApiConfig.account(userId));
-      var data = response.data;
+      // Use accountsList with id filter since /accounts/{id} is not supported
+      final response = await _client.get(
+        ApiConfig.accountsList,
+        queryParameters: {'id': userId},
+      );
+
+      final data = response.data['data'];
       if (data is List) {
         if (data.isEmpty) return null;
-        data = data.first;
+        final account = AccountApiModel.fromJson(data.first);
+        final user = AccountApiMapper.toDomain(account);
+        return UserMapper.toModel(user);
+      } else if (data is Map<String, dynamic>) {
+        // Handle case where single object might be returned directly (unlikely for list endpoint but safe)
+        final account = AccountApiModel.fromJson(data);
+        final user = AccountApiMapper.toDomain(account);
+        return UserMapper.toModel(user);
       }
-      final account = AccountApiModel.fromJson(data);
-      final user = AccountApiMapper.toDomain(account);
-      return UserMapper.toModel(user);
+      return null;
     } catch (e) {
       if (e is NotFoundException) return null;
       rethrow;

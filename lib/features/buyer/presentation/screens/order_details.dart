@@ -376,44 +376,31 @@ class BuyerOrderDetails extends ConsumerWidget {
                                       required double ratingValue,
                                       String? message,
                                     }) async {
-                                      try {
-                                        await sl<RatingService>().submitReview(
-                                          orderId: orderId,
-                                          reviewerId: raterId,
-                                          reviewedUserId: ratedUserId,
-                                          rating: Rating.fromValue(ratingValue),
-                                          comment: message,
-                                        );
+                                      await sl<RatingService>().submitReview(
+                                        orderId: orderId,
+                                        reviewerId: raterId,
+                                        reviewedUserId: ratedUserId,
+                                        rating: Rating.fromValue(ratingValue),
+                                        comment: message,
+                                      );
 
-                                        // Invalidate order to refresh UI
-                                        ref.invalidate(orderProvider(orderId));
-                                        // Invalidate user to refresh partner card
-                                        ref.invalidate(
-                                          userProvider(ratedUserId),
-                                        );
-                                        // Invalidate reviews to show new review
-                                        ref.invalidate(
-                                          reviewsForUserProvider(ratedUserId),
-                                        );
-
-                                        // Show success message
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Rating submitted successfully!',
-                                              ),
-                                              backgroundColor:
-                                                  AppColors.success500,
-                                            ),
-                                          );
-                                        }
-                                      } catch (e) {
-                                        // Error will be shown by RatingModalContent
-                                        rethrow;
-                                      }
+                                      // Invalidate order to refresh UI in Details
+                                      ref.invalidate(orderProvider(orderId));
+                                      // Invalidate user to refresh partner card
+                                      ref.invalidate(userProvider(ratedUserId));
+                                      // Invalidate reviews
+                                      ref.invalidate(
+                                        reviewsForUserProvider(ratedUserId),
+                                      );
+                                      // Invalidate global lists to refresh "everywhere else"
+                                      ref.invalidate(fisherOrdersProvider);
+                                      ref.invalidate(
+                                        fisherOrdersWithProductProvider,
+                                      );
+                                      ref.invalidate(
+                                        buyerOrdersWithProductProvider,
+                                      );
+                                      ref.invalidate(myOrdersProvider);
                                     },
                               );
                             },

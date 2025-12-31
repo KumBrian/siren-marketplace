@@ -60,7 +60,7 @@ _$ProductAccountApiModelImpl _$$ProductAccountApiModelImplFromJson(
   phoneNumber: json['phoneNumber'] as String?,
   totalReviews: (json['totalReviews'] as num?)?.toInt(),
   ratingDistribution: json['ratingDistribution'] as List<dynamic>?,
-  rating: (json['rating'] as num?)?.toDouble(),
+  rating: (json['averageRating'] as num?)?.toDouble(),
   avatar: json['avatar'] as String?,
 );
 
@@ -78,7 +78,7 @@ Map<String, dynamic> _$$ProductAccountApiModelImplToJson(
   'phoneNumber': instance.phoneNumber,
   'totalReviews': instance.totalReviews,
   'ratingDistribution': instance.ratingDistribution,
-  'rating': instance.rating,
+  'averageRating': instance.rating,
   'avatar': instance.avatar,
 };
 

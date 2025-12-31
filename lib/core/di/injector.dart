@@ -12,10 +12,15 @@ import '../config/app_config.dart';
 import '../data/datasources/demo/demo_datasource.dart';
 import '../data/datasources/local/local_conversation_datasource.dart';
 import '../data/datasources/local/local_datasource_factory.dart';
-import '../data/datasources/local/local_message_datasource.dart';
+import '../data/sources/api/auth_api_data_source.dart';
 import '../data/datasources/api/catches_api_data_source.dart';
-import '../data/datasources/api/media_api_data_source.dart';
 import '../data/datasources/api/offers_api_data_source.dart';
+import '../data/datasources/api/orders_api_data_source.dart';
+import '../data/datasources/api/reviews_api_data_source.dart';
+import '../data/datasources/interfaces/i_catch_datasource.dart';
+import '../data/datasources/interfaces/i_offer_datasource.dart';
+import '../data/datasources/local/local_message_datasource.dart';
+import '../data/datasources/api/media_api_data_source.dart';
 
 import '../data/datasources/api/user_api_datasource.dart';
 import '../data/datasources/api/products_api_data_source.dart';
@@ -106,6 +111,15 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<IAuthApiDataSource>(
     () => AuthApiDataSource(client: sl(instanceName: 'coreApiClient')),
   );
+  sl.registerLazySingleton(
+    () => ReviewsApiDataSource(sl(instanceName: 'marketplaceApiClient')),
+  );
+  sl.registerLazySingleton<IOfferDataSource>(
+    () => OffersApiDataSource(
+      client: sl(instanceName: 'marketplaceApiClient'),
+      viewedOffersService: sl(),
+    ),
+  );
 
   // --------------------------------------------------
   // CHOOSE DATA SOURCE MODE (demo/local/api)
@@ -138,12 +152,8 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingleton(() => ExpirationService(catchRepository: sl()));
 
-  sl.registerLazySingleton(
-    () => RatingService(
-      reviewRepository: sl(),
-      orderRepository: sl(),
-      userRepository: sl(),
-    ),
+  sl.registerLazySingleton<RatingService>(
+    () => RatingService(reviewRepository: sl(), orderRepository: sl()),
   );
 
   sl.registerLazySingleton(
@@ -357,7 +367,10 @@ void _initApiMode(DatabaseHelper dbHelper) {
   );
 
   sl.registerLazySingleton<IReviewRepository>(
-    () => ReviewRepositoryImpl(dataSource: local.reviewDataSource),
+    () => ReviewRepositoryImpl(
+      dataSource: local.reviewDataSource,
+      apiDataSource: sl<ReviewsApiDataSource>(),
+    ),
   );
 
   sl.registerLazySingleton<ISessionRepository>(

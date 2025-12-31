@@ -57,8 +57,8 @@ class OrderMapper {
       dateUpdated: apiModel.updatedAt != null
           ? DateTime.tryParse(apiModel.updatedAt!) ?? DateTime.now()
           : DateTime.now(),
-      hasReviewFromFisher: apiModel.hasReviewFromFisher,
-      hasReviewFromBuyer: apiModel.hasReviewFromBuyer,
+      hasReviewFromFisher: apiModel.fisherReview != null,
+      hasReviewFromBuyer: apiModel.buyerReview != null,
       cancellationReason: apiModel.cancellationReason,
     );
   }

@@ -45,7 +45,7 @@ class ProductAccountApiModel with _$ProductAccountApiModel {
     String? phoneNumber,
     @JsonKey(name: 'totalReviews') int? totalReviews,
     @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
-    double? rating,
+    @JsonKey(name: 'averageRating') double? rating,
     String? avatar,
   }) = _ProductAccountApiModel;
 

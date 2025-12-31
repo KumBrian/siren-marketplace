@@ -350,6 +350,22 @@ class MockIOrderRepository extends _i1.Mock implements _i10.IOrderRepository {
                 ),
           )
           as _i2.Future<T>);
+
+  @override
+  _i2.Future<_i3.Order> relistOrder(
+    String? orderId,
+    String? cancellationReason,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#relistOrder, [orderId, cancellationReason]),
+            returnValue: _i2.Future<_i3.Order>.value(
+              _FakeOrder_1(
+                this,
+                Invocation.method(#relistOrder, [orderId, cancellationReason]),
+              ),
+            ),
+          )
+          as _i2.Future<_i3.Order>);
 }
 
 /// A class which mocks [ICatchRepository].

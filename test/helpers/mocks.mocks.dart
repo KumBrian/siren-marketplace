@@ -28,11 +28,11 @@ import 'package:siren_marketplace/core/data/models/order_model.dart' as _i36;
 import 'package:siren_marketplace/core/data/models/review_model.dart' as _i38;
 import 'package:siren_marketplace/core/data/models/user_model.dart' as _i40;
 import 'package:siren_marketplace/core/domain/entities/catch.dart' as _i10;
-import 'package:siren_marketplace/core/domain/entities/message.dart' as _i4;
-import 'package:siren_marketplace/core/domain/entities/offer.dart' as _i5;
+import 'package:siren_marketplace/core/domain/entities/message.dart' as _i5;
+import 'package:siren_marketplace/core/domain/entities/offer.dart' as _i6;
 import 'package:siren_marketplace/core/domain/entities/order.dart' as _i3;
 import 'package:siren_marketplace/core/domain/entities/product.dart' as _i26;
-import 'package:siren_marketplace/core/domain/entities/review.dart' as _i6;
+import 'package:siren_marketplace/core/domain/entities/review.dart' as _i4;
 import 'package:siren_marketplace/core/domain/entities/user.dart' as _i7;
 import 'package:siren_marketplace/core/domain/enums/catch_status.dart' as _i12;
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart' as _i15;
@@ -49,9 +49,9 @@ import 'package:siren_marketplace/core/domain/repositories/i_product_repository.
 import 'package:siren_marketplace/core/domain/repositories/i_review_repository.dart'
     as _i19;
 import 'package:siren_marketplace/core/domain/repositories/i_session_repository.dart'
-    as _i20;
-import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart'
     as _i21;
+import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart'
+    as _i22;
 import 'package:siren_marketplace/core/domain/services/message_service.dart'
     as _i27;
 import 'package:siren_marketplace/core/domain/services/negotiation_service.dart'
@@ -63,7 +63,7 @@ import 'package:siren_marketplace/core/domain/services/session_service.dart'
 import 'package:siren_marketplace/core/domain/value_objects/offer_terms.dart'
     as _i16;
 import 'package:siren_marketplace/core/domain/value_objects/rating.dart'
-    as _i22;
+    as _i20;
 import 'package:siren_marketplace/core/network/api_result.dart' as _i25;
 
 // ignore_for_file: type=lint
@@ -90,18 +90,18 @@ class _FakeOrder_1 extends _i1.SmartFake implements _i3.Order {
     : super(parent, parentInvocation);
 }
 
-class _FakeMessage_2 extends _i1.SmartFake implements _i4.Message {
-  _FakeMessage_2(Object parent, Invocation parentInvocation)
+class _FakeReview_2 extends _i1.SmartFake implements _i4.Review {
+  _FakeReview_2(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeOffer_3 extends _i1.SmartFake implements _i5.Offer {
-  _FakeOffer_3(Object parent, Invocation parentInvocation)
+class _FakeMessage_3 extends _i1.SmartFake implements _i5.Message {
+  _FakeMessage_3(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeReview_4 extends _i1.SmartFake implements _i6.Review {
-  _FakeReview_4(Object parent, Invocation parentInvocation)
+class _FakeOffer_4 extends _i1.SmartFake implements _i6.Offer {
+  _FakeOffer_4(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -252,7 +252,7 @@ class MockIOfferRepository extends _i1.Mock implements _i13.IOfferRepository {
   }
 
   @override
-  _i2.Future<String> create(_i5.Offer? offer) =>
+  _i2.Future<String> create(_i6.Offer? offer) =>
       (super.noSuchMethod(
             Invocation.method(#create, [offer]),
             returnValue: _i2.Future<String>.value(
@@ -265,74 +265,74 @@ class MockIOfferRepository extends _i1.Mock implements _i13.IOfferRepository {
           as _i2.Future<String>);
 
   @override
-  _i2.Future<List<_i5.Offer>> getAllOffers() =>
+  _i2.Future<List<_i6.Offer>> getAllOffers() =>
       (super.noSuchMethod(
             Invocation.method(#getAllOffers, []),
-            returnValue: _i2.Future<List<_i5.Offer>>.value(<_i5.Offer>[]),
+            returnValue: _i2.Future<List<_i6.Offer>>.value(<_i6.Offer>[]),
           )
-          as _i2.Future<List<_i5.Offer>>);
+          as _i2.Future<List<_i6.Offer>>);
 
   @override
-  _i2.Future<_i5.Offer?> getById(String? offerId) =>
+  _i2.Future<_i6.Offer?> getById(String? offerId) =>
       (super.noSuchMethod(
             Invocation.method(#getById, [offerId]),
-            returnValue: _i2.Future<_i5.Offer?>.value(),
+            returnValue: _i2.Future<_i6.Offer?>.value(),
           )
-          as _i2.Future<_i5.Offer?>);
+          as _i2.Future<_i6.Offer?>);
 
   @override
-  _i2.Future<List<_i5.Offer>> getByProductId(
+  _i2.Future<List<_i6.Offer>> getByProductId(
     String? productId, {
     _i14.UserRole? role,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getByProductId, [productId], {#role: role}),
-            returnValue: _i2.Future<List<_i5.Offer>>.value(<_i5.Offer>[]),
+            returnValue: _i2.Future<List<_i6.Offer>>.value(<_i6.Offer>[]),
           )
-          as _i2.Future<List<_i5.Offer>>);
+          as _i2.Future<List<_i6.Offer>>);
 
   @override
-  _i2.Future<List<_i5.Offer>> getByBuyerId(String? buyerId) =>
+  _i2.Future<List<_i6.Offer>> getByBuyerId(String? buyerId) =>
       (super.noSuchMethod(
             Invocation.method(#getByBuyerId, [buyerId]),
-            returnValue: _i2.Future<List<_i5.Offer>>.value(<_i5.Offer>[]),
+            returnValue: _i2.Future<List<_i6.Offer>>.value(<_i6.Offer>[]),
           )
-          as _i2.Future<List<_i5.Offer>>);
+          as _i2.Future<List<_i6.Offer>>);
 
   @override
-  _i2.Future<List<_i5.Offer>> getByFisherId(String? fisherId) =>
+  _i2.Future<List<_i6.Offer>> getByFisherId(String? fisherId) =>
       (super.noSuchMethod(
             Invocation.method(#getByFisherId, [fisherId]),
-            returnValue: _i2.Future<List<_i5.Offer>>.value(<_i5.Offer>[]),
+            returnValue: _i2.Future<List<_i6.Offer>>.value(<_i6.Offer>[]),
           )
-          as _i2.Future<List<_i5.Offer>>);
+          as _i2.Future<List<_i6.Offer>>);
 
   @override
-  _i2.Future<List<_i5.Offer>> getByCatchIds(List<String>? catchIds) =>
+  _i2.Future<List<_i6.Offer>> getByCatchIds(List<String>? catchIds) =>
       (super.noSuchMethod(
             Invocation.method(#getByCatchIds, [catchIds]),
-            returnValue: _i2.Future<List<_i5.Offer>>.value(<_i5.Offer>[]),
+            returnValue: _i2.Future<List<_i6.Offer>>.value(<_i6.Offer>[]),
           )
-          as _i2.Future<List<_i5.Offer>>);
+          as _i2.Future<List<_i6.Offer>>);
 
   @override
-  _i2.Future<List<_i5.Offer>> getByStatus(_i15.OfferStatus? status) =>
+  _i2.Future<List<_i6.Offer>> getByStatus(_i15.OfferStatus? status) =>
       (super.noSuchMethod(
             Invocation.method(#getByStatus, [status]),
-            returnValue: _i2.Future<List<_i5.Offer>>.value(<_i5.Offer>[]),
+            returnValue: _i2.Future<List<_i6.Offer>>.value(<_i6.Offer>[]),
           )
-          as _i2.Future<List<_i5.Offer>>);
+          as _i2.Future<List<_i6.Offer>>);
 
   @override
-  _i2.Future<List<_i5.Offer>> getPendingForUser(String? userId) =>
+  _i2.Future<List<_i6.Offer>> getPendingForUser(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#getPendingForUser, [userId]),
-            returnValue: _i2.Future<List<_i5.Offer>>.value(<_i5.Offer>[]),
+            returnValue: _i2.Future<List<_i6.Offer>>.value(<_i6.Offer>[]),
           )
-          as _i2.Future<List<_i5.Offer>>);
+          as _i2.Future<List<_i6.Offer>>);
 
   @override
-  _i2.Future<void> update(_i5.Offer? offer) =>
+  _i2.Future<void> update(_i6.Offer? offer) =>
       (super.noSuchMethod(
             Invocation.method(#update, [offer]),
             returnValue: _i2.Future<void>.value(),
@@ -547,6 +547,22 @@ class MockIOrderRepository extends _i1.Mock implements _i17.IOrderRepository {
                 ),
           )
           as _i2.Future<T>);
+
+  @override
+  _i2.Future<_i3.Order> relistOrder(
+    String? orderId,
+    String? cancellationReason,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#relistOrder, [orderId, cancellationReason]),
+            returnValue: _i2.Future<_i3.Order>.value(
+              _FakeOrder_1(
+                this,
+                Invocation.method(#relistOrder, [orderId, cancellationReason]),
+              ),
+            ),
+          )
+          as _i2.Future<_i3.Order>);
 }
 
 /// A class which mocks [IReviewRepository].
@@ -558,7 +574,7 @@ class MockIReviewRepository extends _i1.Mock implements _i19.IReviewRepository {
   }
 
   @override
-  _i2.Future<String> create(_i6.Review? review) =>
+  _i2.Future<String> create(_i4.Review? review) =>
       (super.noSuchMethod(
             Invocation.method(#create, [review]),
             returnValue: _i2.Future<String>.value(
@@ -571,36 +587,67 @@ class MockIReviewRepository extends _i1.Mock implements _i19.IReviewRepository {
           as _i2.Future<String>);
 
   @override
-  _i2.Future<_i6.Review?> getById(String? reviewId) =>
+  _i2.Future<_i4.Review> submitReview({
+    required String? orderId,
+    required String? reviewerId,
+    required String? reviewedUserId,
+    required _i20.Rating? rating,
+    String? comment,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#submitReview, [], {
+              #orderId: orderId,
+              #reviewerId: reviewerId,
+              #reviewedUserId: reviewedUserId,
+              #rating: rating,
+              #comment: comment,
+            }),
+            returnValue: _i2.Future<_i4.Review>.value(
+              _FakeReview_2(
+                this,
+                Invocation.method(#submitReview, [], {
+                  #orderId: orderId,
+                  #reviewerId: reviewerId,
+                  #reviewedUserId: reviewedUserId,
+                  #rating: rating,
+                  #comment: comment,
+                }),
+              ),
+            ),
+          )
+          as _i2.Future<_i4.Review>);
+
+  @override
+  _i2.Future<_i4.Review?> getById(String? reviewId) =>
       (super.noSuchMethod(
             Invocation.method(#getById, [reviewId]),
-            returnValue: _i2.Future<_i6.Review?>.value(),
+            returnValue: _i2.Future<_i4.Review?>.value(),
           )
-          as _i2.Future<_i6.Review?>);
+          as _i2.Future<_i4.Review?>);
 
   @override
-  _i2.Future<List<_i6.Review>> getReviewsForUser(String? userId) =>
+  _i2.Future<List<_i4.Review>> getReviewsForUser(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#getReviewsForUser, [userId]),
-            returnValue: _i2.Future<List<_i6.Review>>.value(<_i6.Review>[]),
+            returnValue: _i2.Future<List<_i4.Review>>.value(<_i4.Review>[]),
           )
-          as _i2.Future<List<_i6.Review>>);
+          as _i2.Future<List<_i4.Review>>);
 
   @override
-  _i2.Future<List<_i6.Review>> getReviewsByUser(String? userId) =>
+  _i2.Future<List<_i4.Review>> getReviewsByUser(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#getReviewsByUser, [userId]),
-            returnValue: _i2.Future<List<_i6.Review>>.value(<_i6.Review>[]),
+            returnValue: _i2.Future<List<_i4.Review>>.value(<_i4.Review>[]),
           )
-          as _i2.Future<List<_i6.Review>>);
+          as _i2.Future<List<_i4.Review>>);
 
   @override
-  _i2.Future<List<_i6.Review>> getReviewsForOrder(String? orderId) =>
+  _i2.Future<List<_i4.Review>> getReviewsForOrder(String? orderId) =>
       (super.noSuchMethod(
             Invocation.method(#getReviewsForOrder, [orderId]),
-            returnValue: _i2.Future<List<_i6.Review>>.value(<_i6.Review>[]),
+            returnValue: _i2.Future<List<_i4.Review>>.value(<_i4.Review>[]),
           )
-          as _i2.Future<List<_i6.Review>>);
+          as _i2.Future<List<_i4.Review>>);
 
   @override
   _i2.Future<bool> hasReview({
@@ -651,7 +698,7 @@ class MockIReviewRepository extends _i1.Mock implements _i19.IReviewRepository {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockISessionRepository extends _i1.Mock
-    implements _i20.ISessionRepository {
+    implements _i21.ISessionRepository {
   MockISessionRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -711,7 +758,7 @@ class MockISessionRepository extends _i1.Mock
 /// A class which mocks [IUserRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockIUserRepository extends _i1.Mock implements _i21.IUserRepository {
+class MockIUserRepository extends _i1.Mock implements _i22.IUserRepository {
   MockIUserRepository() {
     _i1.throwOnMissingStub(this);
   }
@@ -744,7 +791,7 @@ class MockIUserRepository extends _i1.Mock implements _i21.IUserRepository {
   @override
   _i2.Future<void> updateRating({
     required String? userId,
-    required _i22.Rating? rating,
+    required _i20.Rating? rating,
     required int? reviewCount,
   }) =>
       (super.noSuchMethod(
@@ -845,20 +892,20 @@ class MockIProductRepository extends _i1.Mock
           as _i2.Future<_i24.Either<_i25.Failure, _i26.Product?>>);
 
   @override
-  _i2.Future<_i24.Either<_i25.Failure, List<_i5.Offer>>> getProductOffers(
+  _i2.Future<_i24.Either<_i25.Failure, List<_i6.Offer>>> getProductOffers(
     String? productId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getProductOffers, [productId]),
             returnValue:
-                _i2.Future<_i24.Either<_i25.Failure, List<_i5.Offer>>>.value(
-                  _i11.dummyValue<_i24.Either<_i25.Failure, List<_i5.Offer>>>(
+                _i2.Future<_i24.Either<_i25.Failure, List<_i6.Offer>>>.value(
+                  _i11.dummyValue<_i24.Either<_i25.Failure, List<_i6.Offer>>>(
                     this,
                     Invocation.method(#getProductOffers, [productId]),
                   ),
                 ),
           )
-          as _i2.Future<_i24.Either<_i25.Failure, List<_i5.Offer>>>);
+          as _i2.Future<_i24.Either<_i25.Failure, List<_i6.Offer>>>);
 
   @override
   _i2.Future<_i24.Either<_i25.Failure, bool>> deleteProduct(String? id) =>
@@ -932,7 +979,7 @@ class MockMessageService extends _i1.Mock implements _i27.MessageService {
   }
 
   @override
-  _i2.Future<_i4.Message> sendMessage({
+  _i2.Future<_i5.Message> sendMessage({
     required String? senderId,
     required String? receiverId,
     required String? content,
@@ -945,8 +992,8 @@ class MockMessageService extends _i1.Mock implements _i27.MessageService {
               #content: content,
               #isSystemMessage: isSystemMessage,
             }),
-            returnValue: _i2.Future<_i4.Message>.value(
-              _FakeMessage_2(
+            returnValue: _i2.Future<_i5.Message>.value(
+              _FakeMessage_3(
                 this,
                 Invocation.method(#sendMessage, [], {
                   #senderId: senderId,
@@ -957,7 +1004,7 @@ class MockMessageService extends _i1.Mock implements _i27.MessageService {
               ),
             ),
           )
-          as _i2.Future<_i4.Message>);
+          as _i2.Future<_i5.Message>);
 
   @override
   _i2.Future<void> sendOfferAcceptedMessage(_i3.Order? order) =>
@@ -969,7 +1016,7 @@ class MockMessageService extends _i1.Mock implements _i27.MessageService {
           as _i2.Future<void>);
 
   @override
-  _i2.Future<List<_i4.Message>> getConversationMessages({
+  _i2.Future<List<_i5.Message>> getConversationMessages({
     required String? conversationId,
     required String? currentUserId,
   }) =>
@@ -978,9 +1025,9 @@ class MockMessageService extends _i1.Mock implements _i27.MessageService {
               #conversationId: conversationId,
               #currentUserId: currentUserId,
             }),
-            returnValue: _i2.Future<List<_i4.Message>>.value(<_i4.Message>[]),
+            returnValue: _i2.Future<List<_i5.Message>>.value(<_i5.Message>[]),
           )
-          as _i2.Future<List<_i4.Message>>);
+          as _i2.Future<List<_i5.Message>>);
 
   @override
   _i2.Future<int> getTotalUnreadCount(String? userId) =>
@@ -1016,7 +1063,7 @@ class MockNegotiationService extends _i1.Mock
   }
 
   @override
-  _i2.Future<_i5.Offer> createOffer({
+  _i2.Future<_i6.Offer> createOffer({
     required String? productId,
     required String? buyerId,
     required String? fisherId,
@@ -1029,8 +1076,8 @@ class MockNegotiationService extends _i1.Mock
               #fisherId: fisherId,
               #terms: terms,
             }),
-            returnValue: _i2.Future<_i5.Offer>.value(
-              _FakeOffer_3(
+            returnValue: _i2.Future<_i6.Offer>.value(
+              _FakeOffer_4(
                 this,
                 Invocation.method(#createOffer, [], {
                   #productId: productId,
@@ -1041,7 +1088,7 @@ class MockNegotiationService extends _i1.Mock
               ),
             ),
           )
-          as _i2.Future<_i5.Offer>);
+          as _i2.Future<_i6.Offer>);
 
   @override
   _i2.Future<_i3.Order> acceptOffer({
@@ -1066,7 +1113,7 @@ class MockNegotiationService extends _i1.Mock
           as _i2.Future<_i3.Order>);
 
   @override
-  _i2.Future<_i5.Offer> rejectOffer({
+  _i2.Future<_i6.Offer> rejectOffer({
     required String? offerId,
     required String? userId,
   }) =>
@@ -1075,8 +1122,8 @@ class MockNegotiationService extends _i1.Mock
               #offerId: offerId,
               #userId: userId,
             }),
-            returnValue: _i2.Future<_i5.Offer>.value(
-              _FakeOffer_3(
+            returnValue: _i2.Future<_i6.Offer>.value(
+              _FakeOffer_4(
                 this,
                 Invocation.method(#rejectOffer, [], {
                   #offerId: offerId,
@@ -1085,10 +1132,10 @@ class MockNegotiationService extends _i1.Mock
               ),
             ),
           )
-          as _i2.Future<_i5.Offer>);
+          as _i2.Future<_i6.Offer>);
 
   @override
-  _i2.Future<_i5.Offer> counterOffer({
+  _i2.Future<_i6.Offer> counterOffer({
     required String? offerId,
     required String? userId,
     required _i16.OfferTerms? newTerms,
@@ -1099,8 +1146,8 @@ class MockNegotiationService extends _i1.Mock
               #userId: userId,
               #newTerms: newTerms,
             }),
-            returnValue: _i2.Future<_i5.Offer>.value(
-              _FakeOffer_3(
+            returnValue: _i2.Future<_i6.Offer>.value(
+              _FakeOffer_4(
                 this,
                 Invocation.method(#counterOffer, [], {
                   #offerId: offerId,
@@ -1110,7 +1157,7 @@ class MockNegotiationService extends _i1.Mock
               ),
             ),
           )
-          as _i2.Future<_i5.Offer>);
+          as _i2.Future<_i6.Offer>);
 
   @override
   _i2.Future<void> relistOrder({
@@ -1128,12 +1175,12 @@ class MockNegotiationService extends _i1.Mock
           as _i2.Future<void>);
 
   @override
-  _i2.Future<List<_i5.Offer>> getPendingOffersForUser(String? userId) =>
+  _i2.Future<List<_i6.Offer>> getPendingOffersForUser(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#getPendingOffersForUser, [userId]),
-            returnValue: _i2.Future<List<_i5.Offer>>.value(<_i5.Offer>[]),
+            returnValue: _i2.Future<List<_i6.Offer>>.value(<_i6.Offer>[]),
           )
-          as _i2.Future<List<_i5.Offer>>);
+          as _i2.Future<List<_i6.Offer>>);
 }
 
 /// A class which mocks [RatingService].
@@ -1145,11 +1192,11 @@ class MockRatingService extends _i1.Mock implements _i29.RatingService {
   }
 
   @override
-  _i2.Future<_i6.Review> submitReview({
+  _i2.Future<_i4.Review> submitReview({
     required String? orderId,
     required String? reviewerId,
     required String? reviewedUserId,
-    required _i22.Rating? rating,
+    required _i20.Rating? rating,
     String? comment,
   }) =>
       (super.noSuchMethod(
@@ -1160,8 +1207,8 @@ class MockRatingService extends _i1.Mock implements _i29.RatingService {
               #rating: rating,
               #comment: comment,
             }),
-            returnValue: _i2.Future<_i6.Review>.value(
-              _FakeReview_4(
+            returnValue: _i2.Future<_i4.Review>.value(
+              _FakeReview_2(
                 this,
                 Invocation.method(#submitReview, [], {
                   #orderId: orderId,
@@ -1173,15 +1220,15 @@ class MockRatingService extends _i1.Mock implements _i29.RatingService {
               ),
             ),
           )
-          as _i2.Future<_i6.Review>);
+          as _i2.Future<_i4.Review>);
 
   @override
-  _i2.Future<List<_i6.Review>> getReviewsForUser(String? userId) =>
+  _i2.Future<List<_i4.Review>> getReviewsForUser(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#getReviewsForUser, [userId]),
-            returnValue: _i2.Future<List<_i6.Review>>.value(<_i6.Review>[]),
+            returnValue: _i2.Future<List<_i4.Review>>.value(<_i4.Review>[]),
           )
-          as _i2.Future<List<_i6.Review>>);
+          as _i2.Future<List<_i4.Review>>);
 
   @override
   _i2.Future<List<_i3.Order>> getReviewableOrders(String? userId) =>
@@ -1641,6 +1688,17 @@ class MockIOrderDataSource extends _i1.Mock implements _i35.IOrderDataSource {
             returnValueForMissingStub: _i2.Future<void>.value(),
           )
           as _i2.Future<void>);
+
+  @override
+  _i2.Future<_i36.OrderModel?> relistOrder(
+    String? orderId,
+    String? cancellationReason,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#relistOrder, [orderId, cancellationReason]),
+            returnValue: _i2.Future<_i36.OrderModel?>.value(),
+          )
+          as _i2.Future<_i36.OrderModel?>);
 
   @override
   _i2.Future<T> transaction<T>(_i2.Future<T> Function()? action) =>

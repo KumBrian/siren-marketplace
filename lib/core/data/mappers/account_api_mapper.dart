@@ -19,7 +19,7 @@ class AccountApiMapper {
       name: displayName,
       avatarUrl: apiModel.avatar,
       rating: Rating.fromValue(apiModel.rating ?? 0.0),
-      reviewCount: 0,
+      reviewCount: apiModel.totalReviews ?? 0,
       currentRole: _mapRoles(apiModel.roles, defaultRole: defaultRole),
     );
   }

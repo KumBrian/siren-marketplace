@@ -50,6 +50,7 @@ class ApiConfig {
   static const String messages = '/messages';
   static const String fishCatchesCreate = '/fish-catches/create';
   static const String reviews = '/reviews';
+  static const String reviewsCreate = '/reviews/create';
   static const String speciesList = '/species/list';
   static const String products = '/products';
   static const String myProducts = '/products/my-products';
@@ -100,4 +101,7 @@ class ApiConfig {
 
   /// Get endpoint for specific account
   static String account(String id) => '/accounts/$id';
+
+  /// Get reviews for specific account
+  static String reviewsForAccount(int id) => '/reviews/account/$id/reviews';
 }

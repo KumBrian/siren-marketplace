@@ -27,7 +27,9 @@ class PartnerCard extends StatelessWidget {
           child: InkWell(
             onTap: () {
               final prefix = myRole == UserRole.buyer ? 'buyer' : 'fisher';
-              context.push("/$prefix/reviews/${partner.id}");
+              context.push(
+                "/$prefix/reviews/${partner.id}?name=${Uri.encodeComponent(partner.name)}",
+              );
             },
             borderRadius: BorderRadius.circular(16),
             child: Container(
