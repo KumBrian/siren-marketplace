@@ -23,8 +23,17 @@ class SharedReviewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Only fetch user if name is not provided
-    final shouldFetchUser = userName == null;
+    final currentUser = ref.watch(currentUserProvider).value;
+    final isCurrentUser = currentUser != null && currentUser.id == userId;
+
+    String? displayName = userName;
+
+    if (displayName == null && isCurrentUser) {
+      displayName = currentUser.name;
+    }
+
+    // Only fetch user if name is not provided and it's not the current user
+    final shouldFetchUser = displayName == null;
     final userAsync = shouldFetchUser
         ? ref.watch(userProvider(userId))
         : const AsyncValue<User?>.loading();
@@ -32,12 +41,12 @@ class SharedReviewScreen extends ConsumerWidget {
     final reviewsAsync = ref.watch(reviewsForUserProvider(userId));
     final statsAsync = ref.watch(userReviewStatsProvider(userId));
 
-    final displayName = userName ?? userAsync.value?.name ?? "User";
+    final finalName = displayName ?? userAsync.value?.name ?? "User";
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Reviews for $displayName',
+          'Reviews for $finalName',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         centerTitle: true,
@@ -47,7 +56,7 @@ class SharedReviewScreen extends ConsumerWidget {
       body: reviewsAsync.when(
         data: (reviews) {
           if (reviews.isEmpty) {
-            return Center(child: Text('No reviews yet for $displayName.'));
+            return Center(child: Text('No reviews yet for $finalName.'));
           }
 
           // Sort reviews by date descending

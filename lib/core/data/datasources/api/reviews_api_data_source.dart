@@ -26,4 +26,13 @@ class ReviewsApiDataSource {
         .map((e) => ReviewApiResponse.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  Future<List<ReviewApiResponse>> getMyReviews() async {
+    final response = await _client.get(ApiConfig.myReviews);
+
+    final data = response.data['data']['member'] as List;
+    return data
+        .map((e) => ReviewApiResponse.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
 }

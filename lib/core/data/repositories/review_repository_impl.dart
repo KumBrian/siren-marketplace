@@ -63,6 +63,38 @@ class ReviewRepositoryImpl implements IReviewRepository {
   }
 
   @override
+  Future<List<Review>> getMyReviews() async {
+    if (apiDataSource != null) {
+      try {
+        final response = await apiDataSource!.getMyReviews();
+
+        return response.map((r) {
+          // Convert ReviewApiResponse to Review entity
+          return Review(
+            id: r.id.toString(),
+            orderId: r.saleOrder?.toString() ?? '',
+            reviewerId: r.reviewer?.id?.toString() ?? '',
+            reviewedUserId: r.reviewedAccount?.id?.toString() ?? '',
+            rating: Rating.fromValue(r.rate),
+            comment: r.message,
+            timestamp: r.createdAt != null
+                ? DateTime.parse(r.createdAt!)
+                : DateTime.now(),
+            reviewerName: r.reviewer != null
+                ? '${r.reviewer!.firstName ?? ''} ${r.reviewer!.lastName ?? ''}'
+                      .trim()
+                : 'Unknown',
+          );
+        }).toList();
+      } catch (e) {
+        print('Error fetching my reviews via API: $e');
+        return [];
+      }
+    }
+    return [];
+  }
+
+  @override
   Future<List<Review>> getReviewsByUser(String userId) async {
     final models = await dataSource.getReviewsByUser(userId);
     return models.map((m) => ReviewMapper.toEntity(m)).toList();

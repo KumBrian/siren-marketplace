@@ -23,6 +23,9 @@ abstract class IReviewRepository {
   /// Get all reviews written by a user
   Future<List<Review>> getReviewsByUser(String userId);
 
+  /// Get reviews for the current user
+  Future<List<Review>> getMyReviews();
+
   /// Get review for a specific order
   Future<List<Review>> getReviewsForOrder(String orderId);
 
