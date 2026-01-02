@@ -32,7 +32,7 @@ class UserRepositoryImpl implements IUserRepository {
       id: model.id,
       name: model.name,
       avatarUrl: model.avatarUrl,
-      rating: model.rating,
+      rating: model.rating.value,
       reviewCount: model.reviewCount,
       currentRole: role.name,
     );

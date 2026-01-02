@@ -12,8 +12,7 @@ part of 'media_api_models.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 MediaUploadResponse _$MediaUploadResponseFromJson(Map<String, dynamic> json) {
   return _MediaUploadResponse.fromJson(json);
@@ -37,12 +36,8 @@ mixin _$MediaUploadResponse {
   String? get deletedAt => throw _privateConstructorUsedError;
   String? get uid => throw _privateConstructorUsedError;
 
-  /// Serializes this MediaUploadResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of MediaUploadResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $MediaUploadResponseCopyWith<MediaUploadResponse> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -50,23 +45,21 @@ mixin _$MediaUploadResponse {
 /// @nodoc
 abstract class $MediaUploadResponseCopyWith<$Res> {
   factory $MediaUploadResponseCopyWith(
-    MediaUploadResponse value,
-    $Res Function(MediaUploadResponse) then,
-  ) = _$MediaUploadResponseCopyWithImpl<$Res, MediaUploadResponse>;
+          MediaUploadResponse value, $Res Function(MediaUploadResponse) then) =
+      _$MediaUploadResponseCopyWithImpl<$Res, MediaUploadResponse>;
   @useResult
-  $Res call({
-    int id,
-    String fileName,
-    String? thumbnailName,
-    String filePath,
-    String? thumbnailFilePath,
-    String storageFilePath,
-    String? storageThumbnailFilePath,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-  });
+  $Res call(
+      {int id,
+      String fileName,
+      String? thumbnailName,
+      String filePath,
+      String? thumbnailFilePath,
+      String storageFilePath,
+      String? storageThumbnailFilePath,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid});
 }
 
 /// @nodoc
@@ -79,8 +72,6 @@ class _$MediaUploadResponseCopyWithImpl<$Res, $Val extends MediaUploadResponse>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of MediaUploadResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -96,93 +87,85 @@ class _$MediaUploadResponseCopyWithImpl<$Res, $Val extends MediaUploadResponse>
     Object? deletedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int,
-            fileName: null == fileName
-                ? _value.fileName
-                : fileName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            thumbnailName: freezed == thumbnailName
-                ? _value.thumbnailName
-                : thumbnailName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            filePath: null == filePath
-                ? _value.filePath
-                : filePath // ignore: cast_nullable_to_non_nullable
-                      as String,
-            thumbnailFilePath: freezed == thumbnailFilePath
-                ? _value.thumbnailFilePath
-                : thumbnailFilePath // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            storageFilePath: null == storageFilePath
-                ? _value.storageFilePath
-                : storageFilePath // ignore: cast_nullable_to_non_nullable
-                      as String,
-            storageThumbnailFilePath: freezed == storageThumbnailFilePath
-                ? _value.storageThumbnailFilePath
-                : storageThumbnailFilePath // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            deletedAt: freezed == deletedAt
-                ? _value.deletedAt
-                : deletedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      fileName: null == fileName
+          ? _value.fileName
+          : fileName // ignore: cast_nullable_to_non_nullable
+              as String,
+      thumbnailName: freezed == thumbnailName
+          ? _value.thumbnailName
+          : thumbnailName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      filePath: null == filePath
+          ? _value.filePath
+          : filePath // ignore: cast_nullable_to_non_nullable
+              as String,
+      thumbnailFilePath: freezed == thumbnailFilePath
+          ? _value.thumbnailFilePath
+          : thumbnailFilePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storageFilePath: null == storageFilePath
+          ? _value.storageFilePath
+          : storageFilePath // ignore: cast_nullable_to_non_nullable
+              as String,
+      storageThumbnailFilePath: freezed == storageThumbnailFilePath
+          ? _value.storageThumbnailFilePath
+          : storageThumbnailFilePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$MediaUploadResponseImplCopyWith<$Res>
     implements $MediaUploadResponseCopyWith<$Res> {
-  factory _$$MediaUploadResponseImplCopyWith(
-    _$MediaUploadResponseImpl value,
-    $Res Function(_$MediaUploadResponseImpl) then,
-  ) = __$$MediaUploadResponseImplCopyWithImpl<$Res>;
+  factory _$$MediaUploadResponseImplCopyWith(_$MediaUploadResponseImpl value,
+          $Res Function(_$MediaUploadResponseImpl) then) =
+      __$$MediaUploadResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int id,
-    String fileName,
-    String? thumbnailName,
-    String filePath,
-    String? thumbnailFilePath,
-    String storageFilePath,
-    String? storageThumbnailFilePath,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-  });
+  $Res call(
+      {int id,
+      String fileName,
+      String? thumbnailName,
+      String filePath,
+      String? thumbnailFilePath,
+      String storageFilePath,
+      String? storageThumbnailFilePath,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid});
 }
 
 /// @nodoc
 class __$$MediaUploadResponseImplCopyWithImpl<$Res>
     extends _$MediaUploadResponseCopyWithImpl<$Res, _$MediaUploadResponseImpl>
     implements _$$MediaUploadResponseImplCopyWith<$Res> {
-  __$$MediaUploadResponseImplCopyWithImpl(
-    _$MediaUploadResponseImpl _value,
-    $Res Function(_$MediaUploadResponseImpl) _then,
-  ) : super(_value, _then);
+  __$$MediaUploadResponseImplCopyWithImpl(_$MediaUploadResponseImpl _value,
+      $Res Function(_$MediaUploadResponseImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of MediaUploadResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -198,73 +181,70 @@ class __$$MediaUploadResponseImplCopyWithImpl<$Res>
     Object? deletedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _$MediaUploadResponseImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int,
-        fileName: null == fileName
-            ? _value.fileName
-            : fileName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        thumbnailName: freezed == thumbnailName
-            ? _value.thumbnailName
-            : thumbnailName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        filePath: null == filePath
-            ? _value.filePath
-            : filePath // ignore: cast_nullable_to_non_nullable
-                  as String,
-        thumbnailFilePath: freezed == thumbnailFilePath
-            ? _value.thumbnailFilePath
-            : thumbnailFilePath // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        storageFilePath: null == storageFilePath
-            ? _value.storageFilePath
-            : storageFilePath // ignore: cast_nullable_to_non_nullable
-                  as String,
-        storageThumbnailFilePath: freezed == storageThumbnailFilePath
-            ? _value.storageThumbnailFilePath
-            : storageThumbnailFilePath // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        deletedAt: freezed == deletedAt
-            ? _value.deletedAt
-            : deletedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$MediaUploadResponseImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      fileName: null == fileName
+          ? _value.fileName
+          : fileName // ignore: cast_nullable_to_non_nullable
+              as String,
+      thumbnailName: freezed == thumbnailName
+          ? _value.thumbnailName
+          : thumbnailName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      filePath: null == filePath
+          ? _value.filePath
+          : filePath // ignore: cast_nullable_to_non_nullable
+              as String,
+      thumbnailFilePath: freezed == thumbnailFilePath
+          ? _value.thumbnailFilePath
+          : thumbnailFilePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      storageFilePath: null == storageFilePath
+          ? _value.storageFilePath
+          : storageFilePath // ignore: cast_nullable_to_non_nullable
+              as String,
+      storageThumbnailFilePath: freezed == storageThumbnailFilePath
+          ? _value.storageThumbnailFilePath
+          : storageThumbnailFilePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$MediaUploadResponseImpl implements _MediaUploadResponse {
-  const _$MediaUploadResponseImpl({
-    required this.id,
-    required this.fileName,
-    this.thumbnailName,
-    required this.filePath,
-    this.thumbnailFilePath,
-    required this.storageFilePath,
-    this.storageThumbnailFilePath,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    @JsonKey(name: 'deleted_at') this.deletedAt,
-    this.uid,
-  });
+  const _$MediaUploadResponseImpl(
+      {required this.id,
+      required this.fileName,
+      this.thumbnailName,
+      required this.filePath,
+      this.thumbnailFilePath,
+      required this.storageFilePath,
+      this.storageThumbnailFilePath,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      @JsonKey(name: 'deleted_at') this.deletedAt,
+      this.uid});
 
   factory _$MediaUploadResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$MediaUploadResponseImplFromJson(json);
@@ -281,7 +261,7 @@ class _$MediaUploadResponseImpl implements _MediaUploadResponse {
   final String? thumbnailFilePath;
   @override
   final String storageFilePath;
-  // This is what we need for catch creation
+// This is what we need for catch creation
   @override
   final String? storageThumbnailFilePath;
   @override
@@ -318,9 +298,7 @@ class _$MediaUploadResponseImpl implements _MediaUploadResponse {
             (identical(other.storageFilePath, storageFilePath) ||
                 other.storageFilePath == storageFilePath) &&
             (identical(
-                  other.storageThumbnailFilePath,
-                  storageThumbnailFilePath,
-                ) ||
+                    other.storageThumbnailFilePath, storageThumbnailFilePath) ||
                 other.storageThumbnailFilePath == storageThumbnailFilePath) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -331,54 +309,50 @@ class _$MediaUploadResponseImpl implements _MediaUploadResponse {
             (identical(other.uid, uid) || other.uid == uid));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    fileName,
-    thumbnailName,
-    filePath,
-    thumbnailFilePath,
-    storageFilePath,
-    storageThumbnailFilePath,
-    createdAt,
-    updatedAt,
-    deletedAt,
-    uid,
-  );
+      runtimeType,
+      id,
+      fileName,
+      thumbnailName,
+      filePath,
+      thumbnailFilePath,
+      storageFilePath,
+      storageThumbnailFilePath,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      uid);
 
-  /// Create a copy of MediaUploadResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$MediaUploadResponseImplCopyWith<_$MediaUploadResponseImpl> get copyWith =>
       __$$MediaUploadResponseImplCopyWithImpl<_$MediaUploadResponseImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$MediaUploadResponseImplToJson(this);
+    return _$$MediaUploadResponseImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _MediaUploadResponse implements MediaUploadResponse {
-  const factory _MediaUploadResponse({
-    required final int id,
-    required final String fileName,
-    final String? thumbnailName,
-    required final String filePath,
-    final String? thumbnailFilePath,
-    required final String storageFilePath,
-    final String? storageThumbnailFilePath,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    @JsonKey(name: 'deleted_at') final String? deletedAt,
-    final String? uid,
-  }) = _$MediaUploadResponseImpl;
+  const factory _MediaUploadResponse(
+      {required final int id,
+      required final String fileName,
+      final String? thumbnailName,
+      required final String filePath,
+      final String? thumbnailFilePath,
+      required final String storageFilePath,
+      final String? storageThumbnailFilePath,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      @JsonKey(name: 'deleted_at') final String? deletedAt,
+      final String? uid}) = _$MediaUploadResponseImpl;
 
   factory _MediaUploadResponse.fromJson(Map<String, dynamic> json) =
       _$MediaUploadResponseImpl.fromJson;
@@ -394,8 +368,8 @@ abstract class _MediaUploadResponse implements MediaUploadResponse {
   @override
   String? get thumbnailFilePath;
   @override
-  String get storageFilePath; // This is what we need for catch creation
-  @override
+  String get storageFilePath;
+  @override // This is what we need for catch creation
   String? get storageThumbnailFilePath;
   @override
   @JsonKey(name: 'created_at')
@@ -408,11 +382,8 @@ abstract class _MediaUploadResponse implements MediaUploadResponse {
   String? get deletedAt;
   @override
   String? get uid;
-
-  /// Create a copy of MediaUploadResponse
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$MediaUploadResponseImplCopyWith<_$MediaUploadResponseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

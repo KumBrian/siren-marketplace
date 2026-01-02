@@ -1,6 +1,4 @@
 import '../../domain/entities/user.dart';
-import '../../domain/enums/user_role.dart';
-import '../../domain/value_objects/rating.dart';
 import '../models/user_model.dart';
 
 class UserMapper {
@@ -22,16 +20,9 @@ class UserMapper {
       id: model.id,
       name: model.name,
       avatarUrl: model.avatarUrl,
-      rating: Rating.fromValue(model.rating),
+      rating: model.rating,
       reviewCount: model.reviewCount,
-      currentRole: _parseRole(model.currentRole),
-    );
-  }
-
-  static UserRole _parseRole(String role) {
-    return UserRole.values.firstWhere(
-      (r) => r.name == role,
-      orElse: () => UserRole.buyer,
+      currentRole: model.currentRole,
     );
   }
 }

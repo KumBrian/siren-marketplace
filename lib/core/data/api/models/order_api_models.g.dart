@@ -19,13 +19,11 @@ _$OrderApiModelImpl _$$OrderApiModelImplFromJson(Map<String, dynamic> json) =>
       buyerReview: json['buyerReview'] == null
           ? null
           : ReviewApiResponse.fromJson(
-              json['buyerReview'] as Map<String, dynamic>,
-            ),
+              json['buyerReview'] as Map<String, dynamic>),
       fisherReview: json['fisherReview'] == null
           ? null
           : ReviewApiResponse.fromJson(
-              json['fisherReview'] as Map<String, dynamic>,
-            ),
+              json['fisherReview'] as Map<String, dynamic>),
       product: json['product'] == null
           ? null
           : ProductApiModel.fromJson(json['product'] as Map<String, dynamic>),

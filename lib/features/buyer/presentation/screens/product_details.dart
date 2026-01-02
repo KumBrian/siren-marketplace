@@ -20,9 +20,8 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
-import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_conversation_repository.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/offer_actions_provider.dart';
+import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
 
 class ProductDetails extends ConsumerStatefulWidget {
   const ProductDetails({super.key, required this.productId});
@@ -441,15 +440,14 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                                 title: "Message",
                                 onPressed: () async {
                                   try {
-                                    final repo = sl<IConversationRepository>();
-                                    final conversation = await repo
-                                        .getOrCreateConversation(
-                                          currentUser.id,
+                                    final conversationId = await ref
+                                        .read(chatControllerProvider)
+                                        .startConversation(
                                           productItem.fisherId,
                                         );
                                     if (context.mounted) {
                                       context.push(
-                                        '/buyer/chat/${conversation.id}',
+                                        '/buyer/chat/$conversationId',
                                       );
                                     }
                                   } catch (e) {

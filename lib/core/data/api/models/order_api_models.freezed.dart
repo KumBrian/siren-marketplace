@@ -12,8 +12,7 @@ part of 'order_api_models.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 OrderApiModel _$OrderApiModelFromJson(Map<String, dynamic> json) {
   return _OrderApiModel.fromJson(json);
@@ -33,11 +32,13 @@ mixin _$OrderApiModel {
   @JsonKey(name: 'terms_weight')
   int? get termsWeight => throw _privateConstructorUsedError;
   @JsonKey(name: 'terms_price_per_kg')
-  int? get termsPricePerKg => throw _privateConstructorUsedError; // Review objects
+  int? get termsPricePerKg =>
+      throw _privateConstructorUsedError; // Review objects
   @JsonKey(name: 'buyerReview')
   ReviewApiResponse? get buyerReview => throw _privateConstructorUsedError;
   @JsonKey(name: 'fisherReview')
-  ReviewApiResponse? get fisherReview => throw _privateConstructorUsedError; // Embedded product data
+  ReviewApiResponse? get fisherReview =>
+      throw _privateConstructorUsedError; // Embedded product data
   ProductApiModel? get product =>
       throw _privateConstructorUsedError; // Embedded buyer data (will be mapped manually in mapper)
   dynamic get buyer => throw _privateConstructorUsedError; // Timestamps
@@ -47,12 +48,8 @@ mixin _$OrderApiModel {
   String? get updatedAt => throw _privateConstructorUsedError;
   String? get uid => throw _privateConstructorUsedError;
 
-  /// Serializes this OrderApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of OrderApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $OrderApiModelCopyWith<OrderApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -60,27 +57,25 @@ mixin _$OrderApiModel {
 /// @nodoc
 abstract class $OrderApiModelCopyWith<$Res> {
   factory $OrderApiModelCopyWith(
-    OrderApiModel value,
-    $Res Function(OrderApiModel) then,
-  ) = _$OrderApiModelCopyWithImpl<$Res, OrderApiModel>;
+          OrderApiModel value, $Res Function(OrderApiModel) then) =
+      _$OrderApiModelCopyWithImpl<$Res, OrderApiModel>;
   @useResult
-  $Res call({
-    dynamic id,
-    @JsonKey(name: 'orderNumber') String? orderNumber,
-    @JsonKey(name: 'cancellationReason') String? cancellationReason,
-    String? status,
-    bool? completed,
-    @JsonKey(name: 'terms_price') int? termsPrice,
-    @JsonKey(name: 'terms_weight') int? termsWeight,
-    @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
-    @JsonKey(name: 'buyerReview') ReviewApiResponse? buyerReview,
-    @JsonKey(name: 'fisherReview') ReviewApiResponse? fisherReview,
-    ProductApiModel? product,
-    dynamic buyer,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    String? uid,
-  });
+  $Res call(
+      {dynamic id,
+      @JsonKey(name: 'orderNumber') String? orderNumber,
+      @JsonKey(name: 'cancellationReason') String? cancellationReason,
+      String? status,
+      bool? completed,
+      @JsonKey(name: 'terms_price') int? termsPrice,
+      @JsonKey(name: 'terms_weight') int? termsWeight,
+      @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
+      @JsonKey(name: 'buyerReview') ReviewApiResponse? buyerReview,
+      @JsonKey(name: 'fisherReview') ReviewApiResponse? fisherReview,
+      ProductApiModel? product,
+      dynamic buyer,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      String? uid});
 
   $ReviewApiResponseCopyWith<$Res>? get buyerReview;
   $ReviewApiResponseCopyWith<$Res>? get fisherReview;
@@ -97,8 +92,6 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of OrderApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -118,75 +111,70 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
     Object? updatedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            orderNumber: freezed == orderNumber
-                ? _value.orderNumber
-                : orderNumber // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            cancellationReason: freezed == cancellationReason
-                ? _value.cancellationReason
-                : cancellationReason // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            status: freezed == status
-                ? _value.status
-                : status // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            completed: freezed == completed
-                ? _value.completed
-                : completed // ignore: cast_nullable_to_non_nullable
-                      as bool?,
-            termsPrice: freezed == termsPrice
-                ? _value.termsPrice
-                : termsPrice // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            termsWeight: freezed == termsWeight
-                ? _value.termsWeight
-                : termsWeight // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            termsPricePerKg: freezed == termsPricePerKg
-                ? _value.termsPricePerKg
-                : termsPricePerKg // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            buyerReview: freezed == buyerReview
-                ? _value.buyerReview
-                : buyerReview // ignore: cast_nullable_to_non_nullable
-                      as ReviewApiResponse?,
-            fisherReview: freezed == fisherReview
-                ? _value.fisherReview
-                : fisherReview // ignore: cast_nullable_to_non_nullable
-                      as ReviewApiResponse?,
-            product: freezed == product
-                ? _value.product
-                : product // ignore: cast_nullable_to_non_nullable
-                      as ProductApiModel?,
-            buyer: freezed == buyer
-                ? _value.buyer
-                : buyer // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      orderNumber: freezed == orderNumber
+          ? _value.orderNumber
+          : orderNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      cancellationReason: freezed == cancellationReason
+          ? _value.cancellationReason
+          : cancellationReason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      completed: freezed == completed
+          ? _value.completed
+          : completed // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      termsPrice: freezed == termsPrice
+          ? _value.termsPrice
+          : termsPrice // ignore: cast_nullable_to_non_nullable
+              as int?,
+      termsWeight: freezed == termsWeight
+          ? _value.termsWeight
+          : termsWeight // ignore: cast_nullable_to_non_nullable
+              as int?,
+      termsPricePerKg: freezed == termsPricePerKg
+          ? _value.termsPricePerKg
+          : termsPricePerKg // ignore: cast_nullable_to_non_nullable
+              as int?,
+      buyerReview: freezed == buyerReview
+          ? _value.buyerReview
+          : buyerReview // ignore: cast_nullable_to_non_nullable
+              as ReviewApiResponse?,
+      fisherReview: freezed == fisherReview
+          ? _value.fisherReview
+          : fisherReview // ignore: cast_nullable_to_non_nullable
+              as ReviewApiResponse?,
+      product: freezed == product
+          ? _value.product
+          : product // ignore: cast_nullable_to_non_nullable
+              as ProductApiModel?,
+      buyer: freezed == buyer
+          ? _value.buyer
+          : buyer // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 
-  /// Create a copy of OrderApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ReviewApiResponseCopyWith<$Res>? get buyerReview {
@@ -199,8 +187,6 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
     });
   }
 
-  /// Create a copy of OrderApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ReviewApiResponseCopyWith<$Res>? get fisherReview {
@@ -213,8 +199,6 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
     });
   }
 
-  /// Create a copy of OrderApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ProductApiModelCopyWith<$Res>? get product {
@@ -232,28 +216,26 @@ class _$OrderApiModelCopyWithImpl<$Res, $Val extends OrderApiModel>
 abstract class _$$OrderApiModelImplCopyWith<$Res>
     implements $OrderApiModelCopyWith<$Res> {
   factory _$$OrderApiModelImplCopyWith(
-    _$OrderApiModelImpl value,
-    $Res Function(_$OrderApiModelImpl) then,
-  ) = __$$OrderApiModelImplCopyWithImpl<$Res>;
+          _$OrderApiModelImpl value, $Res Function(_$OrderApiModelImpl) then) =
+      __$$OrderApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    dynamic id,
-    @JsonKey(name: 'orderNumber') String? orderNumber,
-    @JsonKey(name: 'cancellationReason') String? cancellationReason,
-    String? status,
-    bool? completed,
-    @JsonKey(name: 'terms_price') int? termsPrice,
-    @JsonKey(name: 'terms_weight') int? termsWeight,
-    @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
-    @JsonKey(name: 'buyerReview') ReviewApiResponse? buyerReview,
-    @JsonKey(name: 'fisherReview') ReviewApiResponse? fisherReview,
-    ProductApiModel? product,
-    dynamic buyer,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    String? uid,
-  });
+  $Res call(
+      {dynamic id,
+      @JsonKey(name: 'orderNumber') String? orderNumber,
+      @JsonKey(name: 'cancellationReason') String? cancellationReason,
+      String? status,
+      bool? completed,
+      @JsonKey(name: 'terms_price') int? termsPrice,
+      @JsonKey(name: 'terms_weight') int? termsWeight,
+      @JsonKey(name: 'terms_price_per_kg') int? termsPricePerKg,
+      @JsonKey(name: 'buyerReview') ReviewApiResponse? buyerReview,
+      @JsonKey(name: 'fisherReview') ReviewApiResponse? fisherReview,
+      ProductApiModel? product,
+      dynamic buyer,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      String? uid});
 
   @override
   $ReviewApiResponseCopyWith<$Res>? get buyerReview;
@@ -268,12 +250,9 @@ class __$$OrderApiModelImplCopyWithImpl<$Res>
     extends _$OrderApiModelCopyWithImpl<$Res, _$OrderApiModelImpl>
     implements _$$OrderApiModelImplCopyWith<$Res> {
   __$$OrderApiModelImplCopyWithImpl(
-    _$OrderApiModelImpl _value,
-    $Res Function(_$OrderApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$OrderApiModelImpl _value, $Res Function(_$OrderApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of OrderApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -293,100 +272,97 @@ class __$$OrderApiModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _$OrderApiModelImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        orderNumber: freezed == orderNumber
-            ? _value.orderNumber
-            : orderNumber // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        cancellationReason: freezed == cancellationReason
-            ? _value.cancellationReason
-            : cancellationReason // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        status: freezed == status
-            ? _value.status
-            : status // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        completed: freezed == completed
-            ? _value.completed
-            : completed // ignore: cast_nullable_to_non_nullable
-                  as bool?,
-        termsPrice: freezed == termsPrice
-            ? _value.termsPrice
-            : termsPrice // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        termsWeight: freezed == termsWeight
-            ? _value.termsWeight
-            : termsWeight // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        termsPricePerKg: freezed == termsPricePerKg
-            ? _value.termsPricePerKg
-            : termsPricePerKg // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        buyerReview: freezed == buyerReview
-            ? _value.buyerReview
-            : buyerReview // ignore: cast_nullable_to_non_nullable
-                  as ReviewApiResponse?,
-        fisherReview: freezed == fisherReview
-            ? _value.fisherReview
-            : fisherReview // ignore: cast_nullable_to_non_nullable
-                  as ReviewApiResponse?,
-        product: freezed == product
-            ? _value.product
-            : product // ignore: cast_nullable_to_non_nullable
-                  as ProductApiModel?,
-        buyer: freezed == buyer
-            ? _value.buyer
-            : buyer // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$OrderApiModelImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      orderNumber: freezed == orderNumber
+          ? _value.orderNumber
+          : orderNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      cancellationReason: freezed == cancellationReason
+          ? _value.cancellationReason
+          : cancellationReason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      completed: freezed == completed
+          ? _value.completed
+          : completed // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      termsPrice: freezed == termsPrice
+          ? _value.termsPrice
+          : termsPrice // ignore: cast_nullable_to_non_nullable
+              as int?,
+      termsWeight: freezed == termsWeight
+          ? _value.termsWeight
+          : termsWeight // ignore: cast_nullable_to_non_nullable
+              as int?,
+      termsPricePerKg: freezed == termsPricePerKg
+          ? _value.termsPricePerKg
+          : termsPricePerKg // ignore: cast_nullable_to_non_nullable
+              as int?,
+      buyerReview: freezed == buyerReview
+          ? _value.buyerReview
+          : buyerReview // ignore: cast_nullable_to_non_nullable
+              as ReviewApiResponse?,
+      fisherReview: freezed == fisherReview
+          ? _value.fisherReview
+          : fisherReview // ignore: cast_nullable_to_non_nullable
+              as ReviewApiResponse?,
+      product: freezed == product
+          ? _value.product
+          : product // ignore: cast_nullable_to_non_nullable
+              as ProductApiModel?,
+      buyer: freezed == buyer
+          ? _value.buyer
+          : buyer // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$OrderApiModelImpl implements _OrderApiModel {
-  const _$OrderApiModelImpl({
-    required this.id,
-    @JsonKey(name: 'orderNumber') this.orderNumber,
-    @JsonKey(name: 'cancellationReason') this.cancellationReason,
-    this.status,
-    this.completed,
-    @JsonKey(name: 'terms_price') this.termsPrice,
-    @JsonKey(name: 'terms_weight') this.termsWeight,
-    @JsonKey(name: 'terms_price_per_kg') this.termsPricePerKg,
-    @JsonKey(name: 'buyerReview') this.buyerReview,
-    @JsonKey(name: 'fisherReview') this.fisherReview,
-    this.product,
-    this.buyer,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    this.uid,
-  });
+  const _$OrderApiModelImpl(
+      {required this.id,
+      @JsonKey(name: 'orderNumber') this.orderNumber,
+      @JsonKey(name: 'cancellationReason') this.cancellationReason,
+      this.status,
+      this.completed,
+      @JsonKey(name: 'terms_price') this.termsPrice,
+      @JsonKey(name: 'terms_weight') this.termsWeight,
+      @JsonKey(name: 'terms_price_per_kg') this.termsPricePerKg,
+      @JsonKey(name: 'buyerReview') this.buyerReview,
+      @JsonKey(name: 'fisherReview') this.fisherReview,
+      this.product,
+      this.buyer,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      this.uid});
 
   factory _$OrderApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$OrderApiModelImplFromJson(json);
 
   @override
   final dynamic id;
-  // ID can be int in JSON
+// ID can be int in JSON
   @override
   @JsonKey(name: 'orderNumber')
   final String? orderNumber;
@@ -397,7 +373,7 @@ class _$OrderApiModelImpl implements _OrderApiModel {
   final String? status;
   @override
   final bool? completed;
-  // Order terms
+// Order terms
   @override
   @JsonKey(name: 'terms_price')
   final int? termsPrice;
@@ -407,20 +383,20 @@ class _$OrderApiModelImpl implements _OrderApiModel {
   @override
   @JsonKey(name: 'terms_price_per_kg')
   final int? termsPricePerKg;
-  // Review objects
+// Review objects
   @override
   @JsonKey(name: 'buyerReview')
   final ReviewApiResponse? buyerReview;
   @override
   @JsonKey(name: 'fisherReview')
   final ReviewApiResponse? fisherReview;
-  // Embedded product data
+// Embedded product data
   @override
   final ProductApiModel? product;
-  // Embedded buyer data (will be mapped manually in mapper)
+// Embedded buyer data (will be mapped manually in mapper)
   @override
   final dynamic buyer;
-  // Timestamps
+// Timestamps
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
@@ -467,30 +443,27 @@ class _$OrderApiModelImpl implements _OrderApiModel {
             (identical(other.uid, uid) || other.uid == uid));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(id),
-    orderNumber,
-    cancellationReason,
-    status,
-    completed,
-    termsPrice,
-    termsWeight,
-    termsPricePerKg,
-    buyerReview,
-    fisherReview,
-    product,
-    const DeepCollectionEquality().hash(buyer),
-    createdAt,
-    updatedAt,
-    uid,
-  );
+      runtimeType,
+      const DeepCollectionEquality().hash(id),
+      orderNumber,
+      cancellationReason,
+      status,
+      completed,
+      termsPrice,
+      termsWeight,
+      termsPricePerKg,
+      buyerReview,
+      fisherReview,
+      product,
+      const DeepCollectionEquality().hash(buyer),
+      createdAt,
+      updatedAt,
+      uid);
 
-  /// Create a copy of OrderApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OrderApiModelImplCopyWith<_$OrderApiModelImpl> get copyWith =>
@@ -498,35 +471,36 @@ class _$OrderApiModelImpl implements _OrderApiModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$OrderApiModelImplToJson(this);
+    return _$$OrderApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _OrderApiModel implements OrderApiModel {
-  const factory _OrderApiModel({
-    required final dynamic id,
-    @JsonKey(name: 'orderNumber') final String? orderNumber,
-    @JsonKey(name: 'cancellationReason') final String? cancellationReason,
-    final String? status,
-    final bool? completed,
-    @JsonKey(name: 'terms_price') final int? termsPrice,
-    @JsonKey(name: 'terms_weight') final int? termsWeight,
-    @JsonKey(name: 'terms_price_per_kg') final int? termsPricePerKg,
-    @JsonKey(name: 'buyerReview') final ReviewApiResponse? buyerReview,
-    @JsonKey(name: 'fisherReview') final ReviewApiResponse? fisherReview,
-    final ProductApiModel? product,
-    final dynamic buyer,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    final String? uid,
-  }) = _$OrderApiModelImpl;
+  const factory _OrderApiModel(
+      {required final dynamic id,
+      @JsonKey(name: 'orderNumber') final String? orderNumber,
+      @JsonKey(name: 'cancellationReason') final String? cancellationReason,
+      final String? status,
+      final bool? completed,
+      @JsonKey(name: 'terms_price') final int? termsPrice,
+      @JsonKey(name: 'terms_weight') final int? termsWeight,
+      @JsonKey(name: 'terms_price_per_kg') final int? termsPricePerKg,
+      @JsonKey(name: 'buyerReview') final ReviewApiResponse? buyerReview,
+      @JsonKey(name: 'fisherReview') final ReviewApiResponse? fisherReview,
+      final ProductApiModel? product,
+      final dynamic buyer,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      final String? uid}) = _$OrderApiModelImpl;
 
   factory _OrderApiModel.fromJson(Map<String, dynamic> json) =
       _$OrderApiModelImpl.fromJson;
 
   @override
-  dynamic get id; // ID can be int in JSON
-  @override
+  dynamic get id;
+  @override // ID can be int in JSON
   @JsonKey(name: 'orderNumber')
   String? get orderNumber;
   @override
@@ -535,8 +509,8 @@ abstract class _OrderApiModel implements OrderApiModel {
   @override
   String? get status;
   @override
-  bool? get completed; // Order terms
-  @override
+  bool? get completed;
+  @override // Order terms
   @JsonKey(name: 'terms_price')
   int? get termsPrice;
   @override
@@ -544,18 +518,18 @@ abstract class _OrderApiModel implements OrderApiModel {
   int? get termsWeight;
   @override
   @JsonKey(name: 'terms_price_per_kg')
-  int? get termsPricePerKg; // Review objects
-  @override
+  int? get termsPricePerKg;
+  @override // Review objects
   @JsonKey(name: 'buyerReview')
   ReviewApiResponse? get buyerReview;
   @override
   @JsonKey(name: 'fisherReview')
-  ReviewApiResponse? get fisherReview; // Embedded product data
-  @override
-  ProductApiModel? get product; // Embedded buyer data (will be mapped manually in mapper)
-  @override
-  dynamic get buyer; // Timestamps
-  @override
+  ReviewApiResponse? get fisherReview;
+  @override // Embedded product data
+  ProductApiModel? get product;
+  @override // Embedded buyer data (will be mapped manually in mapper)
+  dynamic get buyer;
+  @override // Timestamps
   @JsonKey(name: 'created_at')
   String? get createdAt;
   @override
@@ -563,11 +537,8 @@ abstract class _OrderApiModel implements OrderApiModel {
   String? get updatedAt;
   @override
   String? get uid;
-
-  /// Create a copy of OrderApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$OrderApiModelImplCopyWith<_$OrderApiModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

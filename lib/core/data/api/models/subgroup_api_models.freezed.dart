@@ -12,12 +12,10 @@ part of 'subgroup_api_models.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 SubgroupsResponseModel _$SubgroupsResponseModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _SubgroupsResponseModel.fromJson(json);
 }
 
@@ -25,22 +23,17 @@ SubgroupsResponseModel _$SubgroupsResponseModelFromJson(
 mixin _$SubgroupsResponseModel {
   SubgroupDataModel get data => throw _privateConstructorUsedError;
 
-  /// Serializes this SubgroupsResponseModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SubgroupsResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SubgroupsResponseModelCopyWith<SubgroupsResponseModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $SubgroupsResponseModelCopyWith<$Res> {
-  factory $SubgroupsResponseModelCopyWith(
-    SubgroupsResponseModel value,
-    $Res Function(SubgroupsResponseModel) then,
-  ) = _$SubgroupsResponseModelCopyWithImpl<$Res, SubgroupsResponseModel>;
+  factory $SubgroupsResponseModelCopyWith(SubgroupsResponseModel value,
+          $Res Function(SubgroupsResponseModel) then) =
+      _$SubgroupsResponseModelCopyWithImpl<$Res, SubgroupsResponseModel>;
   @useResult
   $Res call({SubgroupDataModel data});
 
@@ -48,10 +41,8 @@ abstract class $SubgroupsResponseModelCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$SubgroupsResponseModelCopyWithImpl<
-  $Res,
-  $Val extends SubgroupsResponseModel
->
+class _$SubgroupsResponseModelCopyWithImpl<$Res,
+        $Val extends SubgroupsResponseModel>
     implements $SubgroupsResponseModelCopyWith<$Res> {
   _$SubgroupsResponseModelCopyWithImpl(this._value, this._then);
 
@@ -60,24 +51,19 @@ class _$SubgroupsResponseModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SubgroupsResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? data = null}) {
-    return _then(
-      _value.copyWith(
-            data: null == data
-                ? _value.data
-                : data // ignore: cast_nullable_to_non_nullable
-                      as SubgroupDataModel,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? data = null,
+  }) {
+    return _then(_value.copyWith(
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as SubgroupDataModel,
+    ) as $Val);
   }
 
-  /// Create a copy of SubgroupsResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $SubgroupDataModelCopyWith<$Res> get data {
@@ -91,9 +77,9 @@ class _$SubgroupsResponseModelCopyWithImpl<
 abstract class _$$SubgroupsResponseModelImplCopyWith<$Res>
     implements $SubgroupsResponseModelCopyWith<$Res> {
   factory _$$SubgroupsResponseModelImplCopyWith(
-    _$SubgroupsResponseModelImpl value,
-    $Res Function(_$SubgroupsResponseModelImpl) then,
-  ) = __$$SubgroupsResponseModelImplCopyWithImpl<$Res>;
+          _$SubgroupsResponseModelImpl value,
+          $Res Function(_$SubgroupsResponseModelImpl) then) =
+      __$$SubgroupsResponseModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({SubgroupDataModel data});
@@ -104,27 +90,25 @@ abstract class _$$SubgroupsResponseModelImplCopyWith<$Res>
 
 /// @nodoc
 class __$$SubgroupsResponseModelImplCopyWithImpl<$Res>
-    extends
-        _$SubgroupsResponseModelCopyWithImpl<$Res, _$SubgroupsResponseModelImpl>
+    extends _$SubgroupsResponseModelCopyWithImpl<$Res,
+        _$SubgroupsResponseModelImpl>
     implements _$$SubgroupsResponseModelImplCopyWith<$Res> {
   __$$SubgroupsResponseModelImplCopyWithImpl(
-    _$SubgroupsResponseModelImpl _value,
-    $Res Function(_$SubgroupsResponseModelImpl) _then,
-  ) : super(_value, _then);
+      _$SubgroupsResponseModelImpl _value,
+      $Res Function(_$SubgroupsResponseModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of SubgroupsResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? data = null}) {
-    return _then(
-      _$SubgroupsResponseModelImpl(
-        data: null == data
-            ? _value.data
-            : data // ignore: cast_nullable_to_non_nullable
-                  as SubgroupDataModel,
-      ),
-    );
+  $Res call({
+    Object? data = null,
+  }) {
+    return _then(_$SubgroupsResponseModelImpl(
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as SubgroupDataModel,
+    ));
   }
 }
 
@@ -152,45 +136,38 @@ class _$SubgroupsResponseModelImpl implements _SubgroupsResponseModel {
             (identical(other.data, data) || other.data == data));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, data);
 
-  /// Create a copy of SubgroupsResponseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SubgroupsResponseModelImplCopyWith<_$SubgroupsResponseModelImpl>
-  get copyWith =>
-      __$$SubgroupsResponseModelImplCopyWithImpl<_$SubgroupsResponseModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith => __$$SubgroupsResponseModelImplCopyWithImpl<
+          _$SubgroupsResponseModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SubgroupsResponseModelImplToJson(this);
+    return _$$SubgroupsResponseModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _SubgroupsResponseModel implements SubgroupsResponseModel {
-  const factory _SubgroupsResponseModel({
-    required final SubgroupDataModel data,
-  }) = _$SubgroupsResponseModelImpl;
+  const factory _SubgroupsResponseModel(
+      {required final SubgroupDataModel data}) = _$SubgroupsResponseModelImpl;
 
   factory _SubgroupsResponseModel.fromJson(Map<String, dynamic> json) =
       _$SubgroupsResponseModelImpl.fromJson;
 
   @override
   SubgroupDataModel get data;
-
-  /// Create a copy of SubgroupsResponseModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SubgroupsResponseModelImplCopyWith<_$SubgroupsResponseModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 SubgroupDataModel _$SubgroupDataModelFromJson(Map<String, dynamic> json) {
@@ -201,12 +178,8 @@ SubgroupDataModel _$SubgroupDataModelFromJson(Map<String, dynamic> json) {
 mixin _$SubgroupDataModel {
   List<SubgroupModel> get subgroups => throw _privateConstructorUsedError;
 
-  /// Serializes this SubgroupDataModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SubgroupDataModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SubgroupDataModelCopyWith<SubgroupDataModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -214,9 +187,8 @@ mixin _$SubgroupDataModel {
 /// @nodoc
 abstract class $SubgroupDataModelCopyWith<$Res> {
   factory $SubgroupDataModelCopyWith(
-    SubgroupDataModel value,
-    $Res Function(SubgroupDataModel) then,
-  ) = _$SubgroupDataModelCopyWithImpl<$Res, SubgroupDataModel>;
+          SubgroupDataModel value, $Res Function(SubgroupDataModel) then) =
+      _$SubgroupDataModelCopyWithImpl<$Res, SubgroupDataModel>;
   @useResult
   $Res call({List<SubgroupModel> subgroups});
 }
@@ -231,30 +203,26 @@ class _$SubgroupDataModelCopyWithImpl<$Res, $Val extends SubgroupDataModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SubgroupDataModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? subgroups = null}) {
-    return _then(
-      _value.copyWith(
-            subgroups: null == subgroups
-                ? _value.subgroups
-                : subgroups // ignore: cast_nullable_to_non_nullable
-                      as List<SubgroupModel>,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? subgroups = null,
+  }) {
+    return _then(_value.copyWith(
+      subgroups: null == subgroups
+          ? _value.subgroups
+          : subgroups // ignore: cast_nullable_to_non_nullable
+              as List<SubgroupModel>,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$SubgroupDataModelImplCopyWith<$Res>
     implements $SubgroupDataModelCopyWith<$Res> {
-  factory _$$SubgroupDataModelImplCopyWith(
-    _$SubgroupDataModelImpl value,
-    $Res Function(_$SubgroupDataModelImpl) then,
-  ) = __$$SubgroupDataModelImplCopyWithImpl<$Res>;
+  factory _$$SubgroupDataModelImplCopyWith(_$SubgroupDataModelImpl value,
+          $Res Function(_$SubgroupDataModelImpl) then) =
+      __$$SubgroupDataModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({List<SubgroupModel> subgroups});
@@ -264,24 +232,21 @@ abstract class _$$SubgroupDataModelImplCopyWith<$Res>
 class __$$SubgroupDataModelImplCopyWithImpl<$Res>
     extends _$SubgroupDataModelCopyWithImpl<$Res, _$SubgroupDataModelImpl>
     implements _$$SubgroupDataModelImplCopyWith<$Res> {
-  __$$SubgroupDataModelImplCopyWithImpl(
-    _$SubgroupDataModelImpl _value,
-    $Res Function(_$SubgroupDataModelImpl) _then,
-  ) : super(_value, _then);
+  __$$SubgroupDataModelImplCopyWithImpl(_$SubgroupDataModelImpl _value,
+      $Res Function(_$SubgroupDataModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of SubgroupDataModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? subgroups = null}) {
-    return _then(
-      _$SubgroupDataModelImpl(
-        subgroups: null == subgroups
-            ? _value._subgroups
-            : subgroups // ignore: cast_nullable_to_non_nullable
-                  as List<SubgroupModel>,
-      ),
-    );
+  $Res call({
+    Object? subgroups = null,
+  }) {
+    return _then(_$SubgroupDataModelImpl(
+      subgroups: null == subgroups
+          ? _value._subgroups
+          : subgroups // ignore: cast_nullable_to_non_nullable
+              as List<SubgroupModel>,
+    ));
   }
 }
 
@@ -289,7 +254,7 @@ class __$$SubgroupDataModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$SubgroupDataModelImpl implements _SubgroupDataModel {
   const _$SubgroupDataModelImpl({required final List<SubgroupModel> subgroups})
-    : _subgroups = subgroups;
+      : _subgroups = subgroups;
 
   factory _$SubgroupDataModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubgroupDataModelImplFromJson(json);
@@ -312,49 +277,41 @@ class _$SubgroupDataModelImpl implements _SubgroupDataModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$SubgroupDataModelImpl &&
-            const DeepCollectionEquality().equals(
-              other._subgroups,
-              _subgroups,
-            ));
+            const DeepCollectionEquality()
+                .equals(other._subgroups, _subgroups));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(_subgroups));
 
-  /// Create a copy of SubgroupDataModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SubgroupDataModelImplCopyWith<_$SubgroupDataModelImpl> get copyWith =>
       __$$SubgroupDataModelImplCopyWithImpl<_$SubgroupDataModelImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SubgroupDataModelImplToJson(this);
+    return _$$SubgroupDataModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _SubgroupDataModel implements SubgroupDataModel {
-  const factory _SubgroupDataModel({
-    required final List<SubgroupModel> subgroups,
-  }) = _$SubgroupDataModelImpl;
+  const factory _SubgroupDataModel(
+      {required final List<SubgroupModel> subgroups}) = _$SubgroupDataModelImpl;
 
   factory _SubgroupDataModel.fromJson(Map<String, dynamic> json) =
       _$SubgroupDataModelImpl.fromJson;
 
   @override
   List<SubgroupModel> get subgroups;
-
-  /// Create a copy of SubgroupDataModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SubgroupDataModelImplCopyWith<_$SubgroupDataModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -369,12 +326,8 @@ mixin _$SubgroupModel {
   String get description => throw _privateConstructorUsedError;
   List<SubgroupSpeciesModel> get species => throw _privateConstructorUsedError;
 
-  /// Serializes this SubgroupModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SubgroupModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SubgroupModelCopyWith<SubgroupModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -382,15 +335,11 @@ mixin _$SubgroupModel {
 /// @nodoc
 abstract class $SubgroupModelCopyWith<$Res> {
   factory $SubgroupModelCopyWith(
-    SubgroupModel value,
-    $Res Function(SubgroupModel) then,
-  ) = _$SubgroupModelCopyWithImpl<$Res, SubgroupModel>;
+          SubgroupModel value, $Res Function(SubgroupModel) then) =
+      _$SubgroupModelCopyWithImpl<$Res, SubgroupModel>;
   @useResult
-  $Res call({
-    String name,
-    String description,
-    List<SubgroupSpeciesModel> species,
-  });
+  $Res call(
+      {String name, String description, List<SubgroupSpeciesModel> species});
 }
 
 /// @nodoc
@@ -403,8 +352,6 @@ class _$SubgroupModelCopyWithImpl<$Res, $Val extends SubgroupModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SubgroupModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -412,23 +359,20 @@ class _$SubgroupModelCopyWithImpl<$Res, $Val extends SubgroupModel>
     Object? description = null,
     Object? species = null,
   }) {
-    return _then(
-      _value.copyWith(
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            description: null == description
-                ? _value.description
-                : description // ignore: cast_nullable_to_non_nullable
-                      as String,
-            species: null == species
-                ? _value.species
-                : species // ignore: cast_nullable_to_non_nullable
-                      as List<SubgroupSpeciesModel>,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      species: null == species
+          ? _value.species
+          : species // ignore: cast_nullable_to_non_nullable
+              as List<SubgroupSpeciesModel>,
+    ) as $Val);
   }
 }
 
@@ -436,16 +380,12 @@ class _$SubgroupModelCopyWithImpl<$Res, $Val extends SubgroupModel>
 abstract class _$$SubgroupModelImplCopyWith<$Res>
     implements $SubgroupModelCopyWith<$Res> {
   factory _$$SubgroupModelImplCopyWith(
-    _$SubgroupModelImpl value,
-    $Res Function(_$SubgroupModelImpl) then,
-  ) = __$$SubgroupModelImplCopyWithImpl<$Res>;
+          _$SubgroupModelImpl value, $Res Function(_$SubgroupModelImpl) then) =
+      __$$SubgroupModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String name,
-    String description,
-    List<SubgroupSpeciesModel> species,
-  });
+  $Res call(
+      {String name, String description, List<SubgroupSpeciesModel> species});
 }
 
 /// @nodoc
@@ -453,12 +393,9 @@ class __$$SubgroupModelImplCopyWithImpl<$Res>
     extends _$SubgroupModelCopyWithImpl<$Res, _$SubgroupModelImpl>
     implements _$$SubgroupModelImplCopyWith<$Res> {
   __$$SubgroupModelImplCopyWithImpl(
-    _$SubgroupModelImpl _value,
-    $Res Function(_$SubgroupModelImpl) _then,
-  ) : super(_value, _then);
+      _$SubgroupModelImpl _value, $Res Function(_$SubgroupModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of SubgroupModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -466,33 +403,31 @@ class __$$SubgroupModelImplCopyWithImpl<$Res>
     Object? description = null,
     Object? species = null,
   }) {
-    return _then(
-      _$SubgroupModelImpl(
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        description: null == description
-            ? _value.description
-            : description // ignore: cast_nullable_to_non_nullable
-                  as String,
-        species: null == species
-            ? _value._species
-            : species // ignore: cast_nullable_to_non_nullable
-                  as List<SubgroupSpeciesModel>,
-      ),
-    );
+    return _then(_$SubgroupModelImpl(
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      species: null == species
+          ? _value._species
+          : species // ignore: cast_nullable_to_non_nullable
+              as List<SubgroupSpeciesModel>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$SubgroupModelImpl implements _SubgroupModel {
-  const _$SubgroupModelImpl({
-    required this.name,
-    required this.description,
-    required final List<SubgroupSpeciesModel> species,
-  }) : _species = species;
+  const _$SubgroupModelImpl(
+      {required this.name,
+      required this.description,
+      required final List<SubgroupSpeciesModel> species})
+      : _species = species;
 
   factory _$SubgroupModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubgroupModelImplFromJson(json);
@@ -525,18 +460,12 @@ class _$SubgroupModelImpl implements _SubgroupModel {
             const DeepCollectionEquality().equals(other._species, _species));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    name,
-    description,
-    const DeepCollectionEquality().hash(_species),
-  );
+  int get hashCode => Object.hash(runtimeType, name, description,
+      const DeepCollectionEquality().hash(_species));
 
-  /// Create a copy of SubgroupModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SubgroupModelImplCopyWith<_$SubgroupModelImpl> get copyWith =>
@@ -544,16 +473,17 @@ class _$SubgroupModelImpl implements _SubgroupModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SubgroupModelImplToJson(this);
+    return _$$SubgroupModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _SubgroupModel implements SubgroupModel {
-  const factory _SubgroupModel({
-    required final String name,
-    required final String description,
-    required final List<SubgroupSpeciesModel> species,
-  }) = _$SubgroupModelImpl;
+  const factory _SubgroupModel(
+      {required final String name,
+      required final String description,
+      required final List<SubgroupSpeciesModel> species}) = _$SubgroupModelImpl;
 
   factory _SubgroupModel.fromJson(Map<String, dynamic> json) =
       _$SubgroupModelImpl.fromJson;
@@ -564,11 +494,8 @@ abstract class _SubgroupModel implements SubgroupModel {
   String get description;
   @override
   List<SubgroupSpeciesModel> get species;
-
-  /// Create a copy of SubgroupModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SubgroupModelImplCopyWith<_$SubgroupModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -583,31 +510,24 @@ mixin _$SubgroupSpeciesModel {
   String get name => throw _privateConstructorUsedError;
   String get imageUrl => throw _privateConstructorUsedError;
 
-  /// Serializes this SubgroupSpeciesModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SubgroupSpeciesModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SubgroupSpeciesModelCopyWith<SubgroupSpeciesModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $SubgroupSpeciesModelCopyWith<$Res> {
-  factory $SubgroupSpeciesModelCopyWith(
-    SubgroupSpeciesModel value,
-    $Res Function(SubgroupSpeciesModel) then,
-  ) = _$SubgroupSpeciesModelCopyWithImpl<$Res, SubgroupSpeciesModel>;
+  factory $SubgroupSpeciesModelCopyWith(SubgroupSpeciesModel value,
+          $Res Function(SubgroupSpeciesModel) then) =
+      _$SubgroupSpeciesModelCopyWithImpl<$Res, SubgroupSpeciesModel>;
   @useResult
   $Res call({int id, String name, String imageUrl});
 }
 
 /// @nodoc
-class _$SubgroupSpeciesModelCopyWithImpl<
-  $Res,
-  $Val extends SubgroupSpeciesModel
->
+class _$SubgroupSpeciesModelCopyWithImpl<$Res,
+        $Val extends SubgroupSpeciesModel>
     implements $SubgroupSpeciesModelCopyWith<$Res> {
   _$SubgroupSpeciesModelCopyWithImpl(this._value, this._then);
 
@@ -616,38 +536,36 @@ class _$SubgroupSpeciesModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SubgroupSpeciesModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? name = null, Object? imageUrl = null}) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            imageUrl: null == imageUrl
-                ? _value.imageUrl
-                : imageUrl // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? imageUrl = null,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      imageUrl: null == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$SubgroupSpeciesModelImplCopyWith<$Res>
     implements $SubgroupSpeciesModelCopyWith<$Res> {
-  factory _$$SubgroupSpeciesModelImplCopyWith(
-    _$SubgroupSpeciesModelImpl value,
-    $Res Function(_$SubgroupSpeciesModelImpl) then,
-  ) = __$$SubgroupSpeciesModelImplCopyWithImpl<$Res>;
+  factory _$$SubgroupSpeciesModelImplCopyWith(_$SubgroupSpeciesModelImpl value,
+          $Res Function(_$SubgroupSpeciesModelImpl) then) =
+      __$$SubgroupSpeciesModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({int id, String name, String imageUrl});
@@ -657,43 +575,39 @@ abstract class _$$SubgroupSpeciesModelImplCopyWith<$Res>
 class __$$SubgroupSpeciesModelImplCopyWithImpl<$Res>
     extends _$SubgroupSpeciesModelCopyWithImpl<$Res, _$SubgroupSpeciesModelImpl>
     implements _$$SubgroupSpeciesModelImplCopyWith<$Res> {
-  __$$SubgroupSpeciesModelImplCopyWithImpl(
-    _$SubgroupSpeciesModelImpl _value,
-    $Res Function(_$SubgroupSpeciesModelImpl) _then,
-  ) : super(_value, _then);
+  __$$SubgroupSpeciesModelImplCopyWithImpl(_$SubgroupSpeciesModelImpl _value,
+      $Res Function(_$SubgroupSpeciesModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of SubgroupSpeciesModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? name = null, Object? imageUrl = null}) {
-    return _then(
-      _$SubgroupSpeciesModelImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        imageUrl: null == imageUrl
-            ? _value.imageUrl
-            : imageUrl // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? id = null,
+    Object? name = null,
+    Object? imageUrl = null,
+  }) {
+    return _then(_$SubgroupSpeciesModelImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      imageUrl: null == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$SubgroupSpeciesModelImpl implements _SubgroupSpeciesModel {
-  const _$SubgroupSpeciesModelImpl({
-    required this.id,
-    required this.name,
-    required this.imageUrl,
-  });
+  const _$SubgroupSpeciesModelImpl(
+      {required this.id, required this.name, required this.imageUrl});
 
   factory _$SubgroupSpeciesModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubgroupSpeciesModelImplFromJson(json);
@@ -721,34 +635,31 @@ class _$SubgroupSpeciesModelImpl implements _SubgroupSpeciesModel {
                 other.imageUrl == imageUrl));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, imageUrl);
 
-  /// Create a copy of SubgroupSpeciesModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SubgroupSpeciesModelImplCopyWith<_$SubgroupSpeciesModelImpl>
-  get copyWith =>
-      __$$SubgroupSpeciesModelImplCopyWithImpl<_$SubgroupSpeciesModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith =>
+          __$$SubgroupSpeciesModelImplCopyWithImpl<_$SubgroupSpeciesModelImpl>(
+              this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SubgroupSpeciesModelImplToJson(this);
+    return _$$SubgroupSpeciesModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _SubgroupSpeciesModel implements SubgroupSpeciesModel {
-  const factory _SubgroupSpeciesModel({
-    required final int id,
-    required final String name,
-    required final String imageUrl,
-  }) = _$SubgroupSpeciesModelImpl;
+  const factory _SubgroupSpeciesModel(
+      {required final int id,
+      required final String name,
+      required final String imageUrl}) = _$SubgroupSpeciesModelImpl;
 
   factory _SubgroupSpeciesModel.fromJson(Map<String, dynamic> json) =
       _$SubgroupSpeciesModelImpl.fromJson;
@@ -759,11 +670,8 @@ abstract class _SubgroupSpeciesModel implements SubgroupSpeciesModel {
   String get name;
   @override
   String get imageUrl;
-
-  /// Create a copy of SubgroupSpeciesModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SubgroupSpeciesModelImplCopyWith<_$SubgroupSpeciesModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }

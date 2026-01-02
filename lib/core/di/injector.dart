@@ -25,6 +25,7 @@ import '../data/datasources/api/media_api_data_source.dart';
 import '../data/datasources/api/user_api_datasource.dart';
 import '../data/datasources/api/products_api_data_source.dart';
 import '../data/datasources/api/subgroups_api_data_source.dart';
+import '../data/datasources/api/chat_api_data_source.dart';
 
 import 'package:dio/dio.dart';
 import '../data/repositories/catch_repository_impl.dart';
@@ -53,6 +54,7 @@ import '../domain/services/order_service.dart';
 import '../domain/services/rating_service.dart';
 import '../domain/services/session_service.dart';
 import '../domain/services/viewed_offers_service.dart';
+import '../domain/services/viewed_conversations_service.dart';
 import '../data/api/api_client.dart';
 import '../data/storage/token_storage.dart';
 import '../data/sources/api/auth_api_data_source.dart';
@@ -92,6 +94,10 @@ Future<void> initDependencies() async {
   final viewedOffersService = ViewedOffersService();
   await viewedOffersService.init();
   sl.registerSingleton<IViewedOffersService>(viewedOffersService);
+
+  final viewedConversationsService = ViewedConversationsService();
+  await viewedConversationsService.init();
+  sl.registerSingleton<IViewedConversationsService>(viewedConversationsService);
 
   sl.registerLazySingleton(() => TokenStorage());
 
@@ -396,9 +402,13 @@ void _initApiMode(DatabaseHelper dbHelper) {
     ),
   );
 
-  // Register Subgroups API Data Source
   sl.registerLazySingleton<SubgroupsApiDataSource>(
     () => SubgroupsApiDataSource(sl(instanceName: 'marketplaceApiClient')),
+  );
+
+  // Register Chat API Data Source
+  sl.registerLazySingleton<ChatApiDataSource>(
+    () => ChatApiDataSource(sl(instanceName: 'marketplaceApiClient')),
   );
 
   // Set up callback for catch published event

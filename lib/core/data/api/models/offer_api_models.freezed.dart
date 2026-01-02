@@ -12,8 +12,7 @@ part of 'offer_api_models.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 OfferApiModel _$OfferApiModelFromJson(Map<String, dynamic> json) {
   return _OfferApiModel.fromJson(json);
@@ -23,18 +22,18 @@ OfferApiModel _$OfferApiModelFromJson(Map<String, dynamic> json) {
 mixin _$OfferApiModel {
   dynamic get id =>
       throw _privateConstructorUsedError; // API returns 'product' object which contains 'specie', 'account' etc.
-  // 'product' is the new catch
+// 'product' is the new catch
   ProductApiModel? get product =>
       throw _privateConstructorUsedError; // API returns 'buyer' object
   AccountApiModel? get buyer =>
       throw _privateConstructorUsedError; // Field from API JSON "currentPriceAmount": 7000
-  // Using camelCase keys as per JSON response
+// Using camelCase keys as per JSON response
   int? get currentPriceAmount => throw _privateConstructorUsedError;
   int? get currentWeightGrams => throw _privateConstructorUsedError;
   int? get currentPricePerKgAmount =>
       throw _privateConstructorUsedError; // Previous values seem to use snake_case or mixed?
-  // JSON: "previous_price": 90, "previousPriceAmount": 7500
-  // We'll use the specific amount fields if available (camelCase ones)
+// JSON: "previous_price": 90, "previousPriceAmount": 7500
+// We'll use the specific amount fields if available (camelCase ones)
   int? get previousPriceAmount => throw _privateConstructorUsedError;
   int? get previousWeightGrams => throw _privateConstructorUsedError;
   int? get previousPricePerKgAmount =>
@@ -53,12 +52,8 @@ mixin _$OfferApiModel {
   @JsonKey(name: 'updated_at')
   String? get updatedAt => throw _privateConstructorUsedError;
 
-  /// Serializes this OfferApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of OfferApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $OfferApiModelCopyWith<OfferApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -66,28 +61,26 @@ mixin _$OfferApiModel {
 /// @nodoc
 abstract class $OfferApiModelCopyWith<$Res> {
   factory $OfferApiModelCopyWith(
-    OfferApiModel value,
-    $Res Function(OfferApiModel) then,
-  ) = _$OfferApiModelCopyWithImpl<$Res, OfferApiModel>;
+          OfferApiModel value, $Res Function(OfferApiModel) then) =
+      _$OfferApiModelCopyWithImpl<$Res, OfferApiModel>;
   @useResult
-  $Res call({
-    dynamic id,
-    ProductApiModel? product,
-    AccountApiModel? buyer,
-    int? currentPriceAmount,
-    int? currentWeightGrams,
-    int? currentPricePerKgAmount,
-    int? previousPriceAmount,
-    int? previousWeightGrams,
-    int? previousPricePerKgAmount,
-    @JsonKey(name: 'saleOrder') Map<String, dynamic>? saleOrder,
-    String? status,
-    @JsonKey(name: 'waiting_for') String? waitingFor,
-    @JsonKey(name: 'has_update_for_fisher') bool? hasUpdateForFisher,
-    @JsonKey(name: 'has_update_for_buyer') bool? hasUpdateForBuyer,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-  });
+  $Res call(
+      {dynamic id,
+      ProductApiModel? product,
+      AccountApiModel? buyer,
+      int? currentPriceAmount,
+      int? currentWeightGrams,
+      int? currentPricePerKgAmount,
+      int? previousPriceAmount,
+      int? previousWeightGrams,
+      int? previousPricePerKgAmount,
+      @JsonKey(name: 'saleOrder') Map<String, dynamic>? saleOrder,
+      String? status,
+      @JsonKey(name: 'waiting_for') String? waitingFor,
+      @JsonKey(name: 'has_update_for_fisher') bool? hasUpdateForFisher,
+      @JsonKey(name: 'has_update_for_buyer') bool? hasUpdateForBuyer,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt});
 
   $ProductApiModelCopyWith<$Res>? get product;
   $AccountApiModelCopyWith<$Res>? get buyer;
@@ -103,8 +96,6 @@ class _$OfferApiModelCopyWithImpl<$Res, $Val extends OfferApiModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of OfferApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -125,79 +116,74 @@ class _$OfferApiModelCopyWithImpl<$Res, $Val extends OfferApiModel>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            product: freezed == product
-                ? _value.product
-                : product // ignore: cast_nullable_to_non_nullable
-                      as ProductApiModel?,
-            buyer: freezed == buyer
-                ? _value.buyer
-                : buyer // ignore: cast_nullable_to_non_nullable
-                      as AccountApiModel?,
-            currentPriceAmount: freezed == currentPriceAmount
-                ? _value.currentPriceAmount
-                : currentPriceAmount // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            currentWeightGrams: freezed == currentWeightGrams
-                ? _value.currentWeightGrams
-                : currentWeightGrams // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            currentPricePerKgAmount: freezed == currentPricePerKgAmount
-                ? _value.currentPricePerKgAmount
-                : currentPricePerKgAmount // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            previousPriceAmount: freezed == previousPriceAmount
-                ? _value.previousPriceAmount
-                : previousPriceAmount // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            previousWeightGrams: freezed == previousWeightGrams
-                ? _value.previousWeightGrams
-                : previousWeightGrams // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            previousPricePerKgAmount: freezed == previousPricePerKgAmount
-                ? _value.previousPricePerKgAmount
-                : previousPricePerKgAmount // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            saleOrder: freezed == saleOrder
-                ? _value.saleOrder
-                : saleOrder // ignore: cast_nullable_to_non_nullable
-                      as Map<String, dynamic>?,
-            status: freezed == status
-                ? _value.status
-                : status // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            waitingFor: freezed == waitingFor
-                ? _value.waitingFor
-                : waitingFor // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            hasUpdateForFisher: freezed == hasUpdateForFisher
-                ? _value.hasUpdateForFisher
-                : hasUpdateForFisher // ignore: cast_nullable_to_non_nullable
-                      as bool?,
-            hasUpdateForBuyer: freezed == hasUpdateForBuyer
-                ? _value.hasUpdateForBuyer
-                : hasUpdateForBuyer // ignore: cast_nullable_to_non_nullable
-                      as bool?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      product: freezed == product
+          ? _value.product
+          : product // ignore: cast_nullable_to_non_nullable
+              as ProductApiModel?,
+      buyer: freezed == buyer
+          ? _value.buyer
+          : buyer // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      currentPriceAmount: freezed == currentPriceAmount
+          ? _value.currentPriceAmount
+          : currentPriceAmount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      currentWeightGrams: freezed == currentWeightGrams
+          ? _value.currentWeightGrams
+          : currentWeightGrams // ignore: cast_nullable_to_non_nullable
+              as int?,
+      currentPricePerKgAmount: freezed == currentPricePerKgAmount
+          ? _value.currentPricePerKgAmount
+          : currentPricePerKgAmount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      previousPriceAmount: freezed == previousPriceAmount
+          ? _value.previousPriceAmount
+          : previousPriceAmount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      previousWeightGrams: freezed == previousWeightGrams
+          ? _value.previousWeightGrams
+          : previousWeightGrams // ignore: cast_nullable_to_non_nullable
+              as int?,
+      previousPricePerKgAmount: freezed == previousPricePerKgAmount
+          ? _value.previousPricePerKgAmount
+          : previousPricePerKgAmount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      saleOrder: freezed == saleOrder
+          ? _value.saleOrder
+          : saleOrder // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      waitingFor: freezed == waitingFor
+          ? _value.waitingFor
+          : waitingFor // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasUpdateForFisher: freezed == hasUpdateForFisher
+          ? _value.hasUpdateForFisher
+          : hasUpdateForFisher // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      hasUpdateForBuyer: freezed == hasUpdateForBuyer
+          ? _value.hasUpdateForBuyer
+          : hasUpdateForBuyer // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 
-  /// Create a copy of OfferApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ProductApiModelCopyWith<$Res>? get product {
@@ -210,8 +196,6 @@ class _$OfferApiModelCopyWithImpl<$Res, $Val extends OfferApiModel>
     });
   }
 
-  /// Create a copy of OfferApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $AccountApiModelCopyWith<$Res>? get buyer {
@@ -229,29 +213,27 @@ class _$OfferApiModelCopyWithImpl<$Res, $Val extends OfferApiModel>
 abstract class _$$OfferApiModelImplCopyWith<$Res>
     implements $OfferApiModelCopyWith<$Res> {
   factory _$$OfferApiModelImplCopyWith(
-    _$OfferApiModelImpl value,
-    $Res Function(_$OfferApiModelImpl) then,
-  ) = __$$OfferApiModelImplCopyWithImpl<$Res>;
+          _$OfferApiModelImpl value, $Res Function(_$OfferApiModelImpl) then) =
+      __$$OfferApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    dynamic id,
-    ProductApiModel? product,
-    AccountApiModel? buyer,
-    int? currentPriceAmount,
-    int? currentWeightGrams,
-    int? currentPricePerKgAmount,
-    int? previousPriceAmount,
-    int? previousWeightGrams,
-    int? previousPricePerKgAmount,
-    @JsonKey(name: 'saleOrder') Map<String, dynamic>? saleOrder,
-    String? status,
-    @JsonKey(name: 'waiting_for') String? waitingFor,
-    @JsonKey(name: 'has_update_for_fisher') bool? hasUpdateForFisher,
-    @JsonKey(name: 'has_update_for_buyer') bool? hasUpdateForBuyer,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-  });
+  $Res call(
+      {dynamic id,
+      ProductApiModel? product,
+      AccountApiModel? buyer,
+      int? currentPriceAmount,
+      int? currentWeightGrams,
+      int? currentPricePerKgAmount,
+      int? previousPriceAmount,
+      int? previousWeightGrams,
+      int? previousPricePerKgAmount,
+      @JsonKey(name: 'saleOrder') Map<String, dynamic>? saleOrder,
+      String? status,
+      @JsonKey(name: 'waiting_for') String? waitingFor,
+      @JsonKey(name: 'has_update_for_fisher') bool? hasUpdateForFisher,
+      @JsonKey(name: 'has_update_for_buyer') bool? hasUpdateForBuyer,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt});
 
   @override
   $ProductApiModelCopyWith<$Res>? get product;
@@ -264,12 +246,9 @@ class __$$OfferApiModelImplCopyWithImpl<$Res>
     extends _$OfferApiModelCopyWithImpl<$Res, _$OfferApiModelImpl>
     implements _$$OfferApiModelImplCopyWith<$Res> {
   __$$OfferApiModelImplCopyWithImpl(
-    _$OfferApiModelImpl _value,
-    $Res Function(_$OfferApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$OfferApiModelImpl _value, $Res Function(_$OfferApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of OfferApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -290,131 +269,129 @@ class __$$OfferApiModelImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
-    return _then(
-      _$OfferApiModelImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        product: freezed == product
-            ? _value.product
-            : product // ignore: cast_nullable_to_non_nullable
-                  as ProductApiModel?,
-        buyer: freezed == buyer
-            ? _value.buyer
-            : buyer // ignore: cast_nullable_to_non_nullable
-                  as AccountApiModel?,
-        currentPriceAmount: freezed == currentPriceAmount
-            ? _value.currentPriceAmount
-            : currentPriceAmount // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        currentWeightGrams: freezed == currentWeightGrams
-            ? _value.currentWeightGrams
-            : currentWeightGrams // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        currentPricePerKgAmount: freezed == currentPricePerKgAmount
-            ? _value.currentPricePerKgAmount
-            : currentPricePerKgAmount // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        previousPriceAmount: freezed == previousPriceAmount
-            ? _value.previousPriceAmount
-            : previousPriceAmount // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        previousWeightGrams: freezed == previousWeightGrams
-            ? _value.previousWeightGrams
-            : previousWeightGrams // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        previousPricePerKgAmount: freezed == previousPricePerKgAmount
-            ? _value.previousPricePerKgAmount
-            : previousPricePerKgAmount // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        saleOrder: freezed == saleOrder
-            ? _value._saleOrder
-            : saleOrder // ignore: cast_nullable_to_non_nullable
-                  as Map<String, dynamic>?,
-        status: freezed == status
-            ? _value.status
-            : status // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        waitingFor: freezed == waitingFor
-            ? _value.waitingFor
-            : waitingFor // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        hasUpdateForFisher: freezed == hasUpdateForFisher
-            ? _value.hasUpdateForFisher
-            : hasUpdateForFisher // ignore: cast_nullable_to_non_nullable
-                  as bool?,
-        hasUpdateForBuyer: freezed == hasUpdateForBuyer
-            ? _value.hasUpdateForBuyer
-            : hasUpdateForBuyer // ignore: cast_nullable_to_non_nullable
-                  as bool?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$OfferApiModelImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      product: freezed == product
+          ? _value.product
+          : product // ignore: cast_nullable_to_non_nullable
+              as ProductApiModel?,
+      buyer: freezed == buyer
+          ? _value.buyer
+          : buyer // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      currentPriceAmount: freezed == currentPriceAmount
+          ? _value.currentPriceAmount
+          : currentPriceAmount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      currentWeightGrams: freezed == currentWeightGrams
+          ? _value.currentWeightGrams
+          : currentWeightGrams // ignore: cast_nullable_to_non_nullable
+              as int?,
+      currentPricePerKgAmount: freezed == currentPricePerKgAmount
+          ? _value.currentPricePerKgAmount
+          : currentPricePerKgAmount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      previousPriceAmount: freezed == previousPriceAmount
+          ? _value.previousPriceAmount
+          : previousPriceAmount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      previousWeightGrams: freezed == previousWeightGrams
+          ? _value.previousWeightGrams
+          : previousWeightGrams // ignore: cast_nullable_to_non_nullable
+              as int?,
+      previousPricePerKgAmount: freezed == previousPricePerKgAmount
+          ? _value.previousPricePerKgAmount
+          : previousPricePerKgAmount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      saleOrder: freezed == saleOrder
+          ? _value._saleOrder
+          : saleOrder // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      waitingFor: freezed == waitingFor
+          ? _value.waitingFor
+          : waitingFor // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasUpdateForFisher: freezed == hasUpdateForFisher
+          ? _value.hasUpdateForFisher
+          : hasUpdateForFisher // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      hasUpdateForBuyer: freezed == hasUpdateForBuyer
+          ? _value.hasUpdateForBuyer
+          : hasUpdateForBuyer // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$OfferApiModelImpl implements _OfferApiModel {
-  const _$OfferApiModelImpl({
-    required this.id,
-    this.product,
-    this.buyer,
-    this.currentPriceAmount,
-    this.currentWeightGrams,
-    this.currentPricePerKgAmount,
-    this.previousPriceAmount,
-    this.previousWeightGrams,
-    this.previousPricePerKgAmount,
-    @JsonKey(name: 'saleOrder') final Map<String, dynamic>? saleOrder,
-    this.status,
-    @JsonKey(name: 'waiting_for') this.waitingFor,
-    @JsonKey(name: 'has_update_for_fisher') this.hasUpdateForFisher,
-    @JsonKey(name: 'has_update_for_buyer') this.hasUpdateForBuyer,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-  }) : _saleOrder = saleOrder;
+  const _$OfferApiModelImpl(
+      {required this.id,
+      this.product,
+      this.buyer,
+      this.currentPriceAmount,
+      this.currentWeightGrams,
+      this.currentPricePerKgAmount,
+      this.previousPriceAmount,
+      this.previousWeightGrams,
+      this.previousPricePerKgAmount,
+      @JsonKey(name: 'saleOrder') final Map<String, dynamic>? saleOrder,
+      this.status,
+      @JsonKey(name: 'waiting_for') this.waitingFor,
+      @JsonKey(name: 'has_update_for_fisher') this.hasUpdateForFisher,
+      @JsonKey(name: 'has_update_for_buyer') this.hasUpdateForBuyer,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt})
+      : _saleOrder = saleOrder;
 
   factory _$OfferApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$OfferApiModelImplFromJson(json);
 
   @override
   final dynamic id;
-  // API returns 'product' object which contains 'specie', 'account' etc.
-  // 'product' is the new catch
+// API returns 'product' object which contains 'specie', 'account' etc.
+// 'product' is the new catch
   @override
   final ProductApiModel? product;
-  // API returns 'buyer' object
+// API returns 'buyer' object
   @override
   final AccountApiModel? buyer;
-  // Field from API JSON "currentPriceAmount": 7000
-  // Using camelCase keys as per JSON response
+// Field from API JSON "currentPriceAmount": 7000
+// Using camelCase keys as per JSON response
   @override
   final int? currentPriceAmount;
   @override
   final int? currentWeightGrams;
   @override
   final int? currentPricePerKgAmount;
-  // Previous values seem to use snake_case or mixed?
-  // JSON: "previous_price": 90, "previousPriceAmount": 7500
-  // We'll use the specific amount fields if available (camelCase ones)
+// Previous values seem to use snake_case or mixed?
+// JSON: "previous_price": 90, "previousPriceAmount": 7500
+// We'll use the specific amount fields if available (camelCase ones)
   @override
   final int? previousPriceAmount;
   @override
   final int? previousWeightGrams;
   @override
   final int? previousPricePerKgAmount;
-  // Backend returns embedded order when offer is accepted
+// Backend returns embedded order when offer is accepted
   final Map<String, dynamic>? _saleOrder;
-  // Backend returns embedded order when offer is accepted
+// Backend returns embedded order when offer is accepted
   @override
   @JsonKey(name: 'saleOrder')
   Map<String, dynamic>? get saleOrder {
@@ -461,23 +438,17 @@ class _$OfferApiModelImpl implements _OfferApiModel {
             (identical(other.currentWeightGrams, currentWeightGrams) ||
                 other.currentWeightGrams == currentWeightGrams) &&
             (identical(
-                  other.currentPricePerKgAmount,
-                  currentPricePerKgAmount,
-                ) ||
+                    other.currentPricePerKgAmount, currentPricePerKgAmount) ||
                 other.currentPricePerKgAmount == currentPricePerKgAmount) &&
             (identical(other.previousPriceAmount, previousPriceAmount) ||
                 other.previousPriceAmount == previousPriceAmount) &&
             (identical(other.previousWeightGrams, previousWeightGrams) ||
                 other.previousWeightGrams == previousWeightGrams) &&
             (identical(
-                  other.previousPricePerKgAmount,
-                  previousPricePerKgAmount,
-                ) ||
+                    other.previousPricePerKgAmount, previousPricePerKgAmount) ||
                 other.previousPricePerKgAmount == previousPricePerKgAmount) &&
-            const DeepCollectionEquality().equals(
-              other._saleOrder,
-              _saleOrder,
-            ) &&
+            const DeepCollectionEquality()
+                .equals(other._saleOrder, _saleOrder) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.waitingFor, waitingFor) ||
                 other.waitingFor == waitingFor) &&
@@ -491,31 +462,28 @@ class _$OfferApiModelImpl implements _OfferApiModel {
                 other.updatedAt == updatedAt));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(id),
-    product,
-    buyer,
-    currentPriceAmount,
-    currentWeightGrams,
-    currentPricePerKgAmount,
-    previousPriceAmount,
-    previousWeightGrams,
-    previousPricePerKgAmount,
-    const DeepCollectionEquality().hash(_saleOrder),
-    status,
-    waitingFor,
-    hasUpdateForFisher,
-    hasUpdateForBuyer,
-    createdAt,
-    updatedAt,
-  );
+      runtimeType,
+      const DeepCollectionEquality().hash(id),
+      product,
+      buyer,
+      currentPriceAmount,
+      currentWeightGrams,
+      currentPricePerKgAmount,
+      previousPriceAmount,
+      previousWeightGrams,
+      previousPricePerKgAmount,
+      const DeepCollectionEquality().hash(_saleOrder),
+      status,
+      waitingFor,
+      hasUpdateForFisher,
+      hasUpdateForBuyer,
+      createdAt,
+      updatedAt);
 
-  /// Create a copy of OfferApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OfferApiModelImplCopyWith<_$OfferApiModelImpl> get copyWith =>
@@ -523,56 +491,58 @@ class _$OfferApiModelImpl implements _OfferApiModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$OfferApiModelImplToJson(this);
+    return _$$OfferApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _OfferApiModel implements OfferApiModel {
-  const factory _OfferApiModel({
-    required final dynamic id,
-    final ProductApiModel? product,
-    final AccountApiModel? buyer,
-    final int? currentPriceAmount,
-    final int? currentWeightGrams,
-    final int? currentPricePerKgAmount,
-    final int? previousPriceAmount,
-    final int? previousWeightGrams,
-    final int? previousPricePerKgAmount,
-    @JsonKey(name: 'saleOrder') final Map<String, dynamic>? saleOrder,
-    final String? status,
-    @JsonKey(name: 'waiting_for') final String? waitingFor,
-    @JsonKey(name: 'has_update_for_fisher') final bool? hasUpdateForFisher,
-    @JsonKey(name: 'has_update_for_buyer') final bool? hasUpdateForBuyer,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-  }) = _$OfferApiModelImpl;
+  const factory _OfferApiModel(
+      {required final dynamic id,
+      final ProductApiModel? product,
+      final AccountApiModel? buyer,
+      final int? currentPriceAmount,
+      final int? currentWeightGrams,
+      final int? currentPricePerKgAmount,
+      final int? previousPriceAmount,
+      final int? previousWeightGrams,
+      final int? previousPricePerKgAmount,
+      @JsonKey(name: 'saleOrder') final Map<String, dynamic>? saleOrder,
+      final String? status,
+      @JsonKey(name: 'waiting_for') final String? waitingFor,
+      @JsonKey(name: 'has_update_for_fisher') final bool? hasUpdateForFisher,
+      @JsonKey(name: 'has_update_for_buyer') final bool? hasUpdateForBuyer,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at')
+      final String? updatedAt}) = _$OfferApiModelImpl;
 
   factory _OfferApiModel.fromJson(Map<String, dynamic> json) =
       _$OfferApiModelImpl.fromJson;
 
   @override
-  dynamic get id; // API returns 'product' object which contains 'specie', 'account' etc.
-  // 'product' is the new catch
-  @override
-  ProductApiModel? get product; // API returns 'buyer' object
-  @override
-  AccountApiModel? get buyer; // Field from API JSON "currentPriceAmount": 7000
-  // Using camelCase keys as per JSON response
-  @override
+  dynamic get id;
+  @override // API returns 'product' object which contains 'specie', 'account' etc.
+// 'product' is the new catch
+  ProductApiModel? get product;
+  @override // API returns 'buyer' object
+  AccountApiModel? get buyer;
+  @override // Field from API JSON "currentPriceAmount": 7000
+// Using camelCase keys as per JSON response
   int? get currentPriceAmount;
   @override
   int? get currentWeightGrams;
   @override
-  int? get currentPricePerKgAmount; // Previous values seem to use snake_case or mixed?
-  // JSON: "previous_price": 90, "previousPriceAmount": 7500
-  // We'll use the specific amount fields if available (camelCase ones)
-  @override
+  int? get currentPricePerKgAmount;
+  @override // Previous values seem to use snake_case or mixed?
+// JSON: "previous_price": 90, "previousPriceAmount": 7500
+// We'll use the specific amount fields if available (camelCase ones)
   int? get previousPriceAmount;
   @override
   int? get previousWeightGrams;
   @override
-  int? get previousPricePerKgAmount; // Backend returns embedded order when offer is accepted
-  @override
+  int? get previousPricePerKgAmount;
+  @override // Backend returns embedded order when offer is accepted
   @JsonKey(name: 'saleOrder')
   Map<String, dynamic>? get saleOrder;
   @override
@@ -592,11 +562,8 @@ abstract class _OfferApiModel implements OfferApiModel {
   @override
   @JsonKey(name: 'updated_at')
   String? get updatedAt;
-
-  /// Create a copy of OfferApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$OfferApiModelImplCopyWith<_$OfferApiModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -607,22 +574,19 @@ CreateOfferRequest _$CreateOfferRequestFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CreateOfferRequest {
-  // Request: "product": 1
+// Request: "product": 1
   dynamic get product =>
       throw _privateConstructorUsedError; // Request: "weight_in_grams": 10.5
   @JsonKey(name: 'weight_in_grams')
-  double get weightInGrams => throw _privateConstructorUsedError; // Request: "price": 100
+  double get weightInGrams =>
+      throw _privateConstructorUsedError; // Request: "price": 100
   double get price =>
       throw _privateConstructorUsedError; // Request: "price_per_kg": 9.52
   @JsonKey(name: 'price_per_kg')
   double get pricePerKg => throw _privateConstructorUsedError;
 
-  /// Serializes this CreateOfferRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of CreateOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CreateOfferRequestCopyWith<CreateOfferRequest> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -630,16 +594,14 @@ mixin _$CreateOfferRequest {
 /// @nodoc
 abstract class $CreateOfferRequestCopyWith<$Res> {
   factory $CreateOfferRequestCopyWith(
-    CreateOfferRequest value,
-    $Res Function(CreateOfferRequest) then,
-  ) = _$CreateOfferRequestCopyWithImpl<$Res, CreateOfferRequest>;
+          CreateOfferRequest value, $Res Function(CreateOfferRequest) then) =
+      _$CreateOfferRequestCopyWithImpl<$Res, CreateOfferRequest>;
   @useResult
-  $Res call({
-    dynamic product,
-    @JsonKey(name: 'weight_in_grams') double weightInGrams,
-    double price,
-    @JsonKey(name: 'price_per_kg') double pricePerKg,
-  });
+  $Res call(
+      {dynamic product,
+      @JsonKey(name: 'weight_in_grams') double weightInGrams,
+      double price,
+      @JsonKey(name: 'price_per_kg') double pricePerKg});
 }
 
 /// @nodoc
@@ -652,8 +614,6 @@ class _$CreateOfferRequestCopyWithImpl<$Res, $Val extends CreateOfferRequest>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CreateOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -662,58 +622,50 @@ class _$CreateOfferRequestCopyWithImpl<$Res, $Val extends CreateOfferRequest>
     Object? price = null,
     Object? pricePerKg = null,
   }) {
-    return _then(
-      _value.copyWith(
-            product: freezed == product
-                ? _value.product
-                : product // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            weightInGrams: null == weightInGrams
-                ? _value.weightInGrams
-                : weightInGrams // ignore: cast_nullable_to_non_nullable
-                      as double,
-            price: null == price
-                ? _value.price
-                : price // ignore: cast_nullable_to_non_nullable
-                      as double,
-            pricePerKg: null == pricePerKg
-                ? _value.pricePerKg
-                : pricePerKg // ignore: cast_nullable_to_non_nullable
-                      as double,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      product: freezed == product
+          ? _value.product
+          : product // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      weightInGrams: null == weightInGrams
+          ? _value.weightInGrams
+          : weightInGrams // ignore: cast_nullable_to_non_nullable
+              as double,
+      price: null == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double,
+      pricePerKg: null == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$CreateOfferRequestImplCopyWith<$Res>
     implements $CreateOfferRequestCopyWith<$Res> {
-  factory _$$CreateOfferRequestImplCopyWith(
-    _$CreateOfferRequestImpl value,
-    $Res Function(_$CreateOfferRequestImpl) then,
-  ) = __$$CreateOfferRequestImplCopyWithImpl<$Res>;
+  factory _$$CreateOfferRequestImplCopyWith(_$CreateOfferRequestImpl value,
+          $Res Function(_$CreateOfferRequestImpl) then) =
+      __$$CreateOfferRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    dynamic product,
-    @JsonKey(name: 'weight_in_grams') double weightInGrams,
-    double price,
-    @JsonKey(name: 'price_per_kg') double pricePerKg,
-  });
+  $Res call(
+      {dynamic product,
+      @JsonKey(name: 'weight_in_grams') double weightInGrams,
+      double price,
+      @JsonKey(name: 'price_per_kg') double pricePerKg});
 }
 
 /// @nodoc
 class __$$CreateOfferRequestImplCopyWithImpl<$Res>
     extends _$CreateOfferRequestCopyWithImpl<$Res, _$CreateOfferRequestImpl>
     implements _$$CreateOfferRequestImplCopyWith<$Res> {
-  __$$CreateOfferRequestImplCopyWithImpl(
-    _$CreateOfferRequestImpl _value,
-    $Res Function(_$CreateOfferRequestImpl) _then,
-  ) : super(_value, _then);
+  __$$CreateOfferRequestImplCopyWithImpl(_$CreateOfferRequestImpl _value,
+      $Res Function(_$CreateOfferRequestImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of CreateOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -722,53 +674,50 @@ class __$$CreateOfferRequestImplCopyWithImpl<$Res>
     Object? price = null,
     Object? pricePerKg = null,
   }) {
-    return _then(
-      _$CreateOfferRequestImpl(
-        product: freezed == product
-            ? _value.product
-            : product // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        weightInGrams: null == weightInGrams
-            ? _value.weightInGrams
-            : weightInGrams // ignore: cast_nullable_to_non_nullable
-                  as double,
-        price: null == price
-            ? _value.price
-            : price // ignore: cast_nullable_to_non_nullable
-                  as double,
-        pricePerKg: null == pricePerKg
-            ? _value.pricePerKg
-            : pricePerKg // ignore: cast_nullable_to_non_nullable
-                  as double,
-      ),
-    );
+    return _then(_$CreateOfferRequestImpl(
+      product: freezed == product
+          ? _value.product
+          : product // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      weightInGrams: null == weightInGrams
+          ? _value.weightInGrams
+          : weightInGrams // ignore: cast_nullable_to_non_nullable
+              as double,
+      price: null == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double,
+      pricePerKg: null == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CreateOfferRequestImpl implements _CreateOfferRequest {
-  const _$CreateOfferRequestImpl({
-    required this.product,
-    @JsonKey(name: 'weight_in_grams') required this.weightInGrams,
-    required this.price,
-    @JsonKey(name: 'price_per_kg') required this.pricePerKg,
-  });
+  const _$CreateOfferRequestImpl(
+      {required this.product,
+      @JsonKey(name: 'weight_in_grams') required this.weightInGrams,
+      required this.price,
+      @JsonKey(name: 'price_per_kg') required this.pricePerKg});
 
   factory _$CreateOfferRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreateOfferRequestImplFromJson(json);
 
-  // Request: "product": 1
+// Request: "product": 1
   @override
   final dynamic product;
-  // Request: "weight_in_grams": 10.5
+// Request: "weight_in_grams": 10.5
   @override
   @JsonKey(name: 'weight_in_grams')
   final double weightInGrams;
-  // Request: "price": 100
+// Request: "price": 100
   @override
   final double price;
-  // Request: "price_per_kg": 9.52
+// Request: "price_per_kg": 9.52
   @override
   @JsonKey(name: 'price_per_kg')
   final double pricePerKg;
@@ -791,60 +740,53 @@ class _$CreateOfferRequestImpl implements _CreateOfferRequest {
                 other.pricePerKg == pricePerKg));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(product),
-    weightInGrams,
-    price,
-    pricePerKg,
-  );
+      runtimeType,
+      const DeepCollectionEquality().hash(product),
+      weightInGrams,
+      price,
+      pricePerKg);
 
-  /// Create a copy of CreateOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CreateOfferRequestImplCopyWith<_$CreateOfferRequestImpl> get copyWith =>
       __$$CreateOfferRequestImplCopyWithImpl<_$CreateOfferRequestImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CreateOfferRequestImplToJson(this);
+    return _$$CreateOfferRequestImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _CreateOfferRequest implements CreateOfferRequest {
-  const factory _CreateOfferRequest({
-    required final dynamic product,
-    @JsonKey(name: 'weight_in_grams') required final double weightInGrams,
-    required final double price,
-    @JsonKey(name: 'price_per_kg') required final double pricePerKg,
-  }) = _$CreateOfferRequestImpl;
+  const factory _CreateOfferRequest(
+          {required final dynamic product,
+          @JsonKey(name: 'weight_in_grams') required final double weightInGrams,
+          required final double price,
+          @JsonKey(name: 'price_per_kg') required final double pricePerKg}) =
+      _$CreateOfferRequestImpl;
 
   factory _CreateOfferRequest.fromJson(Map<String, dynamic> json) =
       _$CreateOfferRequestImpl.fromJson;
 
-  // Request: "product": 1
-  @override
-  dynamic get product; // Request: "weight_in_grams": 10.5
-  @override
+  @override // Request: "product": 1
+  dynamic get product;
+  @override // Request: "weight_in_grams": 10.5
   @JsonKey(name: 'weight_in_grams')
-  double get weightInGrams; // Request: "price": 100
-  @override
-  double get price; // Request: "price_per_kg": 9.52
-  @override
+  double get weightInGrams;
+  @override // Request: "price": 100
+  double get price;
+  @override // Request: "price_per_kg": 9.52
   @JsonKey(name: 'price_per_kg')
   double get pricePerKg;
-
-  /// Create a copy of CreateOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CreateOfferRequestImplCopyWith<_$CreateOfferRequestImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -861,12 +803,8 @@ mixin _$CounterOfferRequest {
   @JsonKey(name: 'price_per_kg')
   double get pricePerKg => throw _privateConstructorUsedError;
 
-  /// Serializes this CounterOfferRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of CounterOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CounterOfferRequestCopyWith<CounterOfferRequest> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -874,15 +812,13 @@ mixin _$CounterOfferRequest {
 /// @nodoc
 abstract class $CounterOfferRequestCopyWith<$Res> {
   factory $CounterOfferRequestCopyWith(
-    CounterOfferRequest value,
-    $Res Function(CounterOfferRequest) then,
-  ) = _$CounterOfferRequestCopyWithImpl<$Res, CounterOfferRequest>;
+          CounterOfferRequest value, $Res Function(CounterOfferRequest) then) =
+      _$CounterOfferRequestCopyWithImpl<$Res, CounterOfferRequest>;
   @useResult
-  $Res call({
-    @JsonKey(name: 'weight_in_grams') double weightInGrams,
-    double price,
-    @JsonKey(name: 'price_per_kg') double pricePerKg,
-  });
+  $Res call(
+      {@JsonKey(name: 'weight_in_grams') double weightInGrams,
+      double price,
+      @JsonKey(name: 'price_per_kg') double pricePerKg});
 }
 
 /// @nodoc
@@ -895,8 +831,6 @@ class _$CounterOfferRequestCopyWithImpl<$Res, $Val extends CounterOfferRequest>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CounterOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -904,53 +838,45 @@ class _$CounterOfferRequestCopyWithImpl<$Res, $Val extends CounterOfferRequest>
     Object? price = null,
     Object? pricePerKg = null,
   }) {
-    return _then(
-      _value.copyWith(
-            weightInGrams: null == weightInGrams
-                ? _value.weightInGrams
-                : weightInGrams // ignore: cast_nullable_to_non_nullable
-                      as double,
-            price: null == price
-                ? _value.price
-                : price // ignore: cast_nullable_to_non_nullable
-                      as double,
-            pricePerKg: null == pricePerKg
-                ? _value.pricePerKg
-                : pricePerKg // ignore: cast_nullable_to_non_nullable
-                      as double,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      weightInGrams: null == weightInGrams
+          ? _value.weightInGrams
+          : weightInGrams // ignore: cast_nullable_to_non_nullable
+              as double,
+      price: null == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double,
+      pricePerKg: null == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$CounterOfferRequestImplCopyWith<$Res>
     implements $CounterOfferRequestCopyWith<$Res> {
-  factory _$$CounterOfferRequestImplCopyWith(
-    _$CounterOfferRequestImpl value,
-    $Res Function(_$CounterOfferRequestImpl) then,
-  ) = __$$CounterOfferRequestImplCopyWithImpl<$Res>;
+  factory _$$CounterOfferRequestImplCopyWith(_$CounterOfferRequestImpl value,
+          $Res Function(_$CounterOfferRequestImpl) then) =
+      __$$CounterOfferRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: 'weight_in_grams') double weightInGrams,
-    double price,
-    @JsonKey(name: 'price_per_kg') double pricePerKg,
-  });
+  $Res call(
+      {@JsonKey(name: 'weight_in_grams') double weightInGrams,
+      double price,
+      @JsonKey(name: 'price_per_kg') double pricePerKg});
 }
 
 /// @nodoc
 class __$$CounterOfferRequestImplCopyWithImpl<$Res>
     extends _$CounterOfferRequestCopyWithImpl<$Res, _$CounterOfferRequestImpl>
     implements _$$CounterOfferRequestImplCopyWith<$Res> {
-  __$$CounterOfferRequestImplCopyWithImpl(
-    _$CounterOfferRequestImpl _value,
-    $Res Function(_$CounterOfferRequestImpl) _then,
-  ) : super(_value, _then);
+  __$$CounterOfferRequestImplCopyWithImpl(_$CounterOfferRequestImpl _value,
+      $Res Function(_$CounterOfferRequestImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of CounterOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -958,33 +884,30 @@ class __$$CounterOfferRequestImplCopyWithImpl<$Res>
     Object? price = null,
     Object? pricePerKg = null,
   }) {
-    return _then(
-      _$CounterOfferRequestImpl(
-        weightInGrams: null == weightInGrams
-            ? _value.weightInGrams
-            : weightInGrams // ignore: cast_nullable_to_non_nullable
-                  as double,
-        price: null == price
-            ? _value.price
-            : price // ignore: cast_nullable_to_non_nullable
-                  as double,
-        pricePerKg: null == pricePerKg
-            ? _value.pricePerKg
-            : pricePerKg // ignore: cast_nullable_to_non_nullable
-                  as double,
-      ),
-    );
+    return _then(_$CounterOfferRequestImpl(
+      weightInGrams: null == weightInGrams
+          ? _value.weightInGrams
+          : weightInGrams // ignore: cast_nullable_to_non_nullable
+              as double,
+      price: null == price
+          ? _value.price
+          : price // ignore: cast_nullable_to_non_nullable
+              as double,
+      pricePerKg: null == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CounterOfferRequestImpl implements _CounterOfferRequest {
-  const _$CounterOfferRequestImpl({
-    @JsonKey(name: 'weight_in_grams') required this.weightInGrams,
-    required this.price,
-    @JsonKey(name: 'price_per_kg') required this.pricePerKg,
-  });
+  const _$CounterOfferRequestImpl(
+      {@JsonKey(name: 'weight_in_grams') required this.weightInGrams,
+      required this.price,
+      @JsonKey(name: 'price_per_kg') required this.pricePerKg});
 
   factory _$CounterOfferRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$CounterOfferRequestImplFromJson(json);
@@ -1015,34 +938,32 @@ class _$CounterOfferRequestImpl implements _CounterOfferRequest {
                 other.pricePerKg == pricePerKg));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, weightInGrams, price, pricePerKg);
 
-  /// Create a copy of CounterOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CounterOfferRequestImplCopyWith<_$CounterOfferRequestImpl> get copyWith =>
       __$$CounterOfferRequestImplCopyWithImpl<_$CounterOfferRequestImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CounterOfferRequestImplToJson(this);
+    return _$$CounterOfferRequestImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _CounterOfferRequest implements CounterOfferRequest {
-  const factory _CounterOfferRequest({
-    @JsonKey(name: 'weight_in_grams') required final double weightInGrams,
-    required final double price,
-    @JsonKey(name: 'price_per_kg') required final double pricePerKg,
-  }) = _$CounterOfferRequestImpl;
+  const factory _CounterOfferRequest(
+      {@JsonKey(name: 'weight_in_grams') required final double weightInGrams,
+      required final double price,
+      @JsonKey(name: 'price_per_kg')
+      required final double pricePerKg}) = _$CounterOfferRequestImpl;
 
   factory _CounterOfferRequest.fromJson(Map<String, dynamic> json) =
       _$CounterOfferRequestImpl.fromJson;
@@ -1055,11 +976,8 @@ abstract class _CounterOfferRequest implements CounterOfferRequest {
   @override
   @JsonKey(name: 'price_per_kg')
   double get pricePerKg;
-
-  /// Create a copy of CounterOfferRequest
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CounterOfferRequestImplCopyWith<_$CounterOfferRequestImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1073,31 +991,24 @@ mixin _$OfferResponseRequest {
   String get action => throw _privateConstructorUsedError;
   String get message => throw _privateConstructorUsedError;
 
-  /// Serializes this OfferResponseRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of OfferResponseRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $OfferResponseRequestCopyWith<OfferResponseRequest> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $OfferResponseRequestCopyWith<$Res> {
-  factory $OfferResponseRequestCopyWith(
-    OfferResponseRequest value,
-    $Res Function(OfferResponseRequest) then,
-  ) = _$OfferResponseRequestCopyWithImpl<$Res, OfferResponseRequest>;
+  factory $OfferResponseRequestCopyWith(OfferResponseRequest value,
+          $Res Function(OfferResponseRequest) then) =
+      _$OfferResponseRequestCopyWithImpl<$Res, OfferResponseRequest>;
   @useResult
   $Res call({String action, String message});
 }
 
 /// @nodoc
-class _$OfferResponseRequestCopyWithImpl<
-  $Res,
-  $Val extends OfferResponseRequest
->
+class _$OfferResponseRequestCopyWithImpl<$Res,
+        $Val extends OfferResponseRequest>
     implements $OfferResponseRequestCopyWith<$Res> {
   _$OfferResponseRequestCopyWithImpl(this._value, this._then);
 
@@ -1106,34 +1017,31 @@ class _$OfferResponseRequestCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of OfferResponseRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? action = null, Object? message = null}) {
-    return _then(
-      _value.copyWith(
-            action: null == action
-                ? _value.action
-                : action // ignore: cast_nullable_to_non_nullable
-                      as String,
-            message: null == message
-                ? _value.message
-                : message // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? action = null,
+    Object? message = null,
+  }) {
+    return _then(_value.copyWith(
+      action: null == action
+          ? _value.action
+          : action // ignore: cast_nullable_to_non_nullable
+              as String,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$OfferResponseRequestImplCopyWith<$Res>
     implements $OfferResponseRequestCopyWith<$Res> {
-  factory _$$OfferResponseRequestImplCopyWith(
-    _$OfferResponseRequestImpl value,
-    $Res Function(_$OfferResponseRequestImpl) then,
-  ) = __$$OfferResponseRequestImplCopyWithImpl<$Res>;
+  factory _$$OfferResponseRequestImplCopyWith(_$OfferResponseRequestImpl value,
+          $Res Function(_$OfferResponseRequestImpl) then) =
+      __$$OfferResponseRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String action, String message});
@@ -1143,38 +1051,34 @@ abstract class _$$OfferResponseRequestImplCopyWith<$Res>
 class __$$OfferResponseRequestImplCopyWithImpl<$Res>
     extends _$OfferResponseRequestCopyWithImpl<$Res, _$OfferResponseRequestImpl>
     implements _$$OfferResponseRequestImplCopyWith<$Res> {
-  __$$OfferResponseRequestImplCopyWithImpl(
-    _$OfferResponseRequestImpl _value,
-    $Res Function(_$OfferResponseRequestImpl) _then,
-  ) : super(_value, _then);
+  __$$OfferResponseRequestImplCopyWithImpl(_$OfferResponseRequestImpl _value,
+      $Res Function(_$OfferResponseRequestImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of OfferResponseRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? action = null, Object? message = null}) {
-    return _then(
-      _$OfferResponseRequestImpl(
-        action: null == action
-            ? _value.action
-            : action // ignore: cast_nullable_to_non_nullable
-                  as String,
-        message: null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? action = null,
+    Object? message = null,
+  }) {
+    return _then(_$OfferResponseRequestImpl(
+      action: null == action
+          ? _value.action
+          : action // ignore: cast_nullable_to_non_nullable
+              as String,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$OfferResponseRequestImpl implements _OfferResponseRequest {
-  const _$OfferResponseRequestImpl({
-    required this.action,
-    required this.message,
-  });
+  const _$OfferResponseRequestImpl(
+      {required this.action, required this.message});
 
   factory _$OfferResponseRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$OfferResponseRequestImplFromJson(json);
@@ -1198,33 +1102,30 @@ class _$OfferResponseRequestImpl implements _OfferResponseRequest {
             (identical(other.message, message) || other.message == message));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, action, message);
 
-  /// Create a copy of OfferResponseRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$OfferResponseRequestImplCopyWith<_$OfferResponseRequestImpl>
-  get copyWith =>
-      __$$OfferResponseRequestImplCopyWithImpl<_$OfferResponseRequestImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith =>
+          __$$OfferResponseRequestImplCopyWithImpl<_$OfferResponseRequestImpl>(
+              this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$OfferResponseRequestImplToJson(this);
+    return _$$OfferResponseRequestImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _OfferResponseRequest implements OfferResponseRequest {
-  const factory _OfferResponseRequest({
-    required final String action,
-    required final String message,
-  }) = _$OfferResponseRequestImpl;
+  const factory _OfferResponseRequest(
+      {required final String action,
+      required final String message}) = _$OfferResponseRequestImpl;
 
   factory _OfferResponseRequest.fromJson(Map<String, dynamic> json) =
       _$OfferResponseRequestImpl.fromJson;
@@ -1233,11 +1134,8 @@ abstract class _OfferResponseRequest implements OfferResponseRequest {
   String get action;
   @override
   String get message;
-
-  /// Create a copy of OfferResponseRequest
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$OfferResponseRequestImplCopyWith<_$OfferResponseRequestImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }

@@ -1,27 +1,78 @@
-class UserModel {
-  final String id;
-  final String name;
-  final String? avatarUrl;
-  final double rating;
-  final int reviewCount;
-  final String currentRole; // 'fisher' or 'buyer'
+import 'package:siren_marketplace/core/domain/entities/user.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/domain/value_objects/rating.dart';
 
-  const UserModel({
-    required this.id,
-    required this.name,
-    this.avatarUrl,
-    required this.rating,
-    required this.reviewCount,
-    required this.currentRole,
-  });
+class UserModel extends User {
+  // Primitives for JSON serialization (not stored as fields to avoid conflict)
+  // final double rating; // specific to model logic if needed, but we use super.rating
+  // final String currentRole; // use super.currentRole
+
+  UserModel({
+    required super.id,
+    required super.name,
+    String? avatarUrl,
+    required double rating,
+    required int reviewCount,
+    required String currentRole,
+  }) : super(
+         avatarUrl: avatarUrl,
+         rating: Rating.fromValue(rating),
+         reviewCount: reviewCount,
+         currentRole: UserRole.values.firstWhere(
+           (e) => e.name == currentRole,
+           orElse: () => UserRole.buyer,
+         ),
+       );
+
+  // Custom factory to handle the logic cleanly
+  factory UserModel.create({
+    required String id,
+    required String name,
+    String? avatarUrl,
+    required double rating,
+    required int reviewCount,
+    required String currentRole,
+  }) {
+    // Helper to map role
+    final roleEnum = UserRole.values.firstWhere(
+      (e) => e.name == currentRole,
+      orElse: () => UserRole.buyer,
+    );
+
+    return UserModel._(
+      id: id,
+      name: name,
+      avatarUrl: avatarUrl,
+      rating: Rating.fromValue(rating),
+      reviewCount: reviewCount,
+      currentRole: roleEnum,
+    );
+  }
+
+  // Private constructor passing directly to super
+  const UserModel._({
+    required String id,
+    required String name,
+    String? avatarUrl,
+    required Rating rating,
+    required int reviewCount,
+    required UserRole currentRole,
+  }) : super(
+         id: id,
+         name: name,
+         avatarUrl: avatarUrl,
+         rating: rating,
+         reviewCount: reviewCount,
+         currentRole: currentRole,
+       );
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
     'avatar_url': avatarUrl,
-    'rating': rating,
+    'rating': rating.value,
     'review_count': reviewCount,
-    'role': currentRole,
+    'role': currentRole.name,
   };
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -56,9 +107,9 @@ class UserModel {
     'id': id,
     'name': name,
     'avatar_url': avatarUrl,
-    'rating': rating,
+    'rating': rating.value,
     'review_count': reviewCount,
-    'role': currentRole,
+    'role': currentRole.name,
   };
 
   factory UserModel.fromMap(Map<String, dynamic> map) => UserModel(

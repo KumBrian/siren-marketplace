@@ -44,7 +44,7 @@ class LocalSessionDataSource implements ISessionDataSource {
   @override
   Future<void> saveCurrentUser(UserModel user) async {
     _currentUser = user;
-    _currentRole = user.currentRole;
+    _currentRole = user.currentRole.name;
     await _persistSession();
   }
 

@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
-import 'package:siren_marketplace/core/di/injector.dart';
-import 'package:siren_marketplace/core/domain/entities/message.dart';
-import 'package:siren_marketplace/core/domain/services/message_service.dart';
-import 'package:siren_marketplace/core/providers/conversation_providers.dart';
-import 'package:siren_marketplace/core/providers/message_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
+import 'package:siren_marketplace/features/chat/domain/entities/message.dart';
+import 'package:siren_marketplace/core/domain/entities/user.dart';
+import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
@@ -35,34 +33,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
-    final currentUser = await ref.read(currentUserProvider.future);
-    if (currentUser == null) return;
-
-    final conversation = await ref.read(
-      conversationProvider(widget.conversationId).future,
-    );
-    if (conversation == null) return;
-
-    final receiverId = conversation.getOtherParticipantId(currentUser.id);
-
     try {
-      final messageService = sl<MessageService>();
-      await messageService.sendMessage(
-        senderId: currentUser.id,
-        receiverId: receiverId,
-        content: content,
-      );
+      final controller = ref.read(chatControllerProvider);
+      await controller.sendMessage(widget.conversationId, content);
 
       // Clear the text field
       _messageController.clear();
       setState(() {
         showSend = false;
       });
-
-      // Invalidate providers to refresh the conversation data
-      ref.invalidate(conversationMessagesProvider(widget.conversationId));
-      ref.invalidate(conversationProvider(widget.conversationId));
-      ref.invalidate(userConversationsProvider(currentUser.id));
 
       // Scroll to bottom
       if (_scrollController.hasClients) {
@@ -83,45 +62,68 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final conversationAsync = ref.watch(
-      conversationProvider(widget.conversationId),
-    );
+    // We fetch all conversations and find the one we need.
+    // Ideally we'd have a specific endpoint or provider for single conversation.
+    final conversationsAsync = ref.watch(conversationsProvider);
     final currentUserAsync = ref.watch(currentUserProvider);
 
-    return conversationAsync.when(
-      data: (conversation) {
-        if (conversation == null) {
-          return Scaffold(
-            appBar: AppBar(
-              leading: const BackButton(),
-              title: const Text('Conversation not found'),
-            ),
-            body: const Center(
-              child: Text('This conversation does not exist.'),
-            ),
-          );
+    return currentUserAsync.when(
+      data: (currentUser) {
+        if (currentUser == null) {
+          return const Scaffold(body: Center(child: Text('User not found')));
         }
 
-        return currentUserAsync.when(
-          data: (currentUser) {
-            if (currentUser == null) {
-              return const Scaffold(
-                body: Center(child: Text('User not found')),
+        return conversationsAsync.when(
+          data: (conversations) {
+            final conversation = conversations
+                .where((c) => c.id == widget.conversationId)
+                .firstOrNull;
+
+            if (conversation == null) {
+              return Scaffold(
+                appBar: AppBar(
+                  leading: const BackButton(),
+                  title: const Text('Conversation not found'),
+                ),
+                body: const Center(
+                  child: Text('This conversation does not exist.'),
+                ),
               );
             }
 
-            final otherUserId = conversation.getOtherParticipantId(
-              currentUser.id,
-            );
+            // Mark conversation as read locally if it has unread messages
+            // This relies on the repository returning unreadCount=0 if viewed locally
+            if (conversation.unreadCount > 0) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref
+                    .read(chatControllerProvider)
+                    .markConversationAsRead(widget.conversationId);
+              });
+            }
+
+            // Identify other user with fallback for ID mismatch (Int vs UUID)
+            bool isSourceMe = conversation.sourceAccount.id == currentUser.id;
+            if (!isSourceMe &&
+                conversation.sourceAccount.name == currentUser.name) {
+              isSourceMe = true;
+            }
+
+            final otherUser = isSourceMe
+                ? conversation.targetAccount
+                : conversation.sourceAccount;
 
             return Scaffold(
-              appBar: _buildAppBar(context, otherUserId),
+              appBar: _buildAppBar(
+                context,
+                otherUser.name,
+                otherUser.avatarUrl,
+              ),
               body: Column(
                 children: [
                   Expanded(
                     child: _ChatView(
                       conversationId: widget.conversationId,
-                      currentUserId: currentUser.id,
+                      currentUser: currentUser,
                       scrollController: _scrollController,
                     ),
                   ),
@@ -132,52 +134,43 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           },
           loading: () =>
               const Scaffold(body: Center(child: CircularProgressIndicator())),
-          error: (error, _) =>
-              Scaffold(body: Center(child: Text('Error: $error'))),
+          error: (error, _) => Scaffold(
+            appBar: AppBar(leading: const BackButton()),
+            body: Center(child: Text('Error loading conversation: $error')),
+          ),
         );
       },
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, _) => Scaffold(
-        appBar: AppBar(leading: const BackButton()),
-        body: Center(child: Text('Error loading conversation: $error')),
-      ),
+      error: (error, _) => Scaffold(body: Center(child: Text('Error: $error'))),
     );
   }
 
-  AppBar _buildAppBar(BuildContext context, String otherUserId) {
-    final userAsync = ref.watch(userProvider(otherUserId));
-
+  AppBar _buildAppBar(
+    BuildContext context,
+    String otherUserName,
+    String? otherUserAvatar,
+  ) {
     return AppBar(
       leading: const BackButton(),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       scrolledUnderElevation: 0,
-      title: userAsync.when(
-        data: (user) {
-          if (user == null) {
-            return const Text('Loading...');
-          }
-
-          return Row(
-            children: [
-              ErrorHandlingCircleAvatar(
-                avatarUrl: user.avatarUrl ?? 'assets/images/user-profile.png',
-                radius: 20,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                user.name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                  color: AppColors.textBlue,
-                ),
-              ),
-            ],
-          );
-        },
-        loading: () => const Text('Loading...'),
-        error: (_, __) => const Text('Error'),
+      title: Row(
+        children: [
+          ErrorHandlingCircleAvatar(
+            avatarUrl: otherUserAvatar ?? 'assets/images/user-profile.png',
+            radius: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            otherUserName,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: AppColors.textBlue,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -228,14 +221,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Icon for image/gallery
-                        // IconButton(
-                        //   icon: const Icon(
-                        //     Icons.image_outlined,
-                        //     color: Colors.grey,
-                        //   ),
-                        //   onPressed: () {},
-                        // ),
                         showSend
                             ? IconButton(
                                 icon: const Icon(
@@ -265,12 +250,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
 class _ChatView extends ConsumerStatefulWidget {
   final String conversationId;
-  final String currentUserId;
+  final User currentUser;
   final ScrollController scrollController;
 
   const _ChatView({
     required this.conversationId,
-    required this.currentUserId,
+    required this.currentUser,
     required this.scrollController,
   });
 
@@ -283,28 +268,7 @@ class _ChatViewState extends ConsumerState<_ChatView> {
   void initState() {
     super.initState();
     // Mark messages as read when opening the conversation
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _markMessagesAsRead();
-    });
-  }
-
-  Future<void> _markMessagesAsRead() async {
-    try {
-      final currentUser = await ref.read(currentUserProvider.future);
-      if (currentUser == null) return;
-
-      final messageService = sl<MessageService>();
-      await messageService.markConversationAsRead(
-        widget.conversationId,
-        currentUser.id,
-      );
-
-      // Refresh conversation and conversation list to update unread count
-      ref.invalidate(conversationProvider(widget.conversationId));
-      ref.invalidate(userConversationsProvider(currentUser.id));
-    } catch (e) {
-      debugPrint('Error marking messages as read: $e');
-    }
+    // We need to wait for messages to be loaded to know which ones to mark
   }
 
   // Helper function to format the date banner (e.g., "TODAY, JULY 15")
@@ -325,9 +289,7 @@ class _ChatViewState extends ConsumerState<_ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    final messagesAsync = ref.watch(
-      conversationMessagesProvider(widget.conversationId),
-    );
+    final messagesAsync = ref.watch(messagesProvider(widget.conversationId));
 
     return messagesAsync.when(
       data: (messages) {
@@ -340,39 +302,43 @@ class _ChatViewState extends ConsumerState<_ChatView> {
           );
         }
 
-        // ScrollView reversed to show latest messages at the bottom
+        // Sort messages Descending by Date (Newest first) so they appear correctly
+        // in a reversed ListView (Index 0 = Bottom = Newest).
+        final sortedMessages = List<Message>.from(messages);
+        sortedMessages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
         return ListView.builder(
           controller: widget.scrollController,
           reverse: true, // Display messages from bottom up
-          itemCount: messages.length,
+          itemCount: sortedMessages.length,
           itemBuilder: (context, index) {
-            final reversedIndex = messages.length - 1 - index;
-            final message = messages[reversedIndex];
+            // Newest at index 0 (Bottom).
 
-            // Determine if a date divider should be shown before this message
+            final message = sortedMessages[index];
+            final nextMessage = (index < sortedMessages.length - 1)
+                ? sortedMessages[index + 1]
+                : null;
+
+            // Date divider logic:
+            // Check if current message day is different from older message (next in list)
             bool showDateDivider = false;
-            if (reversedIndex == 0) {
-              // Always show divider for the very first message
+            if (nextMessage == null) {
+              // Top-most message (oldest loaded), always show date
               showDateDivider = true;
-            } else {
-              final previousMessage = messages[reversedIndex - 1];
-              // Check if the day of the current message is different from the previous one
-              if (message.timestamp.day != previousMessage.timestamp.day) {
-                showDateDivider = true;
-              }
+            } else if (message.createdAt.day != nextMessage.createdAt.day) {
+              showDateDivider = true;
             }
 
-            // Build the list item
             return Column(
               children: [
                 if (showDateDivider)
                   _DateDivider(
-                    date: message.timestamp,
+                    date: message.createdAt,
                     formatter: _formatDateDivider,
                   ),
                 _MessageBubble(
                   message: message,
-                  currentUserId: widget.currentUserId,
+                  currentUser: widget.currentUser,
                 ),
               ],
             );
@@ -392,37 +358,16 @@ class _ChatViewState extends ConsumerState<_ChatView> {
 
 class _MessageBubble extends StatelessWidget {
   final Message message;
-  final String currentUserId;
+  final User currentUser;
 
-  const _MessageBubble({required this.message, required this.currentUserId});
+  const _MessageBubble({required this.message, required this.currentUser});
 
   @override
   Widget build(BuildContext context) {
-    final bool isMe = message.isSentBy(currentUserId);
-    final bool isSystemMessage = message.isSystemMessage;
-
-    // System messages are centered
-    if (isSystemMessage) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        alignment: Alignment.center,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.gray300.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            message.content,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textGray,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
+    bool isMe = message.sender.id == currentUser.id;
+    // Fallback if IDs mismatch (e.g. Int ID vs UUID)
+    if (!isMe && message.sender.name == currentUser.name) {
+      isMe = true;
     }
 
     // Alignment (right for me, left for other)
@@ -473,7 +418,7 @@ class _MessageBubble extends StatelessWidget {
               right: isMe ? 8.0 : 0,
             ),
             child: Text(
-              DateFormat('hh:mm a').format(message.timestamp),
+              DateFormat('hh:mm a').format(message.createdAt),
               style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
             ),
           ),

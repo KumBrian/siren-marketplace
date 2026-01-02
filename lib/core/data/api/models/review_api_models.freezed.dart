@@ -12,8 +12,7 @@ part of 'review_api_models.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ReviewApiRequest _$ReviewApiRequestFromJson(Map<String, dynamic> json) {
   return _ReviewApiRequest.fromJson(json);
@@ -26,12 +25,8 @@ mixin _$ReviewApiRequest {
   String get message => throw _privateConstructorUsedError;
   bool get published => throw _privateConstructorUsedError;
 
-  /// Serializes this ReviewApiRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ReviewApiRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ReviewApiRequestCopyWith<ReviewApiRequest> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -39,9 +34,8 @@ mixin _$ReviewApiRequest {
 /// @nodoc
 abstract class $ReviewApiRequestCopyWith<$Res> {
   factory $ReviewApiRequestCopyWith(
-    ReviewApiRequest value,
-    $Res Function(ReviewApiRequest) then,
-  ) = _$ReviewApiRequestCopyWithImpl<$Res, ReviewApiRequest>;
+          ReviewApiRequest value, $Res Function(ReviewApiRequest) then) =
+      _$ReviewApiRequestCopyWithImpl<$Res, ReviewApiRequest>;
   @useResult
   $Res call({int saleOrder, double rate, String message, bool published});
 }
@@ -56,8 +50,6 @@ class _$ReviewApiRequestCopyWithImpl<$Res, $Val extends ReviewApiRequest>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ReviewApiRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -66,37 +58,33 @@ class _$ReviewApiRequestCopyWithImpl<$Res, $Val extends ReviewApiRequest>
     Object? message = null,
     Object? published = null,
   }) {
-    return _then(
-      _value.copyWith(
-            saleOrder: null == saleOrder
-                ? _value.saleOrder
-                : saleOrder // ignore: cast_nullable_to_non_nullable
-                      as int,
-            rate: null == rate
-                ? _value.rate
-                : rate // ignore: cast_nullable_to_non_nullable
-                      as double,
-            message: null == message
-                ? _value.message
-                : message // ignore: cast_nullable_to_non_nullable
-                      as String,
-            published: null == published
-                ? _value.published
-                : published // ignore: cast_nullable_to_non_nullable
-                      as bool,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      saleOrder: null == saleOrder
+          ? _value.saleOrder
+          : saleOrder // ignore: cast_nullable_to_non_nullable
+              as int,
+      rate: null == rate
+          ? _value.rate
+          : rate // ignore: cast_nullable_to_non_nullable
+              as double,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      published: null == published
+          ? _value.published
+          : published // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$ReviewApiRequestImplCopyWith<$Res>
     implements $ReviewApiRequestCopyWith<$Res> {
-  factory _$$ReviewApiRequestImplCopyWith(
-    _$ReviewApiRequestImpl value,
-    $Res Function(_$ReviewApiRequestImpl) then,
-  ) = __$$ReviewApiRequestImplCopyWithImpl<$Res>;
+  factory _$$ReviewApiRequestImplCopyWith(_$ReviewApiRequestImpl value,
+          $Res Function(_$ReviewApiRequestImpl) then) =
+      __$$ReviewApiRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({int saleOrder, double rate, String message, bool published});
@@ -106,13 +94,10 @@ abstract class _$$ReviewApiRequestImplCopyWith<$Res>
 class __$$ReviewApiRequestImplCopyWithImpl<$Res>
     extends _$ReviewApiRequestCopyWithImpl<$Res, _$ReviewApiRequestImpl>
     implements _$$ReviewApiRequestImplCopyWith<$Res> {
-  __$$ReviewApiRequestImplCopyWithImpl(
-    _$ReviewApiRequestImpl _value,
-    $Res Function(_$ReviewApiRequestImpl) _then,
-  ) : super(_value, _then);
+  __$$ReviewApiRequestImplCopyWithImpl(_$ReviewApiRequestImpl _value,
+      $Res Function(_$ReviewApiRequestImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ReviewApiRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -121,38 +106,35 @@ class __$$ReviewApiRequestImplCopyWithImpl<$Res>
     Object? message = null,
     Object? published = null,
   }) {
-    return _then(
-      _$ReviewApiRequestImpl(
-        saleOrder: null == saleOrder
-            ? _value.saleOrder
-            : saleOrder // ignore: cast_nullable_to_non_nullable
-                  as int,
-        rate: null == rate
-            ? _value.rate
-            : rate // ignore: cast_nullable_to_non_nullable
-                  as double,
-        message: null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-        published: null == published
-            ? _value.published
-            : published // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
+    return _then(_$ReviewApiRequestImpl(
+      saleOrder: null == saleOrder
+          ? _value.saleOrder
+          : saleOrder // ignore: cast_nullable_to_non_nullable
+              as int,
+      rate: null == rate
+          ? _value.rate
+          : rate // ignore: cast_nullable_to_non_nullable
+              as double,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      published: null == published
+          ? _value.published
+          : published // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ReviewApiRequestImpl implements _ReviewApiRequest {
-  const _$ReviewApiRequestImpl({
-    required this.saleOrder,
-    required this.rate,
-    required this.message,
-    required this.published,
-  });
+  const _$ReviewApiRequestImpl(
+      {required this.saleOrder,
+      required this.rate,
+      required this.message,
+      required this.published});
 
   factory _$ReviewApiRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReviewApiRequestImplFromJson(json);
@@ -184,35 +166,32 @@ class _$ReviewApiRequestImpl implements _ReviewApiRequest {
                 other.published == published));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, saleOrder, rate, message, published);
 
-  /// Create a copy of ReviewApiRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ReviewApiRequestImplCopyWith<_$ReviewApiRequestImpl> get copyWith =>
       __$$ReviewApiRequestImplCopyWithImpl<_$ReviewApiRequestImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ReviewApiRequestImplToJson(this);
+    return _$$ReviewApiRequestImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ReviewApiRequest implements ReviewApiRequest {
-  const factory _ReviewApiRequest({
-    required final int saleOrder,
-    required final double rate,
-    required final String message,
-    required final bool published,
-  }) = _$ReviewApiRequestImpl;
+  const factory _ReviewApiRequest(
+      {required final int saleOrder,
+      required final double rate,
+      required final String message,
+      required final bool published}) = _$ReviewApiRequestImpl;
 
   factory _ReviewApiRequest.fromJson(Map<String, dynamic> json) =
       _$ReviewApiRequestImpl.fromJson;
@@ -225,11 +204,8 @@ abstract class _ReviewApiRequest implements ReviewApiRequest {
   String get message;
   @override
   bool get published;
-
-  /// Create a copy of ReviewApiRequest
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ReviewApiRequestImplCopyWith<_$ReviewApiRequestImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -257,12 +233,8 @@ mixin _$ReviewApiResponse {
   String? get deletedAt => throw _privateConstructorUsedError;
   String? get uid => throw _privateConstructorUsedError;
 
-  /// Serializes this ReviewApiResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ReviewApiResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ReviewApiResponseCopyWith<ReviewApiResponse> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -270,23 +242,21 @@ mixin _$ReviewApiResponse {
 /// @nodoc
 abstract class $ReviewApiResponseCopyWith<$Res> {
   factory $ReviewApiResponseCopyWith(
-    ReviewApiResponse value,
-    $Res Function(ReviewApiResponse) then,
-  ) = _$ReviewApiResponseCopyWithImpl<$Res, ReviewApiResponse>;
+          ReviewApiResponse value, $Res Function(ReviewApiResponse) then) =
+      _$ReviewApiResponseCopyWithImpl<$Res, ReviewApiResponse>;
   @useResult
-  $Res call({
-    dynamic id,
-    double rate,
-    String message,
-    bool published,
-    @JsonKey(name: 'sale_order') dynamic saleOrder,
-    AccountApiModel? reviewer,
-    AccountApiModel? reviewedAccount,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-  });
+  $Res call(
+      {dynamic id,
+      double rate,
+      String message,
+      bool published,
+      @JsonKey(name: 'sale_order') dynamic saleOrder,
+      AccountApiModel? reviewer,
+      AccountApiModel? reviewedAccount,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid});
 
   $AccountApiModelCopyWith<$Res>? get reviewer;
   $AccountApiModelCopyWith<$Res>? get reviewedAccount;
@@ -302,8 +272,6 @@ class _$ReviewApiResponseCopyWithImpl<$Res, $Val extends ReviewApiResponse>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ReviewApiResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -319,59 +287,54 @@ class _$ReviewApiResponseCopyWithImpl<$Res, $Val extends ReviewApiResponse>
     Object? deletedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            rate: null == rate
-                ? _value.rate
-                : rate // ignore: cast_nullable_to_non_nullable
-                      as double,
-            message: null == message
-                ? _value.message
-                : message // ignore: cast_nullable_to_non_nullable
-                      as String,
-            published: null == published
-                ? _value.published
-                : published // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            saleOrder: freezed == saleOrder
-                ? _value.saleOrder
-                : saleOrder // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            reviewer: freezed == reviewer
-                ? _value.reviewer
-                : reviewer // ignore: cast_nullable_to_non_nullable
-                      as AccountApiModel?,
-            reviewedAccount: freezed == reviewedAccount
-                ? _value.reviewedAccount
-                : reviewedAccount // ignore: cast_nullable_to_non_nullable
-                      as AccountApiModel?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            deletedAt: freezed == deletedAt
-                ? _value.deletedAt
-                : deletedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      rate: null == rate
+          ? _value.rate
+          : rate // ignore: cast_nullable_to_non_nullable
+              as double,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      published: null == published
+          ? _value.published
+          : published // ignore: cast_nullable_to_non_nullable
+              as bool,
+      saleOrder: freezed == saleOrder
+          ? _value.saleOrder
+          : saleOrder // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      reviewer: freezed == reviewer
+          ? _value.reviewer
+          : reviewer // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      reviewedAccount: freezed == reviewedAccount
+          ? _value.reviewedAccount
+          : reviewedAccount // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 
-  /// Create a copy of ReviewApiResponse
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $AccountApiModelCopyWith<$Res>? get reviewer {
@@ -384,8 +347,6 @@ class _$ReviewApiResponseCopyWithImpl<$Res, $Val extends ReviewApiResponse>
     });
   }
 
-  /// Create a copy of ReviewApiResponse
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $AccountApiModelCopyWith<$Res>? get reviewedAccount {
@@ -402,25 +363,23 @@ class _$ReviewApiResponseCopyWithImpl<$Res, $Val extends ReviewApiResponse>
 /// @nodoc
 abstract class _$$ReviewApiResponseImplCopyWith<$Res>
     implements $ReviewApiResponseCopyWith<$Res> {
-  factory _$$ReviewApiResponseImplCopyWith(
-    _$ReviewApiResponseImpl value,
-    $Res Function(_$ReviewApiResponseImpl) then,
-  ) = __$$ReviewApiResponseImplCopyWithImpl<$Res>;
+  factory _$$ReviewApiResponseImplCopyWith(_$ReviewApiResponseImpl value,
+          $Res Function(_$ReviewApiResponseImpl) then) =
+      __$$ReviewApiResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    dynamic id,
-    double rate,
-    String message,
-    bool published,
-    @JsonKey(name: 'sale_order') dynamic saleOrder,
-    AccountApiModel? reviewer,
-    AccountApiModel? reviewedAccount,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-  });
+  $Res call(
+      {dynamic id,
+      double rate,
+      String message,
+      bool published,
+      @JsonKey(name: 'sale_order') dynamic saleOrder,
+      AccountApiModel? reviewer,
+      AccountApiModel? reviewedAccount,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid});
 
   @override
   $AccountApiModelCopyWith<$Res>? get reviewer;
@@ -432,13 +391,10 @@ abstract class _$$ReviewApiResponseImplCopyWith<$Res>
 class __$$ReviewApiResponseImplCopyWithImpl<$Res>
     extends _$ReviewApiResponseCopyWithImpl<$Res, _$ReviewApiResponseImpl>
     implements _$$ReviewApiResponseImplCopyWith<$Res> {
-  __$$ReviewApiResponseImplCopyWithImpl(
-    _$ReviewApiResponseImpl _value,
-    $Res Function(_$ReviewApiResponseImpl) _then,
-  ) : super(_value, _then);
+  __$$ReviewApiResponseImplCopyWithImpl(_$ReviewApiResponseImpl _value,
+      $Res Function(_$ReviewApiResponseImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ReviewApiResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -454,73 +410,70 @@ class __$$ReviewApiResponseImplCopyWithImpl<$Res>
     Object? deletedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _$ReviewApiResponseImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        rate: null == rate
-            ? _value.rate
-            : rate // ignore: cast_nullable_to_non_nullable
-                  as double,
-        message: null == message
-            ? _value.message
-            : message // ignore: cast_nullable_to_non_nullable
-                  as String,
-        published: null == published
-            ? _value.published
-            : published // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        saleOrder: freezed == saleOrder
-            ? _value.saleOrder
-            : saleOrder // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        reviewer: freezed == reviewer
-            ? _value.reviewer
-            : reviewer // ignore: cast_nullable_to_non_nullable
-                  as AccountApiModel?,
-        reviewedAccount: freezed == reviewedAccount
-            ? _value.reviewedAccount
-            : reviewedAccount // ignore: cast_nullable_to_non_nullable
-                  as AccountApiModel?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        deletedAt: freezed == deletedAt
-            ? _value.deletedAt
-            : deletedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$ReviewApiResponseImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      rate: null == rate
+          ? _value.rate
+          : rate // ignore: cast_nullable_to_non_nullable
+              as double,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      published: null == published
+          ? _value.published
+          : published // ignore: cast_nullable_to_non_nullable
+              as bool,
+      saleOrder: freezed == saleOrder
+          ? _value.saleOrder
+          : saleOrder // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      reviewer: freezed == reviewer
+          ? _value.reviewer
+          : reviewer // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      reviewedAccount: freezed == reviewedAccount
+          ? _value.reviewedAccount
+          : reviewedAccount // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ReviewApiResponseImpl implements _ReviewApiResponse {
-  const _$ReviewApiResponseImpl({
-    required this.id,
-    required this.rate,
-    required this.message,
-    required this.published,
-    @JsonKey(name: 'sale_order') this.saleOrder,
-    this.reviewer,
-    this.reviewedAccount,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    @JsonKey(name: 'deleted_at') this.deletedAt,
-    this.uid,
-  });
+  const _$ReviewApiResponseImpl(
+      {required this.id,
+      required this.rate,
+      required this.message,
+      required this.published,
+      @JsonKey(name: 'sale_order') this.saleOrder,
+      this.reviewer,
+      this.reviewedAccount,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      @JsonKey(name: 'deleted_at') this.deletedAt,
+      this.uid});
 
   factory _$ReviewApiResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReviewApiResponseImplFromJson(json);
@@ -536,12 +489,12 @@ class _$ReviewApiResponseImpl implements _ReviewApiResponse {
   @override
   @JsonKey(name: 'sale_order')
   final dynamic saleOrder;
-  // User details
+// User details
   @override
   final AccountApiModel? reviewer;
   @override
   final AccountApiModel? reviewedAccount;
-  // Timestamps
+// Timestamps
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
@@ -583,54 +536,50 @@ class _$ReviewApiResponseImpl implements _ReviewApiResponse {
             (identical(other.uid, uid) || other.uid == uid));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(id),
-    rate,
-    message,
-    published,
-    const DeepCollectionEquality().hash(saleOrder),
-    reviewer,
-    reviewedAccount,
-    createdAt,
-    updatedAt,
-    deletedAt,
-    uid,
-  );
+      runtimeType,
+      const DeepCollectionEquality().hash(id),
+      rate,
+      message,
+      published,
+      const DeepCollectionEquality().hash(saleOrder),
+      reviewer,
+      reviewedAccount,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      uid);
 
-  /// Create a copy of ReviewApiResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ReviewApiResponseImplCopyWith<_$ReviewApiResponseImpl> get copyWith =>
       __$$ReviewApiResponseImplCopyWithImpl<_$ReviewApiResponseImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ReviewApiResponseImplToJson(this);
+    return _$$ReviewApiResponseImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ReviewApiResponse implements ReviewApiResponse {
-  const factory _ReviewApiResponse({
-    required final dynamic id,
-    required final double rate,
-    required final String message,
-    required final bool published,
-    @JsonKey(name: 'sale_order') final dynamic saleOrder,
-    final AccountApiModel? reviewer,
-    final AccountApiModel? reviewedAccount,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    @JsonKey(name: 'deleted_at') final String? deletedAt,
-    final String? uid,
-  }) = _$ReviewApiResponseImpl;
+  const factory _ReviewApiResponse(
+      {required final dynamic id,
+      required final double rate,
+      required final String message,
+      required final bool published,
+      @JsonKey(name: 'sale_order') final dynamic saleOrder,
+      final AccountApiModel? reviewer,
+      final AccountApiModel? reviewedAccount,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      @JsonKey(name: 'deleted_at') final String? deletedAt,
+      final String? uid}) = _$ReviewApiResponseImpl;
 
   factory _ReviewApiResponse.fromJson(Map<String, dynamic> json) =
       _$ReviewApiResponseImpl.fromJson;
@@ -645,12 +594,12 @@ abstract class _ReviewApiResponse implements ReviewApiResponse {
   bool get published;
   @override
   @JsonKey(name: 'sale_order')
-  dynamic get saleOrder; // User details
-  @override
+  dynamic get saleOrder;
+  @override // User details
   AccountApiModel? get reviewer;
   @override
-  AccountApiModel? get reviewedAccount; // Timestamps
-  @override
+  AccountApiModel? get reviewedAccount;
+  @override // Timestamps
   @JsonKey(name: 'created_at')
   String? get createdAt;
   @override
@@ -661,11 +610,8 @@ abstract class _ReviewApiResponse implements ReviewApiResponse {
   String? get deletedAt;
   @override
   String? get uid;
-
-  /// Create a copy of ReviewApiResponse
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ReviewApiResponseImplCopyWith<_$ReviewApiResponseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

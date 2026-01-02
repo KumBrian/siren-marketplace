@@ -12,12 +12,10 @@ part of 'product_api_models.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ProductSpeciesApiModel _$ProductSpeciesApiModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _ProductSpeciesApiModel.fromJson(json);
 }
 
@@ -33,38 +31,30 @@ mixin _$ProductSpeciesApiModel {
   String? get name => throw _privateConstructorUsedError;
   String? get image => throw _privateConstructorUsedError;
 
-  /// Serializes this ProductSpeciesApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ProductSpeciesApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ProductSpeciesApiModelCopyWith<ProductSpeciesApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ProductSpeciesApiModelCopyWith<$Res> {
-  factory $ProductSpeciesApiModelCopyWith(
-    ProductSpeciesApiModel value,
-    $Res Function(ProductSpeciesApiModel) then,
-  ) = _$ProductSpeciesApiModelCopyWithImpl<$Res, ProductSpeciesApiModel>;
+  factory $ProductSpeciesApiModelCopyWith(ProductSpeciesApiModel value,
+          $Res Function(ProductSpeciesApiModel) then) =
+      _$ProductSpeciesApiModelCopyWithImpl<$Res, ProductSpeciesApiModel>;
   @useResult
-  $Res call({
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-    String? name,
-    String? image,
-  });
+  $Res call(
+      {@JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid,
+      String? name,
+      String? image});
 }
 
 /// @nodoc
-class _$ProductSpeciesApiModelCopyWithImpl<
-  $Res,
-  $Val extends ProductSpeciesApiModel
->
+class _$ProductSpeciesApiModelCopyWithImpl<$Res,
+        $Val extends ProductSpeciesApiModel>
     implements $ProductSpeciesApiModelCopyWith<$Res> {
   _$ProductSpeciesApiModelCopyWithImpl(this._value, this._then);
 
@@ -73,8 +63,6 @@ class _$ProductSpeciesApiModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ProductSpeciesApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -85,35 +73,32 @@ class _$ProductSpeciesApiModelCopyWithImpl<
     Object? name = freezed,
     Object? image = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            deletedAt: freezed == deletedAt
-                ? _value.deletedAt
-                : deletedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            name: freezed == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            image: freezed == image
-                ? _value.image
-                : image // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
@@ -121,33 +106,30 @@ class _$ProductSpeciesApiModelCopyWithImpl<
 abstract class _$$ProductSpeciesApiModelImplCopyWith<$Res>
     implements $ProductSpeciesApiModelCopyWith<$Res> {
   factory _$$ProductSpeciesApiModelImplCopyWith(
-    _$ProductSpeciesApiModelImpl value,
-    $Res Function(_$ProductSpeciesApiModelImpl) then,
-  ) = __$$ProductSpeciesApiModelImplCopyWithImpl<$Res>;
+          _$ProductSpeciesApiModelImpl value,
+          $Res Function(_$ProductSpeciesApiModelImpl) then) =
+      __$$ProductSpeciesApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-    String? name,
-    String? image,
-  });
+  $Res call(
+      {@JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid,
+      String? name,
+      String? image});
 }
 
 /// @nodoc
 class __$$ProductSpeciesApiModelImplCopyWithImpl<$Res>
-    extends
-        _$ProductSpeciesApiModelCopyWithImpl<$Res, _$ProductSpeciesApiModelImpl>
+    extends _$ProductSpeciesApiModelCopyWithImpl<$Res,
+        _$ProductSpeciesApiModelImpl>
     implements _$$ProductSpeciesApiModelImplCopyWith<$Res> {
   __$$ProductSpeciesApiModelImplCopyWithImpl(
-    _$ProductSpeciesApiModelImpl _value,
-    $Res Function(_$ProductSpeciesApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$ProductSpeciesApiModelImpl _value,
+      $Res Function(_$ProductSpeciesApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ProductSpeciesApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -158,48 +140,45 @@ class __$$ProductSpeciesApiModelImplCopyWithImpl<$Res>
     Object? name = freezed,
     Object? image = freezed,
   }) {
-    return _then(
-      _$ProductSpeciesApiModelImpl(
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        deletedAt: freezed == deletedAt
-            ? _value.deletedAt
-            : deletedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        name: freezed == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        image: freezed == image
-            ? _value.image
-            : image // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$ProductSpeciesApiModelImpl(
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      image: freezed == image
+          ? _value.image
+          : image // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ProductSpeciesApiModelImpl implements _ProductSpeciesApiModel {
-  const _$ProductSpeciesApiModelImpl({
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    @JsonKey(name: 'deleted_at') this.deletedAt,
-    this.uid,
-    this.name,
-    this.image,
-  });
+  const _$ProductSpeciesApiModelImpl(
+      {@JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      @JsonKey(name: 'deleted_at') this.deletedAt,
+      this.uid,
+      this.name,
+      this.image});
 
   factory _$ProductSpeciesApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductSpeciesApiModelImplFromJson(json);
@@ -241,45 +220,34 @@ class _$ProductSpeciesApiModelImpl implements _ProductSpeciesApiModel {
             (identical(other.image, image) || other.image == image));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    createdAt,
-    updatedAt,
-    deletedAt,
-    uid,
-    name,
-    image,
-  );
+      runtimeType, createdAt, updatedAt, deletedAt, uid, name, image);
 
-  /// Create a copy of ProductSpeciesApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ProductSpeciesApiModelImplCopyWith<_$ProductSpeciesApiModelImpl>
-  get copyWith =>
-      __$$ProductSpeciesApiModelImplCopyWithImpl<_$ProductSpeciesApiModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith => __$$ProductSpeciesApiModelImplCopyWithImpl<
+          _$ProductSpeciesApiModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ProductSpeciesApiModelImplToJson(this);
+    return _$$ProductSpeciesApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ProductSpeciesApiModel implements ProductSpeciesApiModel {
-  const factory _ProductSpeciesApiModel({
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    @JsonKey(name: 'deleted_at') final String? deletedAt,
-    final String? uid,
-    final String? name,
-    final String? image,
-  }) = _$ProductSpeciesApiModelImpl;
+  const factory _ProductSpeciesApiModel(
+      {@JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      @JsonKey(name: 'deleted_at') final String? deletedAt,
+      final String? uid,
+      final String? name,
+      final String? image}) = _$ProductSpeciesApiModelImpl;
 
   factory _ProductSpeciesApiModel.fromJson(Map<String, dynamic> json) =
       _$ProductSpeciesApiModelImpl.fromJson;
@@ -299,18 +267,14 @@ abstract class _ProductSpeciesApiModel implements ProductSpeciesApiModel {
   String? get name;
   @override
   String? get image;
-
-  /// Create a copy of ProductSpeciesApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ProductSpeciesApiModelImplCopyWith<_$ProductSpeciesApiModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 ProductMarketApiModel _$ProductMarketApiModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _ProductMarketApiModel.fromJson(json);
 }
 
@@ -324,36 +288,28 @@ mixin _$ProductMarketApiModel {
   String? get deletedAt => throw _privateConstructorUsedError;
   String? get uid => throw _privateConstructorUsedError;
 
-  /// Serializes this ProductMarketApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ProductMarketApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ProductMarketApiModelCopyWith<ProductMarketApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ProductMarketApiModelCopyWith<$Res> {
-  factory $ProductMarketApiModelCopyWith(
-    ProductMarketApiModel value,
-    $Res Function(ProductMarketApiModel) then,
-  ) = _$ProductMarketApiModelCopyWithImpl<$Res, ProductMarketApiModel>;
+  factory $ProductMarketApiModelCopyWith(ProductMarketApiModel value,
+          $Res Function(ProductMarketApiModel) then) =
+      _$ProductMarketApiModelCopyWithImpl<$Res, ProductMarketApiModel>;
   @useResult
-  $Res call({
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-  });
+  $Res call(
+      {@JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid});
 }
 
 /// @nodoc
-class _$ProductMarketApiModelCopyWithImpl<
-  $Res,
-  $Val extends ProductMarketApiModel
->
+class _$ProductMarketApiModelCopyWithImpl<$Res,
+        $Val extends ProductMarketApiModel>
     implements $ProductMarketApiModelCopyWith<$Res> {
   _$ProductMarketApiModelCopyWithImpl(this._value, this._then);
 
@@ -362,8 +318,6 @@ class _$ProductMarketApiModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ProductMarketApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -372,27 +326,24 @@ class _$ProductMarketApiModelCopyWithImpl<
     Object? deletedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            deletedAt: freezed == deletedAt
-                ? _value.deletedAt
-                : deletedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
@@ -400,31 +351,27 @@ class _$ProductMarketApiModelCopyWithImpl<
 abstract class _$$ProductMarketApiModelImplCopyWith<$Res>
     implements $ProductMarketApiModelCopyWith<$Res> {
   factory _$$ProductMarketApiModelImplCopyWith(
-    _$ProductMarketApiModelImpl value,
-    $Res Function(_$ProductMarketApiModelImpl) then,
-  ) = __$$ProductMarketApiModelImplCopyWithImpl<$Res>;
+          _$ProductMarketApiModelImpl value,
+          $Res Function(_$ProductMarketApiModelImpl) then) =
+      __$$ProductMarketApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-  });
+  $Res call(
+      {@JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid});
 }
 
 /// @nodoc
 class __$$ProductMarketApiModelImplCopyWithImpl<$Res>
-    extends
-        _$ProductMarketApiModelCopyWithImpl<$Res, _$ProductMarketApiModelImpl>
+    extends _$ProductMarketApiModelCopyWithImpl<$Res,
+        _$ProductMarketApiModelImpl>
     implements _$$ProductMarketApiModelImplCopyWith<$Res> {
-  __$$ProductMarketApiModelImplCopyWithImpl(
-    _$ProductMarketApiModelImpl _value,
-    $Res Function(_$ProductMarketApiModelImpl) _then,
-  ) : super(_value, _then);
+  __$$ProductMarketApiModelImplCopyWithImpl(_$ProductMarketApiModelImpl _value,
+      $Res Function(_$ProductMarketApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ProductMarketApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -433,38 +380,35 @@ class __$$ProductMarketApiModelImplCopyWithImpl<$Res>
     Object? deletedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _$ProductMarketApiModelImpl(
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        deletedAt: freezed == deletedAt
-            ? _value.deletedAt
-            : deletedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$ProductMarketApiModelImpl(
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ProductMarketApiModelImpl implements _ProductMarketApiModel {
-  const _$ProductMarketApiModelImpl({
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    @JsonKey(name: 'deleted_at') this.deletedAt,
-    this.uid,
-  });
+  const _$ProductMarketApiModelImpl(
+      {@JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      @JsonKey(name: 'deleted_at') this.deletedAt,
+      this.uid});
 
   factory _$ProductMarketApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductMarketApiModelImplFromJson(json);
@@ -500,36 +444,32 @@ class _$ProductMarketApiModelImpl implements _ProductMarketApiModel {
             (identical(other.uid, uid) || other.uid == uid));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, createdAt, updatedAt, deletedAt, uid);
 
-  /// Create a copy of ProductMarketApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ProductMarketApiModelImplCopyWith<_$ProductMarketApiModelImpl>
-  get copyWith =>
-      __$$ProductMarketApiModelImplCopyWithImpl<_$ProductMarketApiModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith => __$$ProductMarketApiModelImplCopyWithImpl<
+          _$ProductMarketApiModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ProductMarketApiModelImplToJson(this);
+    return _$$ProductMarketApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ProductMarketApiModel implements ProductMarketApiModel {
-  const factory _ProductMarketApiModel({
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    @JsonKey(name: 'deleted_at') final String? deletedAt,
-    final String? uid,
-  }) = _$ProductMarketApiModelImpl;
+  const factory _ProductMarketApiModel(
+      {@JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      @JsonKey(name: 'deleted_at') final String? deletedAt,
+      final String? uid}) = _$ProductMarketApiModelImpl;
 
   factory _ProductMarketApiModel.fromJson(Map<String, dynamic> json) =
       _$ProductMarketApiModelImpl.fromJson;
@@ -545,18 +485,14 @@ abstract class _ProductMarketApiModel implements ProductMarketApiModel {
   String? get deletedAt;
   @override
   String? get uid;
-
-  /// Create a copy of ProductMarketApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ProductMarketApiModelImplCopyWith<_$ProductMarketApiModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 ProductAccountApiModel _$ProductAccountApiModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _ProductAccountApiModel.fromJson(json);
 }
 
@@ -583,45 +519,37 @@ mixin _$ProductAccountApiModel {
   double? get rating => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
 
-  /// Serializes this ProductAccountApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ProductAccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ProductAccountApiModelCopyWith<ProductAccountApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $ProductAccountApiModelCopyWith<$Res> {
-  factory $ProductAccountApiModelCopyWith(
-    ProductAccountApiModel value,
-    $Res Function(ProductAccountApiModel) then,
-  ) = _$ProductAccountApiModelCopyWithImpl<$Res, ProductAccountApiModel>;
+  factory $ProductAccountApiModelCopyWith(ProductAccountApiModel value,
+          $Res Function(ProductAccountApiModel) then) =
+      _$ProductAccountApiModelCopyWithImpl<$Res, ProductAccountApiModel>;
   @useResult
-  $Res call({
-    int? id,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-    String? firstName,
-    String? lastName,
-    String? email,
-    String? phoneNumber,
-    @JsonKey(name: 'totalReviews') int? totalReviews,
-    @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
-    @JsonKey(name: 'averageRating') double? rating,
-    String? avatar,
-  });
+  $Res call(
+      {int? id,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid,
+      String? firstName,
+      String? lastName,
+      String? email,
+      String? phoneNumber,
+      @JsonKey(name: 'totalReviews') int? totalReviews,
+      @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
+      @JsonKey(name: 'averageRating') double? rating,
+      String? avatar});
 }
 
 /// @nodoc
-class _$ProductAccountApiModelCopyWithImpl<
-  $Res,
-  $Val extends ProductAccountApiModel
->
+class _$ProductAccountApiModelCopyWithImpl<$Res,
+        $Val extends ProductAccountApiModel>
     implements $ProductAccountApiModelCopyWith<$Res> {
   _$ProductAccountApiModelCopyWithImpl(this._value, this._then);
 
@@ -630,8 +558,6 @@ class _$ProductAccountApiModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ProductAccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -649,63 +575,60 @@ class _$ProductAccountApiModelCopyWithImpl<
     Object? rating = freezed,
     Object? avatar = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            deletedAt: freezed == deletedAt
-                ? _value.deletedAt
-                : deletedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            firstName: freezed == firstName
-                ? _value.firstName
-                : firstName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            lastName: freezed == lastName
-                ? _value.lastName
-                : lastName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            email: freezed == email
-                ? _value.email
-                : email // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            phoneNumber: freezed == phoneNumber
-                ? _value.phoneNumber
-                : phoneNumber // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            totalReviews: freezed == totalReviews
-                ? _value.totalReviews
-                : totalReviews // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            ratingDistribution: freezed == ratingDistribution
-                ? _value.ratingDistribution
-                : ratingDistribution // ignore: cast_nullable_to_non_nullable
-                      as List<dynamic>?,
-            rating: freezed == rating
-                ? _value.rating
-                : rating // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            avatar: freezed == avatar
-                ? _value.avatar
-                : avatar // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phoneNumber: freezed == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      totalReviews: freezed == totalReviews
+          ? _value.totalReviews
+          : totalReviews // ignore: cast_nullable_to_non_nullable
+              as int?,
+      ratingDistribution: freezed == ratingDistribution
+          ? _value.ratingDistribution
+          : ratingDistribution // ignore: cast_nullable_to_non_nullable
+              as List<dynamic>?,
+      rating: freezed == rating
+          ? _value.rating
+          : rating // ignore: cast_nullable_to_non_nullable
+              as double?,
+      avatar: freezed == avatar
+          ? _value.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
@@ -713,40 +636,37 @@ class _$ProductAccountApiModelCopyWithImpl<
 abstract class _$$ProductAccountApiModelImplCopyWith<$Res>
     implements $ProductAccountApiModelCopyWith<$Res> {
   factory _$$ProductAccountApiModelImplCopyWith(
-    _$ProductAccountApiModelImpl value,
-    $Res Function(_$ProductAccountApiModelImpl) then,
-  ) = __$$ProductAccountApiModelImplCopyWithImpl<$Res>;
+          _$ProductAccountApiModelImpl value,
+          $Res Function(_$ProductAccountApiModelImpl) then) =
+      __$$ProductAccountApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int? id,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-    String? firstName,
-    String? lastName,
-    String? email,
-    String? phoneNumber,
-    @JsonKey(name: 'totalReviews') int? totalReviews,
-    @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
-    @JsonKey(name: 'averageRating') double? rating,
-    String? avatar,
-  });
+  $Res call(
+      {int? id,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid,
+      String? firstName,
+      String? lastName,
+      String? email,
+      String? phoneNumber,
+      @JsonKey(name: 'totalReviews') int? totalReviews,
+      @JsonKey(name: 'ratingDistribution') List<dynamic>? ratingDistribution,
+      @JsonKey(name: 'averageRating') double? rating,
+      String? avatar});
 }
 
 /// @nodoc
 class __$$ProductAccountApiModelImplCopyWithImpl<$Res>
-    extends
-        _$ProductAccountApiModelCopyWithImpl<$Res, _$ProductAccountApiModelImpl>
+    extends _$ProductAccountApiModelCopyWithImpl<$Res,
+        _$ProductAccountApiModelImpl>
     implements _$$ProductAccountApiModelImplCopyWith<$Res> {
   __$$ProductAccountApiModelImplCopyWithImpl(
-    _$ProductAccountApiModelImpl _value,
-    $Res Function(_$ProductAccountApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$ProductAccountApiModelImpl _value,
+      $Res Function(_$ProductAccountApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ProductAccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -764,91 +684,89 @@ class __$$ProductAccountApiModelImplCopyWithImpl<$Res>
     Object? rating = freezed,
     Object? avatar = freezed,
   }) {
-    return _then(
-      _$ProductAccountApiModelImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        deletedAt: freezed == deletedAt
-            ? _value.deletedAt
-            : deletedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        firstName: freezed == firstName
-            ? _value.firstName
-            : firstName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        lastName: freezed == lastName
-            ? _value.lastName
-            : lastName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        email: freezed == email
-            ? _value.email
-            : email // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        phoneNumber: freezed == phoneNumber
-            ? _value.phoneNumber
-            : phoneNumber // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        totalReviews: freezed == totalReviews
-            ? _value.totalReviews
-            : totalReviews // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        ratingDistribution: freezed == ratingDistribution
-            ? _value._ratingDistribution
-            : ratingDistribution // ignore: cast_nullable_to_non_nullable
-                  as List<dynamic>?,
-        rating: freezed == rating
-            ? _value.rating
-            : rating // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        avatar: freezed == avatar
-            ? _value.avatar
-            : avatar // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$ProductAccountApiModelImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phoneNumber: freezed == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      totalReviews: freezed == totalReviews
+          ? _value.totalReviews
+          : totalReviews // ignore: cast_nullable_to_non_nullable
+              as int?,
+      ratingDistribution: freezed == ratingDistribution
+          ? _value._ratingDistribution
+          : ratingDistribution // ignore: cast_nullable_to_non_nullable
+              as List<dynamic>?,
+      rating: freezed == rating
+          ? _value.rating
+          : rating // ignore: cast_nullable_to_non_nullable
+              as double?,
+      avatar: freezed == avatar
+          ? _value.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
-  const _$ProductAccountApiModelImpl({
-    this.id,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    @JsonKey(name: 'deleted_at') this.deletedAt,
-    this.uid,
-    this.firstName,
-    this.lastName,
-    this.email,
-    this.phoneNumber,
-    @JsonKey(name: 'totalReviews') this.totalReviews,
-    @JsonKey(name: 'ratingDistribution')
-    final List<dynamic>? ratingDistribution,
-    @JsonKey(name: 'averageRating') this.rating,
-    this.avatar,
-  }) : _ratingDistribution = ratingDistribution;
+  const _$ProductAccountApiModelImpl(
+      {this.id,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      @JsonKey(name: 'deleted_at') this.deletedAt,
+      this.uid,
+      this.firstName,
+      this.lastName,
+      this.email,
+      this.phoneNumber,
+      @JsonKey(name: 'totalReviews') this.totalReviews,
+      @JsonKey(name: 'ratingDistribution')
+      final List<dynamic>? ratingDistribution,
+      @JsonKey(name: 'averageRating') this.rating,
+      this.avatar})
+      : _ratingDistribution = ratingDistribution;
 
   factory _$ProductAccountApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductAccountApiModelImplFromJson(json);
 
   @override
   final int? id;
-  // Integer ID for comparisons
+// Integer ID for comparisons
   @override
   @JsonKey(name: 'created_at')
   final String? createdAt;
@@ -916,75 +834,68 @@ class _$ProductAccountApiModelImpl implements _ProductAccountApiModel {
                 other.phoneNumber == phoneNumber) &&
             (identical(other.totalReviews, totalReviews) ||
                 other.totalReviews == totalReviews) &&
-            const DeepCollectionEquality().equals(
-              other._ratingDistribution,
-              _ratingDistribution,
-            ) &&
+            const DeepCollectionEquality()
+                .equals(other._ratingDistribution, _ratingDistribution) &&
             (identical(other.rating, rating) || other.rating == rating) &&
             (identical(other.avatar, avatar) || other.avatar == avatar));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    createdAt,
-    updatedAt,
-    deletedAt,
-    uid,
-    firstName,
-    lastName,
-    email,
-    phoneNumber,
-    totalReviews,
-    const DeepCollectionEquality().hash(_ratingDistribution),
-    rating,
-    avatar,
-  );
+      runtimeType,
+      id,
+      createdAt,
+      updatedAt,
+      deletedAt,
+      uid,
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      totalReviews,
+      const DeepCollectionEquality().hash(_ratingDistribution),
+      rating,
+      avatar);
 
-  /// Create a copy of ProductAccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ProductAccountApiModelImplCopyWith<_$ProductAccountApiModelImpl>
-  get copyWith =>
-      __$$ProductAccountApiModelImplCopyWithImpl<_$ProductAccountApiModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith => __$$ProductAccountApiModelImplCopyWithImpl<
+          _$ProductAccountApiModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ProductAccountApiModelImplToJson(this);
+    return _$$ProductAccountApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ProductAccountApiModel implements ProductAccountApiModel {
-  const factory _ProductAccountApiModel({
-    final int? id,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    @JsonKey(name: 'deleted_at') final String? deletedAt,
-    final String? uid,
-    final String? firstName,
-    final String? lastName,
-    final String? email,
-    final String? phoneNumber,
-    @JsonKey(name: 'totalReviews') final int? totalReviews,
-    @JsonKey(name: 'ratingDistribution')
-    final List<dynamic>? ratingDistribution,
-    @JsonKey(name: 'averageRating') final double? rating,
-    final String? avatar,
-  }) = _$ProductAccountApiModelImpl;
+  const factory _ProductAccountApiModel(
+      {final int? id,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      @JsonKey(name: 'deleted_at') final String? deletedAt,
+      final String? uid,
+      final String? firstName,
+      final String? lastName,
+      final String? email,
+      final String? phoneNumber,
+      @JsonKey(name: 'totalReviews') final int? totalReviews,
+      @JsonKey(name: 'ratingDistribution')
+      final List<dynamic>? ratingDistribution,
+      @JsonKey(name: 'averageRating') final double? rating,
+      final String? avatar}) = _$ProductAccountApiModelImpl;
 
   factory _ProductAccountApiModel.fromJson(Map<String, dynamic> json) =
       _$ProductAccountApiModelImpl.fromJson;
 
   @override
-  int? get id; // Integer ID for comparisons
-  @override
+  int? get id;
+  @override // Integer ID for comparisons
   @JsonKey(name: 'created_at')
   String? get createdAt;
   @override
@@ -1014,13 +925,10 @@ abstract class _ProductAccountApiModel implements ProductAccountApiModel {
   double? get rating;
   @override
   String? get avatar;
-
-  /// Create a copy of ProductAccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ProductAccountApiModelImplCopyWith<_$ProductAccountApiModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 ProductApiModel _$ProductApiModelFromJson(Map<String, dynamic> json) {
@@ -1072,12 +980,8 @@ mixin _$ProductApiModel {
   int get offersCount => throw _privateConstructorUsedError;
   List<String> get images => throw _privateConstructorUsedError;
 
-  /// Serializes this ProductApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ProductApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ProductApiModelCopyWith<ProductApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1085,42 +989,41 @@ mixin _$ProductApiModel {
 /// @nodoc
 abstract class $ProductApiModelCopyWith<$Res> {
   factory $ProductApiModelCopyWith(
-    ProductApiModel value,
-    $Res Function(ProductApiModel) then,
-  ) = _$ProductApiModelCopyWithImpl<$Res, ProductApiModel>;
+          ProductApiModel value, $Res Function(ProductApiModel) then) =
+      _$ProductApiModelCopyWithImpl<$Res, ProductApiModel>;
   @useResult
-  $Res call({
-    dynamic id,
-    String? name,
-    ProductMarketApiModel? market,
-    String? status,
-    String? rejectReason,
-    @JsonKey(name: 'price_per_kg') double? pricePerKg,
-    @JsonKey(name: 'final_price') double? finalPrice,
-    @JsonKey(name: 'published_weight_in_grams') double? publishedWeightInGrams,
-    @JsonKey(name: 'expire_at') String? expireAt,
-    @JsonKey(name: 'location_name') String? locationName,
-    double? latitude,
-    double? longitude,
-    String? size,
-    @JsonKey(name: 'date_posted') String? datePosted,
-    bool? isSold,
-    String? soldAt,
-    @JsonKey(name: 'initial_weight') double? initialWeight,
-    @JsonKey(name: 'available_weight') double? availableWeight,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-    double? gearMeshSizeInFinger,
-    double? gearLengthInMeter,
-    double? gearWidthInMeter,
-    String? gearNature,
-    ProductSpeciesApiModel? specie,
-    ProductAccountApiModel? account,
-    @JsonKey(name: 'offersCount') int offersCount,
-    List<String> images,
-  });
+  $Res call(
+      {dynamic id,
+      String? name,
+      ProductMarketApiModel? market,
+      String? status,
+      String? rejectReason,
+      @JsonKey(name: 'price_per_kg') double? pricePerKg,
+      @JsonKey(name: 'final_price') double? finalPrice,
+      @JsonKey(name: 'published_weight_in_grams')
+      double? publishedWeightInGrams,
+      @JsonKey(name: 'expire_at') String? expireAt,
+      @JsonKey(name: 'location_name') String? locationName,
+      double? latitude,
+      double? longitude,
+      String? size,
+      @JsonKey(name: 'date_posted') String? datePosted,
+      bool? isSold,
+      String? soldAt,
+      @JsonKey(name: 'initial_weight') double? initialWeight,
+      @JsonKey(name: 'available_weight') double? availableWeight,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid,
+      double? gearMeshSizeInFinger,
+      double? gearLengthInMeter,
+      double? gearWidthInMeter,
+      String? gearNature,
+      ProductSpeciesApiModel? specie,
+      ProductAccountApiModel? account,
+      @JsonKey(name: 'offersCount') int offersCount,
+      List<String> images});
 
   $ProductMarketApiModelCopyWith<$Res>? get market;
   $ProductSpeciesApiModelCopyWith<$Res>? get specie;
@@ -1137,8 +1040,6 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ProductApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1173,135 +1074,130 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
     Object? offersCount = null,
     Object? images = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            name: freezed == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            market: freezed == market
-                ? _value.market
-                : market // ignore: cast_nullable_to_non_nullable
-                      as ProductMarketApiModel?,
-            status: freezed == status
-                ? _value.status
-                : status // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            rejectReason: freezed == rejectReason
-                ? _value.rejectReason
-                : rejectReason // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            pricePerKg: freezed == pricePerKg
-                ? _value.pricePerKg
-                : pricePerKg // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            finalPrice: freezed == finalPrice
-                ? _value.finalPrice
-                : finalPrice // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            publishedWeightInGrams: freezed == publishedWeightInGrams
-                ? _value.publishedWeightInGrams
-                : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            expireAt: freezed == expireAt
-                ? _value.expireAt
-                : expireAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            locationName: freezed == locationName
-                ? _value.locationName
-                : locationName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            latitude: freezed == latitude
-                ? _value.latitude
-                : latitude // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            longitude: freezed == longitude
-                ? _value.longitude
-                : longitude // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            size: freezed == size
-                ? _value.size
-                : size // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            datePosted: freezed == datePosted
-                ? _value.datePosted
-                : datePosted // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            isSold: freezed == isSold
-                ? _value.isSold
-                : isSold // ignore: cast_nullable_to_non_nullable
-                      as bool?,
-            soldAt: freezed == soldAt
-                ? _value.soldAt
-                : soldAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            initialWeight: freezed == initialWeight
-                ? _value.initialWeight
-                : initialWeight // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            availableWeight: freezed == availableWeight
-                ? _value.availableWeight
-                : availableWeight // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            deletedAt: freezed == deletedAt
-                ? _value.deletedAt
-                : deletedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            gearMeshSizeInFinger: freezed == gearMeshSizeInFinger
-                ? _value.gearMeshSizeInFinger
-                : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            gearLengthInMeter: freezed == gearLengthInMeter
-                ? _value.gearLengthInMeter
-                : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            gearWidthInMeter: freezed == gearWidthInMeter
-                ? _value.gearWidthInMeter
-                : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            gearNature: freezed == gearNature
-                ? _value.gearNature
-                : gearNature // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            specie: freezed == specie
-                ? _value.specie
-                : specie // ignore: cast_nullable_to_non_nullable
-                      as ProductSpeciesApiModel?,
-            account: freezed == account
-                ? _value.account
-                : account // ignore: cast_nullable_to_non_nullable
-                      as ProductAccountApiModel?,
-            offersCount: null == offersCount
-                ? _value.offersCount
-                : offersCount // ignore: cast_nullable_to_non_nullable
-                      as int,
-            images: null == images
-                ? _value.images
-                : images // ignore: cast_nullable_to_non_nullable
-                      as List<String>,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      market: freezed == market
+          ? _value.market
+          : market // ignore: cast_nullable_to_non_nullable
+              as ProductMarketApiModel?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      rejectReason: freezed == rejectReason
+          ? _value.rejectReason
+          : rejectReason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      pricePerKg: freezed == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double?,
+      finalPrice: freezed == finalPrice
+          ? _value.finalPrice
+          : finalPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
+      publishedWeightInGrams: freezed == publishedWeightInGrams
+          ? _value.publishedWeightInGrams
+          : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double?,
+      expireAt: freezed == expireAt
+          ? _value.expireAt
+          : expireAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      locationName: freezed == locationName
+          ? _value.locationName
+          : locationName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      latitude: freezed == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      longitude: freezed == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      size: freezed == size
+          ? _value.size
+          : size // ignore: cast_nullable_to_non_nullable
+              as String?,
+      datePosted: freezed == datePosted
+          ? _value.datePosted
+          : datePosted // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isSold: freezed == isSold
+          ? _value.isSold
+          : isSold // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      soldAt: freezed == soldAt
+          ? _value.soldAt
+          : soldAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      initialWeight: freezed == initialWeight
+          ? _value.initialWeight
+          : initialWeight // ignore: cast_nullable_to_non_nullable
+              as double?,
+      availableWeight: freezed == availableWeight
+          ? _value.availableWeight
+          : availableWeight // ignore: cast_nullable_to_non_nullable
+              as double?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gearMeshSizeInFinger: freezed == gearMeshSizeInFinger
+          ? _value.gearMeshSizeInFinger
+          : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearLengthInMeter: freezed == gearLengthInMeter
+          ? _value.gearLengthInMeter
+          : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearWidthInMeter: freezed == gearWidthInMeter
+          ? _value.gearWidthInMeter
+          : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearNature: freezed == gearNature
+          ? _value.gearNature
+          : gearNature // ignore: cast_nullable_to_non_nullable
+              as String?,
+      specie: freezed == specie
+          ? _value.specie
+          : specie // ignore: cast_nullable_to_non_nullable
+              as ProductSpeciesApiModel?,
+      account: freezed == account
+          ? _value.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as ProductAccountApiModel?,
+      offersCount: null == offersCount
+          ? _value.offersCount
+          : offersCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      images: null == images
+          ? _value.images
+          : images // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+    ) as $Val);
   }
 
-  /// Create a copy of ProductApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ProductMarketApiModelCopyWith<$Res>? get market {
@@ -1314,8 +1210,6 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
     });
   }
 
-  /// Create a copy of ProductApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ProductSpeciesApiModelCopyWith<$Res>? get specie {
@@ -1328,8 +1222,6 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
     });
   }
 
-  /// Create a copy of ProductApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ProductAccountApiModelCopyWith<$Res>? get account {
@@ -1346,44 +1238,43 @@ class _$ProductApiModelCopyWithImpl<$Res, $Val extends ProductApiModel>
 /// @nodoc
 abstract class _$$ProductApiModelImplCopyWith<$Res>
     implements $ProductApiModelCopyWith<$Res> {
-  factory _$$ProductApiModelImplCopyWith(
-    _$ProductApiModelImpl value,
-    $Res Function(_$ProductApiModelImpl) then,
-  ) = __$$ProductApiModelImplCopyWithImpl<$Res>;
+  factory _$$ProductApiModelImplCopyWith(_$ProductApiModelImpl value,
+          $Res Function(_$ProductApiModelImpl) then) =
+      __$$ProductApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    dynamic id,
-    String? name,
-    ProductMarketApiModel? market,
-    String? status,
-    String? rejectReason,
-    @JsonKey(name: 'price_per_kg') double? pricePerKg,
-    @JsonKey(name: 'final_price') double? finalPrice,
-    @JsonKey(name: 'published_weight_in_grams') double? publishedWeightInGrams,
-    @JsonKey(name: 'expire_at') String? expireAt,
-    @JsonKey(name: 'location_name') String? locationName,
-    double? latitude,
-    double? longitude,
-    String? size,
-    @JsonKey(name: 'date_posted') String? datePosted,
-    bool? isSold,
-    String? soldAt,
-    @JsonKey(name: 'initial_weight') double? initialWeight,
-    @JsonKey(name: 'available_weight') double? availableWeight,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String? uid,
-    double? gearMeshSizeInFinger,
-    double? gearLengthInMeter,
-    double? gearWidthInMeter,
-    String? gearNature,
-    ProductSpeciesApiModel? specie,
-    ProductAccountApiModel? account,
-    @JsonKey(name: 'offersCount') int offersCount,
-    List<String> images,
-  });
+  $Res call(
+      {dynamic id,
+      String? name,
+      ProductMarketApiModel? market,
+      String? status,
+      String? rejectReason,
+      @JsonKey(name: 'price_per_kg') double? pricePerKg,
+      @JsonKey(name: 'final_price') double? finalPrice,
+      @JsonKey(name: 'published_weight_in_grams')
+      double? publishedWeightInGrams,
+      @JsonKey(name: 'expire_at') String? expireAt,
+      @JsonKey(name: 'location_name') String? locationName,
+      double? latitude,
+      double? longitude,
+      String? size,
+      @JsonKey(name: 'date_posted') String? datePosted,
+      bool? isSold,
+      String? soldAt,
+      @JsonKey(name: 'initial_weight') double? initialWeight,
+      @JsonKey(name: 'available_weight') double? availableWeight,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String? uid,
+      double? gearMeshSizeInFinger,
+      double? gearLengthInMeter,
+      double? gearWidthInMeter,
+      String? gearNature,
+      ProductSpeciesApiModel? specie,
+      ProductAccountApiModel? account,
+      @JsonKey(name: 'offersCount') int offersCount,
+      List<String> images});
 
   @override
   $ProductMarketApiModelCopyWith<$Res>? get market;
@@ -1398,12 +1289,9 @@ class __$$ProductApiModelImplCopyWithImpl<$Res>
     extends _$ProductApiModelCopyWithImpl<$Res, _$ProductApiModelImpl>
     implements _$$ProductApiModelImplCopyWith<$Res> {
   __$$ProductApiModelImplCopyWithImpl(
-    _$ProductApiModelImpl _value,
-    $Res Function(_$ProductApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$ProductApiModelImpl _value, $Res Function(_$ProductApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ProductApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1438,168 +1326,166 @@ class __$$ProductApiModelImplCopyWithImpl<$Res>
     Object? offersCount = null,
     Object? images = null,
   }) {
-    return _then(
-      _$ProductApiModelImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        name: freezed == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        market: freezed == market
-            ? _value.market
-            : market // ignore: cast_nullable_to_non_nullable
-                  as ProductMarketApiModel?,
-        status: freezed == status
-            ? _value.status
-            : status // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        rejectReason: freezed == rejectReason
-            ? _value.rejectReason
-            : rejectReason // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        pricePerKg: freezed == pricePerKg
-            ? _value.pricePerKg
-            : pricePerKg // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        finalPrice: freezed == finalPrice
-            ? _value.finalPrice
-            : finalPrice // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        publishedWeightInGrams: freezed == publishedWeightInGrams
-            ? _value.publishedWeightInGrams
-            : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        expireAt: freezed == expireAt
-            ? _value.expireAt
-            : expireAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        locationName: freezed == locationName
-            ? _value.locationName
-            : locationName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        latitude: freezed == latitude
-            ? _value.latitude
-            : latitude // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        longitude: freezed == longitude
-            ? _value.longitude
-            : longitude // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        size: freezed == size
-            ? _value.size
-            : size // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        datePosted: freezed == datePosted
-            ? _value.datePosted
-            : datePosted // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        isSold: freezed == isSold
-            ? _value.isSold
-            : isSold // ignore: cast_nullable_to_non_nullable
-                  as bool?,
-        soldAt: freezed == soldAt
-            ? _value.soldAt
-            : soldAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        initialWeight: freezed == initialWeight
-            ? _value.initialWeight
-            : initialWeight // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        availableWeight: freezed == availableWeight
-            ? _value.availableWeight
-            : availableWeight // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        deletedAt: freezed == deletedAt
-            ? _value.deletedAt
-            : deletedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        gearMeshSizeInFinger: freezed == gearMeshSizeInFinger
-            ? _value.gearMeshSizeInFinger
-            : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        gearLengthInMeter: freezed == gearLengthInMeter
-            ? _value.gearLengthInMeter
-            : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        gearWidthInMeter: freezed == gearWidthInMeter
-            ? _value.gearWidthInMeter
-            : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        gearNature: freezed == gearNature
-            ? _value.gearNature
-            : gearNature // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        specie: freezed == specie
-            ? _value.specie
-            : specie // ignore: cast_nullable_to_non_nullable
-                  as ProductSpeciesApiModel?,
-        account: freezed == account
-            ? _value.account
-            : account // ignore: cast_nullable_to_non_nullable
-                  as ProductAccountApiModel?,
-        offersCount: null == offersCount
-            ? _value.offersCount
-            : offersCount // ignore: cast_nullable_to_non_nullable
-                  as int,
-        images: null == images
-            ? _value._images
-            : images // ignore: cast_nullable_to_non_nullable
-                  as List<String>,
-      ),
-    );
+    return _then(_$ProductApiModelImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      market: freezed == market
+          ? _value.market
+          : market // ignore: cast_nullable_to_non_nullable
+              as ProductMarketApiModel?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      rejectReason: freezed == rejectReason
+          ? _value.rejectReason
+          : rejectReason // ignore: cast_nullable_to_non_nullable
+              as String?,
+      pricePerKg: freezed == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double?,
+      finalPrice: freezed == finalPrice
+          ? _value.finalPrice
+          : finalPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
+      publishedWeightInGrams: freezed == publishedWeightInGrams
+          ? _value.publishedWeightInGrams
+          : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double?,
+      expireAt: freezed == expireAt
+          ? _value.expireAt
+          : expireAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      locationName: freezed == locationName
+          ? _value.locationName
+          : locationName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      latitude: freezed == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      longitude: freezed == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      size: freezed == size
+          ? _value.size
+          : size // ignore: cast_nullable_to_non_nullable
+              as String?,
+      datePosted: freezed == datePosted
+          ? _value.datePosted
+          : datePosted // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isSold: freezed == isSold
+          ? _value.isSold
+          : isSold // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      soldAt: freezed == soldAt
+          ? _value.soldAt
+          : soldAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      initialWeight: freezed == initialWeight
+          ? _value.initialWeight
+          : initialWeight // ignore: cast_nullable_to_non_nullable
+              as double?,
+      availableWeight: freezed == availableWeight
+          ? _value.availableWeight
+          : availableWeight // ignore: cast_nullable_to_non_nullable
+              as double?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gearMeshSizeInFinger: freezed == gearMeshSizeInFinger
+          ? _value.gearMeshSizeInFinger
+          : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearLengthInMeter: freezed == gearLengthInMeter
+          ? _value.gearLengthInMeter
+          : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearWidthInMeter: freezed == gearWidthInMeter
+          ? _value.gearWidthInMeter
+          : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearNature: freezed == gearNature
+          ? _value.gearNature
+          : gearNature // ignore: cast_nullable_to_non_nullable
+              as String?,
+      specie: freezed == specie
+          ? _value.specie
+          : specie // ignore: cast_nullable_to_non_nullable
+              as ProductSpeciesApiModel?,
+      account: freezed == account
+          ? _value.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as ProductAccountApiModel?,
+      offersCount: null == offersCount
+          ? _value.offersCount
+          : offersCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      images: null == images
+          ? _value._images
+          : images // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ProductApiModelImpl implements _ProductApiModel {
-  const _$ProductApiModelImpl({
-    required this.id,
-    this.name,
-    this.market,
-    this.status,
-    this.rejectReason,
-    @JsonKey(name: 'price_per_kg') this.pricePerKg,
-    @JsonKey(name: 'final_price') this.finalPrice,
-    @JsonKey(name: 'published_weight_in_grams') this.publishedWeightInGrams,
-    @JsonKey(name: 'expire_at') this.expireAt,
-    @JsonKey(name: 'location_name') this.locationName,
-    this.latitude,
-    this.longitude,
-    this.size,
-    @JsonKey(name: 'date_posted') this.datePosted,
-    this.isSold,
-    this.soldAt,
-    @JsonKey(name: 'initial_weight') this.initialWeight,
-    @JsonKey(name: 'available_weight') this.availableWeight,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    @JsonKey(name: 'deleted_at') this.deletedAt,
-    this.uid,
-    this.gearMeshSizeInFinger,
-    this.gearLengthInMeter,
-    this.gearWidthInMeter,
-    this.gearNature,
-    this.specie,
-    this.account,
-    @JsonKey(name: 'offersCount') this.offersCount = 0,
-    final List<String> images = const [],
-  }) : _images = images;
+  const _$ProductApiModelImpl(
+      {required this.id,
+      this.name,
+      this.market,
+      this.status,
+      this.rejectReason,
+      @JsonKey(name: 'price_per_kg') this.pricePerKg,
+      @JsonKey(name: 'final_price') this.finalPrice,
+      @JsonKey(name: 'published_weight_in_grams') this.publishedWeightInGrams,
+      @JsonKey(name: 'expire_at') this.expireAt,
+      @JsonKey(name: 'location_name') this.locationName,
+      this.latitude,
+      this.longitude,
+      this.size,
+      @JsonKey(name: 'date_posted') this.datePosted,
+      this.isSold,
+      this.soldAt,
+      @JsonKey(name: 'initial_weight') this.initialWeight,
+      @JsonKey(name: 'available_weight') this.availableWeight,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      @JsonKey(name: 'deleted_at') this.deletedAt,
+      this.uid,
+      this.gearMeshSizeInFinger,
+      this.gearLengthInMeter,
+      this.gearWidthInMeter,
+      this.gearNature,
+      this.specie,
+      this.account,
+      @JsonKey(name: 'offersCount') this.offersCount = 0,
+      final List<String> images = const []})
+      : _images = images;
 
   factory _$ProductApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProductApiModelImplFromJson(json);
@@ -1744,93 +1630,90 @@ class _$ProductApiModelImpl implements _ProductApiModel {
             const DeepCollectionEquality().equals(other._images, _images));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
-    runtimeType,
-    const DeepCollectionEquality().hash(id),
-    name,
-    market,
-    status,
-    rejectReason,
-    pricePerKg,
-    finalPrice,
-    publishedWeightInGrams,
-    expireAt,
-    locationName,
-    latitude,
-    longitude,
-    size,
-    datePosted,
-    isSold,
-    soldAt,
-    initialWeight,
-    availableWeight,
-    createdAt,
-    updatedAt,
-    deletedAt,
-    uid,
-    gearMeshSizeInFinger,
-    gearLengthInMeter,
-    gearWidthInMeter,
-    gearNature,
-    specie,
-    account,
-    offersCount,
-    const DeepCollectionEquality().hash(_images),
-  ]);
+        runtimeType,
+        const DeepCollectionEquality().hash(id),
+        name,
+        market,
+        status,
+        rejectReason,
+        pricePerKg,
+        finalPrice,
+        publishedWeightInGrams,
+        expireAt,
+        locationName,
+        latitude,
+        longitude,
+        size,
+        datePosted,
+        isSold,
+        soldAt,
+        initialWeight,
+        availableWeight,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        uid,
+        gearMeshSizeInFinger,
+        gearLengthInMeter,
+        gearWidthInMeter,
+        gearNature,
+        specie,
+        account,
+        offersCount,
+        const DeepCollectionEquality().hash(_images)
+      ]);
 
-  /// Create a copy of ProductApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ProductApiModelImplCopyWith<_$ProductApiModelImpl> get copyWith =>
       __$$ProductApiModelImplCopyWithImpl<_$ProductApiModelImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ProductApiModelImplToJson(this);
+    return _$$ProductApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ProductApiModel implements ProductApiModel {
-  const factory _ProductApiModel({
-    required final dynamic id,
-    final String? name,
-    final ProductMarketApiModel? market,
-    final String? status,
-    final String? rejectReason,
-    @JsonKey(name: 'price_per_kg') final double? pricePerKg,
-    @JsonKey(name: 'final_price') final double? finalPrice,
-    @JsonKey(name: 'published_weight_in_grams')
-    final double? publishedWeightInGrams,
-    @JsonKey(name: 'expire_at') final String? expireAt,
-    @JsonKey(name: 'location_name') final String? locationName,
-    final double? latitude,
-    final double? longitude,
-    final String? size,
-    @JsonKey(name: 'date_posted') final String? datePosted,
-    final bool? isSold,
-    final String? soldAt,
-    @JsonKey(name: 'initial_weight') final double? initialWeight,
-    @JsonKey(name: 'available_weight') final double? availableWeight,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    @JsonKey(name: 'deleted_at') final String? deletedAt,
-    final String? uid,
-    final double? gearMeshSizeInFinger,
-    final double? gearLengthInMeter,
-    final double? gearWidthInMeter,
-    final String? gearNature,
-    final ProductSpeciesApiModel? specie,
-    final ProductAccountApiModel? account,
-    @JsonKey(name: 'offersCount') final int offersCount,
-    final List<String> images,
-  }) = _$ProductApiModelImpl;
+  const factory _ProductApiModel(
+      {required final dynamic id,
+      final String? name,
+      final ProductMarketApiModel? market,
+      final String? status,
+      final String? rejectReason,
+      @JsonKey(name: 'price_per_kg') final double? pricePerKg,
+      @JsonKey(name: 'final_price') final double? finalPrice,
+      @JsonKey(name: 'published_weight_in_grams')
+      final double? publishedWeightInGrams,
+      @JsonKey(name: 'expire_at') final String? expireAt,
+      @JsonKey(name: 'location_name') final String? locationName,
+      final double? latitude,
+      final double? longitude,
+      final String? size,
+      @JsonKey(name: 'date_posted') final String? datePosted,
+      final bool? isSold,
+      final String? soldAt,
+      @JsonKey(name: 'initial_weight') final double? initialWeight,
+      @JsonKey(name: 'available_weight') final double? availableWeight,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      @JsonKey(name: 'deleted_at') final String? deletedAt,
+      final String? uid,
+      final double? gearMeshSizeInFinger,
+      final double? gearLengthInMeter,
+      final double? gearWidthInMeter,
+      final String? gearNature,
+      final ProductSpeciesApiModel? specie,
+      final ProductAccountApiModel? account,
+      @JsonKey(name: 'offersCount') final int offersCount,
+      final List<String> images}) = _$ProductApiModelImpl;
 
   factory _ProductApiModel.fromJson(Map<String, dynamic> json) =
       _$ProductApiModelImpl.fromJson;
@@ -1907,11 +1790,8 @@ abstract class _ProductApiModel implements ProductApiModel {
   int get offersCount;
   @override
   List<String> get images;
-
-  /// Create a copy of ProductApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ProductApiModelImplCopyWith<_$ProductApiModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

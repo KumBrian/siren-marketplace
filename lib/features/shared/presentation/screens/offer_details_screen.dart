@@ -26,6 +26,7 @@ import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/offer_actions_provider.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/shared_offer_details_provider.dart';
+import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
 
 class SharedOfferDetailsScreen extends ConsumerStatefulWidget {
@@ -41,13 +42,6 @@ class SharedOfferDetailsScreen extends ConsumerStatefulWidget {
 class _SharedOfferDetailsScreenState
     extends ConsumerState<SharedOfferDetailsScreen> {
   bool _hasMarkedAsViewed = false;
-
-  /// Generate conversation ID from buyer and fisher IDs
-  /// This matches the logic in Conversation.generateId()
-  String _generateConversationId(String buyerId, String fisherId) {
-    final ids = [buyerId, fisherId]..sort();
-    return '${ids[0]}_${ids[1]}';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -771,16 +765,26 @@ class _SharedOfferDetailsScreenState
           width: double.infinity,
           child: CustomButton(
             title: "Message ${state.otherParty.currentRole.displayName}",
-            onPressed: () {
+            onPressed: () async {
               final prefix = state.currentUserRole == UserRole.buyer
                   ? 'buyer'
                   : 'fisher';
-              // Generate conversation ID from buyer and fisher IDs
-              final conversationId = _generateConversationId(
-                state.offer.buyerId,
-                state.offer.fisherId,
-              );
-              context.push("/$prefix/chat/$conversationId");
+
+              try {
+                final conversationId = await ref
+                    .read(chatControllerProvider)
+                    .startConversation(state.otherParty.id);
+
+                if (context.mounted) {
+                  context.push("/$prefix/chat/$conversationId");
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Failed to open chat: $e")),
+                  );
+                }
+              }
             },
             icon: CustomIcons.chatbubble,
             bordered: true,

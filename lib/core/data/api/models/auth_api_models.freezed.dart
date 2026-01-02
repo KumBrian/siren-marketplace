@@ -12,8 +12,7 @@ part of 'auth_api_models.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 AuthorizeRequest _$AuthorizeRequestFromJson(Map<String, dynamic> json) {
   return _AuthorizeRequest.fromJson(json);
@@ -24,12 +23,8 @@ mixin _$AuthorizeRequest {
   String get login => throw _privateConstructorUsedError;
   String get password => throw _privateConstructorUsedError;
 
-  /// Serializes this AuthorizeRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AuthorizeRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AuthorizeRequestCopyWith<AuthorizeRequest> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -37,9 +32,8 @@ mixin _$AuthorizeRequest {
 /// @nodoc
 abstract class $AuthorizeRequestCopyWith<$Res> {
   factory $AuthorizeRequestCopyWith(
-    AuthorizeRequest value,
-    $Res Function(AuthorizeRequest) then,
-  ) = _$AuthorizeRequestCopyWithImpl<$Res, AuthorizeRequest>;
+          AuthorizeRequest value, $Res Function(AuthorizeRequest) then) =
+      _$AuthorizeRequestCopyWithImpl<$Res, AuthorizeRequest>;
   @useResult
   $Res call({String login, String password});
 }
@@ -54,34 +48,31 @@ class _$AuthorizeRequestCopyWithImpl<$Res, $Val extends AuthorizeRequest>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AuthorizeRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? login = null, Object? password = null}) {
-    return _then(
-      _value.copyWith(
-            login: null == login
-                ? _value.login
-                : login // ignore: cast_nullable_to_non_nullable
-                      as String,
-            password: null == password
-                ? _value.password
-                : password // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? login = null,
+    Object? password = null,
+  }) {
+    return _then(_value.copyWith(
+      login: null == login
+          ? _value.login
+          : login // ignore: cast_nullable_to_non_nullable
+              as String,
+      password: null == password
+          ? _value.password
+          : password // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$AuthorizeRequestImplCopyWith<$Res>
     implements $AuthorizeRequestCopyWith<$Res> {
-  factory _$$AuthorizeRequestImplCopyWith(
-    _$AuthorizeRequestImpl value,
-    $Res Function(_$AuthorizeRequestImpl) then,
-  ) = __$$AuthorizeRequestImplCopyWithImpl<$Res>;
+  factory _$$AuthorizeRequestImplCopyWith(_$AuthorizeRequestImpl value,
+          $Res Function(_$AuthorizeRequestImpl) then) =
+      __$$AuthorizeRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String login, String password});
@@ -91,28 +82,26 @@ abstract class _$$AuthorizeRequestImplCopyWith<$Res>
 class __$$AuthorizeRequestImplCopyWithImpl<$Res>
     extends _$AuthorizeRequestCopyWithImpl<$Res, _$AuthorizeRequestImpl>
     implements _$$AuthorizeRequestImplCopyWith<$Res> {
-  __$$AuthorizeRequestImplCopyWithImpl(
-    _$AuthorizeRequestImpl _value,
-    $Res Function(_$AuthorizeRequestImpl) _then,
-  ) : super(_value, _then);
+  __$$AuthorizeRequestImplCopyWithImpl(_$AuthorizeRequestImpl _value,
+      $Res Function(_$AuthorizeRequestImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of AuthorizeRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? login = null, Object? password = null}) {
-    return _then(
-      _$AuthorizeRequestImpl(
-        login: null == login
-            ? _value.login
-            : login // ignore: cast_nullable_to_non_nullable
-                  as String,
-        password: null == password
-            ? _value.password
-            : password // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? login = null,
+    Object? password = null,
+  }) {
+    return _then(_$AuthorizeRequestImpl(
+      login: null == login
+          ? _value.login
+          : login // ignore: cast_nullable_to_non_nullable
+              as String,
+      password: null == password
+          ? _value.password
+          : password // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
@@ -144,32 +133,29 @@ class _$AuthorizeRequestImpl implements _AuthorizeRequest {
                 other.password == password));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, login, password);
 
-  /// Create a copy of AuthorizeRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AuthorizeRequestImplCopyWith<_$AuthorizeRequestImpl> get copyWith =>
       __$$AuthorizeRequestImplCopyWithImpl<_$AuthorizeRequestImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$AuthorizeRequestImplToJson(this);
+    return _$$AuthorizeRequestImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _AuthorizeRequest implements AuthorizeRequest {
-  const factory _AuthorizeRequest({
-    required final String login,
-    required final String password,
-  }) = _$AuthorizeRequestImpl;
+  const factory _AuthorizeRequest(
+      {required final String login,
+      required final String password}) = _$AuthorizeRequestImpl;
 
   factory _AuthorizeRequest.fromJson(Map<String, dynamic> json) =
       _$AuthorizeRequestImpl.fromJson;
@@ -178,11 +164,8 @@ abstract class _AuthorizeRequest implements AuthorizeRequest {
   String get login;
   @override
   String get password;
-
-  /// Create a copy of AuthorizeRequest
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AuthorizeRequestImplCopyWith<_$AuthorizeRequestImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -211,12 +194,8 @@ mixin _$AuthorizeResponse {
   String? get city => throw _privateConstructorUsedError;
   List<String>? get roles => throw _privateConstructorUsedError;
 
-  /// Serializes this AuthorizeResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AuthorizeResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AuthorizeResponseCopyWith<AuthorizeResponse> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -224,23 +203,21 @@ mixin _$AuthorizeResponse {
 /// @nodoc
 abstract class $AuthorizeResponseCopyWith<$Res> {
   factory $AuthorizeResponseCopyWith(
-    AuthorizeResponse value,
-    $Res Function(AuthorizeResponse) then,
-  ) = _$AuthorizeResponseCopyWithImpl<$Res, AuthorizeResponse>;
+          AuthorizeResponse value, $Res Function(AuthorizeResponse) then) =
+      _$AuthorizeResponseCopyWithImpl<$Res, AuthorizeResponse>;
   @useResult
-  $Res call({
-    String token,
-    @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
-    @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
-    dynamic id,
-    String? email,
-    String? firstName,
-    String? lastName,
-    String? username,
-    String? phone,
-    String? city,
-    List<String>? roles,
-  });
+  $Res call(
+      {String token,
+      @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
+      @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
+      dynamic id,
+      String? email,
+      String? firstName,
+      String? lastName,
+      String? username,
+      String? phone,
+      String? city,
+      List<String>? roles});
 }
 
 /// @nodoc
@@ -253,8 +230,6 @@ class _$AuthorizeResponseCopyWithImpl<$Res, $Val extends AuthorizeResponse>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AuthorizeResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -270,93 +245,85 @@ class _$AuthorizeResponseCopyWithImpl<$Res, $Val extends AuthorizeResponse>
     Object? city = freezed,
     Object? roles = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            token: null == token
-                ? _value.token
-                : token // ignore: cast_nullable_to_non_nullable
-                      as String,
-            tokenExpireAt: freezed == tokenExpireAt
-                ? _value.tokenExpireAt
-                : tokenExpireAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            tokenIssuedAt: freezed == tokenIssuedAt
-                ? _value.tokenIssuedAt
-                : tokenIssuedAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            email: freezed == email
-                ? _value.email
-                : email // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            firstName: freezed == firstName
-                ? _value.firstName
-                : firstName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            lastName: freezed == lastName
-                ? _value.lastName
-                : lastName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            username: freezed == username
-                ? _value.username
-                : username // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            phone: freezed == phone
-                ? _value.phone
-                : phone // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            city: freezed == city
-                ? _value.city
-                : city // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            roles: freezed == roles
-                ? _value.roles
-                : roles // ignore: cast_nullable_to_non_nullable
-                      as List<String>?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      token: null == token
+          ? _value.token
+          : token // ignore: cast_nullable_to_non_nullable
+              as String,
+      tokenExpireAt: freezed == tokenExpireAt
+          ? _value.tokenExpireAt
+          : tokenExpireAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      tokenIssuedAt: freezed == tokenIssuedAt
+          ? _value.tokenIssuedAt
+          : tokenIssuedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      username: freezed == username
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      city: freezed == city
+          ? _value.city
+          : city // ignore: cast_nullable_to_non_nullable
+              as String?,
+      roles: freezed == roles
+          ? _value.roles
+          : roles // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$AuthorizeResponseImplCopyWith<$Res>
     implements $AuthorizeResponseCopyWith<$Res> {
-  factory _$$AuthorizeResponseImplCopyWith(
-    _$AuthorizeResponseImpl value,
-    $Res Function(_$AuthorizeResponseImpl) then,
-  ) = __$$AuthorizeResponseImplCopyWithImpl<$Res>;
+  factory _$$AuthorizeResponseImplCopyWith(_$AuthorizeResponseImpl value,
+          $Res Function(_$AuthorizeResponseImpl) then) =
+      __$$AuthorizeResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String token,
-    @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
-    @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
-    dynamic id,
-    String? email,
-    String? firstName,
-    String? lastName,
-    String? username,
-    String? phone,
-    String? city,
-    List<String>? roles,
-  });
+  $Res call(
+      {String token,
+      @JsonKey(name: 'tokenExpireAt') DateTime? tokenExpireAt,
+      @JsonKey(name: 'tokenIssuedAt') DateTime? tokenIssuedAt,
+      dynamic id,
+      String? email,
+      String? firstName,
+      String? lastName,
+      String? username,
+      String? phone,
+      String? city,
+      List<String>? roles});
 }
 
 /// @nodoc
 class __$$AuthorizeResponseImplCopyWithImpl<$Res>
     extends _$AuthorizeResponseCopyWithImpl<$Res, _$AuthorizeResponseImpl>
     implements _$$AuthorizeResponseImplCopyWith<$Res> {
-  __$$AuthorizeResponseImplCopyWithImpl(
-    _$AuthorizeResponseImpl _value,
-    $Res Function(_$AuthorizeResponseImpl) _then,
-  ) : super(_value, _then);
+  __$$AuthorizeResponseImplCopyWithImpl(_$AuthorizeResponseImpl _value,
+      $Res Function(_$AuthorizeResponseImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of AuthorizeResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -372,74 +339,72 @@ class __$$AuthorizeResponseImplCopyWithImpl<$Res>
     Object? city = freezed,
     Object? roles = freezed,
   }) {
-    return _then(
-      _$AuthorizeResponseImpl(
-        token: null == token
-            ? _value.token
-            : token // ignore: cast_nullable_to_non_nullable
-                  as String,
-        tokenExpireAt: freezed == tokenExpireAt
-            ? _value.tokenExpireAt
-            : tokenExpireAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        tokenIssuedAt: freezed == tokenIssuedAt
-            ? _value.tokenIssuedAt
-            : tokenIssuedAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        email: freezed == email
-            ? _value.email
-            : email // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        firstName: freezed == firstName
-            ? _value.firstName
-            : firstName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        lastName: freezed == lastName
-            ? _value.lastName
-            : lastName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        username: freezed == username
-            ? _value.username
-            : username // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        phone: freezed == phone
-            ? _value.phone
-            : phone // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        city: freezed == city
-            ? _value.city
-            : city // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        roles: freezed == roles
-            ? _value._roles
-            : roles // ignore: cast_nullable_to_non_nullable
-                  as List<String>?,
-      ),
-    );
+    return _then(_$AuthorizeResponseImpl(
+      token: null == token
+          ? _value.token
+          : token // ignore: cast_nullable_to_non_nullable
+              as String,
+      tokenExpireAt: freezed == tokenExpireAt
+          ? _value.tokenExpireAt
+          : tokenExpireAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      tokenIssuedAt: freezed == tokenIssuedAt
+          ? _value.tokenIssuedAt
+          : tokenIssuedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      username: freezed == username
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      city: freezed == city
+          ? _value.city
+          : city // ignore: cast_nullable_to_non_nullable
+              as String?,
+      roles: freezed == roles
+          ? _value._roles
+          : roles // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$AuthorizeResponseImpl extends _AuthorizeResponse {
-  const _$AuthorizeResponseImpl({
-    required this.token,
-    @JsonKey(name: 'tokenExpireAt') this.tokenExpireAt,
-    @JsonKey(name: 'tokenIssuedAt') this.tokenIssuedAt,
-    required this.id,
-    this.email,
-    this.firstName,
-    this.lastName,
-    this.username,
-    this.phone,
-    this.city,
-    final List<String>? roles,
-  }) : _roles = roles,
-       super._();
+  const _$AuthorizeResponseImpl(
+      {required this.token,
+      @JsonKey(name: 'tokenExpireAt') this.tokenExpireAt,
+      @JsonKey(name: 'tokenIssuedAt') this.tokenIssuedAt,
+      required this.id,
+      this.email,
+      this.firstName,
+      this.lastName,
+      this.username,
+      this.phone,
+      this.city,
+      final List<String>? roles})
+      : _roles = roles,
+        super._();
 
   factory _$AuthorizeResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$AuthorizeResponseImplFromJson(json);
@@ -458,7 +423,7 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
   final DateTime? tokenIssuedAt;
   @override
   final dynamic id;
-  // ID can be int
+// ID can be int
   @override
   final String? email;
   @override
@@ -509,54 +474,50 @@ class _$AuthorizeResponseImpl extends _AuthorizeResponse {
             const DeepCollectionEquality().equals(other._roles, _roles));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    token,
-    tokenExpireAt,
-    tokenIssuedAt,
-    const DeepCollectionEquality().hash(id),
-    email,
-    firstName,
-    lastName,
-    username,
-    phone,
-    city,
-    const DeepCollectionEquality().hash(_roles),
-  );
+      runtimeType,
+      token,
+      tokenExpireAt,
+      tokenIssuedAt,
+      const DeepCollectionEquality().hash(id),
+      email,
+      firstName,
+      lastName,
+      username,
+      phone,
+      city,
+      const DeepCollectionEquality().hash(_roles));
 
-  /// Create a copy of AuthorizeResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AuthorizeResponseImplCopyWith<_$AuthorizeResponseImpl> get copyWith =>
       __$$AuthorizeResponseImplCopyWithImpl<_$AuthorizeResponseImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$AuthorizeResponseImplToJson(this);
+    return _$$AuthorizeResponseImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _AuthorizeResponse extends AuthorizeResponse {
-  const factory _AuthorizeResponse({
-    required final String token,
-    @JsonKey(name: 'tokenExpireAt') final DateTime? tokenExpireAt,
-    @JsonKey(name: 'tokenIssuedAt') final DateTime? tokenIssuedAt,
-    required final dynamic id,
-    final String? email,
-    final String? firstName,
-    final String? lastName,
-    final String? username,
-    final String? phone,
-    final String? city,
-    final List<String>? roles,
-  }) = _$AuthorizeResponseImpl;
+  const factory _AuthorizeResponse(
+      {required final String token,
+      @JsonKey(name: 'tokenExpireAt') final DateTime? tokenExpireAt,
+      @JsonKey(name: 'tokenIssuedAt') final DateTime? tokenIssuedAt,
+      required final dynamic id,
+      final String? email,
+      final String? firstName,
+      final String? lastName,
+      final String? username,
+      final String? phone,
+      final String? city,
+      final List<String>? roles}) = _$AuthorizeResponseImpl;
   const _AuthorizeResponse._() : super._();
 
   factory _AuthorizeResponse.fromJson(Map<String, dynamic> json) =
@@ -564,19 +525,19 @@ abstract class _AuthorizeResponse extends AuthorizeResponse {
 
   @override
   String get token;
+  @override
 
   /// Token expiration date
-  @override
   @JsonKey(name: 'tokenExpireAt')
   DateTime? get tokenExpireAt;
+  @override
 
   /// Token issuance date
-  @override
   @JsonKey(name: 'tokenIssuedAt')
   DateTime? get tokenIssuedAt;
   @override
-  dynamic get id; // ID can be int
-  @override
+  dynamic get id;
+  @override // ID can be int
   String? get email;
   @override
   String? get firstName;
@@ -590,11 +551,8 @@ abstract class _AuthorizeResponse extends AuthorizeResponse {
   String? get city;
   @override
   List<String>? get roles;
-
-  /// Create a copy of AuthorizeResponse
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AuthorizeResponseImplCopyWith<_$AuthorizeResponseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -607,7 +565,8 @@ AccountApiModel _$AccountApiModelFromJson(Map<String, dynamic> json) {
 mixin _$AccountApiModel {
   /// Unique identifier
   @JsonKey(readValue: _readId)
-  dynamic get id => throw _privateConstructorUsedError; // ID can be int or string (uid)
+  dynamic get id =>
+      throw _privateConstructorUsedError; // ID can be int or string (uid)
   /// First name
   @JsonKey(name: 'first_name', readValue: _readFirstName)
   String? get firstName => throw _privateConstructorUsedError;
@@ -628,12 +587,8 @@ mixin _$AccountApiModel {
   int? get totalReviews => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
 
-  /// Serializes this AccountApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AccountApiModelCopyWith<AccountApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -641,23 +596,21 @@ mixin _$AccountApiModel {
 /// @nodoc
 abstract class $AccountApiModelCopyWith<$Res> {
   factory $AccountApiModelCopyWith(
-    AccountApiModel value,
-    $Res Function(AccountApiModel) then,
-  ) = _$AccountApiModelCopyWithImpl<$Res, AccountApiModel>;
+          AccountApiModel value, $Res Function(AccountApiModel) then) =
+      _$AccountApiModelCopyWithImpl<$Res, AccountApiModel>;
   @useResult
-  $Res call({
-    @JsonKey(readValue: _readId) dynamic id,
-    @JsonKey(name: 'first_name', readValue: _readFirstName) String? firstName,
-    @JsonKey(name: 'last_name', readValue: _readLastName) String? lastName,
-    String? username,
-    String? email,
-    String? phone,
-    List<String>? roles,
-    @JsonKey(name: 'averageRating') double? rating,
-    @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
-    int? totalReviews,
-    String? avatar,
-  });
+  $Res call(
+      {@JsonKey(readValue: _readId) dynamic id,
+      @JsonKey(name: 'first_name', readValue: _readFirstName) String? firstName,
+      @JsonKey(name: 'last_name', readValue: _readLastName) String? lastName,
+      String? username,
+      String? email,
+      String? phone,
+      List<String>? roles,
+      @JsonKey(name: 'averageRating') double? rating,
+      @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+      int? totalReviews,
+      String? avatar});
 }
 
 /// @nodoc
@@ -670,8 +623,6 @@ class _$AccountApiModelCopyWithImpl<$Res, $Val extends AccountApiModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -686,76 +637,71 @@ class _$AccountApiModelCopyWithImpl<$Res, $Val extends AccountApiModel>
     Object? totalReviews = freezed,
     Object? avatar = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            firstName: freezed == firstName
-                ? _value.firstName
-                : firstName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            lastName: freezed == lastName
-                ? _value.lastName
-                : lastName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            username: freezed == username
-                ? _value.username
-                : username // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            email: freezed == email
-                ? _value.email
-                : email // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            phone: freezed == phone
-                ? _value.phone
-                : phone // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            roles: freezed == roles
-                ? _value.roles
-                : roles // ignore: cast_nullable_to_non_nullable
-                      as List<String>?,
-            rating: freezed == rating
-                ? _value.rating
-                : rating // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            totalReviews: freezed == totalReviews
-                ? _value.totalReviews
-                : totalReviews // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            avatar: freezed == avatar
-                ? _value.avatar
-                : avatar // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      username: freezed == username
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      roles: freezed == roles
+          ? _value.roles
+          : roles // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      rating: freezed == rating
+          ? _value.rating
+          : rating // ignore: cast_nullable_to_non_nullable
+              as double?,
+      totalReviews: freezed == totalReviews
+          ? _value.totalReviews
+          : totalReviews // ignore: cast_nullable_to_non_nullable
+              as int?,
+      avatar: freezed == avatar
+          ? _value.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$AccountApiModelImplCopyWith<$Res>
     implements $AccountApiModelCopyWith<$Res> {
-  factory _$$AccountApiModelImplCopyWith(
-    _$AccountApiModelImpl value,
-    $Res Function(_$AccountApiModelImpl) then,
-  ) = __$$AccountApiModelImplCopyWithImpl<$Res>;
+  factory _$$AccountApiModelImplCopyWith(_$AccountApiModelImpl value,
+          $Res Function(_$AccountApiModelImpl) then) =
+      __$$AccountApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(readValue: _readId) dynamic id,
-    @JsonKey(name: 'first_name', readValue: _readFirstName) String? firstName,
-    @JsonKey(name: 'last_name', readValue: _readLastName) String? lastName,
-    String? username,
-    String? email,
-    String? phone,
-    List<String>? roles,
-    @JsonKey(name: 'averageRating') double? rating,
-    @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
-    int? totalReviews,
-    String? avatar,
-  });
+  $Res call(
+      {@JsonKey(readValue: _readId) dynamic id,
+      @JsonKey(name: 'first_name', readValue: _readFirstName) String? firstName,
+      @JsonKey(name: 'last_name', readValue: _readLastName) String? lastName,
+      String? username,
+      String? email,
+      String? phone,
+      List<String>? roles,
+      @JsonKey(name: 'averageRating') double? rating,
+      @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+      int? totalReviews,
+      String? avatar});
 }
 
 /// @nodoc
@@ -763,12 +709,9 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
     extends _$AccountApiModelCopyWithImpl<$Res, _$AccountApiModelImpl>
     implements _$$AccountApiModelImplCopyWith<$Res> {
   __$$AccountApiModelImplCopyWithImpl(
-    _$AccountApiModelImpl _value,
-    $Res Function(_$AccountApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$AccountApiModelImpl _value, $Res Function(_$AccountApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of AccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -783,69 +726,67 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
     Object? totalReviews = freezed,
     Object? avatar = freezed,
   }) {
-    return _then(
-      _$AccountApiModelImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        firstName: freezed == firstName
-            ? _value.firstName
-            : firstName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        lastName: freezed == lastName
-            ? _value.lastName
-            : lastName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        username: freezed == username
-            ? _value.username
-            : username // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        email: freezed == email
-            ? _value.email
-            : email // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        phone: freezed == phone
-            ? _value.phone
-            : phone // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        roles: freezed == roles
-            ? _value._roles
-            : roles // ignore: cast_nullable_to_non_nullable
-                  as List<String>?,
-        rating: freezed == rating
-            ? _value.rating
-            : rating // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        totalReviews: freezed == totalReviews
-            ? _value.totalReviews
-            : totalReviews // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        avatar: freezed == avatar
-            ? _value.avatar
-            : avatar // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$AccountApiModelImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      username: freezed == username
+          ? _value.username
+          : username // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      roles: freezed == roles
+          ? _value._roles
+          : roles // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      rating: freezed == rating
+          ? _value.rating
+          : rating // ignore: cast_nullable_to_non_nullable
+              as double?,
+      totalReviews: freezed == totalReviews
+          ? _value.totalReviews
+          : totalReviews // ignore: cast_nullable_to_non_nullable
+              as int?,
+      avatar: freezed == avatar
+          ? _value.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$AccountApiModelImpl implements _AccountApiModel {
-  const _$AccountApiModelImpl({
-    @JsonKey(readValue: _readId) required this.id,
-    @JsonKey(name: 'first_name', readValue: _readFirstName) this.firstName,
-    @JsonKey(name: 'last_name', readValue: _readLastName) this.lastName,
-    this.username,
-    this.email,
-    this.phone,
-    final List<String>? roles,
-    @JsonKey(name: 'averageRating') this.rating,
-    @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
-    this.totalReviews,
-    this.avatar,
-  }) : _roles = roles;
+  const _$AccountApiModelImpl(
+      {@JsonKey(readValue: _readId) required this.id,
+      @JsonKey(name: 'first_name', readValue: _readFirstName) this.firstName,
+      @JsonKey(name: 'last_name', readValue: _readLastName) this.lastName,
+      this.username,
+      this.email,
+      this.phone,
+      final List<String>? roles,
+      @JsonKey(name: 'averageRating') this.rating,
+      @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+      this.totalReviews,
+      this.avatar})
+      : _roles = roles;
 
   factory _$AccountApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$AccountApiModelImplFromJson(json);
@@ -854,7 +795,7 @@ class _$AccountApiModelImpl implements _AccountApiModel {
   @override
   @JsonKey(readValue: _readId)
   final dynamic id;
-  // ID can be int or string (uid)
+// ID can be int or string (uid)
   /// First name
   @override
   @JsonKey(name: 'first_name', readValue: _readFirstName)
@@ -880,7 +821,7 @@ class _$AccountApiModelImpl implements _AccountApiModel {
     return EqualUnmodifiableListView(value);
   }
 
-  // Roles as list of strings
+// Roles as list of strings
   @override
   @JsonKey(name: 'averageRating')
   final double? rating;
@@ -918,70 +859,67 @@ class _$AccountApiModelImpl implements _AccountApiModel {
             (identical(other.avatar, avatar) || other.avatar == avatar));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(id),
-    firstName,
-    lastName,
-    username,
-    email,
-    phone,
-    const DeepCollectionEquality().hash(_roles),
-    rating,
-    totalReviews,
-    avatar,
-  );
+      runtimeType,
+      const DeepCollectionEquality().hash(id),
+      firstName,
+      lastName,
+      username,
+      email,
+      phone,
+      const DeepCollectionEquality().hash(_roles),
+      rating,
+      totalReviews,
+      avatar);
 
-  /// Create a copy of AccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AccountApiModelImplCopyWith<_$AccountApiModelImpl> get copyWith =>
       __$$AccountApiModelImplCopyWithImpl<_$AccountApiModelImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$AccountApiModelImplToJson(this);
+    return _$$AccountApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _AccountApiModel implements AccountApiModel {
-  const factory _AccountApiModel({
-    @JsonKey(readValue: _readId) required final dynamic id,
-    @JsonKey(name: 'first_name', readValue: _readFirstName)
-    final String? firstName,
-    @JsonKey(name: 'last_name', readValue: _readLastName)
-    final String? lastName,
-    final String? username,
-    final String? email,
-    final String? phone,
-    final List<String>? roles,
-    @JsonKey(name: 'averageRating') final double? rating,
-    @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
-    final int? totalReviews,
-    final String? avatar,
-  }) = _$AccountApiModelImpl;
+  const factory _AccountApiModel(
+      {@JsonKey(readValue: _readId) required final dynamic id,
+      @JsonKey(name: 'first_name', readValue: _readFirstName)
+      final String? firstName,
+      @JsonKey(name: 'last_name', readValue: _readLastName)
+      final String? lastName,
+      final String? username,
+      final String? email,
+      final String? phone,
+      final List<String>? roles,
+      @JsonKey(name: 'averageRating') final double? rating,
+      @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
+      final int? totalReviews,
+      final String? avatar}) = _$AccountApiModelImpl;
 
   factory _AccountApiModel.fromJson(Map<String, dynamic> json) =
       _$AccountApiModelImpl.fromJson;
 
+  @override
+
   /// Unique identifier
-  @override
   @JsonKey(readValue: _readId)
-  dynamic get id; // ID can be int or string (uid)
+  dynamic get id;
+  @override // ID can be int or string (uid)
   /// First name
-  @override
   @JsonKey(name: 'first_name', readValue: _readFirstName)
   String? get firstName;
+  @override
 
   /// Last name
-  @override
   @JsonKey(name: 'last_name', readValue: _readLastName)
   String? get lastName;
   @override
@@ -991,22 +929,19 @@ abstract class _AccountApiModel implements AccountApiModel {
   @override
   String? get phone;
   @override
-  List<String>? get roles; // Roles as list of strings
-  @override
+  List<String>? get roles;
+  @override // Roles as list of strings
   @JsonKey(name: 'averageRating')
   double? get rating;
+  @override
 
   /// Total number of reviews
-  @override
   @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
   int? get totalReviews;
   @override
   String? get avatar;
-
-  /// Create a copy of AccountApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AccountApiModelImplCopyWith<_$AccountApiModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

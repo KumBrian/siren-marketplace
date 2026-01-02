@@ -12,8 +12,7 @@ part of 'catch_api_models.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 GearApiModel _$GearApiModelFromJson(Map<String, dynamic> json) {
   return _GearApiModel.fromJson(json);
@@ -37,12 +36,8 @@ mixin _$GearApiModel {
   String? get updatedAt => throw _privateConstructorUsedError;
   String? get uid => throw _privateConstructorUsedError;
 
-  /// Serializes this GearApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of GearApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $GearApiModelCopyWith<GearApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -50,21 +45,19 @@ mixin _$GearApiModel {
 /// @nodoc
 abstract class $GearApiModelCopyWith<$Res> {
   factory $GearApiModelCopyWith(
-    GearApiModel value,
-    $Res Function(GearApiModel) then,
-  ) = _$GearApiModelCopyWithImpl<$Res, GearApiModel>;
+          GearApiModel value, $Res Function(GearApiModel) then) =
+      _$GearApiModelCopyWithImpl<$Res, GearApiModel>;
   @useResult
-  $Res call({
-    dynamic id,
-    @JsonKey(name: 'gear_mesh_size_in_finger') double? gearMeshSizeInFinger,
-    @JsonKey(name: 'gear_length_in_meter') double? gearLengthInMeter,
-    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
-    @JsonKey(name: 'gear_nature') String? gearNature,
-    AccountApiModel? account,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    String? uid,
-  });
+  $Res call(
+      {dynamic id,
+      @JsonKey(name: 'gear_mesh_size_in_finger') double? gearMeshSizeInFinger,
+      @JsonKey(name: 'gear_length_in_meter') double? gearLengthInMeter,
+      @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
+      @JsonKey(name: 'gear_nature') String? gearNature,
+      AccountApiModel? account,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      String? uid});
 
   $AccountApiModelCopyWith<$Res>? get account;
 }
@@ -79,8 +72,6 @@ class _$GearApiModelCopyWithImpl<$Res, $Val extends GearApiModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of GearApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -94,51 +85,46 @@ class _$GearApiModelCopyWithImpl<$Res, $Val extends GearApiModel>
     Object? updatedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            gearMeshSizeInFinger: freezed == gearMeshSizeInFinger
-                ? _value.gearMeshSizeInFinger
-                : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            gearLengthInMeter: freezed == gearLengthInMeter
-                ? _value.gearLengthInMeter
-                : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            gearWidthInMeter: freezed == gearWidthInMeter
-                ? _value.gearWidthInMeter
-                : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            gearNature: freezed == gearNature
-                ? _value.gearNature
-                : gearNature // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            account: freezed == account
-                ? _value.account
-                : account // ignore: cast_nullable_to_non_nullable
-                      as AccountApiModel?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      gearMeshSizeInFinger: freezed == gearMeshSizeInFinger
+          ? _value.gearMeshSizeInFinger
+          : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearLengthInMeter: freezed == gearLengthInMeter
+          ? _value.gearLengthInMeter
+          : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearWidthInMeter: freezed == gearWidthInMeter
+          ? _value.gearWidthInMeter
+          : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearNature: freezed == gearNature
+          ? _value.gearNature
+          : gearNature // ignore: cast_nullable_to_non_nullable
+              as String?,
+      account: freezed == account
+          ? _value.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 
-  /// Create a copy of GearApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $AccountApiModelCopyWith<$Res>? get account {
@@ -156,22 +142,20 @@ class _$GearApiModelCopyWithImpl<$Res, $Val extends GearApiModel>
 abstract class _$$GearApiModelImplCopyWith<$Res>
     implements $GearApiModelCopyWith<$Res> {
   factory _$$GearApiModelImplCopyWith(
-    _$GearApiModelImpl value,
-    $Res Function(_$GearApiModelImpl) then,
-  ) = __$$GearApiModelImplCopyWithImpl<$Res>;
+          _$GearApiModelImpl value, $Res Function(_$GearApiModelImpl) then) =
+      __$$GearApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    dynamic id,
-    @JsonKey(name: 'gear_mesh_size_in_finger') double? gearMeshSizeInFinger,
-    @JsonKey(name: 'gear_length_in_meter') double? gearLengthInMeter,
-    @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
-    @JsonKey(name: 'gear_nature') String? gearNature,
-    AccountApiModel? account,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    String? uid,
-  });
+  $Res call(
+      {dynamic id,
+      @JsonKey(name: 'gear_mesh_size_in_finger') double? gearMeshSizeInFinger,
+      @JsonKey(name: 'gear_length_in_meter') double? gearLengthInMeter,
+      @JsonKey(name: 'gear_width_in_meter') double? gearWidthInMeter,
+      @JsonKey(name: 'gear_nature') String? gearNature,
+      AccountApiModel? account,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      String? uid});
 
   @override
   $AccountApiModelCopyWith<$Res>? get account;
@@ -182,12 +166,9 @@ class __$$GearApiModelImplCopyWithImpl<$Res>
     extends _$GearApiModelCopyWithImpl<$Res, _$GearApiModelImpl>
     implements _$$GearApiModelImplCopyWith<$Res> {
   __$$GearApiModelImplCopyWithImpl(
-    _$GearApiModelImpl _value,
-    $Res Function(_$GearApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$GearApiModelImpl _value, $Res Function(_$GearApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of GearApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -201,63 +182,60 @@ class __$$GearApiModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _$GearApiModelImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        gearMeshSizeInFinger: freezed == gearMeshSizeInFinger
-            ? _value.gearMeshSizeInFinger
-            : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        gearLengthInMeter: freezed == gearLengthInMeter
-            ? _value.gearLengthInMeter
-            : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        gearWidthInMeter: freezed == gearWidthInMeter
-            ? _value.gearWidthInMeter
-            : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        gearNature: freezed == gearNature
-            ? _value.gearNature
-            : gearNature // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        account: freezed == account
-            ? _value.account
-            : account // ignore: cast_nullable_to_non_nullable
-                  as AccountApiModel?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$GearApiModelImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      gearMeshSizeInFinger: freezed == gearMeshSizeInFinger
+          ? _value.gearMeshSizeInFinger
+          : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearLengthInMeter: freezed == gearLengthInMeter
+          ? _value.gearLengthInMeter
+          : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearWidthInMeter: freezed == gearWidthInMeter
+          ? _value.gearWidthInMeter
+          : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      gearNature: freezed == gearNature
+          ? _value.gearNature
+          : gearNature // ignore: cast_nullable_to_non_nullable
+              as String?,
+      account: freezed == account
+          ? _value.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$GearApiModelImpl implements _GearApiModel {
-  const _$GearApiModelImpl({
-    required this.id,
-    @JsonKey(name: 'gear_mesh_size_in_finger') this.gearMeshSizeInFinger,
-    @JsonKey(name: 'gear_length_in_meter') this.gearLengthInMeter,
-    @JsonKey(name: 'gear_width_in_meter') this.gearWidthInMeter,
-    @JsonKey(name: 'gear_nature') this.gearNature,
-    this.account,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    this.uid,
-  });
+  const _$GearApiModelImpl(
+      {required this.id,
+      @JsonKey(name: 'gear_mesh_size_in_finger') this.gearMeshSizeInFinger,
+      @JsonKey(name: 'gear_length_in_meter') this.gearLengthInMeter,
+      @JsonKey(name: 'gear_width_in_meter') this.gearWidthInMeter,
+      @JsonKey(name: 'gear_nature') this.gearNature,
+      this.account,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      this.uid});
 
   factory _$GearApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$GearApiModelImplFromJson(json);
@@ -314,24 +292,21 @@ class _$GearApiModelImpl implements _GearApiModel {
             (identical(other.uid, uid) || other.uid == uid));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(id),
-    gearMeshSizeInFinger,
-    gearLengthInMeter,
-    gearWidthInMeter,
-    gearNature,
-    account,
-    createdAt,
-    updatedAt,
-    uid,
-  );
+      runtimeType,
+      const DeepCollectionEquality().hash(id),
+      gearMeshSizeInFinger,
+      gearLengthInMeter,
+      gearWidthInMeter,
+      gearNature,
+      account,
+      createdAt,
+      updatedAt,
+      uid);
 
-  /// Create a copy of GearApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$GearApiModelImplCopyWith<_$GearApiModelImpl> get copyWith =>
@@ -339,23 +314,24 @@ class _$GearApiModelImpl implements _GearApiModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$GearApiModelImplToJson(this);
+    return _$$GearApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _GearApiModel implements GearApiModel {
-  const factory _GearApiModel({
-    required final dynamic id,
-    @JsonKey(name: 'gear_mesh_size_in_finger')
-    final double? gearMeshSizeInFinger,
-    @JsonKey(name: 'gear_length_in_meter') final double? gearLengthInMeter,
-    @JsonKey(name: 'gear_width_in_meter') final double? gearWidthInMeter,
-    @JsonKey(name: 'gear_nature') final String? gearNature,
-    final AccountApiModel? account,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    final String? uid,
-  }) = _$GearApiModelImpl;
+  const factory _GearApiModel(
+      {required final dynamic id,
+      @JsonKey(name: 'gear_mesh_size_in_finger')
+      final double? gearMeshSizeInFinger,
+      @JsonKey(name: 'gear_length_in_meter') final double? gearLengthInMeter,
+      @JsonKey(name: 'gear_width_in_meter') final double? gearWidthInMeter,
+      @JsonKey(name: 'gear_nature') final String? gearNature,
+      final AccountApiModel? account,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      final String? uid}) = _$GearApiModelImpl;
 
   factory _GearApiModel.fromJson(Map<String, dynamic> json) =
       _$GearApiModelImpl.fromJson;
@@ -384,18 +360,14 @@ abstract class _GearApiModel implements GearApiModel {
   String? get updatedAt;
   @override
   String? get uid;
-
-  /// Create a copy of GearApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$GearApiModelImplCopyWith<_$GearApiModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 FishCatchImageApiModel _$FishCatchImageApiModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _FishCatchImageApiModel.fromJson(json);
 }
 
@@ -411,38 +383,30 @@ mixin _$FishCatchImageApiModel {
   String? get updatedAt => throw _privateConstructorUsedError;
   String? get uid => throw _privateConstructorUsedError;
 
-  /// Serializes this FishCatchImageApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of FishCatchImageApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $FishCatchImageApiModelCopyWith<FishCatchImageApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $FishCatchImageApiModelCopyWith<$Res> {
-  factory $FishCatchImageApiModelCopyWith(
-    FishCatchImageApiModel value,
-    $Res Function(FishCatchImageApiModel) then,
-  ) = _$FishCatchImageApiModelCopyWithImpl<$Res, FishCatchImageApiModel>;
+  factory $FishCatchImageApiModelCopyWith(FishCatchImageApiModel value,
+          $Res Function(FishCatchImageApiModel) then) =
+      _$FishCatchImageApiModelCopyWithImpl<$Res, FishCatchImageApiModel>;
   @useResult
-  $Res call({
-    dynamic id,
-    String? fishCatch,
-    @JsonKey(name: 'imageUrl') String? imageUrl,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    String? uid,
-  });
+  $Res call(
+      {dynamic id,
+      String? fishCatch,
+      @JsonKey(name: 'imageUrl') String? imageUrl,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      String? uid});
 }
 
 /// @nodoc
-class _$FishCatchImageApiModelCopyWithImpl<
-  $Res,
-  $Val extends FishCatchImageApiModel
->
+class _$FishCatchImageApiModelCopyWithImpl<$Res,
+        $Val extends FishCatchImageApiModel>
     implements $FishCatchImageApiModelCopyWith<$Res> {
   _$FishCatchImageApiModelCopyWithImpl(this._value, this._then);
 
@@ -451,8 +415,6 @@ class _$FishCatchImageApiModelCopyWithImpl<
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of FishCatchImageApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -463,35 +425,32 @@ class _$FishCatchImageApiModelCopyWithImpl<
     Object? updatedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            fishCatch: freezed == fishCatch
-                ? _value.fishCatch
-                : fishCatch // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            imageUrl: freezed == imageUrl
-                ? _value.imageUrl
-                : imageUrl // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      fishCatch: freezed == fishCatch
+          ? _value.fishCatch
+          : fishCatch // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
@@ -499,33 +458,30 @@ class _$FishCatchImageApiModelCopyWithImpl<
 abstract class _$$FishCatchImageApiModelImplCopyWith<$Res>
     implements $FishCatchImageApiModelCopyWith<$Res> {
   factory _$$FishCatchImageApiModelImplCopyWith(
-    _$FishCatchImageApiModelImpl value,
-    $Res Function(_$FishCatchImageApiModelImpl) then,
-  ) = __$$FishCatchImageApiModelImplCopyWithImpl<$Res>;
+          _$FishCatchImageApiModelImpl value,
+          $Res Function(_$FishCatchImageApiModelImpl) then) =
+      __$$FishCatchImageApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    dynamic id,
-    String? fishCatch,
-    @JsonKey(name: 'imageUrl') String? imageUrl,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    String? uid,
-  });
+  $Res call(
+      {dynamic id,
+      String? fishCatch,
+      @JsonKey(name: 'imageUrl') String? imageUrl,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      String? uid});
 }
 
 /// @nodoc
 class __$$FishCatchImageApiModelImplCopyWithImpl<$Res>
-    extends
-        _$FishCatchImageApiModelCopyWithImpl<$Res, _$FishCatchImageApiModelImpl>
+    extends _$FishCatchImageApiModelCopyWithImpl<$Res,
+        _$FishCatchImageApiModelImpl>
     implements _$$FishCatchImageApiModelImplCopyWith<$Res> {
   __$$FishCatchImageApiModelImplCopyWithImpl(
-    _$FishCatchImageApiModelImpl _value,
-    $Res Function(_$FishCatchImageApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$FishCatchImageApiModelImpl _value,
+      $Res Function(_$FishCatchImageApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of FishCatchImageApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -536,48 +492,45 @@ class __$$FishCatchImageApiModelImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
     Object? uid = freezed,
   }) {
-    return _then(
-      _$FishCatchImageApiModelImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        fishCatch: freezed == fishCatch
-            ? _value.fishCatch
-            : fishCatch // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        imageUrl: freezed == imageUrl
-            ? _value.imageUrl
-            : imageUrl // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$FishCatchImageApiModelImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      fishCatch: freezed == fishCatch
+          ? _value.fishCatch
+          : fishCatch // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$FishCatchImageApiModelImpl implements _FishCatchImageApiModel {
-  const _$FishCatchImageApiModelImpl({
-    required this.id,
-    this.fishCatch,
-    @JsonKey(name: 'imageUrl') this.imageUrl,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    this.uid,
-  });
+  const _$FishCatchImageApiModelImpl(
+      {required this.id,
+      this.fishCatch,
+      @JsonKey(name: 'imageUrl') this.imageUrl,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      this.uid});
 
   factory _$FishCatchImageApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$FishCatchImageApiModelImplFromJson(json);
@@ -620,45 +573,40 @@ class _$FishCatchImageApiModelImpl implements _FishCatchImageApiModel {
             (identical(other.uid, uid) || other.uid == uid));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    const DeepCollectionEquality().hash(id),
-    fishCatch,
-    imageUrl,
-    createdAt,
-    updatedAt,
-    uid,
-  );
+      runtimeType,
+      const DeepCollectionEquality().hash(id),
+      fishCatch,
+      imageUrl,
+      createdAt,
+      updatedAt,
+      uid);
 
-  /// Create a copy of FishCatchImageApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$FishCatchImageApiModelImplCopyWith<_$FishCatchImageApiModelImpl>
-  get copyWith =>
-      __$$FishCatchImageApiModelImplCopyWithImpl<_$FishCatchImageApiModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith => __$$FishCatchImageApiModelImplCopyWithImpl<
+          _$FishCatchImageApiModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$FishCatchImageApiModelImplToJson(this);
+    return _$$FishCatchImageApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _FishCatchImageApiModel implements FishCatchImageApiModel {
-  const factory _FishCatchImageApiModel({
-    required final dynamic id,
-    final String? fishCatch,
-    @JsonKey(name: 'imageUrl') final String? imageUrl,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    final String? uid,
-  }) = _$FishCatchImageApiModelImpl;
+  const factory _FishCatchImageApiModel(
+      {required final dynamic id,
+      final String? fishCatch,
+      @JsonKey(name: 'imageUrl') final String? imageUrl,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      final String? uid}) = _$FishCatchImageApiModelImpl;
 
   factory _FishCatchImageApiModel.fromJson(Map<String, dynamic> json) =
       _$FishCatchImageApiModelImpl.fromJson;
@@ -678,13 +626,10 @@ abstract class _FishCatchImageApiModel implements FishCatchImageApiModel {
   String? get updatedAt;
   @override
   String? get uid;
-
-  /// Create a copy of FishCatchImageApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$FishCatchImageApiModelImplCopyWith<_$FishCatchImageApiModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 SpecieApiModel _$SpecieApiModelFromJson(Map<String, dynamic> json) {
@@ -703,12 +648,8 @@ mixin _$SpecieApiModel {
   String? get deletedAt => throw _privateConstructorUsedError;
   String get uid => throw _privateConstructorUsedError;
 
-  /// Serializes this SpecieApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of SpecieApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $SpecieApiModelCopyWith<SpecieApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -716,18 +657,16 @@ mixin _$SpecieApiModel {
 /// @nodoc
 abstract class $SpecieApiModelCopyWith<$Res> {
   factory $SpecieApiModelCopyWith(
-    SpecieApiModel value,
-    $Res Function(SpecieApiModel) then,
-  ) = _$SpecieApiModelCopyWithImpl<$Res, SpecieApiModel>;
+          SpecieApiModel value, $Res Function(SpecieApiModel) then) =
+      _$SpecieApiModelCopyWithImpl<$Res, SpecieApiModel>;
   @useResult
-  $Res call({
-    int? id,
-    String? name,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String uid,
-  });
+  $Res call(
+      {int? id,
+      String? name,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String uid});
 }
 
 /// @nodoc
@@ -740,8 +679,6 @@ class _$SpecieApiModelCopyWithImpl<$Res, $Val extends SpecieApiModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of SpecieApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -752,55 +689,50 @@ class _$SpecieApiModelCopyWithImpl<$Res, $Val extends SpecieApiModel>
     Object? deletedAt = freezed,
     Object? uid = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            name: freezed == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            deletedAt: freezed == deletedAt
-                ? _value.deletedAt
-                : deletedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            uid: null == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: null == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$SpecieApiModelImplCopyWith<$Res>
     implements $SpecieApiModelCopyWith<$Res> {
-  factory _$$SpecieApiModelImplCopyWith(
-    _$SpecieApiModelImpl value,
-    $Res Function(_$SpecieApiModelImpl) then,
-  ) = __$$SpecieApiModelImplCopyWithImpl<$Res>;
+  factory _$$SpecieApiModelImplCopyWith(_$SpecieApiModelImpl value,
+          $Res Function(_$SpecieApiModelImpl) then) =
+      __$$SpecieApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int? id,
-    String? name,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    String uid,
-  });
+  $Res call(
+      {int? id,
+      String? name,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      String uid});
 }
 
 /// @nodoc
@@ -808,12 +740,9 @@ class __$$SpecieApiModelImplCopyWithImpl<$Res>
     extends _$SpecieApiModelCopyWithImpl<$Res, _$SpecieApiModelImpl>
     implements _$$SpecieApiModelImplCopyWith<$Res> {
   __$$SpecieApiModelImplCopyWithImpl(
-    _$SpecieApiModelImpl _value,
-    $Res Function(_$SpecieApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$SpecieApiModelImpl _value, $Res Function(_$SpecieApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of SpecieApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -824,48 +753,45 @@ class __$$SpecieApiModelImplCopyWithImpl<$Res>
     Object? deletedAt = freezed,
     Object? uid = null,
   }) {
-    return _then(
-      _$SpecieApiModelImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        name: freezed == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        deletedAt: freezed == deletedAt
-            ? _value.deletedAt
-            : deletedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        uid: null == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+    return _then(_$SpecieApiModelImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: null == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$SpecieApiModelImpl implements _SpecieApiModel {
-  const _$SpecieApiModelImpl({
-    this.id,
-    this.name,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    @JsonKey(name: 'deleted_at') this.deletedAt,
-    required this.uid,
-  });
+  const _$SpecieApiModelImpl(
+      {this.id,
+      this.name,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      @JsonKey(name: 'deleted_at') this.deletedAt,
+      required this.uid});
 
   factory _$SpecieApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SpecieApiModelImplFromJson(json);
@@ -907,37 +833,34 @@ class _$SpecieApiModelImpl implements _SpecieApiModel {
             (identical(other.uid, uid) || other.uid == uid));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, id, name, createdAt, updatedAt, deletedAt, uid);
 
-  /// Create a copy of SpecieApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SpecieApiModelImplCopyWith<_$SpecieApiModelImpl> get copyWith =>
       __$$SpecieApiModelImplCopyWithImpl<_$SpecieApiModelImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SpecieApiModelImplToJson(this);
+    return _$$SpecieApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _SpecieApiModel implements SpecieApiModel {
-  const factory _SpecieApiModel({
-    final int? id,
-    final String? name,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    @JsonKey(name: 'deleted_at') final String? deletedAt,
-    required final String uid,
-  }) = _$SpecieApiModelImpl;
+  const factory _SpecieApiModel(
+      {final int? id,
+      final String? name,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      @JsonKey(name: 'deleted_at') final String? deletedAt,
+      required final String uid}) = _$SpecieApiModelImpl;
 
   factory _SpecieApiModel.fromJson(Map<String, dynamic> json) =
       _$SpecieApiModelImpl.fromJson;
@@ -957,11 +880,8 @@ abstract class _SpecieApiModel implements SpecieApiModel {
   String? get deletedAt;
   @override
   String get uid;
-
-  /// Create a copy of SpecieApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$SpecieApiModelImplCopyWith<_$SpecieApiModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1023,12 +943,8 @@ mixin _$CatchApiModel {
   @Deprecated('Backend no longer sends these')
   String? get market => throw _privateConstructorUsedError;
 
-  /// Serializes this CatchApiModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of CatchApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CatchApiModelCopyWith<CatchApiModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1036,42 +952,42 @@ mixin _$CatchApiModel {
 /// @nodoc
 abstract class $CatchApiModelCopyWith<$Res> {
   factory $CatchApiModelCopyWith(
-    CatchApiModel value,
-    $Res Function(CatchApiModel) then,
-  ) = _$CatchApiModelCopyWithImpl<$Res, CatchApiModel>;
+          CatchApiModel value, $Res Function(CatchApiModel) then) =
+      _$CatchApiModelCopyWithImpl<$Res, CatchApiModel>;
   @useResult
-  $Res call({
-    dynamic id,
-    String? observationId,
-    @JsonKey(name: 'water_depth_in_meter') double? waterDepthInMeter,
-    @JsonKey(name: 'fishing_time_in_hour') double? fishingTimeInHour,
-    SpecieApiModel? specie,
-    @JsonKey(name: 'estimated_weight_in_grams') double? estimatedWeightInGrams,
-    @JsonKey(name: 'average_size_in_cm') double? averageSizeInCm,
-    @JsonKey(name: 'estimated_size') int? estimatedSize,
-    bool? published,
-    @JsonKey(name: 'published_weight_in_grams') double? publishedWeightInGrams,
-    @JsonKey(name: 'price_per_kg') double? pricePerKg,
-    @JsonKey(name: 'final_price') double? finalPrice,
-    @JsonKey(name: 'published_in_market_place') bool? publishedInMarketPlace,
-    @JsonKey(name: 'fishCatchImages')
-    List<FishCatchImageApiModel> fishCatchImages,
-    String? note,
-    String? status,
-    GearApiModel? gear,
-    AccountApiModel? account,
-    @JsonKey(name: 'obs_synced') bool? obsSynced,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    @JsonKey(name: 'location_name') String? locationName,
-    double? latitude,
-    double? longitude,
-    String? uid,
-    @Deprecated('Use specie.uid instead') SpeciesModel? species,
-    @Deprecated('Backend no longer sends these') String? name,
-    @Deprecated('Backend no longer sends these') String? market,
-  });
+  $Res call(
+      {dynamic id,
+      String? observationId,
+      @JsonKey(name: 'water_depth_in_meter') double? waterDepthInMeter,
+      @JsonKey(name: 'fishing_time_in_hour') double? fishingTimeInHour,
+      SpecieApiModel? specie,
+      @JsonKey(name: 'estimated_weight_in_grams')
+      double? estimatedWeightInGrams,
+      @JsonKey(name: 'average_size_in_cm') double? averageSizeInCm,
+      @JsonKey(name: 'estimated_size') int? estimatedSize,
+      bool? published,
+      @JsonKey(name: 'published_weight_in_grams')
+      double? publishedWeightInGrams,
+      @JsonKey(name: 'price_per_kg') double? pricePerKg,
+      @JsonKey(name: 'final_price') double? finalPrice,
+      @JsonKey(name: 'published_in_market_place') bool? publishedInMarketPlace,
+      @JsonKey(name: 'fishCatchImages')
+      List<FishCatchImageApiModel> fishCatchImages,
+      String? note,
+      String? status,
+      GearApiModel? gear,
+      AccountApiModel? account,
+      @JsonKey(name: 'obs_synced') bool? obsSynced,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      @JsonKey(name: 'location_name') String? locationName,
+      double? latitude,
+      double? longitude,
+      String? uid,
+      @Deprecated('Use specie.uid instead') SpeciesModel? species,
+      @Deprecated('Backend no longer sends these') String? name,
+      @Deprecated('Backend no longer sends these') String? market});
 
   $SpecieApiModelCopyWith<$Res>? get specie;
   $GearApiModelCopyWith<$Res>? get gear;
@@ -1088,8 +1004,6 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CatchApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1123,131 +1037,126 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
     Object? name = freezed,
     Object? market = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: freezed == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            observationId: freezed == observationId
-                ? _value.observationId
-                : observationId // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            waterDepthInMeter: freezed == waterDepthInMeter
-                ? _value.waterDepthInMeter
-                : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            fishingTimeInHour: freezed == fishingTimeInHour
-                ? _value.fishingTimeInHour
-                : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            specie: freezed == specie
-                ? _value.specie
-                : specie // ignore: cast_nullable_to_non_nullable
-                      as SpecieApiModel?,
-            estimatedWeightInGrams: freezed == estimatedWeightInGrams
-                ? _value.estimatedWeightInGrams
-                : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            averageSizeInCm: freezed == averageSizeInCm
-                ? _value.averageSizeInCm
-                : averageSizeInCm // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            estimatedSize: freezed == estimatedSize
-                ? _value.estimatedSize
-                : estimatedSize // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            published: freezed == published
-                ? _value.published
-                : published // ignore: cast_nullable_to_non_nullable
-                      as bool?,
-            publishedWeightInGrams: freezed == publishedWeightInGrams
-                ? _value.publishedWeightInGrams
-                : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            pricePerKg: freezed == pricePerKg
-                ? _value.pricePerKg
-                : pricePerKg // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            finalPrice: freezed == finalPrice
-                ? _value.finalPrice
-                : finalPrice // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            publishedInMarketPlace: freezed == publishedInMarketPlace
-                ? _value.publishedInMarketPlace
-                : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
-                      as bool?,
-            fishCatchImages: null == fishCatchImages
-                ? _value.fishCatchImages
-                : fishCatchImages // ignore: cast_nullable_to_non_nullable
-                      as List<FishCatchImageApiModel>,
-            note: freezed == note
-                ? _value.note
-                : note // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            status: freezed == status
-                ? _value.status
-                : status // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            gear: freezed == gear
-                ? _value.gear
-                : gear // ignore: cast_nullable_to_non_nullable
-                      as GearApiModel?,
-            account: freezed == account
-                ? _value.account
-                : account // ignore: cast_nullable_to_non_nullable
-                      as AccountApiModel?,
-            obsSynced: freezed == obsSynced
-                ? _value.obsSynced
-                : obsSynced // ignore: cast_nullable_to_non_nullable
-                      as bool?,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            updatedAt: freezed == updatedAt
-                ? _value.updatedAt
-                : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            deletedAt: freezed == deletedAt
-                ? _value.deletedAt
-                : deletedAt // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            locationName: freezed == locationName
-                ? _value.locationName
-                : locationName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            latitude: freezed == latitude
-                ? _value.latitude
-                : latitude // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            longitude: freezed == longitude
-                ? _value.longitude
-                : longitude // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            uid: freezed == uid
-                ? _value.uid
-                : uid // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            species: freezed == species
-                ? _value.species
-                : species // ignore: cast_nullable_to_non_nullable
-                      as SpeciesModel?,
-            name: freezed == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            market: freezed == market
-                ? _value.market
-                : market // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      observationId: freezed == observationId
+          ? _value.observationId
+          : observationId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      waterDepthInMeter: freezed == waterDepthInMeter
+          ? _value.waterDepthInMeter
+          : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      fishingTimeInHour: freezed == fishingTimeInHour
+          ? _value.fishingTimeInHour
+          : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
+              as double?,
+      specie: freezed == specie
+          ? _value.specie
+          : specie // ignore: cast_nullable_to_non_nullable
+              as SpecieApiModel?,
+      estimatedWeightInGrams: freezed == estimatedWeightInGrams
+          ? _value.estimatedWeightInGrams
+          : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double?,
+      averageSizeInCm: freezed == averageSizeInCm
+          ? _value.averageSizeInCm
+          : averageSizeInCm // ignore: cast_nullable_to_non_nullable
+              as double?,
+      estimatedSize: freezed == estimatedSize
+          ? _value.estimatedSize
+          : estimatedSize // ignore: cast_nullable_to_non_nullable
+              as int?,
+      published: freezed == published
+          ? _value.published
+          : published // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      publishedWeightInGrams: freezed == publishedWeightInGrams
+          ? _value.publishedWeightInGrams
+          : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double?,
+      pricePerKg: freezed == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double?,
+      finalPrice: freezed == finalPrice
+          ? _value.finalPrice
+          : finalPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
+      publishedInMarketPlace: freezed == publishedInMarketPlace
+          ? _value.publishedInMarketPlace
+          : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      fishCatchImages: null == fishCatchImages
+          ? _value.fishCatchImages
+          : fishCatchImages // ignore: cast_nullable_to_non_nullable
+              as List<FishCatchImageApiModel>,
+      note: freezed == note
+          ? _value.note
+          : note // ignore: cast_nullable_to_non_nullable
+              as String?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gear: freezed == gear
+          ? _value.gear
+          : gear // ignore: cast_nullable_to_non_nullable
+              as GearApiModel?,
+      account: freezed == account
+          ? _value.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      obsSynced: freezed == obsSynced
+          ? _value.obsSynced
+          : obsSynced // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      locationName: freezed == locationName
+          ? _value.locationName
+          : locationName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      latitude: freezed == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      longitude: freezed == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      species: freezed == species
+          ? _value.species
+          : species // ignore: cast_nullable_to_non_nullable
+              as SpeciesModel?,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      market: freezed == market
+          ? _value.market
+          : market // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 
-  /// Create a copy of CatchApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $SpecieApiModelCopyWith<$Res>? get specie {
@@ -1260,8 +1169,6 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
     });
   }
 
-  /// Create a copy of CatchApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $GearApiModelCopyWith<$Res>? get gear {
@@ -1274,8 +1181,6 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
     });
   }
 
-  /// Create a copy of CatchApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $AccountApiModelCopyWith<$Res>? get account {
@@ -1293,43 +1198,43 @@ class _$CatchApiModelCopyWithImpl<$Res, $Val extends CatchApiModel>
 abstract class _$$CatchApiModelImplCopyWith<$Res>
     implements $CatchApiModelCopyWith<$Res> {
   factory _$$CatchApiModelImplCopyWith(
-    _$CatchApiModelImpl value,
-    $Res Function(_$CatchApiModelImpl) then,
-  ) = __$$CatchApiModelImplCopyWithImpl<$Res>;
+          _$CatchApiModelImpl value, $Res Function(_$CatchApiModelImpl) then) =
+      __$$CatchApiModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    dynamic id,
-    String? observationId,
-    @JsonKey(name: 'water_depth_in_meter') double? waterDepthInMeter,
-    @JsonKey(name: 'fishing_time_in_hour') double? fishingTimeInHour,
-    SpecieApiModel? specie,
-    @JsonKey(name: 'estimated_weight_in_grams') double? estimatedWeightInGrams,
-    @JsonKey(name: 'average_size_in_cm') double? averageSizeInCm,
-    @JsonKey(name: 'estimated_size') int? estimatedSize,
-    bool? published,
-    @JsonKey(name: 'published_weight_in_grams') double? publishedWeightInGrams,
-    @JsonKey(name: 'price_per_kg') double? pricePerKg,
-    @JsonKey(name: 'final_price') double? finalPrice,
-    @JsonKey(name: 'published_in_market_place') bool? publishedInMarketPlace,
-    @JsonKey(name: 'fishCatchImages')
-    List<FishCatchImageApiModel> fishCatchImages,
-    String? note,
-    String? status,
-    GearApiModel? gear,
-    AccountApiModel? account,
-    @JsonKey(name: 'obs_synced') bool? obsSynced,
-    @JsonKey(name: 'created_at') String? createdAt,
-    @JsonKey(name: 'updated_at') String? updatedAt,
-    @JsonKey(name: 'deleted_at') String? deletedAt,
-    @JsonKey(name: 'location_name') String? locationName,
-    double? latitude,
-    double? longitude,
-    String? uid,
-    @Deprecated('Use specie.uid instead') SpeciesModel? species,
-    @Deprecated('Backend no longer sends these') String? name,
-    @Deprecated('Backend no longer sends these') String? market,
-  });
+  $Res call(
+      {dynamic id,
+      String? observationId,
+      @JsonKey(name: 'water_depth_in_meter') double? waterDepthInMeter,
+      @JsonKey(name: 'fishing_time_in_hour') double? fishingTimeInHour,
+      SpecieApiModel? specie,
+      @JsonKey(name: 'estimated_weight_in_grams')
+      double? estimatedWeightInGrams,
+      @JsonKey(name: 'average_size_in_cm') double? averageSizeInCm,
+      @JsonKey(name: 'estimated_size') int? estimatedSize,
+      bool? published,
+      @JsonKey(name: 'published_weight_in_grams')
+      double? publishedWeightInGrams,
+      @JsonKey(name: 'price_per_kg') double? pricePerKg,
+      @JsonKey(name: 'final_price') double? finalPrice,
+      @JsonKey(name: 'published_in_market_place') bool? publishedInMarketPlace,
+      @JsonKey(name: 'fishCatchImages')
+      List<FishCatchImageApiModel> fishCatchImages,
+      String? note,
+      String? status,
+      GearApiModel? gear,
+      AccountApiModel? account,
+      @JsonKey(name: 'obs_synced') bool? obsSynced,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      @JsonKey(name: 'deleted_at') String? deletedAt,
+      @JsonKey(name: 'location_name') String? locationName,
+      double? latitude,
+      double? longitude,
+      String? uid,
+      @Deprecated('Use specie.uid instead') SpeciesModel? species,
+      @Deprecated('Backend no longer sends these') String? name,
+      @Deprecated('Backend no longer sends these') String? market});
 
   @override
   $SpecieApiModelCopyWith<$Res>? get specie;
@@ -1344,12 +1249,9 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
     extends _$CatchApiModelCopyWithImpl<$Res, _$CatchApiModelImpl>
     implements _$$CatchApiModelImplCopyWith<$Res> {
   __$$CatchApiModelImplCopyWithImpl(
-    _$CatchApiModelImpl _value,
-    $Res Function(_$CatchApiModelImpl) _then,
-  ) : super(_value, _then);
+      _$CatchApiModelImpl _value, $Res Function(_$CatchApiModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of CatchApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1383,165 +1285,163 @@ class __$$CatchApiModelImplCopyWithImpl<$Res>
     Object? name = freezed,
     Object? market = freezed,
   }) {
-    return _then(
-      _$CatchApiModelImpl(
-        id: freezed == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        observationId: freezed == observationId
-            ? _value.observationId
-            : observationId // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        waterDepthInMeter: freezed == waterDepthInMeter
-            ? _value.waterDepthInMeter
-            : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        fishingTimeInHour: freezed == fishingTimeInHour
-            ? _value.fishingTimeInHour
-            : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        specie: freezed == specie
-            ? _value.specie
-            : specie // ignore: cast_nullable_to_non_nullable
-                  as SpecieApiModel?,
-        estimatedWeightInGrams: freezed == estimatedWeightInGrams
-            ? _value.estimatedWeightInGrams
-            : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        averageSizeInCm: freezed == averageSizeInCm
-            ? _value.averageSizeInCm
-            : averageSizeInCm // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        estimatedSize: freezed == estimatedSize
-            ? _value.estimatedSize
-            : estimatedSize // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        published: freezed == published
-            ? _value.published
-            : published // ignore: cast_nullable_to_non_nullable
-                  as bool?,
-        publishedWeightInGrams: freezed == publishedWeightInGrams
-            ? _value.publishedWeightInGrams
-            : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        pricePerKg: freezed == pricePerKg
-            ? _value.pricePerKg
-            : pricePerKg // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        finalPrice: freezed == finalPrice
-            ? _value.finalPrice
-            : finalPrice // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        publishedInMarketPlace: freezed == publishedInMarketPlace
-            ? _value.publishedInMarketPlace
-            : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
-                  as bool?,
-        fishCatchImages: null == fishCatchImages
-            ? _value._fishCatchImages
-            : fishCatchImages // ignore: cast_nullable_to_non_nullable
-                  as List<FishCatchImageApiModel>,
-        note: freezed == note
-            ? _value.note
-            : note // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        status: freezed == status
-            ? _value.status
-            : status // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        gear: freezed == gear
-            ? _value.gear
-            : gear // ignore: cast_nullable_to_non_nullable
-                  as GearApiModel?,
-        account: freezed == account
-            ? _value.account
-            : account // ignore: cast_nullable_to_non_nullable
-                  as AccountApiModel?,
-        obsSynced: freezed == obsSynced
-            ? _value.obsSynced
-            : obsSynced // ignore: cast_nullable_to_non_nullable
-                  as bool?,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        updatedAt: freezed == updatedAt
-            ? _value.updatedAt
-            : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        deletedAt: freezed == deletedAt
-            ? _value.deletedAt
-            : deletedAt // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        locationName: freezed == locationName
-            ? _value.locationName
-            : locationName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        latitude: freezed == latitude
-            ? _value.latitude
-            : latitude // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        longitude: freezed == longitude
-            ? _value.longitude
-            : longitude // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        uid: freezed == uid
-            ? _value.uid
-            : uid // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        species: freezed == species
-            ? _value.species
-            : species // ignore: cast_nullable_to_non_nullable
-                  as SpeciesModel?,
-        name: freezed == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        market: freezed == market
-            ? _value.market
-            : market // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$CatchApiModelImpl(
+      id: freezed == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      observationId: freezed == observationId
+          ? _value.observationId
+          : observationId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      waterDepthInMeter: freezed == waterDepthInMeter
+          ? _value.waterDepthInMeter
+          : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
+              as double?,
+      fishingTimeInHour: freezed == fishingTimeInHour
+          ? _value.fishingTimeInHour
+          : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
+              as double?,
+      specie: freezed == specie
+          ? _value.specie
+          : specie // ignore: cast_nullable_to_non_nullable
+              as SpecieApiModel?,
+      estimatedWeightInGrams: freezed == estimatedWeightInGrams
+          ? _value.estimatedWeightInGrams
+          : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double?,
+      averageSizeInCm: freezed == averageSizeInCm
+          ? _value.averageSizeInCm
+          : averageSizeInCm // ignore: cast_nullable_to_non_nullable
+              as double?,
+      estimatedSize: freezed == estimatedSize
+          ? _value.estimatedSize
+          : estimatedSize // ignore: cast_nullable_to_non_nullable
+              as int?,
+      published: freezed == published
+          ? _value.published
+          : published // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      publishedWeightInGrams: freezed == publishedWeightInGrams
+          ? _value.publishedWeightInGrams
+          : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double?,
+      pricePerKg: freezed == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double?,
+      finalPrice: freezed == finalPrice
+          ? _value.finalPrice
+          : finalPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
+      publishedInMarketPlace: freezed == publishedInMarketPlace
+          ? _value.publishedInMarketPlace
+          : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      fishCatchImages: null == fishCatchImages
+          ? _value._fishCatchImages
+          : fishCatchImages // ignore: cast_nullable_to_non_nullable
+              as List<FishCatchImageApiModel>,
+      note: freezed == note
+          ? _value.note
+          : note // ignore: cast_nullable_to_non_nullable
+              as String?,
+      status: freezed == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gear: freezed == gear
+          ? _value.gear
+          : gear // ignore: cast_nullable_to_non_nullable
+              as GearApiModel?,
+      account: freezed == account
+          ? _value.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+      obsSynced: freezed == obsSynced
+          ? _value.obsSynced
+          : obsSynced // ignore: cast_nullable_to_non_nullable
+              as bool?,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      deletedAt: freezed == deletedAt
+          ? _value.deletedAt
+          : deletedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      locationName: freezed == locationName
+          ? _value.locationName
+          : locationName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      latitude: freezed == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      longitude: freezed == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      species: freezed == species
+          ? _value.species
+          : species // ignore: cast_nullable_to_non_nullable
+              as SpeciesModel?,
+      name: freezed == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      market: freezed == market
+          ? _value.market
+          : market // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CatchApiModelImpl implements _CatchApiModel {
-  const _$CatchApiModelImpl({
-    required this.id,
-    this.observationId,
-    @JsonKey(name: 'water_depth_in_meter') this.waterDepthInMeter,
-    @JsonKey(name: 'fishing_time_in_hour') this.fishingTimeInHour,
-    this.specie,
-    @JsonKey(name: 'estimated_weight_in_grams') this.estimatedWeightInGrams,
-    @JsonKey(name: 'average_size_in_cm') this.averageSizeInCm,
-    @JsonKey(name: 'estimated_size') this.estimatedSize,
-    this.published,
-    @JsonKey(name: 'published_weight_in_grams') this.publishedWeightInGrams,
-    @JsonKey(name: 'price_per_kg') this.pricePerKg,
-    @JsonKey(name: 'final_price') this.finalPrice,
-    @JsonKey(name: 'published_in_market_place') this.publishedInMarketPlace,
-    @JsonKey(name: 'fishCatchImages')
-    final List<FishCatchImageApiModel> fishCatchImages =
-        const <FishCatchImageApiModel>[],
-    this.note,
-    this.status,
-    this.gear,
-    this.account,
-    @JsonKey(name: 'obs_synced') this.obsSynced,
-    @JsonKey(name: 'created_at') this.createdAt,
-    @JsonKey(name: 'updated_at') this.updatedAt,
-    @JsonKey(name: 'deleted_at') this.deletedAt,
-    @JsonKey(name: 'location_name') this.locationName,
-    this.latitude,
-    this.longitude,
-    this.uid,
-    @Deprecated('Use specie.uid instead') this.species,
-    @Deprecated('Backend no longer sends these') this.name,
-    @Deprecated('Backend no longer sends these') this.market,
-  }) : _fishCatchImages = fishCatchImages;
+  const _$CatchApiModelImpl(
+      {required this.id,
+      this.observationId,
+      @JsonKey(name: 'water_depth_in_meter') this.waterDepthInMeter,
+      @JsonKey(name: 'fishing_time_in_hour') this.fishingTimeInHour,
+      this.specie,
+      @JsonKey(name: 'estimated_weight_in_grams') this.estimatedWeightInGrams,
+      @JsonKey(name: 'average_size_in_cm') this.averageSizeInCm,
+      @JsonKey(name: 'estimated_size') this.estimatedSize,
+      this.published,
+      @JsonKey(name: 'published_weight_in_grams') this.publishedWeightInGrams,
+      @JsonKey(name: 'price_per_kg') this.pricePerKg,
+      @JsonKey(name: 'final_price') this.finalPrice,
+      @JsonKey(name: 'published_in_market_place') this.publishedInMarketPlace,
+      @JsonKey(name: 'fishCatchImages')
+      final List<FishCatchImageApiModel> fishCatchImages =
+          const <FishCatchImageApiModel>[],
+      this.note,
+      this.status,
+      this.gear,
+      this.account,
+      @JsonKey(name: 'obs_synced') this.obsSynced,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      @JsonKey(name: 'deleted_at') this.deletedAt,
+      @JsonKey(name: 'location_name') this.locationName,
+      this.latitude,
+      this.longitude,
+      this.uid,
+      @Deprecated('Use specie.uid instead') this.species,
+      @Deprecated('Backend no longer sends these') this.name,
+      @Deprecated('Backend no longer sends these') this.market})
+      : _fishCatchImages = fishCatchImages;
 
   factory _$CatchApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$CatchApiModelImplFromJson(json);
@@ -1598,7 +1498,7 @@ class _$CatchApiModelImpl implements _CatchApiModel {
   final GearApiModel? gear;
   @override
   final AccountApiModel? account;
-  // The fisher
+// The fisher
   @override
   @JsonKey(name: 'obs_synced')
   final bool? obsSynced;
@@ -1620,7 +1520,7 @@ class _$CatchApiModelImpl implements _CatchApiModel {
   final double? longitude;
   @override
   final String? uid;
-  // Legacy fields for compatibility with old cached data
+// Legacy fields for compatibility with old cached data
   @override
   @Deprecated('Use specie.uid instead')
   final SpeciesModel? species;
@@ -1665,10 +1565,8 @@ class _$CatchApiModelImpl implements _CatchApiModel {
                 other.finalPrice == finalPrice) &&
             (identical(other.publishedInMarketPlace, publishedInMarketPlace) ||
                 other.publishedInMarketPlace == publishedInMarketPlace) &&
-            const DeepCollectionEquality().equals(
-              other._fishCatchImages,
-              _fishCatchImages,
-            ) &&
+            const DeepCollectionEquality()
+                .equals(other._fishCatchImages, _fishCatchImages) &&
             (identical(other.note, note) || other.note == note) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.gear, gear) || other.gear == gear) &&
@@ -1693,44 +1591,42 @@ class _$CatchApiModelImpl implements _CatchApiModel {
             (identical(other.market, market) || other.market == market));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
-    runtimeType,
-    const DeepCollectionEquality().hash(id),
-    observationId,
-    waterDepthInMeter,
-    fishingTimeInHour,
-    specie,
-    estimatedWeightInGrams,
-    averageSizeInCm,
-    estimatedSize,
-    published,
-    publishedWeightInGrams,
-    pricePerKg,
-    finalPrice,
-    publishedInMarketPlace,
-    const DeepCollectionEquality().hash(_fishCatchImages),
-    note,
-    status,
-    gear,
-    account,
-    obsSynced,
-    createdAt,
-    updatedAt,
-    deletedAt,
-    locationName,
-    latitude,
-    longitude,
-    uid,
-    species,
-    name,
-    market,
-  ]);
+        runtimeType,
+        const DeepCollectionEquality().hash(id),
+        observationId,
+        waterDepthInMeter,
+        fishingTimeInHour,
+        specie,
+        estimatedWeightInGrams,
+        averageSizeInCm,
+        estimatedSize,
+        published,
+        publishedWeightInGrams,
+        pricePerKg,
+        finalPrice,
+        publishedInMarketPlace,
+        const DeepCollectionEquality().hash(_fishCatchImages),
+        note,
+        status,
+        gear,
+        account,
+        obsSynced,
+        createdAt,
+        updatedAt,
+        deletedAt,
+        locationName,
+        latitude,
+        longitude,
+        uid,
+        species,
+        name,
+        market
+      ]);
 
-  /// Create a copy of CatchApiModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CatchApiModelImplCopyWith<_$CatchApiModelImpl> get copyWith =>
@@ -1738,46 +1634,48 @@ class _$CatchApiModelImpl implements _CatchApiModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CatchApiModelImplToJson(this);
+    return _$$CatchApiModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _CatchApiModel implements CatchApiModel {
-  const factory _CatchApiModel({
-    required final dynamic id,
-    final String? observationId,
-    @JsonKey(name: 'water_depth_in_meter') final double? waterDepthInMeter,
-    @JsonKey(name: 'fishing_time_in_hour') final double? fishingTimeInHour,
-    final SpecieApiModel? specie,
-    @JsonKey(name: 'estimated_weight_in_grams')
-    final double? estimatedWeightInGrams,
-    @JsonKey(name: 'average_size_in_cm') final double? averageSizeInCm,
-    @JsonKey(name: 'estimated_size') final int? estimatedSize,
-    final bool? published,
-    @JsonKey(name: 'published_weight_in_grams')
-    final double? publishedWeightInGrams,
-    @JsonKey(name: 'price_per_kg') final double? pricePerKg,
-    @JsonKey(name: 'final_price') final double? finalPrice,
-    @JsonKey(name: 'published_in_market_place')
-    final bool? publishedInMarketPlace,
-    @JsonKey(name: 'fishCatchImages')
-    final List<FishCatchImageApiModel> fishCatchImages,
-    final String? note,
-    final String? status,
-    final GearApiModel? gear,
-    final AccountApiModel? account,
-    @JsonKey(name: 'obs_synced') final bool? obsSynced,
-    @JsonKey(name: 'created_at') final String? createdAt,
-    @JsonKey(name: 'updated_at') final String? updatedAt,
-    @JsonKey(name: 'deleted_at') final String? deletedAt,
-    @JsonKey(name: 'location_name') final String? locationName,
-    final double? latitude,
-    final double? longitude,
-    final String? uid,
-    @Deprecated('Use specie.uid instead') final SpeciesModel? species,
-    @Deprecated('Backend no longer sends these') final String? name,
-    @Deprecated('Backend no longer sends these') final String? market,
-  }) = _$CatchApiModelImpl;
+  const factory _CatchApiModel(
+      {required final dynamic id,
+      final String? observationId,
+      @JsonKey(name: 'water_depth_in_meter') final double? waterDepthInMeter,
+      @JsonKey(name: 'fishing_time_in_hour') final double? fishingTimeInHour,
+      final SpecieApiModel? specie,
+      @JsonKey(name: 'estimated_weight_in_grams')
+      final double? estimatedWeightInGrams,
+      @JsonKey(name: 'average_size_in_cm') final double? averageSizeInCm,
+      @JsonKey(name: 'estimated_size') final int? estimatedSize,
+      final bool? published,
+      @JsonKey(name: 'published_weight_in_grams')
+      final double? publishedWeightInGrams,
+      @JsonKey(name: 'price_per_kg') final double? pricePerKg,
+      @JsonKey(name: 'final_price') final double? finalPrice,
+      @JsonKey(name: 'published_in_market_place')
+      final bool? publishedInMarketPlace,
+      @JsonKey(name: 'fishCatchImages')
+      final List<FishCatchImageApiModel> fishCatchImages,
+      final String? note,
+      final String? status,
+      final GearApiModel? gear,
+      final AccountApiModel? account,
+      @JsonKey(name: 'obs_synced') final bool? obsSynced,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      @JsonKey(name: 'deleted_at') final String? deletedAt,
+      @JsonKey(name: 'location_name') final String? locationName,
+      final double? latitude,
+      final double? longitude,
+      final String? uid,
+      @Deprecated('Use specie.uid instead') final SpeciesModel? species,
+      @Deprecated('Backend no longer sends these') final String? name,
+      @Deprecated('Backend no longer sends these')
+      final String? market}) = _$CatchApiModelImpl;
 
   factory _CatchApiModel.fromJson(Map<String, dynamic> json) =
       _$CatchApiModelImpl.fromJson;
@@ -1827,8 +1725,8 @@ abstract class _CatchApiModel implements CatchApiModel {
   @override
   GearApiModel? get gear;
   @override
-  AccountApiModel? get account; // The fisher
-  @override
+  AccountApiModel? get account;
+  @override // The fisher
   @JsonKey(name: 'obs_synced')
   bool? get obsSynced;
   @override
@@ -1848,8 +1746,8 @@ abstract class _CatchApiModel implements CatchApiModel {
   @override
   double? get longitude;
   @override
-  String? get uid; // Legacy fields for compatibility with old cached data
-  @override
+  String? get uid;
+  @override // Legacy fields for compatibility with old cached data
   @Deprecated('Use specie.uid instead')
   SpeciesModel? get species;
   @override
@@ -1858,11 +1756,8 @@ abstract class _CatchApiModel implements CatchApiModel {
   @override
   @Deprecated('Backend no longer sends these')
   String? get market;
-
-  /// Create a copy of CatchApiModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CatchApiModelImplCopyWith<_$CatchApiModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1875,12 +1770,8 @@ CatchImageRequest _$CatchImageRequestFromJson(Map<String, dynamic> json) {
 mixin _$CatchImageRequest {
   String get mediaUrl => throw _privateConstructorUsedError;
 
-  /// Serializes this CatchImageRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of CatchImageRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CatchImageRequestCopyWith<CatchImageRequest> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -1888,9 +1779,8 @@ mixin _$CatchImageRequest {
 /// @nodoc
 abstract class $CatchImageRequestCopyWith<$Res> {
   factory $CatchImageRequestCopyWith(
-    CatchImageRequest value,
-    $Res Function(CatchImageRequest) then,
-  ) = _$CatchImageRequestCopyWithImpl<$Res, CatchImageRequest>;
+          CatchImageRequest value, $Res Function(CatchImageRequest) then) =
+      _$CatchImageRequestCopyWithImpl<$Res, CatchImageRequest>;
   @useResult
   $Res call({String mediaUrl});
 }
@@ -1905,30 +1795,26 @@ class _$CatchImageRequestCopyWithImpl<$Res, $Val extends CatchImageRequest>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CatchImageRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? mediaUrl = null}) {
-    return _then(
-      _value.copyWith(
-            mediaUrl: null == mediaUrl
-                ? _value.mediaUrl
-                : mediaUrl // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? mediaUrl = null,
+  }) {
+    return _then(_value.copyWith(
+      mediaUrl: null == mediaUrl
+          ? _value.mediaUrl
+          : mediaUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$CatchImageRequestImplCopyWith<$Res>
     implements $CatchImageRequestCopyWith<$Res> {
-  factory _$$CatchImageRequestImplCopyWith(
-    _$CatchImageRequestImpl value,
-    $Res Function(_$CatchImageRequestImpl) then,
-  ) = __$$CatchImageRequestImplCopyWithImpl<$Res>;
+  factory _$$CatchImageRequestImplCopyWith(_$CatchImageRequestImpl value,
+          $Res Function(_$CatchImageRequestImpl) then) =
+      __$$CatchImageRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String mediaUrl});
@@ -1938,24 +1824,21 @@ abstract class _$$CatchImageRequestImplCopyWith<$Res>
 class __$$CatchImageRequestImplCopyWithImpl<$Res>
     extends _$CatchImageRequestCopyWithImpl<$Res, _$CatchImageRequestImpl>
     implements _$$CatchImageRequestImplCopyWith<$Res> {
-  __$$CatchImageRequestImplCopyWithImpl(
-    _$CatchImageRequestImpl _value,
-    $Res Function(_$CatchImageRequestImpl) _then,
-  ) : super(_value, _then);
+  __$$CatchImageRequestImplCopyWithImpl(_$CatchImageRequestImpl _value,
+      $Res Function(_$CatchImageRequestImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of CatchImageRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? mediaUrl = null}) {
-    return _then(
-      _$CatchImageRequestImpl(
-        mediaUrl: null == mediaUrl
-            ? _value.mediaUrl
-            : mediaUrl // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? mediaUrl = null,
+  }) {
+    return _then(_$CatchImageRequestImpl(
+      mediaUrl: null == mediaUrl
+          ? _value.mediaUrl
+          : mediaUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
@@ -1984,24 +1867,22 @@ class _$CatchImageRequestImpl implements _CatchImageRequest {
                 other.mediaUrl == mediaUrl));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, mediaUrl);
 
-  /// Create a copy of CatchImageRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CatchImageRequestImplCopyWith<_$CatchImageRequestImpl> get copyWith =>
       __$$CatchImageRequestImplCopyWithImpl<_$CatchImageRequestImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CatchImageRequestImplToJson(this);
+    return _$$CatchImageRequestImplToJson(
+      this,
+    );
   }
 }
 
@@ -2014,11 +1895,8 @@ abstract class _CatchImageRequest implements CatchImageRequest {
 
   @override
   String get mediaUrl;
-
-  /// Create a copy of CatchImageRequest
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CatchImageRequestImplCopyWith<_$CatchImageRequestImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -2071,12 +1949,8 @@ mixin _$CreateCatchRequest {
   String? get patrol => throw _privateConstructorUsedError;
   String? get segment => throw _privateConstructorUsedError;
 
-  /// Serializes this CreateCatchRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of CreateCatchRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CreateCatchRequestCopyWith<CreateCatchRequest> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -2084,39 +1958,37 @@ mixin _$CreateCatchRequest {
 /// @nodoc
 abstract class $CreateCatchRequestCopyWith<$Res> {
   factory $CreateCatchRequestCopyWith(
-    CreateCatchRequest value,
-    $Res Function(CreateCatchRequest) then,
-  ) = _$CreateCatchRequestCopyWithImpl<$Res, CreateCatchRequest>;
+          CreateCatchRequest value, $Res Function(CreateCatchRequest) then) =
+      _$CreateCatchRequestCopyWithImpl<$Res, CreateCatchRequest>;
   @useResult
-  $Res call({
-    int specie,
-    @JsonKey(name: 'gear_mesh_size_in_finger') double gearMeshSizeInFinger,
-    @JsonKey(name: 'gear_length_in_meter') double gearLengthInMeter,
-    @JsonKey(name: 'gear_width_in_meter') double gearWidthInMeter,
-    @JsonKey(name: 'gear_nature') String gearNature,
-    @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
-    @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_grams') double estimatedWeightInGrams,
-    @JsonKey(name: 'average_size_in_cm') double averageSizeInCm,
-    @JsonKey(name: 'estimated_size') int estimatedSize,
-    @JsonKey(name: 'published_weight_in_grams') double publishedWeightInGrams,
-    @JsonKey(name: 'price_per_kg') double pricePerKg,
-    @JsonKey(name: 'final_price') double finalPrice,
-    @JsonKey(name: 'published_in_market_place') bool publishedInMarketPlace,
-    String? note,
-    List<CatchImageRequest> images,
-    String? alpha,
-    String size,
-    bool dead,
-    @JsonKey(name: 'location_name') String? locationName,
-    double latitude,
-    double longitude,
-    String date,
-    int market,
-    String? observationType,
-    String? patrol,
-    String? segment,
-  });
+  $Res call(
+      {int specie,
+      @JsonKey(name: 'gear_mesh_size_in_finger') double gearMeshSizeInFinger,
+      @JsonKey(name: 'gear_length_in_meter') double gearLengthInMeter,
+      @JsonKey(name: 'gear_width_in_meter') double gearWidthInMeter,
+      @JsonKey(name: 'gear_nature') String gearNature,
+      @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
+      @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
+      @JsonKey(name: 'estimated_weight_in_grams') double estimatedWeightInGrams,
+      @JsonKey(name: 'average_size_in_cm') double averageSizeInCm,
+      @JsonKey(name: 'estimated_size') int estimatedSize,
+      @JsonKey(name: 'published_weight_in_grams') double publishedWeightInGrams,
+      @JsonKey(name: 'price_per_kg') double pricePerKg,
+      @JsonKey(name: 'final_price') double finalPrice,
+      @JsonKey(name: 'published_in_market_place') bool publishedInMarketPlace,
+      String? note,
+      List<CatchImageRequest> images,
+      String? alpha,
+      String size,
+      bool dead,
+      @JsonKey(name: 'location_name') String? locationName,
+      double latitude,
+      double longitude,
+      String date,
+      int market,
+      String? observationType,
+      String? patrol,
+      String? segment});
 }
 
 /// @nodoc
@@ -2129,8 +2001,6 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of CreateCatchRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -2162,173 +2032,165 @@ class _$CreateCatchRequestCopyWithImpl<$Res, $Val extends CreateCatchRequest>
     Object? patrol = freezed,
     Object? segment = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            specie: null == specie
-                ? _value.specie
-                : specie // ignore: cast_nullable_to_non_nullable
-                      as int,
-            gearMeshSizeInFinger: null == gearMeshSizeInFinger
-                ? _value.gearMeshSizeInFinger
-                : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
-                      as double,
-            gearLengthInMeter: null == gearLengthInMeter
-                ? _value.gearLengthInMeter
-                : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
-                      as double,
-            gearWidthInMeter: null == gearWidthInMeter
-                ? _value.gearWidthInMeter
-                : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
-                      as double,
-            gearNature: null == gearNature
-                ? _value.gearNature
-                : gearNature // ignore: cast_nullable_to_non_nullable
-                      as String,
-            waterDepthInMeter: null == waterDepthInMeter
-                ? _value.waterDepthInMeter
-                : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
-                      as double,
-            fishingTimeInHour: null == fishingTimeInHour
-                ? _value.fishingTimeInHour
-                : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
-                      as double,
-            estimatedWeightInGrams: null == estimatedWeightInGrams
-                ? _value.estimatedWeightInGrams
-                : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                      as double,
-            averageSizeInCm: null == averageSizeInCm
-                ? _value.averageSizeInCm
-                : averageSizeInCm // ignore: cast_nullable_to_non_nullable
-                      as double,
-            estimatedSize: null == estimatedSize
-                ? _value.estimatedSize
-                : estimatedSize // ignore: cast_nullable_to_non_nullable
-                      as int,
-            publishedWeightInGrams: null == publishedWeightInGrams
-                ? _value.publishedWeightInGrams
-                : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                      as double,
-            pricePerKg: null == pricePerKg
-                ? _value.pricePerKg
-                : pricePerKg // ignore: cast_nullable_to_non_nullable
-                      as double,
-            finalPrice: null == finalPrice
-                ? _value.finalPrice
-                : finalPrice // ignore: cast_nullable_to_non_nullable
-                      as double,
-            publishedInMarketPlace: null == publishedInMarketPlace
-                ? _value.publishedInMarketPlace
-                : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            note: freezed == note
-                ? _value.note
-                : note // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            images: null == images
-                ? _value.images
-                : images // ignore: cast_nullable_to_non_nullable
-                      as List<CatchImageRequest>,
-            alpha: freezed == alpha
-                ? _value.alpha
-                : alpha // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            size: null == size
-                ? _value.size
-                : size // ignore: cast_nullable_to_non_nullable
-                      as String,
-            dead: null == dead
-                ? _value.dead
-                : dead // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            locationName: freezed == locationName
-                ? _value.locationName
-                : locationName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            latitude: null == latitude
-                ? _value.latitude
-                : latitude // ignore: cast_nullable_to_non_nullable
-                      as double,
-            longitude: null == longitude
-                ? _value.longitude
-                : longitude // ignore: cast_nullable_to_non_nullable
-                      as double,
-            date: null == date
-                ? _value.date
-                : date // ignore: cast_nullable_to_non_nullable
-                      as String,
-            market: null == market
-                ? _value.market
-                : market // ignore: cast_nullable_to_non_nullable
-                      as int,
-            observationType: freezed == observationType
-                ? _value.observationType
-                : observationType // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            patrol: freezed == patrol
-                ? _value.patrol
-                : patrol // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            segment: freezed == segment
-                ? _value.segment
-                : segment // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      specie: null == specie
+          ? _value.specie
+          : specie // ignore: cast_nullable_to_non_nullable
+              as int,
+      gearMeshSizeInFinger: null == gearMeshSizeInFinger
+          ? _value.gearMeshSizeInFinger
+          : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
+              as double,
+      gearLengthInMeter: null == gearLengthInMeter
+          ? _value.gearLengthInMeter
+          : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+              as double,
+      gearWidthInMeter: null == gearWidthInMeter
+          ? _value.gearWidthInMeter
+          : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
+              as double,
+      gearNature: null == gearNature
+          ? _value.gearNature
+          : gearNature // ignore: cast_nullable_to_non_nullable
+              as String,
+      waterDepthInMeter: null == waterDepthInMeter
+          ? _value.waterDepthInMeter
+          : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
+              as double,
+      fishingTimeInHour: null == fishingTimeInHour
+          ? _value.fishingTimeInHour
+          : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
+              as double,
+      estimatedWeightInGrams: null == estimatedWeightInGrams
+          ? _value.estimatedWeightInGrams
+          : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double,
+      averageSizeInCm: null == averageSizeInCm
+          ? _value.averageSizeInCm
+          : averageSizeInCm // ignore: cast_nullable_to_non_nullable
+              as double,
+      estimatedSize: null == estimatedSize
+          ? _value.estimatedSize
+          : estimatedSize // ignore: cast_nullable_to_non_nullable
+              as int,
+      publishedWeightInGrams: null == publishedWeightInGrams
+          ? _value.publishedWeightInGrams
+          : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double,
+      pricePerKg: null == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double,
+      finalPrice: null == finalPrice
+          ? _value.finalPrice
+          : finalPrice // ignore: cast_nullable_to_non_nullable
+              as double,
+      publishedInMarketPlace: null == publishedInMarketPlace
+          ? _value.publishedInMarketPlace
+          : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
+              as bool,
+      note: freezed == note
+          ? _value.note
+          : note // ignore: cast_nullable_to_non_nullable
+              as String?,
+      images: null == images
+          ? _value.images
+          : images // ignore: cast_nullable_to_non_nullable
+              as List<CatchImageRequest>,
+      alpha: freezed == alpha
+          ? _value.alpha
+          : alpha // ignore: cast_nullable_to_non_nullable
+              as String?,
+      size: null == size
+          ? _value.size
+          : size // ignore: cast_nullable_to_non_nullable
+              as String,
+      dead: null == dead
+          ? _value.dead
+          : dead // ignore: cast_nullable_to_non_nullable
+              as bool,
+      locationName: freezed == locationName
+          ? _value.locationName
+          : locationName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      latitude: null == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      longitude: null == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      date: null == date
+          ? _value.date
+          : date // ignore: cast_nullable_to_non_nullable
+              as String,
+      market: null == market
+          ? _value.market
+          : market // ignore: cast_nullable_to_non_nullable
+              as int,
+      observationType: freezed == observationType
+          ? _value.observationType
+          : observationType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      patrol: freezed == patrol
+          ? _value.patrol
+          : patrol // ignore: cast_nullable_to_non_nullable
+              as String?,
+      segment: freezed == segment
+          ? _value.segment
+          : segment // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$CreateCatchRequestImplCopyWith<$Res>
     implements $CreateCatchRequestCopyWith<$Res> {
-  factory _$$CreateCatchRequestImplCopyWith(
-    _$CreateCatchRequestImpl value,
-    $Res Function(_$CreateCatchRequestImpl) then,
-  ) = __$$CreateCatchRequestImplCopyWithImpl<$Res>;
+  factory _$$CreateCatchRequestImplCopyWith(_$CreateCatchRequestImpl value,
+          $Res Function(_$CreateCatchRequestImpl) then) =
+      __$$CreateCatchRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int specie,
-    @JsonKey(name: 'gear_mesh_size_in_finger') double gearMeshSizeInFinger,
-    @JsonKey(name: 'gear_length_in_meter') double gearLengthInMeter,
-    @JsonKey(name: 'gear_width_in_meter') double gearWidthInMeter,
-    @JsonKey(name: 'gear_nature') String gearNature,
-    @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
-    @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_grams') double estimatedWeightInGrams,
-    @JsonKey(name: 'average_size_in_cm') double averageSizeInCm,
-    @JsonKey(name: 'estimated_size') int estimatedSize,
-    @JsonKey(name: 'published_weight_in_grams') double publishedWeightInGrams,
-    @JsonKey(name: 'price_per_kg') double pricePerKg,
-    @JsonKey(name: 'final_price') double finalPrice,
-    @JsonKey(name: 'published_in_market_place') bool publishedInMarketPlace,
-    String? note,
-    List<CatchImageRequest> images,
-    String? alpha,
-    String size,
-    bool dead,
-    @JsonKey(name: 'location_name') String? locationName,
-    double latitude,
-    double longitude,
-    String date,
-    int market,
-    String? observationType,
-    String? patrol,
-    String? segment,
-  });
+  $Res call(
+      {int specie,
+      @JsonKey(name: 'gear_mesh_size_in_finger') double gearMeshSizeInFinger,
+      @JsonKey(name: 'gear_length_in_meter') double gearLengthInMeter,
+      @JsonKey(name: 'gear_width_in_meter') double gearWidthInMeter,
+      @JsonKey(name: 'gear_nature') String gearNature,
+      @JsonKey(name: 'water_depth_in_meter') double waterDepthInMeter,
+      @JsonKey(name: 'fishing_time_in_hour') double fishingTimeInHour,
+      @JsonKey(name: 'estimated_weight_in_grams') double estimatedWeightInGrams,
+      @JsonKey(name: 'average_size_in_cm') double averageSizeInCm,
+      @JsonKey(name: 'estimated_size') int estimatedSize,
+      @JsonKey(name: 'published_weight_in_grams') double publishedWeightInGrams,
+      @JsonKey(name: 'price_per_kg') double pricePerKg,
+      @JsonKey(name: 'final_price') double finalPrice,
+      @JsonKey(name: 'published_in_market_place') bool publishedInMarketPlace,
+      String? note,
+      List<CatchImageRequest> images,
+      String? alpha,
+      String size,
+      bool dead,
+      @JsonKey(name: 'location_name') String? locationName,
+      double latitude,
+      double longitude,
+      String date,
+      int market,
+      String? observationType,
+      String? patrol,
+      String? segment});
 }
 
 /// @nodoc
 class __$$CreateCatchRequestImplCopyWithImpl<$Res>
     extends _$CreateCatchRequestCopyWithImpl<$Res, _$CreateCatchRequestImpl>
     implements _$$CreateCatchRequestImplCopyWith<$Res> {
-  __$$CreateCatchRequestImplCopyWithImpl(
-    _$CreateCatchRequestImpl _value,
-    $Res Function(_$CreateCatchRequestImpl) _then,
-  ) : super(_value, _then);
+  __$$CreateCatchRequestImplCopyWithImpl(_$CreateCatchRequestImpl _value,
+      $Res Function(_$CreateCatchRequestImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of CreateCatchRequest
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -2360,157 +2222,154 @@ class __$$CreateCatchRequestImplCopyWithImpl<$Res>
     Object? patrol = freezed,
     Object? segment = freezed,
   }) {
-    return _then(
-      _$CreateCatchRequestImpl(
-        specie: null == specie
-            ? _value.specie
-            : specie // ignore: cast_nullable_to_non_nullable
-                  as int,
-        gearMeshSizeInFinger: null == gearMeshSizeInFinger
-            ? _value.gearMeshSizeInFinger
-            : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
-                  as double,
-        gearLengthInMeter: null == gearLengthInMeter
-            ? _value.gearLengthInMeter
-            : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
-                  as double,
-        gearWidthInMeter: null == gearWidthInMeter
-            ? _value.gearWidthInMeter
-            : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
-                  as double,
-        gearNature: null == gearNature
-            ? _value.gearNature
-            : gearNature // ignore: cast_nullable_to_non_nullable
-                  as String,
-        waterDepthInMeter: null == waterDepthInMeter
-            ? _value.waterDepthInMeter
-            : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
-                  as double,
-        fishingTimeInHour: null == fishingTimeInHour
-            ? _value.fishingTimeInHour
-            : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
-                  as double,
-        estimatedWeightInGrams: null == estimatedWeightInGrams
-            ? _value.estimatedWeightInGrams
-            : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                  as double,
-        averageSizeInCm: null == averageSizeInCm
-            ? _value.averageSizeInCm
-            : averageSizeInCm // ignore: cast_nullable_to_non_nullable
-                  as double,
-        estimatedSize: null == estimatedSize
-            ? _value.estimatedSize
-            : estimatedSize // ignore: cast_nullable_to_non_nullable
-                  as int,
-        publishedWeightInGrams: null == publishedWeightInGrams
-            ? _value.publishedWeightInGrams
-            : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
-                  as double,
-        pricePerKg: null == pricePerKg
-            ? _value.pricePerKg
-            : pricePerKg // ignore: cast_nullable_to_non_nullable
-                  as double,
-        finalPrice: null == finalPrice
-            ? _value.finalPrice
-            : finalPrice // ignore: cast_nullable_to_non_nullable
-                  as double,
-        publishedInMarketPlace: null == publishedInMarketPlace
-            ? _value.publishedInMarketPlace
-            : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        note: freezed == note
-            ? _value.note
-            : note // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        images: null == images
-            ? _value.images
-            : images // ignore: cast_nullable_to_non_nullable
-                  as List<CatchImageRequest>,
-        alpha: freezed == alpha
-            ? _value.alpha
-            : alpha // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        size: null == size
-            ? _value.size
-            : size // ignore: cast_nullable_to_non_nullable
-                  as String,
-        dead: null == dead
-            ? _value.dead
-            : dead // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        locationName: freezed == locationName
-            ? _value.locationName
-            : locationName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        latitude: null == latitude
-            ? _value.latitude
-            : latitude // ignore: cast_nullable_to_non_nullable
-                  as double,
-        longitude: null == longitude
-            ? _value.longitude
-            : longitude // ignore: cast_nullable_to_non_nullable
-                  as double,
-        date: null == date
-            ? _value.date
-            : date // ignore: cast_nullable_to_non_nullable
-                  as String,
-        market: null == market
-            ? _value.market
-            : market // ignore: cast_nullable_to_non_nullable
-                  as int,
-        observationType: freezed == observationType
-            ? _value.observationType
-            : observationType // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        patrol: freezed == patrol
-            ? _value.patrol
-            : patrol // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        segment: freezed == segment
-            ? _value.segment
-            : segment // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$CreateCatchRequestImpl(
+      specie: null == specie
+          ? _value.specie
+          : specie // ignore: cast_nullable_to_non_nullable
+              as int,
+      gearMeshSizeInFinger: null == gearMeshSizeInFinger
+          ? _value.gearMeshSizeInFinger
+          : gearMeshSizeInFinger // ignore: cast_nullable_to_non_nullable
+              as double,
+      gearLengthInMeter: null == gearLengthInMeter
+          ? _value.gearLengthInMeter
+          : gearLengthInMeter // ignore: cast_nullable_to_non_nullable
+              as double,
+      gearWidthInMeter: null == gearWidthInMeter
+          ? _value.gearWidthInMeter
+          : gearWidthInMeter // ignore: cast_nullable_to_non_nullable
+              as double,
+      gearNature: null == gearNature
+          ? _value.gearNature
+          : gearNature // ignore: cast_nullable_to_non_nullable
+              as String,
+      waterDepthInMeter: null == waterDepthInMeter
+          ? _value.waterDepthInMeter
+          : waterDepthInMeter // ignore: cast_nullable_to_non_nullable
+              as double,
+      fishingTimeInHour: null == fishingTimeInHour
+          ? _value.fishingTimeInHour
+          : fishingTimeInHour // ignore: cast_nullable_to_non_nullable
+              as double,
+      estimatedWeightInGrams: null == estimatedWeightInGrams
+          ? _value.estimatedWeightInGrams
+          : estimatedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double,
+      averageSizeInCm: null == averageSizeInCm
+          ? _value.averageSizeInCm
+          : averageSizeInCm // ignore: cast_nullable_to_non_nullable
+              as double,
+      estimatedSize: null == estimatedSize
+          ? _value.estimatedSize
+          : estimatedSize // ignore: cast_nullable_to_non_nullable
+              as int,
+      publishedWeightInGrams: null == publishedWeightInGrams
+          ? _value.publishedWeightInGrams
+          : publishedWeightInGrams // ignore: cast_nullable_to_non_nullable
+              as double,
+      pricePerKg: null == pricePerKg
+          ? _value.pricePerKg
+          : pricePerKg // ignore: cast_nullable_to_non_nullable
+              as double,
+      finalPrice: null == finalPrice
+          ? _value.finalPrice
+          : finalPrice // ignore: cast_nullable_to_non_nullable
+              as double,
+      publishedInMarketPlace: null == publishedInMarketPlace
+          ? _value.publishedInMarketPlace
+          : publishedInMarketPlace // ignore: cast_nullable_to_non_nullable
+              as bool,
+      note: freezed == note
+          ? _value.note
+          : note // ignore: cast_nullable_to_non_nullable
+              as String?,
+      images: null == images
+          ? _value.images
+          : images // ignore: cast_nullable_to_non_nullable
+              as List<CatchImageRequest>,
+      alpha: freezed == alpha
+          ? _value.alpha
+          : alpha // ignore: cast_nullable_to_non_nullable
+              as String?,
+      size: null == size
+          ? _value.size
+          : size // ignore: cast_nullable_to_non_nullable
+              as String,
+      dead: null == dead
+          ? _value.dead
+          : dead // ignore: cast_nullable_to_non_nullable
+              as bool,
+      locationName: freezed == locationName
+          ? _value.locationName
+          : locationName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      latitude: null == latitude
+          ? _value.latitude
+          : latitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      longitude: null == longitude
+          ? _value.longitude
+          : longitude // ignore: cast_nullable_to_non_nullable
+              as double,
+      date: null == date
+          ? _value.date
+          : date // ignore: cast_nullable_to_non_nullable
+              as String,
+      market: null == market
+          ? _value.market
+          : market // ignore: cast_nullable_to_non_nullable
+              as int,
+      observationType: freezed == observationType
+          ? _value.observationType
+          : observationType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      patrol: freezed == patrol
+          ? _value.patrol
+          : patrol // ignore: cast_nullable_to_non_nullable
+              as String?,
+      segment: freezed == segment
+          ? _value.segment
+          : segment // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CreateCatchRequestImpl implements _CreateCatchRequest {
-  const _$CreateCatchRequestImpl({
-    required this.specie,
-    @JsonKey(name: 'gear_mesh_size_in_finger')
-    required this.gearMeshSizeInFinger,
-    @JsonKey(name: 'gear_length_in_meter') required this.gearLengthInMeter,
-    @JsonKey(name: 'gear_width_in_meter') required this.gearWidthInMeter,
-    @JsonKey(name: 'gear_nature') required this.gearNature,
-    @JsonKey(name: 'water_depth_in_meter') required this.waterDepthInMeter,
-    @JsonKey(name: 'fishing_time_in_hour') required this.fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_grams')
-    required this.estimatedWeightInGrams,
-    @JsonKey(name: 'average_size_in_cm') required this.averageSizeInCm,
-    @JsonKey(name: 'estimated_size') required this.estimatedSize,
-    @JsonKey(name: 'published_weight_in_grams')
-    required this.publishedWeightInGrams,
-    @JsonKey(name: 'price_per_kg') required this.pricePerKg,
-    @JsonKey(name: 'final_price') required this.finalPrice,
-    @JsonKey(name: 'published_in_market_place')
-    required this.publishedInMarketPlace,
-    this.note,
-    required this.images,
-    this.alpha,
-    required this.size,
-    required this.dead,
-    @JsonKey(name: 'location_name') this.locationName,
-    required this.latitude,
-    required this.longitude,
-    required this.date,
-    required this.market,
-    this.observationType,
-    this.patrol,
-    this.segment,
-  });
+  const _$CreateCatchRequestImpl(
+      {required this.specie,
+      @JsonKey(name: 'gear_mesh_size_in_finger')
+      required this.gearMeshSizeInFinger,
+      @JsonKey(name: 'gear_length_in_meter') required this.gearLengthInMeter,
+      @JsonKey(name: 'gear_width_in_meter') required this.gearWidthInMeter,
+      @JsonKey(name: 'gear_nature') required this.gearNature,
+      @JsonKey(name: 'water_depth_in_meter') required this.waterDepthInMeter,
+      @JsonKey(name: 'fishing_time_in_hour') required this.fishingTimeInHour,
+      @JsonKey(name: 'estimated_weight_in_grams')
+      required this.estimatedWeightInGrams,
+      @JsonKey(name: 'average_size_in_cm') required this.averageSizeInCm,
+      @JsonKey(name: 'estimated_size') required this.estimatedSize,
+      @JsonKey(name: 'published_weight_in_grams')
+      required this.publishedWeightInGrams,
+      @JsonKey(name: 'price_per_kg') required this.pricePerKg,
+      @JsonKey(name: 'final_price') required this.finalPrice,
+      @JsonKey(name: 'published_in_market_place')
+      required this.publishedInMarketPlace,
+      this.note,
+      required this.images,
+      this.alpha,
+      required this.size,
+      required this.dead,
+      @JsonKey(name: 'location_name') this.locationName,
+      required this.latitude,
+      required this.longitude,
+      required this.date,
+      required this.market,
+      this.observationType,
+      this.patrol,
+      this.segment});
 
   factory _$CreateCatchRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$CreateCatchRequestImplFromJson(json);
@@ -2640,94 +2499,92 @@ class _$CreateCatchRequestImpl implements _CreateCatchRequest {
             (identical(other.segment, segment) || other.segment == segment));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
-    runtimeType,
-    specie,
-    gearMeshSizeInFinger,
-    gearLengthInMeter,
-    gearWidthInMeter,
-    gearNature,
-    waterDepthInMeter,
-    fishingTimeInHour,
-    estimatedWeightInGrams,
-    averageSizeInCm,
-    estimatedSize,
-    publishedWeightInGrams,
-    pricePerKg,
-    finalPrice,
-    publishedInMarketPlace,
-    note,
-    const DeepCollectionEquality().hash(images),
-    alpha,
-    size,
-    dead,
-    locationName,
-    latitude,
-    longitude,
-    date,
-    market,
-    observationType,
-    patrol,
-    segment,
-  ]);
+        runtimeType,
+        specie,
+        gearMeshSizeInFinger,
+        gearLengthInMeter,
+        gearWidthInMeter,
+        gearNature,
+        waterDepthInMeter,
+        fishingTimeInHour,
+        estimatedWeightInGrams,
+        averageSizeInCm,
+        estimatedSize,
+        publishedWeightInGrams,
+        pricePerKg,
+        finalPrice,
+        publishedInMarketPlace,
+        note,
+        const DeepCollectionEquality().hash(images),
+        alpha,
+        size,
+        dead,
+        locationName,
+        latitude,
+        longitude,
+        date,
+        market,
+        observationType,
+        patrol,
+        segment
+      ]);
 
-  /// Create a copy of CreateCatchRequest
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CreateCatchRequestImplCopyWith<_$CreateCatchRequestImpl> get copyWith =>
       __$$CreateCatchRequestImplCopyWithImpl<_$CreateCatchRequestImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CreateCatchRequestImplToJson(this);
+    return _$$CreateCatchRequestImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _CreateCatchRequest implements CreateCatchRequest {
-  const factory _CreateCatchRequest({
-    required final int specie,
-    @JsonKey(name: 'gear_mesh_size_in_finger')
-    required final double gearMeshSizeInFinger,
-    @JsonKey(name: 'gear_length_in_meter')
-    required final double gearLengthInMeter,
-    @JsonKey(name: 'gear_width_in_meter')
-    required final double gearWidthInMeter,
-    @JsonKey(name: 'gear_nature') required final String gearNature,
-    @JsonKey(name: 'water_depth_in_meter')
-    required final double waterDepthInMeter,
-    @JsonKey(name: 'fishing_time_in_hour')
-    required final double fishingTimeInHour,
-    @JsonKey(name: 'estimated_weight_in_grams')
-    required final double estimatedWeightInGrams,
-    @JsonKey(name: 'average_size_in_cm') required final double averageSizeInCm,
-    @JsonKey(name: 'estimated_size') required final int estimatedSize,
-    @JsonKey(name: 'published_weight_in_grams')
-    required final double publishedWeightInGrams,
-    @JsonKey(name: 'price_per_kg') required final double pricePerKg,
-    @JsonKey(name: 'final_price') required final double finalPrice,
-    @JsonKey(name: 'published_in_market_place')
-    required final bool publishedInMarketPlace,
-    final String? note,
-    required final List<CatchImageRequest> images,
-    final String? alpha,
-    required final String size,
-    required final bool dead,
-    @JsonKey(name: 'location_name') final String? locationName,
-    required final double latitude,
-    required final double longitude,
-    required final String date,
-    required final int market,
-    final String? observationType,
-    final String? patrol,
-    final String? segment,
-  }) = _$CreateCatchRequestImpl;
+  const factory _CreateCatchRequest(
+      {required final int specie,
+      @JsonKey(name: 'gear_mesh_size_in_finger')
+      required final double gearMeshSizeInFinger,
+      @JsonKey(name: 'gear_length_in_meter')
+      required final double gearLengthInMeter,
+      @JsonKey(name: 'gear_width_in_meter')
+      required final double gearWidthInMeter,
+      @JsonKey(name: 'gear_nature') required final String gearNature,
+      @JsonKey(name: 'water_depth_in_meter')
+      required final double waterDepthInMeter,
+      @JsonKey(name: 'fishing_time_in_hour')
+      required final double fishingTimeInHour,
+      @JsonKey(name: 'estimated_weight_in_grams')
+      required final double estimatedWeightInGrams,
+      @JsonKey(name: 'average_size_in_cm')
+      required final double averageSizeInCm,
+      @JsonKey(name: 'estimated_size') required final int estimatedSize,
+      @JsonKey(name: 'published_weight_in_grams')
+      required final double publishedWeightInGrams,
+      @JsonKey(name: 'price_per_kg') required final double pricePerKg,
+      @JsonKey(name: 'final_price') required final double finalPrice,
+      @JsonKey(name: 'published_in_market_place')
+      required final bool publishedInMarketPlace,
+      final String? note,
+      required final List<CatchImageRequest> images,
+      final String? alpha,
+      required final String size,
+      required final bool dead,
+      @JsonKey(name: 'location_name') final String? locationName,
+      required final double latitude,
+      required final double longitude,
+      required final String date,
+      required final int market,
+      final String? observationType,
+      final String? patrol,
+      final String? segment}) = _$CreateCatchRequestImpl;
 
   factory _CreateCatchRequest.fromJson(Map<String, dynamic> json) =
       _$CreateCatchRequestImpl.fromJson;
@@ -2800,11 +2657,8 @@ abstract class _CreateCatchRequest implements CreateCatchRequest {
   String? get patrol;
   @override
   String? get segment;
-
-  /// Create a copy of CreateCatchRequest
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CreateCatchRequestImplCopyWith<_$CreateCatchRequestImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -2818,12 +2672,8 @@ mixin _$UpdateCatchResponse {
   CatchApiModel get fishCatch => throw _privateConstructorUsedError;
   dynamic get product => throw _privateConstructorUsedError;
 
-  /// Serializes this UpdateCatchResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of UpdateCatchResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $UpdateCatchResponseCopyWith<UpdateCatchResponse> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -2831,9 +2681,8 @@ mixin _$UpdateCatchResponse {
 /// @nodoc
 abstract class $UpdateCatchResponseCopyWith<$Res> {
   factory $UpdateCatchResponseCopyWith(
-    UpdateCatchResponse value,
-    $Res Function(UpdateCatchResponse) then,
-  ) = _$UpdateCatchResponseCopyWithImpl<$Res, UpdateCatchResponse>;
+          UpdateCatchResponse value, $Res Function(UpdateCatchResponse) then) =
+      _$UpdateCatchResponseCopyWithImpl<$Res, UpdateCatchResponse>;
   @useResult
   $Res call({CatchApiModel fishCatch, dynamic product});
 
@@ -2850,28 +2699,24 @@ class _$UpdateCatchResponseCopyWithImpl<$Res, $Val extends UpdateCatchResponse>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of UpdateCatchResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? fishCatch = null, Object? product = freezed}) {
-    return _then(
-      _value.copyWith(
-            fishCatch: null == fishCatch
-                ? _value.fishCatch
-                : fishCatch // ignore: cast_nullable_to_non_nullable
-                      as CatchApiModel,
-            product: freezed == product
-                ? _value.product
-                : product // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? fishCatch = null,
+    Object? product = freezed,
+  }) {
+    return _then(_value.copyWith(
+      fishCatch: null == fishCatch
+          ? _value.fishCatch
+          : fishCatch // ignore: cast_nullable_to_non_nullable
+              as CatchApiModel,
+      product: freezed == product
+          ? _value.product
+          : product // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+    ) as $Val);
   }
 
-  /// Create a copy of UpdateCatchResponse
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $CatchApiModelCopyWith<$Res> get fishCatch {
@@ -2884,10 +2729,9 @@ class _$UpdateCatchResponseCopyWithImpl<$Res, $Val extends UpdateCatchResponse>
 /// @nodoc
 abstract class _$$UpdateCatchResponseImplCopyWith<$Res>
     implements $UpdateCatchResponseCopyWith<$Res> {
-  factory _$$UpdateCatchResponseImplCopyWith(
-    _$UpdateCatchResponseImpl value,
-    $Res Function(_$UpdateCatchResponseImpl) then,
-  ) = __$$UpdateCatchResponseImplCopyWithImpl<$Res>;
+  factory _$$UpdateCatchResponseImplCopyWith(_$UpdateCatchResponseImpl value,
+          $Res Function(_$UpdateCatchResponseImpl) then) =
+      __$$UpdateCatchResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({CatchApiModel fishCatch, dynamic product});
@@ -2900,38 +2744,34 @@ abstract class _$$UpdateCatchResponseImplCopyWith<$Res>
 class __$$UpdateCatchResponseImplCopyWithImpl<$Res>
     extends _$UpdateCatchResponseCopyWithImpl<$Res, _$UpdateCatchResponseImpl>
     implements _$$UpdateCatchResponseImplCopyWith<$Res> {
-  __$$UpdateCatchResponseImplCopyWithImpl(
-    _$UpdateCatchResponseImpl _value,
-    $Res Function(_$UpdateCatchResponseImpl) _then,
-  ) : super(_value, _then);
+  __$$UpdateCatchResponseImplCopyWithImpl(_$UpdateCatchResponseImpl _value,
+      $Res Function(_$UpdateCatchResponseImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of UpdateCatchResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? fishCatch = null, Object? product = freezed}) {
-    return _then(
-      _$UpdateCatchResponseImpl(
-        fishCatch: null == fishCatch
-            ? _value.fishCatch
-            : fishCatch // ignore: cast_nullable_to_non_nullable
-                  as CatchApiModel,
-        product: freezed == product
-            ? _value.product
-            : product // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-      ),
-    );
+  $Res call({
+    Object? fishCatch = null,
+    Object? product = freezed,
+  }) {
+    return _then(_$UpdateCatchResponseImpl(
+      fishCatch: null == fishCatch
+          ? _value.fishCatch
+          : fishCatch // ignore: cast_nullable_to_non_nullable
+              as CatchApiModel,
+      product: freezed == product
+          ? _value.product
+          : product // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$UpdateCatchResponseImpl implements _UpdateCatchResponse {
-  const _$UpdateCatchResponseImpl({
-    required this.fishCatch,
-    required this.product,
-  });
+  const _$UpdateCatchResponseImpl(
+      {required this.fishCatch, required this.product});
 
   factory _$UpdateCatchResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$UpdateCatchResponseImplFromJson(json);
@@ -2956,36 +2796,30 @@ class _$UpdateCatchResponseImpl implements _UpdateCatchResponse {
             const DeepCollectionEquality().equals(other.product, product));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    fishCatch,
-    const DeepCollectionEquality().hash(product),
-  );
+      runtimeType, fishCatch, const DeepCollectionEquality().hash(product));
 
-  /// Create a copy of UpdateCatchResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$UpdateCatchResponseImplCopyWith<_$UpdateCatchResponseImpl> get copyWith =>
       __$$UpdateCatchResponseImplCopyWithImpl<_$UpdateCatchResponseImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$UpdateCatchResponseImplToJson(this);
+    return _$$UpdateCatchResponseImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _UpdateCatchResponse implements UpdateCatchResponse {
-  const factory _UpdateCatchResponse({
-    required final CatchApiModel fishCatch,
-    required final dynamic product,
-  }) = _$UpdateCatchResponseImpl;
+  const factory _UpdateCatchResponse(
+      {required final CatchApiModel fishCatch,
+      required final dynamic product}) = _$UpdateCatchResponseImpl;
 
   factory _UpdateCatchResponse.fromJson(Map<String, dynamic> json) =
       _$UpdateCatchResponseImpl.fromJson;
@@ -2994,11 +2828,8 @@ abstract class _UpdateCatchResponse implements UpdateCatchResponse {
   CatchApiModel get fishCatch;
   @override
   dynamic get product;
-
-  /// Create a copy of UpdateCatchResponse
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$UpdateCatchResponseImplCopyWith<_$UpdateCatchResponseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

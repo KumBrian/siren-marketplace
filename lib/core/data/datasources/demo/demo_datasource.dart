@@ -66,7 +66,7 @@ class DemoUserDataSource implements IUserDataSource {
         avatarUrl: user.avatarUrl,
         rating: rating,
         reviewCount: reviewCount,
-        currentRole: user.currentRole,
+        currentRole: user.currentRole.name,
       );
     }
   }
@@ -84,7 +84,7 @@ class DemoUserDataSource implements IUserDataSource {
       Duration(milliseconds: 100),
     ); // Simulate async operation
     try {
-      return _users.values.firstWhere((u) => u.currentRole == 'fisher');
+      return _users.values.firstWhere((u) => u.currentRole == UserRole.fisher);
     } catch (e) {
       return null;
     }
@@ -96,7 +96,7 @@ class DemoUserDataSource implements IUserDataSource {
       Duration(milliseconds: 100),
     ); // Simulate async operation
     try {
-      return _users.values.firstWhere((u) => u.currentRole == 'buyer');
+      return _users.values.firstWhere((u) => u.currentRole == UserRole.buyer);
     } catch (e) {
       return null;
     }

@@ -3,19 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/domain/entities/conversation.dart';
-import '../../../../core/providers/user_providers.dart';
 import '../../../../core/widgets/error_handling_circle_avatar.dart';
+import '../../../../core/domain/entities/user.dart';
+import '../../domain/entities/conversation.dart';
 
 class ConversationCard extends ConsumerWidget {
   final Conversation conversation;
-  final String currentUserId;
+  final User currentUser;
   final VoidCallback onTap;
 
   const ConversationCard({
     super.key,
     required this.conversation,
-    required this.currentUserId,
+    required this.currentUser,
     required this.onTap,
   });
 
@@ -40,12 +40,11 @@ class ConversationCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Get the other participant's ID
-    final otherUserId = conversation.getOtherParticipantId(currentUserId);
-    final userAsync = ref.watch(userProvider(otherUserId));
-
-    final hasUnread = conversation.hasUnreadMessagesFor(currentUserId);
-    final unreadCount = conversation.getUnreadCountFor(currentUserId);
+    // Get the other participant
+    final otherUser = conversation.getOtherParticipant(currentUser);
+    final hasUnread = conversation.hasUnreadMessagesFor(currentUser.id);
+    final unreadCount = conversation.unreadCount;
+    final lastMsg = conversation.lastMessage;
 
     return InkWell(
       onTap: onTap,
@@ -58,20 +57,10 @@ class ConversationCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Avatar
-            userAsync.when(
-              data: (user) => ErrorHandlingCircleAvatar(
-                avatarUrl: user?.avatarUrl ?? 'assets/images/user-profile.png',
-                radius: 24,
-              ),
-              loading: () => const CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.gray200,
-              ),
-              error: (_, __) => const CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.gray200,
-                child: Icon(Icons.person, color: AppColors.textGray),
-              ),
+            ErrorHandlingCircleAvatar(
+              avatarUrl:
+                  otherUser.avatarUrl ?? 'assets/images/user-profile.png',
+              radius: 24,
             ),
             const SizedBox(width: 12),
             // Content
@@ -84,65 +73,49 @@ class ConversationCard extends ConsumerWidget {
                     children: [
                       // Name and rating
                       Expanded(
-                        child: userAsync.when(
-                          data: (user) => Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  user?.name ?? 'Loading...',
-                                  style: TextStyle(
-                                    color: hasUnread
-                                        ? AppColors.textBlue
-                                        : AppColors.textGray,
-                                    fontWeight: hasUnread
-                                        ? FontWeight.w600
-                                        : FontWeight.w400,
-                                    fontSize: 14,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                otherUser.name,
+                                style: TextStyle(
+                                  color: hasUnread
+                                      ? AppColors.textBlue
+                                      : AppColors.textGray,
+                                  fontWeight: hasUnread
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (otherUser.hasRatings) ...[
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.star,
+                                color: AppColors.shellOrange,
+                                size: 12,
+                              ),
+                              Text(
+                                otherUser.rating.value.toStringAsFixed(1),
+                                style: TextStyle(
+                                  color: hasUnread
+                                      ? AppColors.textBlue
+                                      : AppColors.textGray,
+                                  fontWeight: hasUnread
+                                      ? FontWeight.w600
+                                      : FontWeight.w300,
+                                  fontSize: 12,
                                 ),
                               ),
-                              if (user != null && user.hasRatings) ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.star,
-                                  color: AppColors.shellOrange,
-                                  size: 12,
-                                ),
-                                Text(
-                                  user.rating.value.toStringAsFixed(1),
-                                  style: TextStyle(
-                                    color: hasUnread
-                                        ? AppColors.textBlue
-                                        : AppColors.textGray,
-                                    fontWeight: hasUnread
-                                        ? FontWeight.w600
-                                        : FontWeight.w300,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
                             ],
-                          ),
-                          loading: () => const Text(
-                            'Loading...',
-                            style: TextStyle(
-                              color: AppColors.textGray,
-                              fontSize: 14,
-                            ),
-                          ),
-                          error: (_, __) => const Text(
-                            'Error',
-                            style: TextStyle(
-                              color: AppColors.textGray,
-                              fontSize: 14,
-                            ),
-                          ),
+                          ],
                         ),
                       ),
                       // Timestamp
                       Text(
-                        _formatTimestamp(conversation.lastMessageTime),
+                        _formatTimestamp(conversation.updatedAt),
                         style: TextStyle(
                           color: hasUnread
                               ? AppColors.textBlue
@@ -162,9 +135,7 @@ class ConversationCard extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          conversation.lastMessage.isEmpty
-                              ? 'No messages yet'
-                              : conversation.lastMessage,
+                          lastMsg?.content ?? 'No messages yet',
                           style: TextStyle(
                             color: hasUnread
                                 ? AppColors.textBlue

@@ -16,8 +16,9 @@ import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/providers/catch_filter_provider.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
 import 'package:siren_marketplace/core/providers/product_providers.dart';
-import 'package:siren_marketplace/core/providers/conversation_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
+import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
+import 'package:siren_marketplace/features/chat/presentation/widgets/conversation_card.dart';
 import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
@@ -558,7 +559,7 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                                         if (user == null) return 0;
                                         // Keep existing logic for messages
                                         final conversationsAsync = ref.watch(
-                                          userConversationsProvider(user.id),
+                                          conversationsProvider,
                                         );
 
                                         return conversationsAsync.maybeWhen(
@@ -567,12 +568,10 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                                                 .map((o) => o.buyerId)
                                                 .toSet();
                                             return conversations.where((conv) {
-                                              final otherUserId = conv
-                                                  .getOtherParticipantId(
-                                                    user.id,
-                                                  );
+                                              final otherUser = conv
+                                                  .getOtherParticipant(user);
                                               return buyerIds.contains(
-                                                    otherUserId,
+                                                    otherUser.id,
                                                   ) &&
                                                   conv.hasUnreadMessagesFor(
                                                     user.id,
@@ -860,10 +859,57 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
     CatchFilterState filters,
     AsyncValue<List<Offer>> offersAsync,
   ) {
-    // TODO: Implement conversations properly - temporarily disabled due to type issues
-    return _buildEmptyState(
-      "Messages coming soon",
-      "Conversation features will be available in a future update",
+    final conversationsAsync = ref.watch(conversationsProvider);
+    final currentUserAsync = ref.watch(currentUserProvider);
+
+    return offersAsync.when(
+      data: (offers) {
+        final buyerIds = offers.map((o) => o.buyerId).toSet();
+
+        return currentUserAsync.when(
+          data: (user) {
+            if (user == null) {
+              return _buildEmptyState("User not found", "Please log in");
+            }
+
+            return conversationsAsync.when(
+              data: (conversations) {
+                final filtered = conversations.where((c) {
+                  final otherUser = c.getOtherParticipant(user);
+                  return buyerIds.contains(otherUser.id);
+                }).toList();
+
+                if (filtered.isEmpty) {
+                  return _buildEmptyState(
+                    "No messages",
+                    "Start a conversation from an offer.",
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 80, top: 16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final conv = filtered[index];
+                    return ConversationCard(
+                      conversation: conv,
+                      currentUser: user,
+                      onTap: () => context.push('/fisher/chat/${conv.id}'),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, s) =>
+                  _buildEmptyState("Error loading messages", e.toString()),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, s) => _buildEmptyState("Error loading user", e.toString()),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => _buildEmptyState("Error loading offers", e.toString()),
     );
   }
 

@@ -8,7 +8,6 @@ import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/domain/enums/offer_status.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
-import 'package:siren_marketplace/core/providers/conversation_providers.dart';
 import 'package:siren_marketplace/core/providers/notification_filter_provider.dart';
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
@@ -17,6 +16,7 @@ import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
+import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
 import 'package:siren_marketplace/features/chat/presentation/widgets/conversation_card.dart';
 
 class SharedNotificationsScreen extends ConsumerStatefulWidget {
@@ -432,8 +432,9 @@ class _SharedNotificationsScreenState
     );
   }
 
-  Widget _buildMessagesTab(UserRole role, String userId) {
-    final conversationsAsync = ref.watch(userConversationsProvider(userId));
+  Widget _buildMessagesTab(UserRole role, User user) {
+    // New provider doesn't take argument
+    final conversationsAsync = ref.watch(conversationsProvider);
 
     return conversationsAsync.when(
       data: (conversations) {
@@ -481,7 +482,7 @@ class _SharedNotificationsScreenState
 
               return ConversationCard(
                 conversation: conversation,
-                currentUserId: userId,
+                currentUser: user,
                 onTap: () {
                   context.push("/$roleSlug/chat/${conversation.id}");
                 },
@@ -642,7 +643,7 @@ class _SharedNotificationsScreenState
 
                           // Get unread conversations count
                           final conversationsAsync = ref.watch(
-                            userConversationsProvider(user.id),
+                            conversationsProvider,
                           );
                           final unreadConversationsCount = conversationsAsync
                               .when(
@@ -729,7 +730,7 @@ class _SharedNotificationsScreenState
                           physics: const BouncingScrollPhysics(),
                           children: [
                             _buildOffersTab(role),
-                            _buildMessagesTab(role, user.id),
+                            _buildMessagesTab(role, user),
                           ],
                         ),
                       ),
