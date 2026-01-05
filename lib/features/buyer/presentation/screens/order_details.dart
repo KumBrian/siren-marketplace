@@ -22,6 +22,7 @@ import 'package:siren_marketplace/core/utils/custom_icons.dart';
 import 'package:siren_marketplace/core/utils/phone_launcher.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
@@ -44,8 +45,10 @@ class BuyerOrderDetails extends ConsumerWidget {
     // Listen for failed transactions
     ref.listen(failedTransactionProvider, (previous, next) {
       if (next != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next), backgroundColor: Colors.red),
+        showDialog(
+          context: context,
+          builder: (context) =>
+              ErrorDialog(title: "Transaction Failed", message: next),
         );
         ref.read(failedTransactionProvider.notifier).state = null;
       }

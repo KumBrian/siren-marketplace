@@ -23,6 +23,7 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/offer_actions_provider.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/shared_offer_details_provider.dart';
@@ -63,21 +64,7 @@ class _SharedOfferDetailsScreenState
           showActionSuccessDialog(
             context,
             message: next.successMessage!,
-            actionTitle: "View Details",
-            onAction: () async {
-              // Navigate to order details
-              final state = ref
-                  .read(sharedOfferDetailsProvider(widget.offerId))
-                  .valueOrNull;
-              if (state != null) {
-                final prefix = state.currentUserRole == UserRole.buyer
-                    ? 'buyer'
-                    : 'fisher';
-                context.pushReplacement(
-                  "/$prefix/order-details/${next.createdOrder!.id}",
-                );
-              }
-            },
+            autoCloseSeconds: 3,
           );
         } else {
           // Handle Reject/Counter success
@@ -780,9 +767,15 @@ class _SharedOfferDetailsScreenState
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Failed to open chat: $e")),
-                  );
+                  if (context.mounted) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ErrorDialog(
+                        title: "Chat Error",
+                        message: "Failed to open chat: $e",
+                      ),
+                    );
+                  }
                 }
               }
             },

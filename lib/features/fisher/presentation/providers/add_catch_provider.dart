@@ -13,6 +13,7 @@ import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
 import 'package:siren_marketplace/core/providers/product_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
 
 class AddCatchState {
   final int currentStep;
@@ -447,7 +448,24 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
         numberOfShrimps: state.numberOfShrimps,
       );
 
-      await catchRepository.create(catchEntity);
+      final isOnline = ref.read(isOnlineProvider);
+
+      if (isOnline && state.isSelling) {
+        try {
+          await catchRepository.create(catchEntity);
+        } catch (e) {
+          print("Network error during create, falling back to draft: $e");
+          // Fallback to draft
+          await catchRepository.saveDraft(
+            catchEntity.copyWith(status: CatchStatus.draft),
+          );
+        }
+      } else {
+        // Offline or explicitly not selling yet -> Save as Draft
+        await catchRepository.saveDraft(
+          catchEntity.copyWith(status: CatchStatus.draft),
+        );
+      }
 
       // Invalidate providers
       ref.invalidate(fisherCatchesProvider);

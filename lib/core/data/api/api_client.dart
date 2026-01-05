@@ -186,6 +186,7 @@ class ApiClient {
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         final message =
+            error.response?.data?['detail'] ??
             error.response?.data?['message'] ??
             error.response?.statusMessage ??
             'An error occurred';

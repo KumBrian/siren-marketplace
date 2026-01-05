@@ -14,7 +14,10 @@ void main() {
 
   setUp(() {
     mockDataSource = MockIOrderDataSource();
-    repository = OrderRepositoryImpl(dataSource: mockDataSource);
+    repository = OrderRepositoryImpl(
+      remoteDataSource: mockDataSource,
+      localDataSource: mockDataSource,
+    );
   });
 
   group('OrderRepositoryImpl', () {

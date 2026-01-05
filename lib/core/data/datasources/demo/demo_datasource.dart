@@ -160,6 +160,14 @@ class DemoCatchDataSource implements ICatchDataSource {
   }
 
   @override
+  Future<void> saveBatch(List<CatchModel> catches) async {
+    await Future.delayed(Duration(milliseconds: 100));
+    for (final catch_ in catches) {
+      _catches[catch_.id] = catch_;
+    }
+  }
+
+  @override
   Future<void> deleteBatch(List<String> catchIds) async {
     await Future.delayed(Duration(milliseconds: 100));
     for (final id in catchIds) {
@@ -292,6 +300,14 @@ class DemoOfferDataSource implements IOfferDataSource {
   void updateLocalCache(OfferModel offer) {
     _offers[offer.id] = offer;
   }
+
+  @override
+  Future<void> saveBatch(List<OfferModel> offers) async {
+    await Future.delayed(Duration(milliseconds: 100));
+    for (final offer in offers) {
+      _offers[offer.id] = offer;
+    }
+  }
 }
 
 class DemoOrderDataSource implements IOrderDataSource {
@@ -391,6 +407,14 @@ class DemoOrderDataSource implements IOrderDataSource {
       return updated;
     }
     return null;
+  }
+
+  @override
+  Future<void> saveBatch(List<OrderModel> orders) async {
+    await Future.delayed(Duration(milliseconds: 100));
+    for (final order in orders) {
+      _orders[order.id] = order;
+    }
   }
 }
 

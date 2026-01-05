@@ -132,4 +132,18 @@ class LocalOfferDataSource implements IOfferDataSource {
   void updateLocalCache(OfferModel offer) {
     update(offer);
   }
+
+  @override
+  Future<void> saveBatch(List<OfferModel> offers) async {
+    final db = await dbHelper.database;
+    final batch = db.batch();
+    for (final offer in offers) {
+      batch.insert(
+        'offers',
+        offer.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
 }

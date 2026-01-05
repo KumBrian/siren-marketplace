@@ -77,41 +77,86 @@ class CatchRepositoryImpl implements ICatchRepository {
 
   @override
   Future<List<Catch>> getByFisherId(String fisherId) async {
-    final remoteModels = await remoteDataSource.getByFisherId(fisherId);
-    final remoteCatches = remoteModels
-        .map((m) => CatchMapper.toEntity(m))
-        .toList();
-
-    // Get drafts locally
+    // 1. Get drafts locally
     final draftModels = await localDataSource.getByStatus(CatchStatus.draft);
     final draftCatches = draftModels
         .map((m) => CatchMapper.toEntity(m))
         .toList();
 
-    // Merge: drafts first, then remote
+    List<Catch> remoteCatches = [];
+    try {
+      // 2. Try fetching remote catches
+      final remoteModels = await remoteDataSource.getByFisherId(fisherId);
+
+      // 3. Cache them locally
+      await localDataSource.saveBatch(remoteModels);
+
+      remoteCatches = remoteModels.map((m) => CatchMapper.toEntity(m)).toList();
+    } catch (e) {
+      // 4. Fallback: fetch from local cache (excluding drafts which we already have)
+      // Note: We might need a better way to get "all non-drafts for fisher" locally
+      // For now, if remote fails, we might just show drafts or try best effort id lookups
+      // But getByFisherId in local datasource should return what we cached.
+      try {
+        final localModels = await localDataSource.getByFisherId(fisherId);
+        // Filter out drafts as we already have them
+        remoteCatches = localModels
+            .where((m) => m.status != CatchStatus.draft.name)
+            .map((m) => CatchMapper.toEntity(m))
+            .toList();
+      } catch (_) {}
+    }
+
+    // Merge: drafts first, then remote/cached
     return [...draftCatches, ...remoteCatches];
   }
 
   @override
   Future<List<Catch>> getAvailableCatches() async {
-    final models = await remoteDataSource.getByStatus(CatchStatus.available);
-    return models.map((m) => CatchMapper.toEntity(m)).toList();
+    try {
+      final models = await remoteDataSource.getByStatus(CatchStatus.available);
+      // Cache locally
+      await localDataSource.saveBatch(models);
+      return models.map((m) => CatchMapper.toEntity(m)).toList();
+    } catch (e) {
+      // Fallback to local
+      final models = await localDataSource.getByStatus(CatchStatus.available);
+      return models.map((m) => CatchMapper.toEntity(m)).toList();
+    }
   }
 
   @override
   Future<List<Catch>> getByStatus(CatchStatus status) async {
-    final remoteModels = await remoteDataSource.getByStatus(status);
-    final remoteCatches = remoteModels
-        .map((m) => CatchMapper.toEntity(m))
-        .toList();
+    List<Catch> remoteCatches = [];
 
+    // Attempt remote fetch and cache if not looking for local-only drafts
+    if (status != CatchStatus.draft) {
+      try {
+        final remoteModels = await remoteDataSource.getByStatus(status);
+        await localDataSource.saveBatch(remoteModels);
+        remoteCatches = remoteModels
+            .map((m) => CatchMapper.toEntity(m))
+            .toList();
+      } catch (e) {
+        // Fallback
+        final localModels = await localDataSource.getByStatus(status);
+        remoteCatches = localModels
+            .map((m) => CatchMapper.toEntity(m))
+            .toList();
+      }
+    }
+
+    // If specifically asking for drafts, or we just want everything including drafts
     if (status == CatchStatus.draft) {
       final localModels = await localDataSource.getByStatus(status);
       final localCatches = localModels
           .map((m) => CatchMapper.toEntity(m))
           .toList();
-      return [...localCatches, ...remoteCatches];
+      // For draft status, we usually only care about local, but if we had remote logic before, keep it?
+      // Usually drafts are local-only.
+      return localCatches;
     }
+
     return remoteCatches;
   }
 

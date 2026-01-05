@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../di/injector.dart';
 import 'app_config.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 
 class DataSourceSwitcher extends StatefulWidget {
   final Widget child;
@@ -85,9 +86,11 @@ class _DataSourceSwitcherState extends State<DataSourceSwitcher> {
         } catch (e) {
           if (context.mounted) Navigator.of(context).pop();
           if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Error: $e')));
+            showDialog(
+              context: context,
+              builder: (context) =>
+                  ErrorDialog(title: "Error", message: 'Error: $e'),
+            );
           }
         }
       },

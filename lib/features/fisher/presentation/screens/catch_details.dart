@@ -257,8 +257,9 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
 
                         if (context.mounted) {
                           Navigator.of(dialogCtx).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                          showDialog(
+                            context: context,
+                            builder: (context) => const AlertDialog(
                               content: Text("Updated successfully"),
                             ),
                           );

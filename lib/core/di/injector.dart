@@ -15,9 +15,7 @@ import '../data/datasources/local/local_datasource_factory.dart';
 import '../data/sources/api/auth_api_data_source.dart';
 import '../data/datasources/api/catches_api_data_source.dart';
 import '../data/datasources/api/offers_api_data_source.dart';
-import '../data/datasources/api/orders_api_data_source.dart';
 import '../data/datasources/api/reviews_api_data_source.dart';
-import '../data/datasources/interfaces/i_catch_datasource.dart';
 import '../data/datasources/interfaces/i_offer_datasource.dart';
 import '../data/datasources/local/local_message_datasource.dart';
 import '../data/datasources/api/media_api_data_source.dart';
@@ -57,7 +55,6 @@ import '../domain/services/viewed_offers_service.dart';
 import '../domain/services/viewed_conversations_service.dart';
 import '../data/api/api_client.dart';
 import '../data/storage/token_storage.dart';
-import '../data/sources/api/auth_api_data_source.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dart_either/dart_either.dart';
 import 'package:siren_marketplace/core/network/api_result.dart';
@@ -209,11 +206,17 @@ void _initDemoMode() {
   );
 
   sl.registerLazySingleton<IOfferRepository>(
-    () => OfferRepositoryImpl(dataSource: demo.offerDataSource),
+    () => OfferRepositoryImpl(
+      remoteDataSource: demo.offerDataSource,
+      localDataSource: demo.offerDataSource,
+    ),
   );
 
   sl.registerLazySingleton<IOrderRepository>(
-    () => OrderRepositoryImpl(dataSource: demo.orderDataSource),
+    () => OrderRepositoryImpl(
+      remoteDataSource: demo.orderDataSource,
+      localDataSource: demo.orderDataSource,
+    ),
   );
 
   sl.registerLazySingleton<IReviewRepository>(
@@ -265,11 +268,17 @@ void _initLocalMode(DatabaseHelper dbHelper) {
   );
 
   sl.registerLazySingleton<IOfferRepository>(
-    () => OfferRepositoryImpl(dataSource: local.offerDataSource),
+    () => OfferRepositoryImpl(
+      remoteDataSource: local.offerDataSource,
+      localDataSource: local.offerDataSource,
+    ),
   );
 
   sl.registerLazySingleton<IOrderRepository>(
-    () => OrderRepositoryImpl(dataSource: local.orderDataSource),
+    () => OrderRepositoryImpl(
+      remoteDataSource: local.orderDataSource,
+      localDataSource: local.orderDataSource,
+    ),
   );
 
   sl.registerLazySingleton<IReviewRepository>(
@@ -357,18 +366,20 @@ void _initApiMode(DatabaseHelper dbHelper) {
 
   sl.registerLazySingleton<IOfferRepository>(
     () => OfferRepositoryImpl(
-      dataSource: OffersApiDataSource(
+      remoteDataSource: OffersApiDataSource(
         client: sl(instanceName: 'marketplaceApiClient'),
         viewedOffersService: sl<IViewedOffersService>(),
       ),
+      localDataSource: local.offerDataSource,
     ),
   );
 
   sl.registerLazySingleton<IOrderRepository>(
     () => OrderRepositoryImpl(
-      dataSource: OrdersApiDataSource(
+      remoteDataSource: OrdersApiDataSource(
         client: sl(instanceName: 'marketplaceApiClient'),
       ),
+      localDataSource: local.orderDataSource,
     ),
   );
 

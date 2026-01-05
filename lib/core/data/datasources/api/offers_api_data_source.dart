@@ -10,6 +10,10 @@ import '../interfaces/i_offer_datasource.dart';
 import '../../../domain/services/viewed_offers_service.dart';
 
 class OffersApiDataSource implements IOfferDataSource {
+  @override
+  Future<void> saveBatch(List<OfferModel> offers) async =>
+      throw UnimplementedError();
+
   final ApiClient _client;
   final IViewedOffersService _viewedOffersService;
 

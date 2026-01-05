@@ -11,6 +11,7 @@ import 'package:siren_marketplace/features/shared/presentation/providers/shared_
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
 import 'package:siren_marketplace/core/providers/product_providers.dart';
 import 'package:siren_marketplace/core/providers/order_providers.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
 
 class OfferActionState {
   final bool isLoading;
@@ -51,6 +52,12 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
       super(const OfferActionState());
 
   Future<void> acceptOffer(String offerId, UserRole role) async {
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) {
+      state = state.copyWith(error: 'You are offline. Cannot accept offer.');
+      return;
+    }
+
     state = state.copyWith(isLoading: true, error: null);
     try {
       // Use NegotiationService to handle business logic (weight reduction, order creation)
@@ -96,6 +103,12 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
   }
 
   Future<void> rejectOffer(String offerId, UserRole role) async {
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) {
+      state = state.copyWith(error: 'You are offline. Cannot reject offer.');
+      return;
+    }
+
     state = state.copyWith(isLoading: true, error: null);
     try {
       // Get the offer to find catchId for invalidation
@@ -130,6 +143,14 @@ class OfferActionsNotifier extends StateNotifier<OfferActionState> {
     UserRole role,
     OfferTerms terms,
   ) async {
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) {
+      state = state.copyWith(
+        error: 'You are offline. Cannot send counter-offer.',
+      );
+      return;
+    }
+
     state = state.copyWith(isLoading: true, error: null);
     try {
       // Get the offer to find catchId for invalidation

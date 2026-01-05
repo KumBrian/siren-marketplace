@@ -9,56 +9,118 @@ import '../mappers/offer_mapper.dart';
 import '../api/models/offer_api_models.dart';
 
 class OfferRepositoryImpl implements IOfferRepository {
-  final IOfferDataSource dataSource;
+  final IOfferDataSource remoteDataSource;
+  final IOfferDataSource localDataSource;
 
-  OfferRepositoryImpl({required this.dataSource});
+  OfferRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+  });
 
   @override
   Future<String> create(Offer offer) async {
     final model = OfferMapper.toModel(offer);
-    return await dataSource.create(model);
+    // Create remotely
+    final id = await remoteDataSource.create(model);
+    // Cache locally (with the new ID returned from remote)
+    // Note: The model passed to create() likely has a temporary or empty ID if new.
+    // Ideally we fetch the created offer back or update our model with the new ID.
+    // For now, let's assume we can fetch it or ignore local caching of "sent" items until refreshed.
+    return id;
   }
 
   @override
   Future<List<Offer>> getAllOffers() async {
-    final models = await dataSource.getAllOffers();
-    return models.map((m) => OfferMapper.toEntity(m)).toList();
+    try {
+      final models = await remoteDataSource.getAllOffers();
+      await localDataSource.saveBatch(models);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    } catch (e) {
+      final models = await localDataSource.getAllOffers();
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    }
   }
 
   @override
   Future<Offer?> getById(String offerId) async {
-    final model = await dataSource.getById(offerId);
-    return model != null ? OfferMapper.toEntity(model) : null;
+    try {
+      final model = await remoteDataSource.getById(offerId);
+      if (model != null) {
+        await localDataSource.saveBatch([model]);
+        return OfferMapper.toEntity(model);
+      }
+    } catch (e) {
+      // Fallback
+    }
+
+    final localModel = await localDataSource.getById(offerId);
+    return localModel != null ? OfferMapper.toEntity(localModel) : null;
   }
 
   @override
   Future<List<Offer>> getByProductId(String productId, {UserRole? role}) async {
-    final models = await dataSource.getByProductId(productId, role: role);
-    return models.map((m) => OfferMapper.toEntity(m)).toList();
+    try {
+      final models = await remoteDataSource.getByProductId(
+        productId,
+        role: role,
+      );
+      await localDataSource.saveBatch(models);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    } catch (e) {
+      final models = await localDataSource.getByProductId(
+        productId,
+        role: role,
+      );
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    }
   }
 
   @override
   Future<List<Offer>> getByBuyerId(String buyerId) async {
-    final models = await dataSource.getByBuyerId(buyerId);
-    return models.map((m) => OfferMapper.toEntity(m)).toList();
+    try {
+      final models = await remoteDataSource.getByBuyerId(buyerId);
+      await localDataSource.saveBatch(models);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    } catch (e) {
+      final models = await localDataSource.getByBuyerId(buyerId);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    }
   }
 
   @override
   Future<List<Offer>> getByFisherId(String fisherId) async {
-    final models = await dataSource.getByFisherId(fisherId);
-    return models.map((m) => OfferMapper.toEntity(m)).toList();
+    try {
+      final models = await remoteDataSource.getByFisherId(fisherId);
+      await localDataSource.saveBatch(models);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    } catch (e) {
+      final models = await localDataSource.getByFisherId(fisherId);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    }
   }
 
   @override
   Future<List<Offer>> getByCatchIds(List<String> catchIds) async {
-    final models = await dataSource.getByCatchIds(catchIds);
-    return models.map((m) => OfferMapper.toEntity(m)).toList();
+    try {
+      final models = await remoteDataSource.getByCatchIds(catchIds);
+      await localDataSource.saveBatch(models);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    } catch (e) {
+      final models = await localDataSource.getByCatchIds(catchIds);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    }
   }
 
   @override
   Future<List<Offer>> getByStatus(OfferStatus status) async {
-    final models = await dataSource.getByStatus(status);
-    return models.map((m) => OfferMapper.toEntity(m)).toList();
+    try {
+      final models = await remoteDataSource.getByStatus(status);
+      await localDataSource.saveBatch(models);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    } catch (e) {
+      final models = await localDataSource.getByStatus(status);
+      return models.map((m) => OfferMapper.toEntity(m)).toList();
+    }
   }
 
   @override
@@ -70,17 +132,22 @@ class OfferRepositoryImpl implements IOfferRepository {
   @override
   Future<void> update(Offer offer) async {
     final model = OfferMapper.toModel(offer);
-    await dataSource.update(model);
+    await remoteDataSource.update(model);
+    await localDataSource.update(model); // Keep local in sync
   }
 
   @override
   Future<void> delete(String offerId) async {
-    await dataSource.delete(offerId);
+    await remoteDataSource.delete(offerId);
+    try {
+      await localDataSource.delete(offerId);
+    } catch (_) {}
   }
 
   @override
   Future<T> transaction<T>(Future<T> Function() action) async {
-    return await dataSource.transaction(action);
+    // Transaction usually implies local DB transaction
+    return await localDataSource.transaction(action);
   }
 
   @override
@@ -94,14 +161,16 @@ class OfferRepositoryImpl implements IOfferRepository {
       message: message ?? 'Offer accepted',
     );
 
-    // Get the raw OfferModel which has access to saleOrder via OfferApiModel
-    // Get the raw OfferModel which has access to saleOrder via OfferApiModel
-    await dataSource.respond(offerId, request);
+    await remoteDataSource.respond(offerId, request);
 
-    // The saleOrder is embedded in the API response
-    // We need to get it from the original API model
-    // For now, try to fetch the order separately as a workaround
-    // TODO: Better solution would be to return OrderApiModel from dataSource
+    // Invalidate/Refresh needed?
+    // We can fetch the updated offer and cache it
+    try {
+      final updatedModel = await remoteDataSource.getById(offerId);
+      if (updatedModel != null) {
+        await localDataSource.saveBatch([updatedModel]);
+      }
+    } catch (_) {}
 
     return null; // Will be fetched in service layer
   }
@@ -116,7 +185,14 @@ class OfferRepositoryImpl implements IOfferRepository {
       action: 'reject',
       message: message ?? 'Offer rejected',
     );
-    await dataSource.respond(offerId, request);
+    await remoteDataSource.respond(offerId, request);
+
+    try {
+      final updatedModel = await remoteDataSource.getById(offerId);
+      if (updatedModel != null) {
+        await localDataSource.saveBatch([updatedModel]);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -125,23 +201,30 @@ class OfferRepositoryImpl implements IOfferRepository {
     UserRole role,
     OfferTerms terms,
   ) async {
-    // We don't strictly need to fetch the offer if we just trust the ID and terms,
-    // but fetching confirms existence and allows us to verify logic if needed.
-    // However, for the API call, we just need the terms.
-
     final request = CounterOfferRequest(
       weightInGrams: terms.weight.grams.toDouble(),
       price: terms.totalPrice.amount.toDouble(),
       pricePerKg: terms.pricePerKg.amountPerKg.toDouble(),
     );
 
-    await dataSource.counterOffer(offerId, request);
+    await remoteDataSource.counterOffer(offerId, request);
+
+    try {
+      final updatedModel = await remoteDataSource.getById(offerId);
+      if (updatedModel != null) {
+        await localDataSource.saveBatch([updatedModel]);
+      }
+    } catch (_) {}
   }
 
   @override
   Future<void> markAsViewed(String offerId, UserRole role) async {
-    final offerModel = await dataSource.getById(offerId);
-    if (offerModel == null) return;
+    // This logic was modifying local cache directly in API mode before
+    // Now we can be more explicit: update local data source
+    final offerModel = await localDataSource.getById(
+      offerId,
+    ); // Getting from local is fast
+    if (offerModel == null) return; // If not in cache, ignore?
 
     final offer = OfferMapper.toEntity(offerModel);
     Offer updatedOffer;
@@ -152,8 +235,17 @@ class OfferRepositoryImpl implements IOfferRepository {
       updatedOffer = offer.copyWith(hasUpdateForBuyer: false);
     }
 
-    // Use local cache update instead of API update for view status
-    // This avoids failing PATCH calls while updating the UI state
-    dataSource.updateLocalCache(OfferMapper.toModel(updatedOffer));
+    final updatedModel = OfferMapper.toModel(updatedOffer);
+
+    // Update local cache
+    await localDataSource.update(updatedModel);
+
+    // Also try to update remote if needed, but `markAsViewed` is often local-only state
+    // unless backend stores 'viewed' flags. The previous code only updated local cache.
+    // remoteDataSource.updateLocalCache(updatedModel); // This method existed on ApiDataSource
+    // We should probably check if remoteDataSource has a method for this or just rely on local.
+    // The previous implementation used `updateLocalCache` on the dataSource.
+    // `IOfferDataSource` has `updateLocalCache`.
+    remoteDataSource.updateLocalCache(updatedModel);
   }
 }

@@ -33,4 +33,6 @@ abstract class IOfferDataSource {
 
   /// Update local cache only (no API call)
   void updateLocalCache(OfferModel offer);
+
+  Future<void> saveBatch(List<OfferModel> offers);
 }

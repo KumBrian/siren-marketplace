@@ -27,7 +27,9 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
 
 class OrderDetails extends ConsumerWidget {
@@ -45,6 +47,20 @@ class OrderDetails extends ConsumerWidget {
     WidgetRef ref,
     BuildContext context,
   ) async {
+    final isOnline = ref.read(isOnlineProvider);
+    if (!isOnline) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => const ErrorDialog(
+            title: "Offline",
+            message: "You cannot complete orders while offline.",
+          ),
+        );
+      }
+      return;
+    }
+
     try {
       await ref.read(completeOrderProvider(orderId).future);
       ref.invalidate(fisherOffersProvider);
@@ -53,10 +69,11 @@ class OrderDetails extends ConsumerWidget {
       ref.invalidate(orderProvider(orderId));
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to complete order: $e"),
-            backgroundColor: Colors.red,
+        showDialog(
+          context: context,
+          builder: (context) => ErrorDialog(
+            title: "Error",
+            message: "Failed to complete order: $e",
           ),
         );
       }
@@ -71,10 +88,11 @@ class OrderDetails extends ConsumerWidget {
     // Listen for order errors
     ref.listen(orderProvider(orderId), (previous, next) {
       if (next.hasError && !next.isLoading) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Action failed: ${next.error}"),
-            backgroundColor: Colors.red,
+        showDialog(
+          context: context,
+          builder: (context) => ErrorDialog(
+            title: "Action Failed",
+            message: next.error.toString(),
           ),
         );
       }
@@ -687,6 +705,20 @@ class OrderDetails extends ConsumerWidget {
               CustomButton(
                 title: "Confirm & Relist",
                 onPressed: () async {
+                  final isOnline = ref.read(isOnlineProvider);
+                  if (!isOnline) {
+                    if (context.mounted) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => const ErrorDialog(
+                          title: "Offline",
+                          message: "You cannot relist orders while offline.",
+                        ),
+                      );
+                    }
+                    return;
+                  }
+
                   final selectedReason = ref.read(failedTransactionProvider);
                   final customReason = customReasonController.text.trim();
 
@@ -695,9 +727,11 @@ class OrderDetails extends ConsumerWidget {
                       : selectedReason;
 
                   if (reason == null || reason.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please select or enter a reason'),
+                    showDialog(
+                      context: context,
+                      builder: (context) => const ErrorDialog(
+                        title: "Required",
+                        message: 'Please select or enter a reason',
                       ),
                     );
                     return;
@@ -747,8 +781,12 @@ class OrderDetails extends ConsumerWidget {
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: ${e.toString()}')),
+                      showDialog(
+                        context: context,
+                        builder: (context) => ErrorDialog(
+                          title: "Error",
+                          message: 'Error: ${e.toString()}',
+                        ),
                       );
                     }
                   }

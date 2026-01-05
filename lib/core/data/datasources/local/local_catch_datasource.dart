@@ -68,6 +68,20 @@ class LocalCatchDataSource implements ICatchDataSource {
   }
 
   @override
+  Future<void> saveBatch(List<CatchModel> catches) async {
+    final db = await dbHelper.database;
+    final batch = db.batch();
+    for (final catchItem in catches) {
+      batch.insert(
+        'catches',
+        catchItem.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
+  @override
   Future<void> updateBatch(List<CatchModel> catches) async {
     final db = await dbHelper.database;
     final batch = db.batch();

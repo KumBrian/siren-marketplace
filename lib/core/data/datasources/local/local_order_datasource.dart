@@ -92,4 +92,18 @@ class LocalOrderDataSource implements IOrderDataSource {
     // Local implementation pending - just return null or generic update
     return null;
   }
+
+  @override
+  Future<void> saveBatch(List<OrderModel> orders) async {
+    final db = await dbHelper.database;
+    final batch = db.batch();
+    for (final order in orders) {
+      batch.insert(
+        'orders',
+        order.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
 }

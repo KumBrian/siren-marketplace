@@ -19,6 +19,7 @@ import 'package:siren_marketplace/core/widgets/info_table.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
 import 'package:siren_marketplace/features/shared/presentation/providers/offer_actions_provider.dart';
 import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
@@ -242,8 +243,10 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
     // Listen for offer action results
     ref.listen(offerActionsProvider, (previous, next) {
       if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
+        showDialog(
+          context: context,
+          builder: (context) =>
+              ErrorDialog(title: "Error", message: next.error!),
         );
       } else if (next.successMessage != null) {
         // Show success dialog
@@ -452,13 +455,11 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                                     }
                                   } catch (e) {
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Failed to open chat: $e',
-                                          ),
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => ErrorDialog(
+                                          title: "Chat Error",
+                                          message: "Failed to open chat: $e",
                                         ),
                                       );
                                     }

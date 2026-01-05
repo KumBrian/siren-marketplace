@@ -37,11 +37,21 @@ class SessionService {
     if (user != null && _tokenStorage != null) {
       final hasToken = await _tokenStorage.isAuthenticated();
       if (!hasToken) {
-        print(
-          'DEBUG: SessionService: User found but token missing/expired. Clearing session.',
-        );
-        await logout();
-        return null;
+        // Only clear if we are ONLINE. If offline, allow "expired" token access to cached data.
+        // We need to inject ConnectivityService or similar, but for now strict check is blocking offline.
+        // Or check simply if token EXISTS at all.
+        final token = await _tokenStorage.getAccessToken();
+        if (token == null) {
+          print(
+            'DEBUG: SessionService: User found but NO token. Clearing session.',
+          );
+          await logout();
+          return null;
+        }
+
+        // If token exists but is expired, we might want to try refresh (if online) or just proceed (if offline).
+        // For now, let's relax this: if we have a user in local DB, let them stay logged in to see cached data.
+        // The API Client interceptor will handle 401s if they try to fetch new data.
       }
     }
 

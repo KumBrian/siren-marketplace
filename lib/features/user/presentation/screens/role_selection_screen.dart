@@ -7,6 +7,7 @@ import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/features/user/presentation/providers/role_selection_provider.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/role_button.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 
 // Provider for the currently selected role
 final selectedRoleProvider = StateProvider<UserRole>((ref) => UserRole.unknown);
@@ -26,9 +27,13 @@ class RoleScreen extends ConsumerWidget {
       print('RoleScreen listener: next state = $next');
       if (next.hasError) {
         print('RoleScreen listener: Error - ${next.error}');
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
+        showDialog(
+          context: context,
+          builder: (context) => ErrorDialog(
+            title: "Selection Error",
+            message: next.error.toString(),
+          ),
+        );
         ref.read(selectedRoleProvider.notifier).state = UserRole.unknown;
       } else if (!next.isLoading && !next.hasError && next.hasValue) {
         // We read the provider here to get the LATEST value

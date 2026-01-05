@@ -67,6 +67,7 @@ dependencies:
   flutter_image_compress: ^2.4.0
   jwt_decoder: ^2.0.1
   dart_either: ^2.0.0
+  connectivity_plus: ^7.0.0
 
 dev_dependencies:
   flutter_test:

@@ -7,7 +7,7 @@ class ApiException implements Exception {
   ApiException(this.message, {this.statusCode, this.data});
 
   @override
-  String toString() => 'ApiException: $message (Status: $statusCode)';
+  String toString() => message;
 }
 
 /// Exception thrown when authentication fails (401)
@@ -35,9 +35,9 @@ class ValidationException extends ApiException {
       final errorMessages = errors!.entries
           .map((e) => '${e.key}: ${e.value.join(', ')}')
           .join('; ');
-      return 'ValidationException: $message - $errorMessages';
+      return '$message\n$errorMessages';
     }
-    return 'ValidationException: $message';
+    return message;
   }
 }
 

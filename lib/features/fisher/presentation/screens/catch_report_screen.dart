@@ -11,6 +11,7 @@ import 'package:siren_marketplace/core/widgets/custom_button.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price_per_kg.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
@@ -595,10 +596,11 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Error deleting catch: $e"),
-                        backgroundColor: AppColors.fail500,
+                    showDialog(
+                      context: context,
+                      builder: (context) => ErrorDialog(
+                        title: "Error",
+                        message: "Error deleting catch: $e",
                       ),
                     );
                   }

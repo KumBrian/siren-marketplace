@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:siren_marketplace/core/constants/app_colors.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/widgets/error_handling_circle_avatar.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/features/chat/domain/entities/message.dart';
 import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
@@ -53,9 +54,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+        showDialog(
+          context: context,
+          builder: (context) => ErrorDialog(
+            title: "Message Error",
+            message: "Failed to send message: $e",
+            onRetry: _sendMessage,
+          ),
+        );
       }
     }
   }

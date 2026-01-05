@@ -14,6 +14,10 @@ import '../../mappers/subgroup_mapper.dart';
 import '../../../domain/entities/species.dart';
 
 class CatchesApiDataSource implements ICatchDataSource {
+  @override
+  Future<void> saveBatch(List<CatchModel> catches) async =>
+      throw UnimplementedError();
+
   final ApiClient _client;
   final MediaApiDataSource _mediaDataSource;
   final SubgroupsApiDataSource _subgroupsDataSource;

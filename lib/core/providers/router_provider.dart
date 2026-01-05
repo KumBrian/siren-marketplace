@@ -5,6 +5,7 @@ import 'package:siren_marketplace/core/config/app_config.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/providers/auth_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
+import 'package:siren_marketplace/core/providers/navigator_key_provider.dart';
 import 'package:siren_marketplace/features/auth/presentation/screens/login_screen.dart';
 import 'package:siren_marketplace/features/buyer/presentation/screens/buyer.dart';
 
@@ -52,8 +53,10 @@ final authNotifierProvider = Provider<AuthNotifier>((ref) {
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authNotifier = ref.watch(authNotifierProvider);
+  final rootNavigatorKey = ref.watch(navigatorKeyProvider);
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/',
     // Refresh the router when the user provider changes
     refreshListenable: authNotifier,

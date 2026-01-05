@@ -26,7 +26,10 @@ void main() {
     }
     sl.registerSingleton<IOrderRepository>(mockOrderRepository);
 
-    repository = OfferRepositoryImpl(dataSource: mockDataSource);
+    repository = OfferRepositoryImpl(
+      remoteDataSource: mockDataSource,
+      localDataSource: mockDataSource,
+    );
   });
 
   tearDown(() {

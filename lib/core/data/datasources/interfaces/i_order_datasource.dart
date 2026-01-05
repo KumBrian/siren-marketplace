@@ -26,4 +26,6 @@ abstract class IOrderDataSource {
 
   // Transaction support
   Future<T> transaction<T>(Future<T> Function() action);
+
+  Future<void> saveBatch(List<OrderModel> orders);
 }

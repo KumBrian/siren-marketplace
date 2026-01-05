@@ -7,6 +7,10 @@ import '../../models/order_model.dart';
 import '../interfaces/i_order_datasource.dart';
 
 class OrdersApiDataSource implements IOrderDataSource {
+  @override
+  Future<void> saveBatch(List<OrderModel> orders) async =>
+      throw UnimplementedError();
+
   final ApiClient _client;
 
   OrdersApiDataSource({required ApiClient client}) : _client = client;

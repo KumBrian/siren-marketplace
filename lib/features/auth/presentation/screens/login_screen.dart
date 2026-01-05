@@ -32,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen<AsyncValue<void>>(loginControllerProvider, (previous, next) {
       if (next.hasError) {
         setState(() {
-          _errorMessage = next.error.toString().replaceAll('Exception: ', '');
+          _errorMessage = next.error.toString();
         });
       } else if (!next.isLoading && !next.hasError && next.hasValue) {
         // Success! Navigate to role selection

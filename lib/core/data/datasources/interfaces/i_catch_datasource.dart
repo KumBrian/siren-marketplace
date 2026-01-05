@@ -18,5 +18,7 @@ abstract class ICatchDataSource {
 
   Future<void> updateBatch(List<CatchModel> catches);
 
+  Future<void> saveBatch(List<CatchModel> catches);
+
   Future<void> deleteBatch(List<String> catchIds);
 }
