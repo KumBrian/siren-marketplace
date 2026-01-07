@@ -85,7 +85,7 @@ void main() {
         () {
           final order = testOrder.copyWith(
             status: OrderStatus.completed,
-            hasReviewFromFisher: false,
+            fisherReview: null,
           );
 
           expect(order.canBeReviewedBy(fisherId), true);
@@ -97,7 +97,7 @@ void main() {
         () {
           final order = testOrder.copyWith(
             status: OrderStatus.completed,
-            hasReviewFromFisher: true,
+            fisherReview: TestData.createReview(reviewerId: fisherId),
           );
 
           expect(order.canBeReviewedBy(fisherId), false);
@@ -109,7 +109,7 @@ void main() {
         () {
           final order = testOrder.copyWith(
             status: OrderStatus.completed,
-            hasReviewFromBuyer: false,
+            buyerReview: null,
           );
 
           expect(order.canBeReviewedBy(buyerId), true);
@@ -119,7 +119,7 @@ void main() {
       test('canBeReviewedBy returns false for buyer when already reviewed', () {
         final order = testOrder.copyWith(
           status: OrderStatus.completed,
-          hasReviewFromBuyer: true,
+          buyerReview: TestData.createReview(reviewerId: buyerId),
         );
 
         expect(order.canBeReviewedBy(buyerId), false);
@@ -128,7 +128,7 @@ void main() {
       test('canBeReviewedBy returns false when order is not completed', () {
         final activeOrder = testOrder.copyWith(
           status: OrderStatus.accepted,
-          hasReviewFromFisher: false,
+          fisherReview: null,
         );
 
         expect(activeOrder.canBeReviewedBy(fisherId), false);
@@ -143,37 +143,32 @@ void main() {
 
     group('Business Logic - Review Tracking', () {
       test('hasReview returns true when fisher reviewed buyer', () {
-        final order = testOrder.copyWith(hasReviewFromFisher: true);
+        final order = testOrder.copyWith(
+          fisherReview: TestData.createReview(reviewerId: fisherId),
+        );
 
         expect(order.hasReview(fisherId, buyerId), true);
       });
 
       test('hasReview returns false when fisher has not reviewed buyer', () {
-        final order = testOrder.copyWith(hasReviewFromFisher: false);
+        final order = testOrder.copyWith(fisherReview: null);
 
         expect(order.hasReview(fisherId, buyerId), false);
       });
 
       test('hasReview returns true when buyer reviewed fisher', () {
-        final order = testOrder.copyWith(hasReviewFromBuyer: true);
+        final order = testOrder.copyWith(
+          buyerReview: TestData.createReview(reviewerId: buyerId),
+        );
 
         expect(order.hasReview(buyerId, fisherId), true);
       });
 
       test('hasReview returns false when buyer has not reviewed fisher', () {
-        final order = testOrder.copyWith(hasReviewFromBuyer: false);
+        final order = testOrder.copyWith(buyerReview: null);
 
         expect(order.hasReview(buyerId, fisherId), false);
       });
-
-      test(
-        'hasReview returns false for invalid reviewer/reviewee combination',
-        () {
-          final order = testOrder;
-
-          expect(order.hasReview('other-user', buyerId), false);
-        },
-      );
     });
 
     group('Business Logic - Counterparty', () {
@@ -299,53 +294,6 @@ void main() {
       });
     });
 
-    group('Domain Actions - Mark as Reviewed', () {
-      test('markAsReviewedBy sets hasReviewFromFisher when fisher reviews', () {
-        final order = testOrder.copyWith(hasReviewFromFisher: false);
-
-        final result = order.markAsReviewedBy(fisherId);
-
-        expect(result.hasReviewFromFisher, true);
-      });
-
-      test('markAsReviewedBy sets hasReviewFromBuyer when buyer reviews', () {
-        final order = testOrder.copyWith(hasReviewFromBuyer: false);
-
-        final result = order.markAsReviewedBy(buyerId);
-
-        expect(result.hasReviewFromBuyer, true);
-      });
-
-      test('markAsReviewedBy preserves other review flag', () {
-        final order = testOrder.copyWith(
-          hasReviewFromFisher: true,
-          hasReviewFromBuyer: false,
-        );
-
-        final result = order.markAsReviewedBy(buyerId);
-
-        expect(result.hasReviewFromFisher, true);
-        expect(result.hasReviewFromBuyer, true);
-      });
-
-      test('markAsReviewedBy throws for unknown user', () {
-        expect(
-          () => testOrder.markAsReviewedBy('unknown-user'),
-          throwsA(isA<ArgumentError>()),
-        );
-      });
-
-      test('markAsReviewedBy preserves other properties', () {
-        final original = testOrder;
-
-        final result = original.markAsReviewedBy(fisherId);
-
-        expect(result.id, original.id);
-        expect(result.status, original.status);
-        expect(result.terms, original.terms);
-      });
-    });
-
     group('Equality', () {
       test('two orders with same values are equal', () {
         final fixedDate = DateTime(2025, 1, 1, 12, 0);
@@ -386,13 +334,13 @@ void main() {
       test('two orders with different review flags are not equal', () {
         final fixedDate = DateTime(2025, 1, 1);
         final order1 = TestData.createOrder(id: 'same').copyWith(
-          hasReviewFromFisher: true,
-          hasReviewFromBuyer: false,
+          fisherReview: TestData.createReview(reviewerId: fisherId),
+          buyerReview: null,
           dateUpdated: fixedDate,
         );
         final order2 = TestData.createOrder(id: 'same').copyWith(
-          hasReviewFromFisher: false,
-          hasReviewFromBuyer: true,
+          fisherReview: null,
+          buyerReview: TestData.createReview(reviewerId: buyerId),
           dateUpdated: fixedDate,
         );
 
@@ -403,14 +351,15 @@ void main() {
     group('CopyWith', () {
       test('copyWith creates new instance with updated values', () {
         final original = testOrder;
+        final review = TestData.createReview(reviewerId: fisherId);
 
         final updated = original.copyWith(
           status: OrderStatus.completed,
-          hasReviewFromFisher: true,
+          fisherReview: review,
         );
 
         expect(updated.status, OrderStatus.completed);
-        expect(updated.hasReviewFromFisher, true);
+        expect(updated.fisherReview, review);
         expect(updated.id, original.id);
       });
 

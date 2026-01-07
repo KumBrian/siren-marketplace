@@ -5,6 +5,7 @@ import 'package:siren_marketplace/core/domain/entities/review.dart';
 import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/providers/review_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/rating_card.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/review_card.dart';
@@ -43,6 +44,8 @@ class SharedReviewScreen extends ConsumerWidget {
 
     final finalName = displayName ?? userAsync.value?.name ?? "User";
 
+    final isOnline = ref.watch(isOnlineProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -56,6 +59,28 @@ class SharedReviewScreen extends ConsumerWidget {
       body: reviewsAsync.when(
         data: (reviews) {
           if (reviews.isEmpty) {
+            if (!isOnline) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.wifi_off_rounded,
+                      size: 48,
+                      color: AppColors.gray500,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Connect to internet to see updated reviews.',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(color: AppColors.gray650),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }
             return Center(child: Text('No reviews yet for $finalName.'));
           }
 

@@ -2,42 +2,94 @@ import '../../domain/entities/user.dart';
 import '../../domain/enums/user_role.dart';
 import '../../domain/repositories/i_user_repository.dart';
 import '../../domain/value_objects/rating.dart';
+import '../../services/connectivity_service.dart';
 import '../datasources/interfaces/i_user_datasource.dart';
 import '../mappers/user_mapper.dart';
-import '../models/user_model.dart';
 
 class UserRepositoryImpl implements IUserRepository {
-  final IUserDataSource dataSource;
+  final IUserDataSource localDataSource;
+  final IUserDataSource? remoteDataSource;
+  final ConnectivityService? connectivityService;
 
-  UserRepositoryImpl({required this.dataSource});
+  UserRepositoryImpl({
+    required this.localDataSource,
+    this.remoteDataSource,
+    this.connectivityService,
+  });
 
   @override
   Future<User?> getById(String userId) async {
-    final model = await dataSource.getById(userId);
+    // 1. Try Remote if available
+    if (remoteDataSource != null &&
+        (await connectivityService?.hasConnection ?? true)) {
+      try {
+        final model = await remoteDataSource!.getById(userId);
+        if (model != null) {
+          // Cache to local
+          try {
+            await localDataSource.update(model);
+          } catch (e) {
+            print('DEBUG: Failed to cache user $userId: $e');
+          }
+          return UserMapper.toEntity(model);
+        }
+      } catch (e) {
+        print('DEBUG: Failed to fetch user $userId from remote: $e');
+        // Fallback to local
+      }
+    }
+
+    // 2. Fallback to Local
+    final model = await localDataSource.getById(userId);
     return model != null ? UserMapper.toEntity(model) : null;
   }
 
   @override
   Future<List<User>> getByIds(List<String> userIds) async {
-    final models = await dataSource.getByIds(userIds);
+    if (remoteDataSource != null &&
+        (await connectivityService?.hasConnection ?? true)) {
+      try {
+        final models = await remoteDataSource!.getByIds(userIds);
+        // Cache all
+        for (final model in models) {
+          try {
+            await localDataSource.update(model);
+          } catch (_) {}
+        }
+        return models.map((m) => UserMapper.toEntity(m)).toList();
+      } catch (e) {
+        // Fallback
+      }
+    }
+
+    final models = await localDataSource.getByIds(userIds);
     return models.map((m) => UserMapper.toEntity(m)).toList();
   }
 
   @override
   Future<void> updateRole(String userId, UserRole role) async {
-    final model = await dataSource.getById(userId);
-    if (model == null) throw ArgumentError('User not found');
+    // 1. Update Remote if available
+    if (remoteDataSource != null &&
+        (await connectivityService?.hasConnection ?? true)) {
+      try {
+        final model = await remoteDataSource!.getById(userId);
+        if (model != null) {
+          final updatedUser = model.copyWith(currentRole: role);
+          final updatedModel = UserMapper.toModel(updatedUser);
+          await remoteDataSource!.update(updatedModel);
+        }
+      } catch (e) {
+        print('DEBUG: Failed to update role on remote: $e');
+      }
+    }
 
-    final updated = UserModel(
-      id: model.id,
-      name: model.name,
-      avatarUrl: model.avatarUrl,
-      rating: model.rating.value,
-      reviewCount: model.reviewCount,
-      currentRole: role.name,
-    );
-
-    await dataSource.update(updated);
+    // 2. Update Local
+    final model = await localDataSource.getById(userId);
+    if (model != null) {
+      final updatedUser = model.copyWith(currentRole: role);
+      final updatedModel = UserMapper.toModel(updatedUser);
+      await localDataSource.update(updatedModel);
+    }
   }
 
   @override
@@ -46,7 +98,14 @@ class UserRepositoryImpl implements IUserRepository {
     required Rating rating,
     required int reviewCount,
   }) async {
-    await dataSource.updateRating(
+    if (remoteDataSource != null) {
+      await remoteDataSource!.updateRating(
+        userId: userId,
+        rating: rating.value,
+        reviewCount: reviewCount,
+      );
+    }
+    await localDataSource.updateRating(
       userId: userId,
       rating: rating.value,
       reviewCount: reviewCount,
@@ -56,30 +115,64 @@ class UserRepositoryImpl implements IUserRepository {
   @override
   Future<void> update(User user) async {
     final model = UserMapper.toModel(user);
-    await dataSource.update(model);
+    if (remoteDataSource != null) {
+      await remoteDataSource!.update(model);
+    }
+    await localDataSource.update(model);
   }
 
   @override
   Future<void> create(User user) async {
     final model = UserMapper.toModel(user);
-    await dataSource.create(model);
+    if (remoteDataSource != null) {
+      await remoteDataSource!.create(model);
+    }
+    await localDataSource.create(model);
   }
 
   @override
   Future<bool> exists(String userId) async {
-    return await dataSource.exists(userId);
+    // Check local first for speed? Or remote for accuracy?
+    // "Exists" usually implies "is registered".
+    if (remoteDataSource != null &&
+        (await connectivityService?.hasConnection ?? true)) {
+      try {
+        return await remoteDataSource!.exists(userId);
+      } catch (_) {}
+    }
+    return await localDataSource.exists(userId);
   }
 
   @override
   Future<User?> getFirstFisher() async {
-    final model = await dataSource.getFirstFisher();
+    if (remoteDataSource != null &&
+        (await connectivityService?.hasConnection ?? true)) {
+      try {
+        final model = await remoteDataSource!.getFirstFisher();
+        if (model != null) {
+          await localDataSource.update(model); // Cache
+          return UserMapper.toEntity(model);
+        }
+      } catch (_) {}
+    }
+    final model = await localDataSource.getFirstFisher();
     if (model == null) return null;
     return UserMapper.toEntity(model);
   }
 
   @override
   Future<User?> getFirstBuyer() async {
-    final model = await dataSource.getFirstBuyer();
+    if (remoteDataSource != null &&
+        (await connectivityService?.hasConnection ?? true)) {
+      try {
+        final model = await remoteDataSource!.getFirstBuyer();
+        if (model != null) {
+          await localDataSource.update(model); // Cache
+          return UserMapper.toEntity(model);
+        }
+      } catch (_) {}
+    }
+    final model = await localDataSource.getFirstBuyer();
     if (model == null) return null;
     return UserMapper.toEntity(model);
   }

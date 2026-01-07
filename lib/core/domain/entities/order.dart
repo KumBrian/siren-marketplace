@@ -4,10 +4,11 @@ import '../enums/order_status.dart';
 import '../value_objects/offer_terms.dart';
 import 'product.dart';
 import 'user.dart';
+import 'review.dart';
 
 class Order extends Equatable {
   final String id;
-  final String offerId;
+  final String? offerId;
   final String catchId;
   final String fisherId;
   final String buyerId;
@@ -25,16 +26,16 @@ class Order extends Equatable {
   // Embedded buyer data
   final User? buyer;
 
-  // Review tracking
-  final bool hasReviewFromFisher;
-  final bool hasReviewFromBuyer;
+  // Review objects
+  final Review? fisherReview;
+  final Review? buyerReview;
 
   // Cancellation tracking
   final String? cancellationReason;
 
   const Order({
     required this.id,
-    required this.offerId,
+    this.offerId,
     required this.catchId,
     required this.fisherId,
     required this.buyerId,
@@ -45,8 +46,8 @@ class Order extends Equatable {
     this.orderNumber,
     this.product,
     this.buyer,
-    this.hasReviewFromFisher = false,
-    this.hasReviewFromBuyer = false,
+    this.fisherReview,
+    this.buyerReview,
     this.cancellationReason,
   });
 
@@ -55,6 +56,9 @@ class Order extends Equatable {
   bool get isCompleted => status == OrderStatus.completed;
   bool get isCancelled => status == OrderStatus.cancelled;
   bool get canBeReviewed => status.canBeReviewed;
+
+  bool get hasReviewFromFisher => fisherReview != null;
+  bool get hasReviewFromBuyer => buyerReview != null;
 
   bool canBeReviewedBy(String userId) {
     if (!canBeReviewed) return false;
@@ -104,26 +108,24 @@ class Order extends Equatable {
     );
   }
 
-  Order markAsReviewedBy(String userId) {
-    if (userId == fisherId) {
-      return copyWith(hasReviewFromFisher: true);
-    } else if (userId == buyerId) {
-      return copyWith(hasReviewFromBuyer: true);
-    }
-
-    throw ArgumentError('User is not part of this order');
-  }
+  /* 
+   * Note: manual hasReviewFrom... flag setting is deprecated in favor of 
+   * setting the actual review object, but we keep copyWith simple.
+   * If strictly needed, we can add methods to "attach" a review.
+   */
 
   Order copyWith({
     OfferTerms? terms,
     OrderStatus? status,
     DateTime? dateUpdated,
-    bool? hasReviewFromFisher,
-    bool? hasReviewFromBuyer,
     String? cancellationReason,
     String? orderNumber,
     Product? product,
     User? buyer,
+    Review? fisherReview,
+    Review? buyerReview,
+    // Legacy support arguments (ignored if review obj provided, or used to nullify?)
+    // Simpler to just support replacing the whole object
   }) {
     return Order(
       id: id,
@@ -138,8 +140,8 @@ class Order extends Equatable {
       orderNumber: orderNumber ?? this.orderNumber,
       product: product ?? this.product,
       buyer: buyer ?? this.buyer,
-      hasReviewFromFisher: hasReviewFromFisher ?? this.hasReviewFromFisher,
-      hasReviewFromBuyer: hasReviewFromBuyer ?? this.hasReviewFromBuyer,
+      fisherReview: fisherReview ?? this.fisherReview,
+      buyerReview: buyerReview ?? this.buyerReview,
       cancellationReason: cancellationReason ?? this.cancellationReason,
     );
   }
@@ -158,8 +160,8 @@ class Order extends Equatable {
     orderNumber,
     product,
     buyer,
-    hasReviewFromFisher,
-    hasReviewFromBuyer,
+    fisherReview,
+    buyerReview,
     cancellationReason,
   ];
 }

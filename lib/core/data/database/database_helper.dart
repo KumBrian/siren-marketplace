@@ -9,13 +9,14 @@ extension CatchStatusExtension on CatchStatus {
 
 class DatabaseHelper {
   static const _databaseName = "siren_marketplace.db";
-  static const _databaseVersion = 30;
+  static const _databaseVersion = 35;
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
 
   // Table Names
   static const _usersTable = 'users';
+  static const _productsTable = 'products';
   static const _catchesTable = 'catches';
   static const _offersTable = 'offers';
   static const _ordersTable = 'orders';
@@ -55,6 +56,7 @@ class DatabaseHelper {
     // applied cleanly, which is acceptable since the seeder will repopulate data.
     final batch = db.batch();
     batch.execute('DROP TABLE IF EXISTS $_usersTable');
+    batch.execute('DROP TABLE IF EXISTS $_productsTable');
     batch.execute('DROP TABLE IF EXISTS $_catchesTable');
     batch.execute('DROP TABLE IF EXISTS $_offersTable');
     batch.execute('DROP TABLE IF EXISTS $_ordersTable');
@@ -86,6 +88,38 @@ class DatabaseHelper {
         rating REAL,
         review_count INTEGER,
         role TEXT NOT NULL
+      )
+    ''');
+
+    // 1.5 PRODUCTS (NEW)
+    batch.execute('''
+      CREATE TABLE $_productsTable (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        market_name TEXT,
+        status TEXT,
+        price_per_kg REAL NOT NULL,
+        final_price REAL NOT NULL,
+        initial_weight REAL NOT NULL,
+        available_weight REAL NOT NULL,
+        size TEXT,
+        date_posted TEXT NOT NULL,
+        location_name TEXT,
+        latitude REAL,
+        longitude REAL,
+        sold_at TEXT,
+        is_sold INTEGER NOT NULL,
+        gear_nature TEXT,
+        species_id TEXT,
+        species_name TEXT,
+        species_image TEXT,
+        offers_count INTEGER NOT NULL,
+        images TEXT,
+        fisher_id TEXT NOT NULL,
+        fisher_name TEXT,
+        fisher_avatar TEXT,
+        fisher_rating REAL,
+        fisher_review_count INTEGER
       )
     ''');
 
@@ -139,7 +173,9 @@ class DatabaseHelper {
         previous_price_per_kg REAL,
         previous_price REAL,
         previous_weight REAL,
-        waiting_for TEXT
+        waiting_for TEXT,
+        buyer_json TEXT,
+        fisher_json TEXT
       )
     ''');
 
@@ -147,7 +183,8 @@ class DatabaseHelper {
     batch.execute('''
       CREATE TABLE $_ordersTable (
         order_id TEXT PRIMARY KEY,
-        offer_id TEXT NOT NULL,
+        order_number TEXT,
+        offer_id TEXT,
         catch_id TEXT NOT NULL,
         fisher_id TEXT NOT NULL,
         buyer_id TEXT NOT NULL,
@@ -159,7 +196,11 @@ class DatabaseHelper {
         date_updated TEXT NOT NULL,
         has_review_from_fisher INTEGER NOT NULL DEFAULT 0,
         has_review_from_buyer INTEGER NOT NULL DEFAULT 0,
-        cancellation_reason TEXT
+        fisher_review TEXT,
+        buyer_review TEXT,
+        cancellation_reason TEXT,
+        product_json TEXT,
+        buyer_json TEXT
       )
     ''');
 
@@ -172,7 +213,8 @@ class DatabaseHelper {
         order_id TEXT NOT NULL,
         rating_value REAL NOT NULL,
         message TEXT,
-        timestamp TEXT NOT NULL
+        timestamp TEXT NOT NULL,
+        reviewer_name TEXT
       )
     ''');
 
@@ -657,11 +699,58 @@ class DatabaseHelper {
   Future<void> clearAllTables() async {
     final db = await database;
     await db.delete(_usersTable);
+    await db.delete(_productsTable);
     await db.delete(_catchesTable);
     await db.delete(_offersTable);
     await db.delete(_ordersTable);
     await db.delete(_conversationsTable);
     await db.delete(_ratingsTable);
     debugPrint('All database tables cleared.');
+  }
+
+  // --------------------------------------------------------------------------
+  // PRODUCT METHODS
+  // --------------------------------------------------------------------------
+
+  Future<void> insertProductsBatch(List<Map<String, dynamic>> products) async {
+    final db = await database;
+    final batch = db.batch();
+    for (var product in products) {
+      batch.insert(
+        _productsTable,
+        product,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<List<Map<String, dynamic>>> getAllProducts() async {
+    final db = await database;
+    return await db.query(_productsTable, orderBy: 'date_posted DESC');
+  }
+
+  Future<Map<String, dynamic>?> getProductById(String id) async {
+    final db = await database;
+    final maps = await db.query(
+      _productsTable,
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (maps.isNotEmpty) return maps.first;
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>> getProductsByFisherId(
+    String fisherId,
+  ) async {
+    final db = await database;
+    return await db.query(
+      _productsTable,
+      where: 'fisher_id = ?',
+      whereArgs: [fisherId],
+      orderBy: 'date_posted DESC',
+    );
   }
 }

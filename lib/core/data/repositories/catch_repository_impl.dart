@@ -4,14 +4,23 @@ import '../../domain/repositories/i_catch_repository.dart';
 import '../datasources/interfaces/i_catch_datasource.dart';
 import '../mappers/catch_mapper.dart';
 
+import '../../services/connectivity_service.dart';
+
 class CatchRepositoryImpl implements ICatchRepository {
   final ICatchDataSource remoteDataSource;
   final ICatchDataSource localDataSource;
+  final ConnectivityService connectivityService;
 
   CatchRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
+    required this.connectivityService,
   });
+
+  Future<bool> get _isOffline async {
+    final status = await connectivityService.checkConnectivity();
+    return status == NetworkStatus.offline;
+  }
 
   @override
   Future<String> create(Catch catch_) async {
@@ -61,6 +70,12 @@ class CatchRepositoryImpl implements ICatchRepository {
 
   @override
   Future<Catch?> getById(String catchId) async {
+    // Optimization: check offline first
+    if (await _isOffline) {
+      final localModel = await localDataSource.getById(catchId);
+      return localModel != null ? CatchMapper.toEntity(localModel) : null;
+    }
+
     // Try local first (for drafts)
     try {
       final localModel = await localDataSource.getById(catchId);
@@ -72,6 +87,9 @@ class CatchRepositoryImpl implements ICatchRepository {
     }
 
     final model = await remoteDataSource.getById(catchId);
+    if (model != null) {
+      await localDataSource.saveBatch([model]);
+    }
     return model != null ? CatchMapper.toEntity(model) : null;
   }
 
@@ -84,6 +102,18 @@ class CatchRepositoryImpl implements ICatchRepository {
         .toList();
 
     List<Catch> remoteCatches = [];
+
+    // Optimization: if offline, just get non-drafts locally
+    if (await _isOffline) {
+      final localModels = await localDataSource.getByFisherId(fisherId);
+      // Filter out drafts as we already have them
+      remoteCatches = localModels
+          .where((m) => m.status != CatchStatus.draft.name)
+          .map((m) => CatchMapper.toEntity(m))
+          .toList();
+      return [...draftCatches, ...remoteCatches];
+    }
+
     try {
       // 2. Try fetching remote catches
       final remoteModels = await remoteDataSource.getByFisherId(fisherId);
@@ -94,9 +124,6 @@ class CatchRepositoryImpl implements ICatchRepository {
       remoteCatches = remoteModels.map((m) => CatchMapper.toEntity(m)).toList();
     } catch (e) {
       // 4. Fallback: fetch from local cache (excluding drafts which we already have)
-      // Note: We might need a better way to get "all non-drafts for fisher" locally
-      // For now, if remote fails, we might just show drafts or try best effort id lookups
-      // But getByFisherId in local datasource should return what we cached.
       try {
         final localModels = await localDataSource.getByFisherId(fisherId);
         // Filter out drafts as we already have them
@@ -113,6 +140,11 @@ class CatchRepositoryImpl implements ICatchRepository {
 
   @override
   Future<List<Catch>> getAvailableCatches() async {
+    if (await _isOffline) {
+      final models = await localDataSource.getByStatus(CatchStatus.available);
+      return models.map((m) => CatchMapper.toEntity(m)).toList();
+    }
+
     try {
       final models = await remoteDataSource.getByStatus(CatchStatus.available);
       // Cache locally
@@ -128,6 +160,12 @@ class CatchRepositoryImpl implements ICatchRepository {
   @override
   Future<List<Catch>> getByStatus(CatchStatus status) async {
     List<Catch> remoteCatches = [];
+
+    // Check offline for non-drafts
+    if (status != CatchStatus.draft && await _isOffline) {
+      final localModels = await localDataSource.getByStatus(status);
+      return localModels.map((m) => CatchMapper.toEntity(m)).toList();
+    }
 
     // Attempt remote fetch and cache if not looking for local-only drafts
     if (status != CatchStatus.draft) {
@@ -202,5 +240,13 @@ class CatchRepositoryImpl implements ICatchRepository {
       await localDataSource.deleteBatch(catchIds);
     } catch (_) {}
     await remoteDataSource.deleteBatch(catchIds);
+  }
+
+  @override
+  Future<void> saveLocalBatch(List<Catch> catches) async {
+    final models = catches
+        .map((entity) => CatchMapper.toModel(entity))
+        .toList();
+    await localDataSource.saveBatch(models);
   }
 }

@@ -5,18 +5,30 @@ import 'package:siren_marketplace/core/data/models/species_model.dart';
 import 'package:siren_marketplace/core/data/repositories/catch_repository_impl.dart';
 import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
 import '../../../helpers/mocks.mocks.dart';
 import '../../../helpers/test_data.dart';
 
 void main() {
   late CatchRepositoryImpl repository;
-  late MockICatchDataSource mockDataSource;
+  late MockICatchDataSource mockRemoteDataSource;
+  late MockICatchDataSource mockLocalDataSource;
+  late MockConnectivityService mockConnectivityService;
 
   setUp(() {
-    mockDataSource = MockICatchDataSource();
+    mockRemoteDataSource = MockICatchDataSource();
+    mockLocalDataSource = MockICatchDataSource();
+    mockConnectivityService = MockConnectivityService();
+
+    // Default to online
+    when(
+      mockConnectivityService.checkConnectivity(),
+    ).thenAnswer((_) async => NetworkStatus.online);
+
     repository = CatchRepositoryImpl(
-      remoteDataSource: mockDataSource,
-      localDataSource: mockDataSource,
+      remoteDataSource: mockRemoteDataSource,
+      localDataSource: mockLocalDataSource,
+      connectivityService: mockConnectivityService,
     );
   });
 
@@ -56,20 +68,20 @@ void main() {
 
     test('create calls dataSource.create and returns id', () async {
       // Arrange
-      when(mockDataSource.create(any)).thenAnswer((_) async => 'new-id');
+      when(mockRemoteDataSource.create(any)).thenAnswer((_) async => 'new-id');
 
       // Act
       final result = await repository.create(testCatch);
 
       // Assert
       expect(result, 'new-id');
-      verify(mockDataSource.create(any)).called(1);
+      verify(mockRemoteDataSource.create(any)).called(1);
     });
 
     test('getById returns mapped entity when found', () async {
       // Arrange
       when(
-        mockDataSource.getById(testCatch.id),
+        mockRemoteDataSource.getById(testCatch.id),
       ).thenAnswer((_) async => testModel);
 
       // Act
@@ -79,26 +91,32 @@ void main() {
       expect(result, isNotNull);
       expect(result!.id, testCatch.id);
       expect(result.name, testCatch.name);
-      verify(mockDataSource.getById(testCatch.id)).called(1);
+      verify(mockRemoteDataSource.getById(testCatch.id)).called(1);
     });
 
     test('getById returns null when not found', () async {
       // Arrange
-      when(mockDataSource.getById('unknown')).thenAnswer((_) async => null);
+      when(
+        mockRemoteDataSource.getById('unknown'),
+      ).thenAnswer((_) async => null);
 
       // Act
       final result = await repository.getById('unknown');
 
       // Assert
       expect(result, null);
-      verify(mockDataSource.getById('unknown')).called(1);
+      verify(mockRemoteDataSource.getById('unknown')).called(1);
     });
 
     test('getByFisherId returns list of mapped entities', () async {
       // Arrange
       when(
-        mockDataSource.getByFisherId(testCatch.fisherId),
+        mockRemoteDataSource.getByFisherId(testCatch.fisherId),
       ).thenAnswer((_) async => [testModel]);
+      when(
+        mockLocalDataSource.getByStatus(any),
+      ).thenAnswer((_) async => []); // Stub drafts
+      when(mockLocalDataSource.saveBatch(any)).thenAnswer((_) async {});
 
       // Act
       final result = await repository.getByFisherId(testCatch.fisherId);
@@ -106,13 +124,32 @@ void main() {
       // Assert
       expect(result.length, 1);
       expect(result.first.id, testCatch.id);
-      verify(mockDataSource.getByFisherId(testCatch.fisherId)).called(1);
+      verify(mockRemoteDataSource.getByFisherId(testCatch.fisherId)).called(1);
     });
 
     test('getAvailableCatches returns list of mapped entities', () async {
       // Arrange
       when(
-        mockDataSource.getByStatus(CatchStatus.available),
+        mockRemoteDataSource.getByStatus(CatchStatus.available),
+      ).thenAnswer((_) async => [testModel]);
+      when(mockLocalDataSource.saveBatch(any)).thenAnswer((_) async {});
+
+      // Act
+      final result = await repository.getAvailableCatches();
+
+      // Assert
+      expect(result.length, 1);
+      expect(result.first.id, testCatch.id);
+      verify(mockRemoteDataSource.getByStatus(CatchStatus.available)).called(1);
+    });
+
+    test('getAvailableCatches returns local data when offline', () async {
+      // Arrange
+      when(
+        mockConnectivityService.checkConnectivity(),
+      ).thenAnswer((_) async => NetworkStatus.offline);
+      when(
+        mockLocalDataSource.getByStatus(CatchStatus.available),
       ).thenAnswer((_) async => [testModel]);
 
       // Act
@@ -121,29 +158,33 @@ void main() {
       // Assert
       expect(result.length, 1);
       expect(result.first.id, testCatch.id);
-      verify(mockDataSource.getByStatus(CatchStatus.available)).called(1);
+      verify(mockConnectivityService.checkConnectivity()).called(1);
+      verify(mockLocalDataSource.getByStatus(CatchStatus.available)).called(1);
+      verifyNever(mockRemoteDataSource.getByStatus(any));
     });
 
     test('update calls dataSource.update', () async {
       // Arrange
-      when(mockDataSource.update(any)).thenAnswer((_) async => {});
+      when(mockRemoteDataSource.update(any)).thenAnswer((_) async => {});
 
       // Act
       await repository.update(testCatch);
 
       // Assert
-      verify(mockDataSource.update(any)).called(1);
+      verify(mockRemoteDataSource.update(any)).called(1);
     });
 
     test('delete calls dataSource.delete', () async {
       // Arrange
-      when(mockDataSource.delete(testCatch.id)).thenAnswer((_) async => {});
+      when(
+        mockRemoteDataSource.delete(testCatch.id),
+      ).thenAnswer((_) async => {});
 
       // Act
       await repository.delete(testCatch.id);
 
       // Assert
-      verify(mockDataSource.delete(testCatch.id)).called(1);
+      verify(mockRemoteDataSource.delete(testCatch.id)).called(1);
     });
   });
 }

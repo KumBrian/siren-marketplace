@@ -95,11 +95,11 @@ class MyApp extends ConsumerWidget {
       ),
       routerConfig: router,
       builder: (context, child) {
-        return Column(
+        return Stack(
           children: [
-            // Ensure OfflineBanner is above the rest
-            const OfflineBanner(),
-            if (child != null) Expanded(child: child),
+            if (child != null) child,
+            // Offline indicator overlay
+            Positioned(top: 50, right: 50, child: const OfflineIndicator()),
           ],
         );
       },

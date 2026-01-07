@@ -2,6 +2,7 @@ import 'package:siren_marketplace/core/domain/entities/catch.dart';
 import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/entities/order.dart';
 import 'package:siren_marketplace/core/domain/entities/review.dart';
+import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/domain/entities/species.dart';
 import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
@@ -66,6 +67,61 @@ class TestData {
     );
   }
 
+  /// Creates a test Product entity with sensible defaults
+  static Product createProduct({
+    String? id,
+    String? name,
+    String? marketName,
+    String? status,
+    PricePerKg? pricePerKg,
+    Price? totalPrice,
+    Weight? initialWeight,
+    Weight? availableWeight,
+    String? size,
+    DateTime? datePosted,
+    String? locationName,
+    double? latitude,
+    double? longitude,
+    DateTime? soldAt,
+    bool? isSold,
+    double? meshSize,
+    double? gearLength,
+    double? gearWidth,
+    String? gearNature,
+    Species? species,
+    int? offersCount,
+    List<String>? images,
+    String? fisherId,
+    User? fisher,
+  }) {
+    return Product(
+      id: id ?? 'test-product-1',
+      name: name ?? 'Test Product',
+      marketName: marketName ?? 'Test Market',
+      status: status ?? 'available',
+      pricePerKg: pricePerKg ?? PricePerKg.fromAmount(5000),
+      totalPrice: totalPrice ?? Price.fromAmount(50000),
+      initialWeight: initialWeight ?? Weight.fromKg(10),
+      availableWeight: availableWeight ?? Weight.fromKg(10),
+      size: size ?? 'Large',
+      datePosted: datePosted ?? DateTime.now(),
+      locationName: locationName ?? 'Test Location',
+      latitude: latitude ?? 4.0511,
+      longitude: longitude ?? 9.7679,
+      soldAt: soldAt,
+      isSold: isSold ?? false,
+      meshSize: meshSize,
+      gearLength: gearLength,
+      gearWidth: gearWidth,
+      gearNature: gearNature,
+      species: species ?? createSpecies(),
+      offersCount: offersCount ?? 0,
+      images: images ?? [],
+      fisherId: fisherId ?? 'fisher-1',
+      fisher: fisher,
+    );
+  }
+
   /// Creates a test Offer entity with sensible defaults
   static Offer createOffer({
     String? id,
@@ -117,6 +173,13 @@ class TestData {
     String? cancellationReason,
   }) {
     final now = DateTime.now();
+    final fisherReviewObj = (hasReviewFromFisher ?? false)
+        ? createReview(reviewerId: fisherId ?? 'fisher-1')
+        : null;
+    final buyerReviewObj = (hasReviewFromBuyer ?? false)
+        ? createReview(reviewerId: buyerId ?? 'buyer-1')
+        : null;
+
     return Order(
       id: id ?? 'test-order-1',
       offerId: offerId ?? 'test-offer-1',
@@ -127,8 +190,8 @@ class TestData {
       dateUpdated: dateUpdated ?? now,
       status: status ?? OrderStatus.accepted,
       terms: terms ?? createOfferTerms(),
-      hasReviewFromFisher: hasReviewFromFisher ?? false,
-      hasReviewFromBuyer: hasReviewFromBuyer ?? false,
+      fisherReview: fisherReviewObj,
+      buyerReview: buyerReviewObj,
       cancellationReason: cancellationReason,
     );
   }

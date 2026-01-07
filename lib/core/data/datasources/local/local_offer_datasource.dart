@@ -76,10 +76,10 @@ class LocalOfferDataSource implements IOfferDataSource {
     const _tableName = 'offers';
     final maps = await db.query(
       _tableName,
-      where: 'catchId = ?',
+      where: 'catch_id = ?',
       whereArgs: [productId],
     );
-    return maps.map((e) => OfferModel.fromJson(e)).toList();
+    return maps.map((e) => OfferModel.fromMap(e)).toList();
   }
 
   @override

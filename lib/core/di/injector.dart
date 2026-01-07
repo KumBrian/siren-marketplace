@@ -7,6 +7,7 @@ import 'package:siren_marketplace/core/data/api/api_config.dart';
 import 'package:siren_marketplace/core/data/database/database_helper.dart';
 import 'package:siren_marketplace/core/data/datasources/api/orders_api_data_source.dart';
 import 'package:siren_marketplace/core/utils/transaction_notifier.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
 
 import '../config/app_config.dart';
 import '../data/datasources/demo/demo_datasource.dart';
@@ -24,6 +25,7 @@ import '../data/datasources/api/user_api_datasource.dart';
 import '../data/datasources/api/products_api_data_source.dart';
 import '../data/datasources/api/subgroups_api_data_source.dart';
 import '../data/datasources/api/chat_api_data_source.dart';
+import '../data/datasources/local/local_product_datasource.dart';
 
 import 'package:dio/dio.dart';
 import '../data/repositories/catch_repository_impl.dart';
@@ -97,6 +99,7 @@ Future<void> initDependencies() async {
   sl.registerSingleton<IViewedConversationsService>(viewedConversationsService);
 
   sl.registerLazySingleton(() => TokenStorage());
+  sl.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
 
   // Register Core API Client
   sl.registerLazySingleton(
@@ -195,13 +198,18 @@ void _initDemoMode() {
 
   // Repositories from DI file #1
   sl.registerLazySingleton<IUserRepository>(
-    () => UserRepositoryImpl(dataSource: demo.userDataSource),
+    () => UserRepositoryImpl(
+      localDataSource: demo.userDataSource,
+      // No remote for demo
+      connectivityService: sl(),
+    ),
   );
 
   sl.registerLazySingleton<ICatchRepository>(
     () => CatchRepositoryImpl(
       remoteDataSource: demo.catchDataSource,
       localDataSource: demo.catchDataSource,
+      connectivityService: sl(),
     ),
   );
 
@@ -209,6 +217,8 @@ void _initDemoMode() {
     () => OfferRepositoryImpl(
       remoteDataSource: demo.offerDataSource,
       localDataSource: demo.offerDataSource,
+      connectivityService: sl(),
+      userRepository: sl<IUserRepository>(),
     ),
   );
 
@@ -216,11 +226,15 @@ void _initDemoMode() {
     () => OrderRepositoryImpl(
       remoteDataSource: demo.orderDataSource,
       localDataSource: demo.orderDataSource,
+      connectivityService: sl(),
     ),
   );
 
   sl.registerLazySingleton<IReviewRepository>(
-    () => ReviewRepositoryImpl(dataSource: demo.reviewDataSource),
+    () => ReviewRepositoryImpl(
+      dataSource: demo.reviewDataSource,
+      connectivityService: sl(),
+    ),
   );
 
   sl.registerLazySingleton<ISessionRepository>(
@@ -257,13 +271,17 @@ void _initLocalMode(DatabaseHelper dbHelper) {
 
   // Register Repositories with Local Data Sources
   sl.registerLazySingleton<IUserRepository>(
-    () => UserRepositoryImpl(dataSource: local.userDataSource),
+    () => UserRepositoryImpl(
+      localDataSource: local.userDataSource,
+      connectivityService: sl(),
+    ),
   );
 
   sl.registerLazySingleton<ICatchRepository>(
     () => CatchRepositoryImpl(
       remoteDataSource: local.catchDataSource,
       localDataSource: local.catchDataSource,
+      connectivityService: sl(),
     ),
   );
 
@@ -271,6 +289,8 @@ void _initLocalMode(DatabaseHelper dbHelper) {
     () => OfferRepositoryImpl(
       remoteDataSource: local.offerDataSource,
       localDataSource: local.offerDataSource,
+      connectivityService: sl(),
+      userRepository: sl<IUserRepository>(),
     ),
   );
 
@@ -278,11 +298,15 @@ void _initLocalMode(DatabaseHelper dbHelper) {
     () => OrderRepositoryImpl(
       remoteDataSource: local.orderDataSource,
       localDataSource: local.orderDataSource,
+      connectivityService: sl(),
     ),
   );
 
   sl.registerLazySingleton<IReviewRepository>(
-    () => ReviewRepositoryImpl(dataSource: local.reviewDataSource),
+    () => ReviewRepositoryImpl(
+      dataSource: local.reviewDataSource,
+      connectivityService: sl(),
+    ),
   );
 
   sl.registerLazySingleton<ISessionRepository>(
@@ -318,7 +342,11 @@ void _initApiMode(DatabaseHelper dbHelper) {
   // Register User Repository with API Data Source
   sl.registerLazySingleton<IUserRepository>(
     () => UserRepositoryImpl(
-      dataSource: UserApiDataSource(client: sl(instanceName: 'coreApiClient')),
+      localDataSource: local.userDataSource,
+      remoteDataSource: UserApiDataSource(
+        client: sl(instanceName: 'coreApiClient'),
+      ),
+      connectivityService: sl(),
     ),
   );
 
@@ -361,6 +389,7 @@ void _initApiMode(DatabaseHelper dbHelper) {
     () => CatchRepositoryImpl(
       remoteDataSource: sl<CatchesApiDataSource>(),
       localDataSource: local.catchDataSource,
+      connectivityService: sl(),
     ),
   );
 
@@ -371,6 +400,8 @@ void _initApiMode(DatabaseHelper dbHelper) {
         viewedOffersService: sl<IViewedOffersService>(),
       ),
       localDataSource: local.offerDataSource,
+      connectivityService: sl(),
+      userRepository: sl<IUserRepository>(),
     ),
   );
 
@@ -380,6 +411,7 @@ void _initApiMode(DatabaseHelper dbHelper) {
         client: sl(instanceName: 'marketplaceApiClient'),
       ),
       localDataSource: local.orderDataSource,
+      connectivityService: sl(),
     ),
   );
 
@@ -387,6 +419,7 @@ void _initApiMode(DatabaseHelper dbHelper) {
     () => ReviewRepositoryImpl(
       dataSource: local.reviewDataSource,
       apiDataSource: sl<ReviewsApiDataSource>(),
+      connectivityService: sl(),
     ),
   );
 
@@ -406,20 +439,27 @@ void _initApiMode(DatabaseHelper dbHelper) {
     ),
   );
 
+  // Register Chat API Data Source
+  sl.registerLazySingleton<ChatApiDataSource>(
+    () => ChatApiDataSource(sl(instanceName: 'marketplaceApiClient')),
+  );
+
+  // Register Local Product Data Source
+  sl.registerLazySingleton<LocalProductDataSource>(
+    () => LocalProductDataSourceImpl(dbHelper: dbHelper),
+  );
+
   // Register Product Repository
   sl.registerLazySingleton<IProductRepository>(
     () => ProductRepositoryImpl(
       ProductsApiDataSource(sl(instanceName: 'marketplaceApiClient')),
+      sl<LocalProductDataSource>(),
+      sl<ConnectivityService>(),
     ),
   );
 
   sl.registerLazySingleton<SubgroupsApiDataSource>(
     () => SubgroupsApiDataSource(sl(instanceName: 'marketplaceApiClient')),
-  );
-
-  // Register Chat API Data Source
-  sl.registerLazySingleton<ChatApiDataSource>(
-    () => ChatApiDataSource(sl(instanceName: 'marketplaceApiClient')),
   );
 
   // Set up callback for catch published event
@@ -468,6 +508,7 @@ class _DemoProductRepository implements IProductRepository {
   @override
   Future<Either<Failure, List<Product>>> getFisherProducts({
     int page = 1,
+    String? userId,
   }) async {
     // Basic implementation: fetch all catches for fisher, map to products
     return Right([]);

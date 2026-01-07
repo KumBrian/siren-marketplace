@@ -4,13 +4,29 @@ import '../datasources/interfaces/i_review_datasource.dart';
 import '../mappers/review_mapper.dart';
 import '../datasources/api/reviews_api_data_source.dart';
 import '../api/models/review_api_models.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
 import '../../domain/value_objects/rating.dart';
 
 class ReviewRepositoryImpl implements IReviewRepository {
   final IReviewDataSource dataSource;
   final ReviewsApiDataSource? apiDataSource;
+  final ConnectivityService? connectivityService;
 
-  ReviewRepositoryImpl({required this.dataSource, this.apiDataSource});
+  ReviewRepositoryImpl({
+    required this.dataSource,
+    this.apiDataSource,
+    this.connectivityService,
+  });
+
+  Future<bool> get _isOffline async {
+    if (connectivityService == null) return false;
+    return !(await connectivityService!.hasConnection);
+  }
+
+  Future<List<Review>> _getLocalReviews(String userId) async {
+    final models = await dataSource.getReviewsForUser(userId);
+    return models.map((m) => ReviewMapper.toEntity(m)).toList();
+  }
 
   @override
   Future<String> create(Review review) async {
@@ -26,40 +42,34 @@ class ReviewRepositoryImpl implements IReviewRepository {
 
   @override
   Future<List<Review>> getReviewsForUser(String userId) async {
+    // 1. Check Offline
+    if (await _isOffline) {
+      return _getLocalReviews(userId);
+    }
+
     if (apiDataSource != null) {
       try {
-        // Parse userId to int for API call (User entity id is String but holds int value)
+        // Parse userId to int for API call
         final accountId = int.parse(userId);
         final response = await apiDataSource!.getReviewsForAccount(accountId);
 
-        return response.map((r) {
-          // Convert ReviewApiResponse to Review entity
-          return Review(
-            id: r.id.toString(),
-            orderId: r.saleOrder?.toString() ?? '',
-            reviewerId: r.reviewer?.id?.toString() ?? '',
-            reviewedUserId: r.reviewedAccount?.id?.toString() ?? '',
-            rating: Rating.fromValue(r.rate),
-            comment: r.message,
-            timestamp: r.createdAt != null
-                ? DateTime.parse(r.createdAt!)
-                : DateTime.now(),
-            reviewerName: r.reviewer != null
-                ? '${r.reviewer!.firstName ?? ''} ${r.reviewer!.lastName ?? ''}'
-                      .trim()
-                : 'Unknown',
-          );
-        }).toList();
+        final reviews = response.map((r) => ReviewMapper.fromApi(r)).toList();
+
+        // 3. Cache to Local
+        for (var review in reviews) {
+          await dataSource.create(ReviewMapper.toModel(review));
+        }
+
+        return reviews;
       } catch (e) {
         print('Error fetching reviews via API: $e');
-        // Fallback to local data source or rethrow?
-        // For now, let's try local data source as fallback or empty list
-        return [];
+        // 4. Fallback to Local
+        return _getLocalReviews(userId);
       }
     }
 
-    final models = await dataSource.getReviewsForUser(userId);
-    return models.map((m) => ReviewMapper.toEntity(m)).toList();
+    // Default/Local-only mode
+    return _getLocalReviews(userId);
   }
 
   @override

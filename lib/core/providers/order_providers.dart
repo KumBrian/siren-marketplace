@@ -14,10 +14,6 @@ import 'package:siren_marketplace/core/domain/services/order_service.dart';
 final orderProvider = FutureProvider.family<Order?, String>((ref, id) async {
   final repository = sl<IOrderRepository>();
   try {
-    // Use embedded data method if available for better performance
-    if (repository is OrderRepositoryImpl) {
-      return await repository.getByIdWithEmbeddedData(id);
-    }
     return await repository.getById(id);
   } catch (_) {
     return null;
@@ -104,21 +100,25 @@ final completeOrderProvider = FutureProvider.family<Order, String>((
   await repository.update(completedOrder);
 
   // Update related offer status to completed
-  final offerRepository = sl<IOfferRepository>();
-  final offer = await offerRepository.getById(order.offerId);
-  if (offer != null) {
-    final completedOffer = offer.copyWith(
-      status: OfferStatus.completed,
-      waitingFor: null,
-    );
-    await offerRepository.update(completedOffer);
+  if (order.offerId != null) {
+    final offerRepository = sl<IOfferRepository>();
+    final offer = await offerRepository.getById(order.offerId!);
+    if (offer != null) {
+      final completedOffer = offer.copyWith(
+        status: OfferStatus.completed,
+        waitingFor: null,
+      );
+      await offerRepository.update(completedOffer);
+    }
   }
 
   // Invalidate related providers to refresh data
   ref.invalidate(orderProvider(orderId));
   ref.invalidate(fisherOrdersProvider);
   ref.invalidate(fisherOrdersWithProductProvider);
-  ref.invalidate(offerProvider(order.offerId));
+  if (order.offerId != null) {
+    ref.invalidate(offerProvider(order.offerId!));
+  }
 
   return completedOrder;
 });

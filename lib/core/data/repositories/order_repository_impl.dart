@@ -5,15 +5,23 @@ import '../../domain/repositories/i_order_repository.dart';
 import '../datasources/interfaces/i_order_datasource.dart';
 import '../datasources/api/orders_api_data_source.dart';
 import '../mappers/order_mapper.dart';
+import '../../services/connectivity_service.dart';
 
 class OrderRepositoryImpl implements IOrderRepository {
   final IOrderDataSource remoteDataSource;
   final IOrderDataSource localDataSource;
+  final ConnectivityService connectivityService;
 
   OrderRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
+    required this.connectivityService,
   });
+
+  Future<bool> get _isOffline async {
+    final status = await connectivityService.checkConnectivity();
+    return status == NetworkStatus.offline;
+  }
 
   @override
   Future<String> create(Order order) async {
@@ -27,6 +35,11 @@ class OrderRepositoryImpl implements IOrderRepository {
 
   @override
   Future<List<Order>> getAllOrders() async {
+    if (await _isOffline) {
+      final models = await localDataSource.getAllOrders();
+      return models.map((m) => OrderMapper.toEntity(m)).toList();
+    }
+
     try {
       final models = await remoteDataSource.getAllOrders();
       await localDataSource.saveBatch(models);
@@ -39,35 +52,80 @@ class OrderRepositoryImpl implements IOrderRepository {
 
   @override
   Future<Order> getById(String orderId) async {
+    final isOffline = await _isOffline;
+    print('DEBUG OrderRepository: getById($orderId), isOffline=$isOffline');
+
+    // Optimization: Skip remote if offline
+    if (isOffline) {
+      print('DEBUG OrderRepository: Offline mode, fetching local only');
+      return _getLocalOrder(orderId);
+    }
+
     // 1. Try Remote (Embedded)
     try {
+      print('DEBUG OrderRepository: Trying remote fetch with embedded data');
       final order = await getByIdWithEmbeddedData(orderId);
-      if (order != null) return order;
-    } catch (_) {}
+      if (order != null) {
+        print('DEBUG OrderRepository: Remote fetch successful (embedded)');
+        return order;
+      }
+    } catch (e) {
+      print('DEBUG OrderRepository: Remote fetch (embedded) failed: $e');
+      // ignore
+    }
 
     // 2. Try Remote (Standard)
     try {
+      print('DEBUG OrderRepository: Trying remote fetch (standard)');
       final model = await remoteDataSource.getById(orderId);
       if (model != null) {
+        print(
+          'DEBUG OrderRepository: Remote fetch successful (standard), saving to local',
+        );
         await localDataSource.saveBatch([model]);
         return OrderMapper.toEntity(model);
       }
-    } catch (_) {}
+    } catch (e) {
+      print('DEBUG OrderRepository: Remote fetch (standard) failed: $e');
+      // Fallback defined below
+    }
 
     // 3. Fallback to Local
+    print(
+      'DEBUG OrderRepository: Remote failed or returned null, failing back to local',
+    );
+    return _getLocalOrder(orderId);
+  }
+
+  Future<Order> _getLocalOrder(String orderId) async {
+    print('DEBUG OrderRepository: _getLocalOrder($orderId)');
     final localModel = await localDataSource.getById(orderId);
     if (localModel == null) {
+      print('DEBUG OrderRepository: Order not found in local DB');
       throw NotFoundException(
         "Order not found",
         entityType: 'Order',
         entityId: orderId,
       );
     }
-    return OrderMapper.toEntity(localModel);
+    print('DEBUG OrderRepository: Found local order, mapping to entity');
+    try {
+      final entity = OrderMapper.toEntity(localModel);
+      print('DEBUG OrderRepository: Mapped entity successfully: ${entity.id}');
+      return entity;
+    } catch (e) {
+      print('DEBUG OrderRepository: Error mapping local model to entity: $e');
+      rethrow;
+    }
   }
 
   @override
   Future<Order?> getByOfferId(String offerId) async {
+    if (await _isOffline) {
+      final localModel = await localDataSource.getByOfferId(offerId);
+      return localModel != null ? OrderMapper.toEntity(localModel) : null;
+    }
+
     try {
       final model = await remoteDataSource.getByOfferId(offerId);
       if (model != null) {
@@ -82,6 +140,11 @@ class OrderRepositoryImpl implements IOrderRepository {
 
   @override
   Future<List<Order>> getByUserId(String userId) async {
+    if (await _isOffline) {
+      final models = await localDataSource.getByUserId(userId);
+      return models.map((m) => OrderMapper.toEntity(m)).toList();
+    }
+
     try {
       final models = await remoteDataSource.getByUserId(userId);
       await localDataSource.saveBatch(models);
@@ -144,6 +207,11 @@ class OrderRepositoryImpl implements IOrderRepository {
 
   @override
   Future<List<Order>> getByFisherId(String fisherId) async {
+    if (await _isOffline) {
+      final models = await localDataSource.getByFisherId(fisherId);
+      return models.map((m) => OrderMapper.toEntity(m)).toList();
+    }
+
     try {
       final models = await remoteDataSource.getByFisherId(fisherId);
       await localDataSource.saveBatch(models);
@@ -156,6 +224,11 @@ class OrderRepositoryImpl implements IOrderRepository {
 
   @override
   Future<List<Order>> getByBuyerId(String buyerId) async {
+    if (await _isOffline) {
+      final models = await localDataSource.getByBuyerId(buyerId);
+      return models.map((m) => OrderMapper.toEntity(m)).toList();
+    }
+
     try {
       final models = await remoteDataSource.getByBuyerId(buyerId);
       await localDataSource.saveBatch(models);
@@ -168,6 +241,11 @@ class OrderRepositoryImpl implements IOrderRepository {
 
   @override
   Future<List<Order>> getByStatus(OrderStatus status) async {
+    if (await _isOffline) {
+      final models = await localDataSource.getByStatus(status);
+      return models.map((m) => OrderMapper.toEntity(m)).toList();
+    }
+
     try {
       final models = await remoteDataSource.getByStatus(status);
       await localDataSource.saveBatch(models);

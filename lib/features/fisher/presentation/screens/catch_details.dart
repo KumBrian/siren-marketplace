@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 
 import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
@@ -52,6 +54,16 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _showOfflineDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const ErrorDialog(
+        title: 'Offline',
+        message: 'You need to be online to perform this action.',
+      ),
+    );
   }
 
   void _showDeleteDialog(BuildContext context, Product selectedCatch) {
@@ -280,6 +292,7 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
   Widget build(BuildContext context) {
     // Use PRODUCT provider here
     final productAsync = ref.watch(productByIdProvider(widget.catchId));
+    final isOnline = ref.watch(isOnlineProvider);
 
     // We only fetch offers if we have the product and offersCount > 0
     // But we are in a build method.
@@ -316,7 +329,13 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
               title: const PageTitle(title: "Catch Details"),
               actions: [
                 IconButton(
-                  onPressed: () => _showDeleteDialog(context, selectedCatch),
+                  onPressed: () {
+                    if (!isOnline) {
+                      _showOfflineDialog(context);
+                      return;
+                    }
+                    _showDeleteDialog(context, selectedCatch);
+                  },
                   icon: const Icon(CustomIcons.trash, color: AppColors.fail500),
                 ),
               ],
@@ -416,6 +435,10 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                           color: Color(0xFF0A2A45),
                         ),
                         onPressed: () {
+                          if (!isOnline) {
+                            _showOfflineDialog(context);
+                            return;
+                          }
                           _showEditCatchDialog(context, selectedCatch);
                         },
                       ),

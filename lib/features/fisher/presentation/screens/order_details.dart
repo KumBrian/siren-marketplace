@@ -147,6 +147,8 @@ class OrderDetails extends ConsumerWidget {
 
         final currentUserAsync = ref.watch(currentUserProvider);
 
+        final isOnline = ref.watch(isOnlineProvider);
+
         return currentUserAsync.when(
           loading: () => Scaffold(
             appBar: AppBar(leading: BackButton(onPressed: () => context.pop())),
@@ -188,7 +190,8 @@ class OrderDetails extends ConsumerWidget {
                   ),
                 ),
                 actions: [
-                  if (orderStatus == OrderStatus.accepted)
+                  // Only show Relist option if online
+                  if (orderStatus == OrderStatus.accepted && isOnline)
                     IconButton(
                       onPressed: () {
                         showModalBottomSheet(
@@ -237,7 +240,7 @@ class OrderDetails extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Product/Catch Details
+                    // ... (Product/Catch Details - unchanged) ...
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -436,7 +439,7 @@ class OrderDetails extends ConsumerWidget {
                       ),
                     ],
 
-                    // Action Buttons
+                    // Action Buttons (Complete Order)
                     if (orderStatus == OrderStatus.accepted) ...[
                       const SizedBox(height: 16),
                       Column(
@@ -453,6 +456,17 @@ class OrderDetails extends ConsumerWidget {
                           CustomButton(
                             title: "Message Buyer",
                             onPressed: () {
+                              if (!isOnline) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => const ErrorDialog(
+                                    title: "Offline",
+                                    message:
+                                        "Chat is unavailable while offline.",
+                                  ),
+                                );
+                                return;
+                              }
                               final conversationId = _generateConversationId(
                                 selectedOrder.buyerId,
                                 selectedOrder.fisherId,
@@ -463,15 +477,26 @@ class OrderDetails extends ConsumerWidget {
                             icon: CustomIcons.chatbubble,
                           ),
                           const SizedBox(height: 16),
-                          CustomButton(
-                            title: "Mark as Completed",
-                            onPressed: () => _showCompleteOrderModal(
-                              context,
-                              ref,
-                              selectedOrder.id,
+
+                          // Mark as completed button - disabled/hidden if offline
+                          if (isOnline)
+                            CustomButton(
+                              title: "Mark as Completed",
+                              onPressed: () => _showCompleteOrderModal(
+                                context,
+                                ref,
+                                selectedOrder.id,
+                              ),
+                              icon: Icons.check,
+                            )
+                          else
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                "Connect to internet to complete order",
+                                style: TextStyle(color: AppColors.gray500),
+                              ),
                             ),
-                            icon: Icons.check,
-                          ),
                         ],
                       ),
                     ],
@@ -493,49 +518,52 @@ class OrderDetails extends ConsumerWidget {
                     // Rating Section
                     if (orderStatus == OrderStatus.completed &&
                         !selectedOrder.hasReviewFromFisher) ...[
-                      CustomButton(
-                        title: "Rate the buyer",
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.white,
-                            useSafeArea: true,
-                            showDragHandle: true,
-                            builder: (context) {
-                              return RatingModalContent(
-                                orderId: selectedOrder.id,
-                                raterId: user.id,
-                                ratedUserId: selectedOrder.buyer?.id ?? '',
-                                ratedUserName: buyerName,
-                                onSubmitRating:
-                                    ({
-                                      required String orderId,
-                                      required String raterId,
-                                      required String ratedUserId,
-                                      required double ratingValue,
-                                      String? message,
-                                    }) async {
-                                      await sl<RatingService>().submitReview(
-                                        orderId: orderId,
-                                        reviewerId: raterId,
-                                        reviewedUserId: ratedUserId,
-                                        rating: Rating.fromValue(ratingValue),
-                                        comment: message ?? '',
-                                      );
-                                      ref.invalidate(orderProvider(orderId));
-                                      // Invalidate user to refresh partner card
-                                      ref.invalidate(userProvider(ratedUserId));
-                                      // Invalidate reviews to show new review
-                                      ref.invalidate(
-                                        reviewsForUserProvider(ratedUserId),
-                                      );
-                                    },
-                              );
-                            },
-                          );
-                        },
-                      ),
+                      if (isOnline)
+                        CustomButton(
+                          title: "Rate the buyer",
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.white,
+                              useSafeArea: true,
+                              showDragHandle: true,
+                              builder: (context) {
+                                return RatingModalContent(
+                                  orderId: selectedOrder.id,
+                                  raterId: user.id,
+                                  ratedUserId: selectedOrder.buyer?.id ?? '',
+                                  ratedUserName: buyerName,
+                                  onSubmitRating:
+                                      ({
+                                        required String orderId,
+                                        required String raterId,
+                                        required String ratedUserId,
+                                        required double ratingValue,
+                                        String? message,
+                                      }) async {
+                                        await sl<RatingService>().submitReview(
+                                          orderId: orderId,
+                                          reviewerId: raterId,
+                                          reviewedUserId: ratedUserId,
+                                          rating: Rating.fromValue(ratingValue),
+                                          comment: message ?? '',
+                                        );
+                                        ref.invalidate(orderProvider(orderId));
+                                        // Invalidate user to refresh partner card
+                                        ref.invalidate(
+                                          userProvider(ratedUserId),
+                                        );
+                                        // Invalidate reviews to show new review
+                                        ref.invalidate(
+                                          reviewsForUserProvider(ratedUserId),
+                                        );
+                                      },
+                                );
+                              },
+                            );
+                          },
+                        ),
                     ] else if (orderStatus == OrderStatus.completed &&
                         selectedOrder.hasReviewFromFisher) ...[
                       Padding(

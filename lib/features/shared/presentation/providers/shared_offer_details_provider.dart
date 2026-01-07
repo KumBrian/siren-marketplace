@@ -5,10 +5,10 @@ import 'package:siren_marketplace/core/domain/entities/offer.dart';
 import 'package:siren_marketplace/core/domain/entities/user.dart';
 import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/exceptions/not_found_exception.dart';
-import 'package:siren_marketplace/core/domain/repositories/i_catch_repository.dart';
-
+import 'package:siren_marketplace/core/domain/repositories/i_product_repository.dart';
 import 'package:siren_marketplace/core/domain/entities/product.dart';
 import 'package:siren_marketplace/core/domain/enums/catch_status.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
 
 import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
@@ -62,14 +62,19 @@ final sharedOfferDetailsProvider = FutureProvider.family
       }
 
       if (catchItem == null) {
-        final catchRepo = sl<ICatchRepository>();
-        catchItem = await catchRepo.getById(offer.productId);
+        final productRepo = sl<IProductRepository>();
+        final result = await productRepo.getProductById(offer.productId);
+        catchItem = result.fold(
+          ifLeft: (failure) => null,
+          ifRight: (product) =>
+              product != null ? _mapProductToCatch(product) : null,
+        );
       }
 
       if (catchItem == null) {
         throw NotFoundException(
-          'Catch not found',
-          entityType: 'Catch',
+          'Product not found',
+          entityType: 'Product',
           entityId: offer.productId,
         );
       }
@@ -85,16 +90,25 @@ final sharedOfferDetailsProvider = FutureProvider.family
       }
 
       if (otherParty == null) {
-        // Fallback: Create placeholder user to avoid redundant network call
-        // User requested to remove the /accounts/{id} fetch
+        // Fallback: Try to fetch user from repository (offline cache or remote)
+        final userRepo = sl<IUserRepository>();
         final otherPartyId = isBuyer ? offer.fisherId : offer.buyerId;
-        otherParty = User(
-          id: otherPartyId,
-          name: 'Unknown',
-          rating: Rating.zero(),
-          reviewCount: 0,
-          currentRole: isBuyer ? UserRole.fisher : UserRole.buyer,
-        );
+
+        try {
+          otherParty = await userRepo.getById(otherPartyId);
+        } catch (e) {
+          print('DEBUG: Failed to fetch other party user: $e');
+        }
+
+        if (otherParty == null) {
+          otherParty = User(
+            id: otherPartyId,
+            name: 'Unknown',
+            rating: Rating.zero(),
+            reviewCount: 0,
+            currentRole: isBuyer ? UserRole.fisher : UserRole.buyer,
+          );
+        }
       }
 
       // 5. Determine Turn

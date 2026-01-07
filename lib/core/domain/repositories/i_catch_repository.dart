@@ -38,4 +38,7 @@ abstract class ICatchRepository {
   /// Batch delete catches
   Future<void> deleteBatch(List<String> catchIds);
   Future<String> publishDraft(Catch draft);
+
+  /// Save catches to local storage specifically (for caching purposes)
+  Future<void> saveLocalBatch(List<Catch> catches);
 }

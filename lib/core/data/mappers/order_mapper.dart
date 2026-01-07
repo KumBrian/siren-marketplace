@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../../domain/entities/order.dart';
 import '../../domain/enums/order_status.dart';
 import '../../domain/value_objects/offer_terms.dart';
@@ -6,9 +7,12 @@ import '../../domain/value_objects/price_per_kg.dart';
 import '../../domain/value_objects/weight.dart';
 import '../models/order_model.dart';
 import '../models/user_model.dart';
+import '../models/product_model.dart';
+import '../models/review_model.dart';
 import '../api/models/order_api_models.dart';
 import 'product_mapper.dart';
 import 'user_mapper.dart';
+import 'review_mapper.dart';
 
 class OrderMapper {
   /// Convert API model directly to domain entity (for embedded data)
@@ -42,7 +46,7 @@ class OrderMapper {
 
     return Order(
       id: apiModel.id.toString(),
-      offerId: '', // Not in response currently
+      offerId: null, // Not in API response
       catchId: catchId,
       fisherId: fisherId,
       buyerId: buyerId,
@@ -57,8 +61,12 @@ class OrderMapper {
       dateUpdated: apiModel.updatedAt != null
           ? DateTime.tryParse(apiModel.updatedAt!) ?? DateTime.now()
           : DateTime.now(),
-      hasReviewFromFisher: apiModel.fisherReview != null,
-      hasReviewFromBuyer: apiModel.buyerReview != null,
+      fisherReview: apiModel.fisherReview != null
+          ? ReviewMapper.fromApi(apiModel.fisherReview!)
+          : null,
+      buyerReview: apiModel.buyerReview != null
+          ? ReviewMapper.fromApi(apiModel.buyerReview!)
+          : null,
       cancellationReason: apiModel.cancellationReason,
     );
   }
@@ -75,11 +83,23 @@ class OrderMapper {
       termsWeight: entity.terms.weight.grams,
       termsPricePerKg: entity.terms.pricePerKg.amountPerKg,
       status: entity.status.name,
+      orderNumber: entity.orderNumber,
       dateCreated: entity.dateCreated.toIso8601String(),
       dateUpdated: entity.dateUpdated.toIso8601String(),
       hasReviewFromFisher: entity.hasReviewFromFisher,
       hasReviewFromBuyer: entity.hasReviewFromBuyer,
+      fisherReview: entity.fisherReview != null
+          ? jsonEncode(ReviewMapper.toModel(entity.fisherReview!).toJson())
+          : null,
+      buyerReview: entity.buyerReview != null
+          ? jsonEncode(ReviewMapper.toModel(entity.buyerReview!).toJson())
+          : null,
       cancellationReason: entity.cancellationReason,
+      // Map embedded objects
+      product: entity.product != null
+          ? ProductModel.fromDomain(entity.product!)
+          : null,
+      buyer: entity.buyer != null ? UserMapper.toModel(entity.buyer!) : null,
     );
   }
 
@@ -102,11 +122,23 @@ class OrderMapper {
       buyerId: model.buyerId,
       terms: terms,
       status: _parseStatus(model.status),
+      orderNumber: model.orderNumber,
       dateCreated: DateTime.parse(model.dateCreated),
       dateUpdated: DateTime.parse(model.dateUpdated),
-      hasReviewFromFisher: model.hasReviewFromFisher,
-      hasReviewFromBuyer: model.hasReviewFromBuyer,
+      fisherReview: model.fisherReview != null && model.fisherReview!.isNotEmpty
+          ? ReviewMapper.toEntity(
+              ReviewModel.fromJson(jsonDecode(model.fisherReview!)),
+            )
+          : null,
+      buyerReview: model.buyerReview != null && model.buyerReview!.isNotEmpty
+          ? ReviewMapper.toEntity(
+              ReviewModel.fromJson(jsonDecode(model.buyerReview!)),
+            )
+          : null,
       cancellationReason: model.cancellationReason,
+      // Map embedded objects
+      product: model.product?.toDomain(),
+      buyer: model.buyer != null ? UserMapper.toEntity(model.buyer!) : null,
     );
   }
 

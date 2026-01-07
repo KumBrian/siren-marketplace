@@ -3,8 +3,6 @@ import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/entities/review.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_review_repository.dart';
 
-import 'package:siren_marketplace/core/providers/user_providers.dart';
-
 /// Provider to fetch a Review by ID
 final reviewProvider = FutureProvider.family<Review?, String>((ref, id) async {
   final repository = sl<IReviewRepository>();
@@ -20,19 +18,8 @@ final reviewsForUserProvider = FutureProvider.family<List<Review>, String>((
   userId,
 ) async {
   final repository = sl<IReviewRepository>();
-  final currentUser = ref.read(currentUserProvider).value;
-
-  print(
-    'reviewsForUserProvider: Fetching reviews for userId: $userId. Current user: ${currentUser?.id}',
-  );
-
-  // Check if we are fetching for the current user
-  if (currentUser != null && currentUser.id == userId) {
-    print('reviewsForUserProvider: Match found! Fetching MY reviews.');
-    return repository.getMyReviews();
-  }
-
-  print('reviewsForUserProvider: Fetching reviews for OTHER user.');
+  // Always use getReviewsForUser to leverage the unified offline/caching logic
+  // implemented in the repository for that method.
   return repository.getReviewsForUser(userId);
 });
 

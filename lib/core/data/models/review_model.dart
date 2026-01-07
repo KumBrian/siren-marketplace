@@ -6,6 +6,7 @@ class ReviewModel {
   final double ratingValue;
   final String? comment;
   final String timestamp; // ISO8601
+  final String? reviewerName;
 
   const ReviewModel({
     required this.id,
@@ -15,6 +16,7 @@ class ReviewModel {
     required this.ratingValue,
     this.comment,
     required this.timestamp,
+    this.reviewerName,
   });
 
   Map<String, dynamic> toJson() => {
@@ -25,6 +27,7 @@ class ReviewModel {
     'rating_value': ratingValue,
     'comment': comment,
     'timestamp': timestamp,
+    'reviewer_name': reviewerName,
   };
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) => ReviewModel(
@@ -35,6 +38,7 @@ class ReviewModel {
     ratingValue: (json['rating_value'] as num).toDouble(),
     comment: json['comment'] as String?,
     timestamp: json['timestamp'] as String,
+    reviewerName: json['reviewer_name'] as String?,
   );
 
   // SQLite mapping
@@ -46,6 +50,7 @@ class ReviewModel {
     'rating_value': ratingValue,
     'message': comment,
     'timestamp': timestamp,
+    'reviewer_name': reviewerName,
   };
 
   factory ReviewModel.fromMap(Map<String, dynamic> map) => ReviewModel(
@@ -56,5 +61,6 @@ class ReviewModel {
     ratingValue: (map['rating_value'] as num).toDouble(),
     comment: map['message'] as String?,
     timestamp: map['timestamp'] as String,
+    reviewerName: map['reviewer_name'] as String?,
   );
 }

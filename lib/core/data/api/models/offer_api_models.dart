@@ -1,6 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'auth_api_models.dart';
-import 'catch_api_models.dart';
 import 'product_api_models.dart';
 
 part 'offer_api_models.freezed.dart';

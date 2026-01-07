@@ -608,6 +608,17 @@ class MockICatchRepository extends _i1.Mock implements _i12.ICatchRepository {
           ),
         )),
       ) as _i2.Future<String>);
+
+  @override
+  _i2.Future<void> saveLocalBatch(List<_i13.Catch>? catches) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveLocalBatch,
+          [catches],
+        ),
+        returnValue: _i2.Future<void>.value(),
+        returnValueForMissingStub: _i2.Future<void>.value(),
+      ) as _i2.Future<void>);
 }
 
 /// A class which mocks [IProductRepository].
@@ -620,13 +631,18 @@ class MockIProductRepository extends _i1.Mock
   }
 
   @override
-  _i2.Future<_i16.Either<_i17.Failure, List<_i18.Product>>> getFisherProducts(
-          {int? page = 1}) =>
+  _i2.Future<_i16.Either<_i17.Failure, List<_i18.Product>>> getFisherProducts({
+    int? page = 1,
+    String? userId,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #getFisherProducts,
           [],
-          {#page: page},
+          {
+            #page: page,
+            #userId: userId,
+          },
         ),
         returnValue:
             _i2.Future<_i16.Either<_i17.Failure, List<_i18.Product>>>.value(
@@ -635,7 +651,10 @@ class MockIProductRepository extends _i1.Mock
           Invocation.method(
             #getFisherProducts,
             [],
-            {#page: page},
+            {
+              #page: page,
+              #userId: userId,
+            },
           ),
         )),
       ) as _i2.Future<_i16.Either<_i17.Failure, List<_i18.Product>>>);

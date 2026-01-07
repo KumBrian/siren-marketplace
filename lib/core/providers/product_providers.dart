@@ -10,8 +10,12 @@ final fisherProductsProvider = FutureProvider.family<List<Product>, int>((
   ref,
   page,
 ) async {
+  final user = await ref.watch(currentUserProvider.future);
   final repository = sl<IProductRepository>();
-  final result = await repository.getFisherProducts(page: page);
+  final result = await repository.getFisherProducts(
+    page: page,
+    userId: user?.id,
+  );
   return result.fold(
     ifLeft: (failure) => throw failure,
     ifRight: (products) => products,

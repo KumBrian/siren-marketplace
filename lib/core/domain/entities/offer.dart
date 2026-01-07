@@ -162,6 +162,8 @@ class Offer extends Equatable {
     bool? hasUpdateForFisher,
     bool? hasUpdateForBuyer,
     Product? product,
+    User? fisher,
+    User? buyer,
   }) {
     return Offer(
       id: id,
@@ -177,6 +179,8 @@ class Offer extends Equatable {
       hasUpdateForFisher: hasUpdateForFisher ?? this.hasUpdateForFisher,
       hasUpdateForBuyer: hasUpdateForBuyer ?? this.hasUpdateForBuyer,
       product: product ?? this.product,
+      fisher: fisher ?? this.fisher,
+      buyer: buyer ?? this.buyer,
     );
   }
 
@@ -194,5 +198,7 @@ class Offer extends Equatable {
     waitingFor,
     product,
     orderId,
+    fisher,
+    buyer,
   ];
 }

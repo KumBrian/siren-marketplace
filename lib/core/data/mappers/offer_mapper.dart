@@ -7,6 +7,7 @@ import '../../domain/value_objects/weight.dart';
 import '../../domain/value_objects/price_per_kg.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/value_objects/rating.dart';
+
 import '../models/offer_model.dart';
 
 class OfferMapper {
@@ -62,10 +63,7 @@ class OfferMapper {
           : OfferTerms.create(totalPrice: prevPrice, weight: prevWeight);
     }
 
-    final mappedBuyer = _mapBuyer(model);
-    print(
-      'DEBUG OfferMapper.toEntity - mappedBuyer: $mappedBuyer, name: ${mappedBuyer?.name}',
-    );
+    final mappedUserInfo = _mapUsers(model);
 
     final offer = Offer(
       id: model.id,
@@ -83,38 +81,49 @@ class OfferMapper {
       hasUpdateForFisher: model.hasUpdateForFisher,
       hasUpdateForBuyer: model.hasUpdateForBuyer,
       product: model.product,
-      fisher: model.product?.fisher,
-      buyer: mappedBuyer,
+      fisher: mappedUserInfo['fisher'],
+      buyer: mappedUserInfo['buyer'],
       orderId: model.orderUid,
     );
 
     return offer;
   }
 
-  static User? _mapBuyer(OfferModel model) {
-    final buyer = model.buyer;
-    print('DEBUG _mapBuyer - buyer data: $buyer');
-    if (buyer == null) {
-      print('DEBUG _mapBuyer - buyer is null, returning null');
-      return null;
+  static Map<String, User?> _mapUsers(OfferModel model) {
+    // Map Buyer
+    User? buyer;
+    if (model.buyer != null) {
+      buyer = _mapAccountToUser(model.buyer!, UserRole.buyer);
     }
 
-    final name =
-        '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim().isEmpty
-        ? (buyer.username ?? 'Unknown')
-        : '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim();
+    // Map Fisher
+    User? fisher;
+    // Prefer direct fisher object, fallback to product's fisher
+    if (model.fisher != null) {
+      fisher = _mapAccountToUser(model.fisher!, UserRole.fisher);
+    } else if (model.product?.fisher != null) {
+      fisher = model.product!.fisher;
+    }
 
-    print('DEBUG _mapBuyer - mapped name: $name, id: ${buyer.id}');
+    return {'buyer': buyer, 'fisher': fisher};
+  }
 
+  static User _mapAccountToUser(dynamic account, UserRole role) {
+    // Helper to handle AccountApiModel or similar structure
+    // Since we know it is AccountApiModel in OfferModel:
+    // (Assuming AccountApiModel import is available, or we use dynamic and access properties)
+
+    // Actually OfferModel uses AccountApiModel.
     return User(
-      id: buyer.id.toString(), // AccountApiModel id can be dynamic
-      name: '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim().isEmpty
-          ? (buyer.username ?? 'Unknown')
-          : '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim(),
-      rating: Rating.fromValue(buyer.rating ?? 0.0),
-      reviewCount: buyer.totalReviews ?? 0,
-      avatarUrl: buyer.avatar,
-      currentRole: UserRole.buyer,
+      id: account.id.toString(),
+      name:
+          '${account.firstName ?? ''} ${account.lastName ?? ''}'.trim().isEmpty
+          ? (account.username ?? 'Unknown')
+          : '${account.firstName ?? ''} ${account.lastName ?? ''}'.trim(),
+      rating: Rating.fromValue(account.rating ?? 0.0),
+      reviewCount: account.totalReviews ?? 0,
+      avatarUrl: account.avatar,
+      currentRole: role,
     );
   }
 

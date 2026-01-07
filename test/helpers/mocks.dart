@@ -13,12 +13,15 @@ import 'package:siren_marketplace/core/domain/services/negotiation_service.dart'
 import 'package:siren_marketplace/core/domain/services/rating_service.dart';
 import 'package:siren_marketplace/core/domain/services/session_service.dart';
 import 'package:siren_marketplace/core/domain/services/message_service.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_catch_datasource.dart';
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_offer_datasource.dart';
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_order_datasource.dart';
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_review_datasource.dart';
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_session_datasource.dart';
 import 'package:siren_marketplace/core/data/datasources/interfaces/i_user_datasource.dart';
+import 'package:siren_marketplace/core/data/datasources/api/products_api_data_source.dart';
+import 'package:siren_marketplace/core/data/datasources/local/local_product_datasource.dart';
 
 // Generate mocks for all repositories
 @GenerateMocks([
@@ -34,7 +37,12 @@ import 'package:siren_marketplace/core/data/datasources/interfaces/i_user_dataso
 void generateRepositoryMocks() {}
 
 // Generate mocks for all services
-@GenerateMocks([NegotiationService, RatingService, SessionService])
+@GenerateMocks([
+  NegotiationService,
+  RatingService,
+  SessionService,
+  ConnectivityService,
+])
 void generateServiceMocks() {}
 
 // Generate mocks for all data sources
@@ -45,5 +53,7 @@ void generateServiceMocks() {}
   IReviewDataSource,
   ISessionDataSource,
   IUserDataSource,
+  ProductsApiDataSource,
+  LocalProductDataSource,
 ])
 void generateDataSourceMocks() {}

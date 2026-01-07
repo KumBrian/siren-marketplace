@@ -45,6 +45,21 @@ class ApiClient {
           Duration(seconds: 2),
           Duration(seconds: 3),
         ],
+        retryEvaluator: (error, attempt) {
+          // Don't retry on connection errors (offline) to allow immediate fallback to local cache
+          if (error.type == DioExceptionType.connectionError) {
+            return false;
+          }
+          // Use default behavior for other errors (Retry on Server Errors 5xx and specific 4xx)
+          return DefaultRetryEvaluator({
+            408, // Request Timeout
+            429, // Too Many Requests
+            500, // Internal Server Error
+            502, // Bad Gateway
+            503, // Service Unavailable
+            504, // Gateway Timeout
+          }).evaluate(error, attempt);
+        },
       ),
     );
 

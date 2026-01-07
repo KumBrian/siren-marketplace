@@ -37,6 +37,11 @@ class ConnectivityService {
       return NetworkStatus.online;
     }
   }
+
+  Future<bool> get hasConnection async {
+    final status = await checkConnectivity();
+    return status == NetworkStatus.online;
+  }
 }
 
 /// Provider for the [ConnectivityService]

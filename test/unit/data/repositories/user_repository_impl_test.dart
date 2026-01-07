@@ -10,11 +10,17 @@ import '../../../helpers/test_data.dart';
 
 void main() {
   late UserRepositoryImpl repository;
-  late MockIUserDataSource mockDataSource;
+  late MockIUserDataSource mockRemoteDataSource;
+  late MockIUserDataSource mockLocalDataSource;
 
   setUp(() {
-    mockDataSource = MockIUserDataSource();
-    repository = UserRepositoryImpl(dataSource: mockDataSource);
+    mockRemoteDataSource = MockIUserDataSource();
+    mockLocalDataSource = MockIUserDataSource();
+    repository = UserRepositoryImpl(
+      remoteDataSource: mockRemoteDataSource,
+      localDataSource: mockLocalDataSource,
+      connectivityService: MockConnectivityService(),
+    );
   });
 
   group('UserRepositoryImpl', () {
@@ -34,43 +40,46 @@ void main() {
     final testModel = createModelFromEntity(testUser);
 
     test('create calls dataSource.create', () async {
-      when(mockDataSource.create(any)).thenAnswer((_) async => {});
+      when(mockRemoteDataSource.create(any)).thenAnswer((_) async => {});
 
       await repository.create(testUser);
 
-      verify(mockDataSource.create(any)).called(1);
+      verify(mockRemoteDataSource.create(any)).called(1);
     });
 
     test('getById returns mapped entity when found', () async {
       when(
-        mockDataSource.getById(testUser.id),
+        mockRemoteDataSource.getById(testUser.id),
       ).thenAnswer((_) async => testModel);
 
       final result = await repository.getById(testUser.id);
 
       expect(result, isNotNull);
       expect(result!.id, testUser.id);
-      verify(mockDataSource.getById(testUser.id)).called(1);
+      verify(mockRemoteDataSource.getById(testUser.id)).called(1);
     });
 
     test('updateRole fetches user and updates role', () async {
       // Arrange
       when(
-        mockDataSource.getById(testUser.id),
+        mockRemoteDataSource.getById(testUser.id),
       ).thenAnswer((_) async => testModel);
-      when(mockDataSource.update(any)).thenAnswer((_) async => {});
+      when(mockRemoteDataSource.update(any)).thenAnswer((_) async => {});
 
       // Act
       await repository.updateRole(testUser.id, UserRole.buyer);
 
       // Assert
       final capturedModel =
-          verify(mockDataSource.update(captureAny)).captured.first as UserModel;
+          verify(mockRemoteDataSource.update(captureAny)).captured.first
+              as UserModel;
       expect(capturedModel.currentRole, UserRole.buyer.name);
     });
 
     test('updateRole throws ArgumentError when user not found', () async {
-      when(mockDataSource.getById('unknown')).thenAnswer((_) async => null);
+      when(
+        mockRemoteDataSource.getById('unknown'),
+      ).thenAnswer((_) async => null);
 
       expect(
         () => repository.updateRole('unknown', UserRole.buyer),
@@ -80,7 +89,7 @@ void main() {
 
     test('updateRating calls dataSource.updateRating', () async {
       when(
-        mockDataSource.updateRating(
+        mockRemoteDataSource.updateRating(
           userId: anyNamed('userId'),
           rating: anyNamed('rating'),
           reviewCount: anyNamed('reviewCount'),
@@ -94,7 +103,7 @@ void main() {
       );
 
       verify(
-        mockDataSource.updateRating(
+        mockRemoteDataSource.updateRating(
           userId: testUser.id,
           rating: 4.8,
           reviewCount: 15,
@@ -103,12 +112,14 @@ void main() {
     });
 
     test('exists calls dataSource.exists', () async {
-      when(mockDataSource.exists(testUser.id)).thenAnswer((_) async => true);
+      when(
+        mockRemoteDataSource.exists(testUser.id),
+      ).thenAnswer((_) async => true);
 
       final result = await repository.exists(testUser.id);
 
       expect(result, true);
-      verify(mockDataSource.exists(testUser.id)).called(1);
+      verify(mockRemoteDataSource.exists(testUser.id)).called(1);
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../../domain/entities/product.dart';
 import '../api/models/product_api_models.dart';
 import '../mappers/product_mapper.dart';
@@ -22,6 +23,7 @@ class OfferModel {
   final bool hasUpdateForBuyer;
   final Product? product;
   final AccountApiModel? buyer;
+  final AccountApiModel? fisher; // Added fisher field
   final String? orderUid; // UID of sale order when offer is accepted
 
   const OfferModel({
@@ -43,6 +45,7 @@ class OfferModel {
     this.hasUpdateForBuyer = true,
     this.product,
     this.buyer,
+    this.fisher,
     this.orderUid,
   });
 
@@ -65,6 +68,7 @@ class OfferModel {
     bool? hasUpdateForBuyer,
     Product? product,
     AccountApiModel? buyer,
+    AccountApiModel? fisher,
     String? orderUid,
   }) {
     return OfferModel(
@@ -88,6 +92,7 @@ class OfferModel {
       hasUpdateForBuyer: hasUpdateForBuyer ?? this.hasUpdateForBuyer,
       product: product ?? this.product,
       buyer: buyer ?? this.buyer,
+      fisher: fisher ?? this.fisher,
       orderUid: orderUid ?? this.orderUid,
     );
   }
@@ -187,6 +192,25 @@ class OfferModel {
       return (json[key1] as num?)?.toInt() ?? (json[key2] as num?)?.toInt();
     }
 
+    AccountApiModel? fisher;
+    if (json['account'] != null && json['account'] is Map) {
+      try {
+        fisher = AccountApiModel.fromJson(
+          json['account'] as Map<String, dynamic>,
+        );
+      } catch (e) {
+        print('Error parsing account(fisher) in OfferModel: $e');
+      }
+    } else if (json['fisher'] != null && json['fisher'] is Map) {
+      try {
+        fisher = AccountApiModel.fromJson(
+          json['fisher'] as Map<String, dynamic>,
+        );
+      } catch (e) {
+        print('Error parsing fisher in OfferModel: $e');
+      }
+    }
+
     return OfferModel(
       id: json['uid'] as String? ?? json['id']?.toString() ?? '',
       productId: productId,
@@ -230,45 +254,83 @@ class OfferModel {
           true,
       product: product,
       buyer: buyer,
+      fisher: fisher,
     );
   }
 
   // SQLite mapping
-  Map<String, dynamic> toMap() => {
-    'offer_id': id,
-    'catch_id': productId,
-    'fisher_id': fisherId,
-    'buyer_id': buyerId,
-    'price': currentPriceAmount,
-    'weight': currentWeightGrams,
-    'price_per_kg': currentPricePerKgAmount,
-    'previous_price': previousPriceAmount,
-    'previous_weight': previousWeightGrams,
-    'previous_price_per_kg': previousPricePerKgAmount,
-    'status': status,
-    'date_created': dateCreated,
-    'date_updated': dateUpdated,
-    'waiting_for': waitingFor,
-    'has_update_for_fisher': hasUpdateForFisher ? 1 : 0,
-    'has_update_for_buyer': hasUpdateForBuyer ? 1 : 0,
-  };
+  // SQLite mapping
+  Map<String, dynamic> toMap() {
+    String? buyerJson;
+    if (buyer != null) {
+      buyerJson = jsonEncode(buyer!.toJson());
+    }
 
-  factory OfferModel.fromMap(Map<String, dynamic> map) => OfferModel(
-    id: map['offer_id'] as String,
-    productId: map['catch_id'] as String,
-    fisherId: map['fisher_id'] as String,
-    buyerId: map['buyer_id'] as String,
-    currentPriceAmount: (map['price'] as num).toInt(),
-    currentWeightGrams: (map['weight'] as num).toInt(),
-    currentPricePerKgAmount: (map['price_per_kg'] as num).toInt(),
-    previousPriceAmount: (map['previous_price'] as num?)?.toInt(),
-    previousWeightGrams: (map['previous_weight'] as num?)?.toInt(),
-    previousPricePerKgAmount: (map['previous_price_per_kg'] as num?)?.toInt(),
-    status: map['status'] as String,
-    dateCreated: map['date_created'] as String,
-    dateUpdated: map['date_updated'] as String,
-    waitingFor: map['waiting_for'] as String?,
-    hasUpdateForFisher: ((map['has_update_for_fisher'] as int?) ?? 1) == 1,
-    hasUpdateForBuyer: ((map['has_update_for_buyer'] as int?) ?? 1) == 1,
-  );
+    String? fisherJson;
+    if (fisher != null) {
+      fisherJson = jsonEncode(fisher!.toJson());
+    }
+
+    return {
+      'offer_id': id,
+      'catch_id': productId,
+      'fisher_id': fisherId,
+      'buyer_id': buyerId,
+      'price': currentPriceAmount,
+      'weight': currentWeightGrams,
+      'price_per_kg': currentPricePerKgAmount,
+      'previous_price': previousPriceAmount,
+      'previous_weight': previousWeightGrams,
+      'previous_price_per_kg': previousPricePerKgAmount,
+      'status': status,
+      'date_created': dateCreated,
+      'date_updated': dateUpdated,
+      'waiting_for': waitingFor,
+      'has_update_for_fisher': hasUpdateForFisher ? 1 : 0,
+      'has_update_for_buyer': hasUpdateForBuyer ? 1 : 0,
+      'buyer_json': buyerJson,
+      'fisher_json': fisherJson,
+    };
+  }
+
+  factory OfferModel.fromMap(Map<String, dynamic> map) {
+    AccountApiModel? buyer;
+    if (map['buyer_json'] != null) {
+      try {
+        buyer = AccountApiModel.fromJson(jsonDecode(map['buyer_json']));
+      } catch (e) {
+        print('Error decoding buyer_json: $e');
+      }
+    }
+
+    AccountApiModel? fisher;
+    if (map['fisher_json'] != null) {
+      try {
+        fisher = AccountApiModel.fromJson(jsonDecode(map['fisher_json']));
+      } catch (e) {
+        print('Error decoding fisher_json: $e');
+      }
+    }
+
+    return OfferModel(
+      id: map['offer_id'] as String,
+      productId: map['catch_id'] as String,
+      fisherId: map['fisher_id'] as String,
+      buyerId: map['buyer_id'] as String,
+      currentPriceAmount: (map['price'] as num).toInt(),
+      currentWeightGrams: (map['weight'] as num).toInt(),
+      currentPricePerKgAmount: (map['price_per_kg'] as num).toInt(),
+      previousPriceAmount: (map['previous_price'] as num?)?.toInt(),
+      previousWeightGrams: (map['previous_weight'] as num?)?.toInt(),
+      previousPricePerKgAmount: (map['previous_price_per_kg'] as num?)?.toInt(),
+      status: map['status'] as String,
+      dateCreated: map['date_created'] as String,
+      dateUpdated: map['date_updated'] as String,
+      waitingFor: map['waiting_for'] as String?,
+      hasUpdateForFisher: ((map['has_update_for_fisher'] as int?) ?? 1) == 1,
+      hasUpdateForBuyer: ((map['has_update_for_buyer'] as int?) ?? 1) == 1,
+      buyer: buyer,
+      fisher: fisher,
+    );
+  }
 }
