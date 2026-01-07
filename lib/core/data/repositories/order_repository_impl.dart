@@ -156,6 +156,10 @@ class OrderRepositoryImpl implements IOrderRepository {
   }
 
   Future<List<Order>> getByUserIdWithEmbeddedData(String userId) async {
+    if (await _isOffline) {
+      return getByUserId(userId);
+    }
+
     try {
       // 1. Remote fetch with embedded data
       if (remoteDataSource is OrdersApiDataSource) {
@@ -187,6 +191,10 @@ class OrderRepositoryImpl implements IOrderRepository {
 
   /// Get single order by ID with embedded product data (more efficient)
   Future<Order?> getByIdWithEmbeddedData(String orderId) async {
+    if (await _isOffline) {
+      return null; // Let caller fallback or handle it
+    }
+
     try {
       if (remoteDataSource is OrdersApiDataSource) {
         final apiModel = await (remoteDataSource as OrdersApiDataSource)

@@ -77,7 +77,7 @@ class UserModel extends User {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     // Handle id which can be int or string
-    final id = json['id'];
+    final id = json['id'] ?? json['uid'];
     final idString = id != null ? id.toString() : '';
 
     // Build name from firstName/lastName if 'name' field is missing

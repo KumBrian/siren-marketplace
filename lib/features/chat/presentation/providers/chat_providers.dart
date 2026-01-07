@@ -6,12 +6,22 @@ import 'package:siren_marketplace/features/chat/data/repositories/chat_repositor
 import 'package:siren_marketplace/features/chat/domain/entities/conversation.dart';
 import 'package:siren_marketplace/features/chat/domain/entities/message.dart';
 import 'package:siren_marketplace/core/domain/services/viewed_conversations_service.dart';
+import '../../../../core/services/connectivity_service.dart';
+import '../../../../core/domain/repositories/i_conversation_repository.dart';
+import '../../../../core/domain/repositories/i_user_repository.dart';
+import '../../../../core/domain/services/session_service.dart';
 
 // Repository Provider
 final chatRepositoryProvider = Provider<IChatRepository>((ref) {
   return ChatRepositoryImpl(
     sl<ChatApiDataSource>(),
     sl<IViewedConversationsService>(),
+    sl<ConnectivityService>(),
+    sl<IConversationRepository>(), // Helper Core Repo (Local)
+    sl<IUserRepository>(),
+    sl<
+      SessionService
+    >(), // Ensure SessionService is registered in SL or use provider
   );
 });
 

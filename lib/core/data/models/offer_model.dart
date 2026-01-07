@@ -152,11 +152,13 @@ class OfferModel {
     if (fisherId.isEmpty) {
       // Check 'account' object at root for id (integer) first, fallback to uid
       if (json['account'] != null && json['account'] is Map) {
+        // Prefer ID, fallback to UID
         fisherId =
             (json['account']['id'] ?? json['account']['uid'])?.toString() ?? '';
       } else {
         fisherId = json['fisher_id']?.toString() ?? '';
         if (fisherId.isEmpty && json['fisher'] is Map) {
+          // Prefer ID, fallback to UID
           fisherId =
               (json['fisher']['id'] ?? json['fisher']['uid'])?.toString() ?? '';
         }
@@ -164,7 +166,7 @@ class OfferModel {
     }
 
     // For buyerId, use the integer 'id' field to match how currentUser.id is stored
-    // NOT the 'uid' field
+    // UPDATED: Reverted to check 'id' first, then 'uid'.
     String buyerId = '';
     if (json['buyer'] != null && json['buyer'] is Map) {
       buyerId = (json['buyer']['id'] ?? json['buyer']['uid'])?.toString() ?? '';

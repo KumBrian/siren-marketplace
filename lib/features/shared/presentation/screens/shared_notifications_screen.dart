@@ -18,6 +18,8 @@ import 'package:siren_marketplace/core/widgets/filter_button.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
 import 'package:siren_marketplace/features/chat/presentation/widgets/conversation_card.dart';
+import 'package:siren_marketplace/core/widgets/offline_message_widget.dart';
+import '../../../../core/services/connectivity_service.dart';
 
 class SharedNotificationsScreen extends ConsumerStatefulWidget {
   const SharedNotificationsScreen({super.key});
@@ -435,6 +437,15 @@ class _SharedNotificationsScreenState
   Widget _buildMessagesTab(UserRole role, User user) {
     // New provider doesn't take argument
     final conversationsAsync = ref.watch(conversationsProvider);
+    final isOnline = ref.watch(isOnlineProvider);
+
+    if (!isOnline) {
+      return const SingleChildScrollView(
+        child: OfflineMessageWidget(
+          message: "Connect to internet to view messages.",
+        ),
+      );
+    }
 
     return conversationsAsync.when(
       data: (conversations) {

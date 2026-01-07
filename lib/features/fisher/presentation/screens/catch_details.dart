@@ -30,6 +30,7 @@ import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/features/fisher/presentation/widgets/offer_card.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/catch_image.dart';
+import 'package:siren_marketplace/core/widgets/offline_message_widget.dart';
 
 class CatchDetails extends ConsumerStatefulWidget {
   const CatchDetails({super.key, required this.catchId});
@@ -755,6 +756,7 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                                 context,
                                 filterState,
                                 offersAsync,
+                                isOnline, // Pass isOnline status
                               ),
                             ],
                           ),
@@ -882,7 +884,16 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
     BuildContext context,
     CatchFilterState filters,
     AsyncValue<List<Offer>> offersAsync,
+    bool isOnline,
   ) {
+    if (!isOnline) {
+      return const SingleChildScrollView(
+        child: OfflineMessageWidget(
+          message: "Connect to internet to view messages.",
+        ),
+      );
+    }
+
     final conversationsAsync = ref.watch(conversationsProvider);
     final currentUserAsync = ref.watch(currentUserProvider);
 

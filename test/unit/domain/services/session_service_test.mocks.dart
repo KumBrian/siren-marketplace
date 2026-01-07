@@ -233,6 +233,16 @@ class MockIUserRepository extends _i1.Mock implements _i7.IUserRepository {
         returnValue: _i4.Future<_i5.User?>.value(),
         returnValueForMissingStub: _i4.Future<_i5.User?>.value(),
       ) as _i4.Future<_i5.User?>);
+
+  @override
+  _i4.Future<void> saveLocal(_i5.User? user) => (super.noSuchMethod(
+        Invocation.method(
+          #saveLocal,
+          [user],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 }
 
 /// A class which mocks [IAuthApiDataSource].

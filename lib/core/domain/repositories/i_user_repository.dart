@@ -33,4 +33,7 @@ abstract class IUserRepository {
 
   /// Get the first user with role buyer (for demo/dev purposes)
   Future<User?> getFirstBuyer();
+
+  /// Save user to local cache only (no API call)
+  Future<void> saveLocal(User user);
 }

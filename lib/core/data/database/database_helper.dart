@@ -296,7 +296,7 @@ class DatabaseHelper {
       '''
       SELECT o.*, c.name AS catch_name, c.images AS catch_images
       FROM $_offersTable o
-      INNER JOIN $_catchesTable c ON o.catch_id = c.catch_id
+      LEFT JOIN $_catchesTable c ON o.catch_id = c.catch_id
       WHERE o.buyer_id = ?
       ORDER BY o.date_created DESC
       ''',
@@ -313,8 +313,8 @@ class DatabaseHelper {
       '''
       SELECT o.*, c.name AS catch_name, c.images AS catch_images, f.name AS fisher_name, f.rating AS fisher_rating
       FROM $_offersTable o
-      INNER JOIN $_catchesTable c ON o.catch_id = c.catch_id
-      INNER JOIN $_usersTable f ON o.fisher_id = f.id
+      LEFT JOIN $_catchesTable c ON o.catch_id = c.catch_id
+      LEFT JOIN $_usersTable f ON o.fisher_id = f.id
       WHERE o.fisher_id = ?
       ORDER BY o.date_created DESC
       ''',

@@ -5,6 +5,7 @@ import '../repositories/i_user_repository.dart';
 import '../../data/sources/api/auth_api_data_source.dart';
 import '../../data/storage/token_storage.dart';
 import '../../data/mappers/account_api_mapper.dart';
+import '../../services/connectivity_service.dart';
 
 /// Service managing user session and role switching
 class SessionService {
@@ -13,16 +14,19 @@ class SessionService {
   final IUserRepository _userRepository;
   final IAuthApiDataSource? _authApiDataSource;
   final TokenStorage? _tokenStorage;
+  final ConnectivityService? _connectivityService;
 
   SessionService({
     required ISessionRepository sessionRepository,
     required IUserRepository userRepository,
     IAuthApiDataSource? authApiDataSource,
     TokenStorage? tokenStorage,
+    ConnectivityService? connectivityService,
   }) : _sessionRepository = sessionRepository,
        _userRepository = userRepository,
        _authApiDataSource = authApiDataSource,
-       _tokenStorage = tokenStorage;
+       _tokenStorage = tokenStorage,
+       _connectivityService = connectivityService;
 
   /// Initialize session on app start
   Future<User?> initialize() async {
@@ -35,23 +39,27 @@ class SessionService {
 
     // In API mode, verify we have a valid token
     if (user != null && _tokenStorage != null) {
-      final hasToken = await _tokenStorage.isAuthenticated();
-      if (!hasToken) {
-        // Only clear if we are ONLINE. If offline, allow "expired" token access to cached data.
-        // We need to inject ConnectivityService or similar, but for now strict check is blocking offline.
-        // Or check simply if token EXISTS at all.
-        final token = await _tokenStorage.getAccessToken();
-        if (token == null) {
-          print(
-            'DEBUG: SessionService: User found but NO token. Clearing session.',
-          );
-          await logout();
-          return null;
-        }
+      // Check connectivity first
+      // If we are offline, assume the session is valid based on local cache
+      bool isOnline = true;
+      if (_connectivityService != null) {
+        isOnline = await _connectivityService.hasConnection;
+      }
 
-        // If token exists but is expired, we might want to try refresh (if online) or just proceed (if offline).
-        // For now, let's relax this: if we have a user in local DB, let them stay logged in to see cached data.
-        // The API Client interceptor will handle 401s if they try to fetch new data.
+      if (isOnline) {
+        final hasToken = await _tokenStorage.isAuthenticated();
+        if (!hasToken) {
+          final token = await _tokenStorage.getAccessToken();
+          if (token == null) {
+            print(
+              'DEBUG: SessionService: User found but NO token. Clearing session.',
+            );
+            await logout();
+            return null;
+          }
+        }
+      } else {
+        print('DEBUG: SessionService: Offline, skipping token validation.');
       }
     }
 

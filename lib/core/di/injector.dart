@@ -127,6 +127,11 @@ Future<void> initDependencies() async {
     ),
   );
 
+  // Register Local Product Data Source (shared across modes)
+  sl.registerLazySingleton<LocalProductDataSource>(
+    () => LocalProductDataSourceImpl(dbHelper: dbHelper),
+  );
+
   // --------------------------------------------------
   // CHOOSE DATA SOURCE MODE (demo/local/api)
   // --------------------------------------------------
@@ -178,6 +183,7 @@ Future<void> initDependencies() async {
           ? sl<IAuthApiDataSource>()
           : null,
       tokenStorage: sl(),
+      connectivityService: sl<ConnectivityService>(),
     ),
   );
 
@@ -219,6 +225,7 @@ void _initDemoMode() {
       localDataSource: demo.offerDataSource,
       connectivityService: sl(),
       userRepository: sl<IUserRepository>(),
+      localProductDataSource: sl<LocalProductDataSource>(),
     ),
   );
 
@@ -291,6 +298,7 @@ void _initLocalMode(DatabaseHelper dbHelper) {
       localDataSource: local.offerDataSource,
       connectivityService: sl(),
       userRepository: sl<IUserRepository>(),
+      localProductDataSource: sl<LocalProductDataSource>(),
     ),
   );
 
@@ -402,6 +410,7 @@ void _initApiMode(DatabaseHelper dbHelper) {
       localDataSource: local.offerDataSource,
       connectivityService: sl(),
       userRepository: sl<IUserRepository>(),
+      localProductDataSource: sl<LocalProductDataSource>(),
     ),
   );
 
@@ -442,11 +451,6 @@ void _initApiMode(DatabaseHelper dbHelper) {
   // Register Chat API Data Source
   sl.registerLazySingleton<ChatApiDataSource>(
     () => ChatApiDataSource(sl(instanceName: 'marketplaceApiClient')),
-  );
-
-  // Register Local Product Data Source
-  sl.registerLazySingleton<LocalProductDataSource>(
-    () => LocalProductDataSourceImpl(dbHelper: dbHelper),
   );
 
   // Register Product Repository

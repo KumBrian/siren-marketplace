@@ -181,7 +181,11 @@ class ProductRepositoryImpl implements IProductRepository {
     if (await _isOffline) {
       try {
         final localModels = await _localDataSource.getAllProducts();
-        final products = localModels.map((m) => m.toDomain()).toList();
+        final products = localModels
+            .map((m) => m.toDomain())
+            // Filter only available items (not sold AND not expired)
+            .where((p) => !p.isSold && p.daysLeft > 0)
+            .toList();
         return Right(products);
       } catch (e) {
         return Left(CacheFailure(message: 'Could not fetch offline products'));
@@ -209,7 +213,10 @@ class ProductRepositoryImpl implements IProductRepository {
       try {
         final localModels = await _localDataSource.getAllProducts();
         if (localModels.isNotEmpty) {
-          final products = localModels.map((m) => m.toDomain()).toList();
+          final products = localModels
+              .map((m) => m.toDomain())
+              .where((p) => !p.isSold && p.daysLeft > 0)
+              .toList();
           return Right(products);
         }
       } catch (_) {}

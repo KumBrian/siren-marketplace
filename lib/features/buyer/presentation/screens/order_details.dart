@@ -12,6 +12,7 @@ import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/services/rating_service.dart';
 import 'package:siren_marketplace/core/domain/value_objects/rating.dart';
 import 'package:siren_marketplace/core/models/info_row.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
 import 'package:siren_marketplace/core/providers/failed_transaction_provider.dart';
 import 'package:siren_marketplace/core/providers/order_providers.dart';
 import 'package:siren_marketplace/core/providers/review_providers.dart';
@@ -354,84 +355,88 @@ class BuyerOrderDetails extends ConsumerWidget {
 
                   // Buyer Rating Status
                   if (order.hasReviewFromBuyer == false)
-                    SizedBox(
-                      width: double.infinity,
-                      child: CustomButton(
-                        title: "Rate the Fisher",
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.white,
-                            useSafeArea: true,
-                            showDragHandle: true,
-                            builder: (context) {
-                              return RatingModalContent(
-                                orderId: order.id,
-                                raterId: order.buyerId,
-                                ratedUserId: fisher.id,
-                                ratedUserName: fisher.name,
-                                onSubmitRating:
-                                    ({
-                                      required String orderId,
-                                      required String raterId,
-                                      required String ratedUserId,
-                                      required double ratingValue,
-                                      String? message,
-                                    }) async {
-                                      await sl<RatingService>().submitReview(
-                                        orderId: orderId,
-                                        reviewerId: raterId,
-                                        reviewedUserId: ratedUserId,
-                                        rating: Rating.fromValue(ratingValue),
-                                        comment: message,
-                                      );
+                    // Only allow rating if online
+                    if (ref.watch(isOnlineProvider))
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          title: "Rate the Fisher",
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.white,
+                              useSafeArea: true,
+                              showDragHandle: true,
+                              builder: (context) {
+                                return RatingModalContent(
+                                  orderId: order.id,
+                                  raterId: order.buyerId,
+                                  ratedUserId: fisher.id,
+                                  ratedUserName: fisher.name,
+                                  onSubmitRating:
+                                      ({
+                                        required String orderId,
+                                        required String raterId,
+                                        required String ratedUserId,
+                                        required double ratingValue,
+                                        String? message,
+                                      }) async {
+                                        await sl<RatingService>().submitReview(
+                                          orderId: orderId,
+                                          reviewerId: raterId,
+                                          reviewedUserId: ratedUserId,
+                                          rating: Rating.fromValue(ratingValue),
+                                          comment: message,
+                                        );
 
-                                      // Invalidate order to refresh UI in Details
-                                      ref.invalidate(orderProvider(orderId));
-                                      // Invalidate user to refresh partner card
-                                      ref.invalidate(userProvider(ratedUserId));
-                                      // Invalidate reviews
-                                      ref.invalidate(
-                                        reviewsForUserProvider(ratedUserId),
-                                      );
-                                      // Invalidate global lists to refresh "everywhere else"
-                                      ref.invalidate(fisherOrdersProvider);
-                                      ref.invalidate(
-                                        fisherOrdersWithProductProvider,
-                                      );
-                                      ref.invalidate(
-                                        buyerOrdersWithProductProvider,
-                                      );
-                                      ref.invalidate(myOrdersProvider);
-                                    },
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    )
-                  else
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        children: [
-                          const HugeIcon(
-                            icon: HugeIcons.strokeRoundedCheckmarkBadge01,
-                            color: AppColors.success500,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "You rated the Fisher.",
-                            style: TextStyle(
-                              color: AppColors.textBlue,
-                              fontWeight: FontWeight.w500,
+                                        // Invalidate order to refresh UI in Details
+                                        ref.invalidate(orderProvider(orderId));
+                                        // Invalidate user to refresh partner card
+                                        ref.invalidate(
+                                          userProvider(ratedUserId),
+                                        );
+                                        // Invalidate reviews
+                                        ref.invalidate(
+                                          reviewsForUserProvider(ratedUserId),
+                                        );
+                                        // Invalidate global lists to refresh "everywhere else"
+                                        ref.invalidate(fisherOrdersProvider);
+                                        ref.invalidate(
+                                          fisherOrdersWithProductProvider,
+                                        );
+                                        ref.invalidate(
+                                          buyerOrdersWithProductProvider,
+                                        );
+                                        ref.invalidate(myOrdersProvider);
+                                      },
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          children: [
+                            const HugeIcon(
+                              icon: HugeIcons.strokeRoundedCheckmarkBadge01,
+                              color: AppColors.success500,
+                              size: 20,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            const Text(
+                              "You rated the Fisher.",
+                              style: TextStyle(
+                                color: AppColors.textBlue,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
                   const SizedBox(height: 16),
 

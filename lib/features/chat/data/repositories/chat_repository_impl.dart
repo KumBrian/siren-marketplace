@@ -4,20 +4,154 @@ import 'package:siren_marketplace/core/data/datasources/api/chat_api_data_source
 import 'package:siren_marketplace/core/domain/repositories/i_chat_repository.dart';
 import 'package:siren_marketplace/features/chat/domain/entities/conversation.dart';
 import 'package:siren_marketplace/features/chat/domain/entities/message.dart';
-
 import 'package:siren_marketplace/core/domain/services/viewed_conversations_service.dart';
+import 'package:siren_marketplace/core/services/connectivity_service.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_conversation_repository.dart';
+import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dart';
+import 'package:siren_marketplace/core/domain/services/session_service.dart';
+import 'package:siren_marketplace/core/domain/entities/conversation.dart'
+    as core_entity;
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 
 class ChatRepositoryImpl implements IChatRepository {
   final ChatApiDataSource _api;
   final IViewedConversationsService? _viewedService;
+  final ConnectivityService _connectivity;
+  final IConversationRepository _localRepo;
+  final IUserRepository _userRepo;
+  final SessionService _sessionService;
+
   final Set<String> _pendingReadMessageIds = {};
   Timer? _batchTimer;
 
-  ChatRepositoryImpl(this._api, [this._viewedService]);
+  ChatRepositoryImpl(
+    this._api,
+    this._viewedService,
+    this._connectivity,
+    this._localRepo,
+    this._userRepo,
+    this._sessionService,
+  );
 
   @override
   Future<List<Conversation>> getMyConversations() async {
-    final conversations = await _api.getMyConversations();
+    // Check connectivity
+    final isOffline =
+        await _connectivity.checkConnectivity() == NetworkStatus.offline;
+
+    if (isOffline) {
+      return _getLocalConversations();
+    }
+
+    try {
+      final conversations = await _api.getMyConversations();
+      // Cache successful response
+      await _cacheConversations(conversations);
+
+      return _processViewedStatus(conversations);
+    } catch (e) {
+      print('DEBUG: API fetch failed, falling back to local: $e');
+      return _getLocalConversations();
+    }
+  }
+
+  Future<List<Conversation>> _getLocalConversations() async {
+    final currentUser = await _sessionService.getCurrentUser();
+    if (currentUser == null) return [];
+
+    final localConvs = await _localRepo.getConversationsForUser(currentUser.id);
+    final featureConvs = <Conversation>[];
+
+    for (final coreConv in localConvs) {
+      // Reconstruct users
+      final buyer = await _userRepo.getById(coreConv.buyerId);
+      final fisher = await _userRepo.getById(coreConv.fisherId);
+
+      if (buyer != null && fisher != null) {
+        // Determine unread count
+        final isBuyer = currentUser.id == buyer.id;
+        final unread = isBuyer
+            ? coreConv.unreadCountForBuyer
+            : coreConv.unreadCountForFisher;
+
+        featureConvs.add(
+          Conversation(
+            id: coreConv.id,
+            sourceAccount: buyer,
+            targetAccount: fisher,
+            lastMessage: coreConv.lastMessage.isNotEmpty
+                ? Message(
+                    id: 'local_${coreConv.id}', // Placeholder ID
+                    content: coreConv.lastMessage,
+                    createdAt: coreConv.lastMessageTime,
+                    sender: isBuyer
+                        ? fisher
+                        : buyer, // Assume counterparty sent it (safer default)
+                    receiver: isBuyer ? buyer : fisher,
+                  )
+                : null,
+            unreadCount: unread,
+            createdAt: coreConv.lastMessageTime, // Approx
+            updatedAt: coreConv.lastMessageTime,
+          ),
+        );
+      }
+    }
+    return _processViewedStatus(featureConvs);
+  }
+
+  Future<void> _cacheConversations(List<Conversation> conversations) async {
+    for (final conv in conversations) {
+      // Map Feature -> Core
+      String? buyerId;
+      String? fisherId;
+      int unreadForBuyer = 0;
+      int unreadForFisher = 0;
+
+      // Determine roles
+      if (conv.sourceAccount.currentRole == UserRole.buyer) {
+        buyerId = conv.sourceAccount.id;
+      } else {
+        fisherId = conv.sourceAccount.id;
+      }
+
+      if (conv.targetAccount.currentRole == UserRole.buyer) {
+        buyerId = conv.targetAccount.id;
+      } else {
+        fisherId = conv.targetAccount.id;
+      }
+
+      // If roles unclear, skip caching or make assumptions
+      if (buyerId == null || fisherId == null) continue;
+
+      // Map unread counts (best effort)
+      // We only know unread count for current user
+      // We don't overwrite the OTHER user's unread count if we can avoid it,
+      // but simple update overwrites.
+      final currentUser = await _sessionService.getCurrentUser();
+      if (currentUser != null) {
+        if (currentUser.id == buyerId) {
+          unreadForBuyer = conv.unreadCount;
+        } else {
+          unreadForFisher = conv.unreadCount;
+        }
+      }
+
+      final coreConv = core_entity.Conversation(
+        id: conv.id,
+        buyerId: buyerId,
+        fisherId: fisherId,
+        lastMessage: conv.lastMessage?.content ?? '',
+        lastMessageTime: conv.lastMessage?.createdAt ?? conv.updatedAt,
+        unreadCountForBuyer: unreadForBuyer,
+        unreadCountForFisher: unreadForFisher,
+      );
+
+      await _localRepo.update(coreConv);
+    }
+  }
+
+  List<Conversation> _processViewedStatus(List<Conversation> conversations) {
     if (_viewedService == null) return conversations;
 
     return conversations.map((c) {
@@ -25,7 +159,6 @@ class ChatRepositoryImpl implements IChatRepository {
 
       final isViewed = _viewedService.isViewed(c.id, c.lastMessage!.createdAt);
       if (isViewed) {
-        // Return a copy with 0 unread count if viewed locally
         return Conversation(
           id: c.id,
           sourceAccount: c.sourceAccount,

@@ -17,23 +17,36 @@ class ConnectivityService {
     ) {
       _checkStatus(results);
     });
+    // Initialize with current status
+    checkConnectivity().then((status) {
+      if (!_controller.isClosed) {
+        _controller.add(status);
+      }
+    });
   }
 
   Stream<NetworkStatus> get statusStream => _controller.stream;
 
+  NetworkStatus _currentStatus = NetworkStatus.online;
+  NetworkStatus get currentStatus => _currentStatus;
+
   void _checkStatus(List<ConnectivityResult> results) {
-    if (results.contains(ConnectivityResult.none) && results.length == 1) {
+    if (results.isEmpty || results.contains(ConnectivityResult.none)) {
+      _currentStatus = NetworkStatus.offline;
       _controller.add(NetworkStatus.offline);
     } else {
+      _currentStatus = NetworkStatus.online;
       _controller.add(NetworkStatus.online);
     }
   }
 
   Future<NetworkStatus> checkConnectivity() async {
     final results = await _connectivity.checkConnectivity();
-    if (results.contains(ConnectivityResult.none) && results.length == 1) {
+    if (results.isEmpty || results.contains(ConnectivityResult.none)) {
+      _currentStatus = NetworkStatus.offline;
       return NetworkStatus.offline;
     } else {
+      _currentStatus = NetworkStatus.online;
       return NetworkStatus.online;
     }
   }
@@ -51,9 +64,10 @@ final connectivityServiceProvider = Provider<ConnectivityService>((ref) {
 
 /// Stream provider that emits the current [NetworkStatus]
 /// Defaults to [NetworkStatus.online] to avoid startup jank if check takes time
-final connectivityStatusProvider = StreamProvider<NetworkStatus>((ref) {
+final connectivityStatusProvider = StreamProvider<NetworkStatus>((ref) async* {
   final service = ref.watch(connectivityServiceProvider);
-  return service.statusStream;
+  yield service.currentStatus;
+  yield* service.statusStream;
 });
 
 /// Convenience provider to get a boolean value of isOnline

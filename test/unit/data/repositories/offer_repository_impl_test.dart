@@ -10,6 +10,7 @@ import 'package:siren_marketplace/core/domain/enums/user_role.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_order_repository.dart';
 import '../../../helpers/mocks.mocks.dart';
 import '../../../helpers/test_data.dart';
+import 'package:siren_marketplace/core/data/datasources/local/local_product_datasource.dart';
 
 void main() {
   late OfferRepositoryImpl repository;
@@ -42,6 +43,7 @@ void main() {
       connectivityService: mockConnectivityService,
       userRepository:
           MockIUserRepository(), // We can use a simple mock here since it's not the SUT
+      localProductDataSource: MockLocalProductDataSource(),
     );
   });
 
@@ -210,3 +212,6 @@ void main() {
     });
   });
 }
+
+class MockLocalProductDataSource extends Mock
+    implements LocalProductDataSource {}

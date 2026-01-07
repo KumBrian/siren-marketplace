@@ -1069,6 +1069,16 @@ class MockIUserRepository extends _i1.Mock implements _i23.IUserRepository {
         ),
         returnValue: _i2.Future<_i7.User?>.value(),
       ) as _i2.Future<_i7.User?>);
+
+  @override
+  _i2.Future<void> saveLocal(_i7.User? user) => (super.noSuchMethod(
+        Invocation.method(
+          #saveLocal,
+          [user],
+        ),
+        returnValue: _i2.Future<void>.value(),
+        returnValueForMissingStub: _i2.Future<void>.value(),
+      ) as _i2.Future<void>);
 }
 
 /// A class which mocks [IProductRepository].
@@ -1644,6 +1654,12 @@ class MockConnectivityService extends _i1.Mock
         Invocation.getter(#statusStream),
         returnValue: _i2.Stream<_i32.NetworkStatus>.empty(),
       ) as _i2.Stream<_i32.NetworkStatus>);
+
+  @override
+  _i32.NetworkStatus get currentStatus => (super.noSuchMethod(
+        Invocation.getter(#currentStatus),
+        returnValue: _i32.NetworkStatus.online,
+      ) as _i32.NetworkStatus);
 
   @override
   _i2.Future<bool> get hasConnection => (super.noSuchMethod(

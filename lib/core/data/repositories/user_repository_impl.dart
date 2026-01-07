@@ -176,4 +176,10 @@ class UserRepositoryImpl implements IUserRepository {
     if (model == null) return null;
     return UserMapper.toEntity(model);
   }
+
+  @override
+  Future<void> saveLocal(User user) async {
+    final model = UserMapper.toModel(user);
+    await localDataSource.update(model);
+  }
 }

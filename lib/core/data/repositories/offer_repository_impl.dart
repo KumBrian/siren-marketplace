@@ -15,51 +15,117 @@ import 'package:siren_marketplace/core/domain/repositories/i_user_repository.dar
 import '../../domain/entities/user.dart'; // Ensure User is imported
 import 'package:siren_marketplace/core/data/models/offer_model.dart';
 import 'package:siren_marketplace/core/data/api/models/auth_api_models.dart';
+import '../datasources/local/local_product_datasource.dart';
+import '../models/product_model.dart';
 
 class OfferRepositoryImpl implements IOfferRepository {
   final IOfferDataSource remoteDataSource;
   final IOfferDataSource localDataSource;
   final ConnectivityService connectivityService;
   final IUserRepository userRepository;
+  final LocalProductDataSource localProductDataSource; // Add this
 
   OfferRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
     required this.connectivityService,
     required this.userRepository,
+    required this.localProductDataSource, // Add this
   });
 
-  Future<void> _cacheUsers(List<OfferModel> models) async {
-    Future<void> _cacheUsers(List<OfferModel> models) async {
-      for (final model in models) {
-        if (model.buyer != null) {
-          try {
-            final buyer = model.buyer!;
-            final user = User(
-              id: buyer.id.toString(),
-              name:
-                  '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'
-                      .trim()
-                      .isEmpty
-                  ? (buyer.username ?? 'Unknown')
-                  : '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim(),
-              rating: Rating.fromValue(buyer.rating ?? 0.0),
-              reviewCount: buyer.totalReviews ?? 0,
-              avatarUrl: buyer.avatar,
-              currentRole: UserRole.buyer,
-            );
-            await userRepository.update(user);
-          } catch (_) {}
-        }
+  Future<void> _cacheRelatedData(List<OfferModel> models) async {
+    // Cache Users
+    for (final model in models) {
+      if (model.buyer != null) {
+        try {
+          final buyer = model.buyer!;
+          final user = User(
+            id: buyer.id.toString(),
+            name:
+                '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'
+                    .trim()
+                    .isEmpty
+                ? (buyer.username ?? 'Unknown')
+                : '${buyer.firstName ?? ''} ${buyer.lastName ?? ''}'.trim(),
+            rating: Rating.fromValue(buyer.rating ?? 0.0),
+            reviewCount: buyer.totalReviews ?? 0,
+            avatarUrl: buyer.avatar,
+            currentRole: UserRole.buyer,
+          );
+          await userRepository.saveLocal(user);
+        } catch (_) {}
+      }
 
-        // Also cache Fisher if available (e.g. via product)
-        if (model.product?.fisher != null) {
-          try {
-            await userRepository.update(model.product!.fisher!);
-          } catch (_) {}
-        }
+      if (model.fisher != null) {
+        try {
+          final fisher = model.fisher!;
+          final user = User(
+            id: fisher.id.toString(),
+            name:
+                '${fisher.firstName ?? ''} ${fisher.lastName ?? ''}'
+                    .trim()
+                    .isEmpty
+                ? (fisher.username ?? 'Unknown')
+                : '${fisher.firstName ?? ''} ${fisher.lastName ?? ''}'.trim(),
+            rating: Rating.fromValue(fisher.rating ?? 0.0),
+            reviewCount: fisher.totalReviews ?? 0,
+            avatarUrl: fisher.avatar,
+            currentRole: UserRole.fisher,
+          );
+          await userRepository.saveLocal(user);
+        } catch (_) {}
+      }
+
+      // Also cache Fisher if available (e.g. via product)
+      if (model.product?.fisher != null) {
+        try {
+          await userRepository.saveLocal(model.product!.fisher!);
+        } catch (_) {}
       }
     }
+
+    // Cache Products
+    try {
+      final products = models
+          .where((m) => m.product != null)
+          .map((m) => ProductModel.fromDomain(m.product!))
+          .toList();
+      if (products.isNotEmpty) {
+        await localProductDataSource.saveBatch(products);
+      }
+    } catch (e) {
+      print('Warning: Failed to cache products from offers: $e');
+    }
+  }
+
+  List<OfferModel> _prepareModelsForSave(List<OfferModel> models) {
+    return models.map((model) {
+      var updatedModel = model;
+
+      // Ensure fisher is populated from product if missing
+      if (updatedModel.fisher == null && updatedModel.product?.fisher != null) {
+        updatedModel = updatedModel.copyWith(
+          fisher: _mapUserToAccountApiModel(updatedModel.product!.fisher!),
+        );
+      }
+      return updatedModel;
+    }).toList();
+  }
+
+  AccountApiModel _mapUserToAccountApiModel(User user) {
+    final nameParts = user.name.split(' ');
+    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
+    return AccountApiModel(
+      id: int.tryParse(user.id) ?? user.id,
+      firstName: firstName,
+      lastName: lastName,
+      username: user.name, // Fallback
+      rating: user.rating.value,
+      totalReviews: user.reviewCount,
+      avatar: user.avatarUrl,
+    );
   }
 
   Future<bool> get _isOffline async {
@@ -88,41 +154,17 @@ class OfferRepositoryImpl implements IOfferRepository {
 
     try {
       final models = await remoteDataSource.getAllOffers();
-      await localDataSource.saveBatch(models);
+      final preparedModels = _prepareModelsForSave(models);
+      await localDataSource.saveBatch(preparedModels);
 
       // Cache associated users
       try {
-        final usersToCache = <AccountApiModel>[];
-        for (final m in models) {
-          if (m.buyer != null) usersToCache.add(m.buyer!);
-          // Fisher is often inside Product, need to check deeper or if fisher_id is sufficient?
-          // OfferModel doesn't have a direct 'fisher' object field in the same way,
-          // but let's check parsing. It falls back to ids.
-          // IF the API returns the user objects, we should save them.
-          // OfferModel has 'buyer' (AccountApiModel).
-          // And 'product' which might have 'fisher' inside? ProductApiModel usually has fisherId or fisher object.
-          if (m.product?.fisher != null) {
-            // We need to map Product's fisher to AccountApiModel or User and save it.
-            // But ProductApiModel fisher is 'AccountApiModel' usually.
-            // Let's assume we can rely on what we have.
-            // For now, at least cache the buyer.
-          }
-        }
-
-        // We generally need a way to save UserModels.
-        // OfferRepository shouldn't depend on UserRepository directly for logical purity?
-        // But for pragmatism in offline-first, injecting UserRepository is fine.
-        // Or we rely on the fact that if we use the app, we likely fetched these users elsewhere.
-        // But the user says "only the offer i viewed while online".
-        // SO we MUST save them here.
-
-        // I will implement a private helper _cacheUsers(List<OfferModel> models)
-        await _cacheUsers(models);
+        await _cacheRelatedData(preparedModels);
       } catch (e) {
         print('Warning: Failed to cache users from offers: $e');
       }
 
-      return await _mapModelsToEntitiesWithUsers(models);
+      return await _mapModelsToEntitiesWithUsers(preparedModels);
     } catch (e) {
       final models = await localDataSource.getAllOffers();
       return await _mapModelsToEntitiesWithUsers(models);
@@ -139,15 +181,13 @@ class OfferRepositoryImpl implements IOfferRepository {
       // 1. Hydrate Buyer if missing
       if (entity.buyer == null) {
         try {
-          print(
-            'DEBUG: Hydrating buyer for offer ${entity.id}, buyerId: ${entity.buyerId}',
-          );
+          // print(
+          //   'DEBUG: Hydrating buyer for offer ${entity.id}, buyerId: ${entity.buyerId}',
+          // );
           final buyerUser = await userRepository.getById(entity.buyerId);
           if (buyerUser != null) {
-            print('DEBUG: Found buyer: ${buyerUser.name}');
+            // print('DEBUG: Found buyer: ${buyerUser.name}');
             entity = entity.copyWith(buyer: buyerUser);
-          } else {
-            print('DEBUG: Buyer not found in repository');
           }
         } catch (e) {
           print('DEBUG: Error hydrating buyer: $e');
@@ -157,18 +197,33 @@ class OfferRepositoryImpl implements IOfferRepository {
       // 2. Hydrate Fisher if missing (usually via product or direct id)
       if (entity.fisher == null) {
         try {
-          print(
-            'DEBUG: Hydrating fisher for offer ${entity.id}, fisherId: ${entity.fisherId}',
-          );
+          // print(
+          //   'DEBUG: Hydrating fisher for offer ${entity.id}, fisherId: ${entity.fisherId}',
+          // );
           final fisherUser = await userRepository.getById(entity.fisherId);
           if (fisherUser != null) {
-            print('DEBUG: Found fisher: ${fisherUser.name}');
+            // print('DEBUG: Found fisher: ${fisherUser.name}');
             entity = entity.copyWith(fisher: fisherUser);
-          } else {
-            print('DEBUG: Fisher not found in repository');
           }
         } catch (e) {
           print('DEBUG: Error hydrating fisher: $e');
+        }
+      }
+
+      // 3. Hydrate Product using LocalProductDataSource (offline support)
+      // The entity might have a product with just ID or missing data if not fully joined
+      if (entity.product == null && entity.productId.isNotEmpty) {
+        try {
+          final productModel = await localProductDataSource.getProductById(
+            entity.productId,
+          );
+          if (productModel != null) {
+            // Use a mapper to convert model -> domain
+            final product = productModel.toDomain();
+            entity = entity.copyWith(product: product);
+          }
+        } catch (e) {
+          print('DEBUG: Error hydrating product from local: $e');
         }
       }
 
@@ -187,8 +242,9 @@ class OfferRepositoryImpl implements IOfferRepository {
     try {
       final model = await remoteDataSource.getById(offerId);
       if (model != null) {
-        await localDataSource.saveBatch([model]);
-        return OfferMapper.toEntity(model);
+        final preparedModels = _prepareModelsForSave([model]);
+        await localDataSource.saveBatch(preparedModels);
+        return OfferMapper.toEntity(preparedModels.first);
       }
     } catch (e) {
       // Fallback
@@ -213,9 +269,10 @@ class OfferRepositoryImpl implements IOfferRepository {
         productId,
         role: role,
       );
-      await localDataSource.saveBatch(models);
-      await _cacheUsers(models);
-      return await _mapModelsToEntitiesWithUsers(models);
+      final preparedModels = _prepareModelsForSave(models);
+      await localDataSource.saveBatch(preparedModels);
+      await _cacheRelatedData(preparedModels);
+      return await _mapModelsToEntitiesWithUsers(preparedModels);
     } catch (e) {
       final models = await localDataSource.getByProductId(
         productId,
@@ -234,8 +291,9 @@ class OfferRepositoryImpl implements IOfferRepository {
 
     try {
       final models = await remoteDataSource.getByBuyerId(buyerId);
-      await localDataSource.saveBatch(models);
-      return await _mapModelsToEntitiesWithUsers(models);
+      final preparedModels = _prepareModelsForSave(models);
+      await localDataSource.saveBatch(preparedModels);
+      return await _mapModelsToEntitiesWithUsers(preparedModels);
     } catch (e) {
       final models = await localDataSource.getByBuyerId(buyerId);
       return await _mapModelsToEntitiesWithUsers(models);
@@ -251,8 +309,9 @@ class OfferRepositoryImpl implements IOfferRepository {
 
     try {
       final models = await remoteDataSource.getByFisherId(fisherId);
-      await localDataSource.saveBatch(models);
-      return await _mapModelsToEntitiesWithUsers(models);
+      final preparedModels = _prepareModelsForSave(models);
+      await localDataSource.saveBatch(preparedModels);
+      return await _mapModelsToEntitiesWithUsers(preparedModels);
     } catch (e) {
       final models = await localDataSource.getByFisherId(fisherId);
       return await _mapModelsToEntitiesWithUsers(models);
@@ -268,8 +327,9 @@ class OfferRepositoryImpl implements IOfferRepository {
 
     try {
       final models = await remoteDataSource.getByCatchIds(catchIds);
-      await localDataSource.saveBatch(models);
-      return await _mapModelsToEntitiesWithUsers(models);
+      final preparedModels = _prepareModelsForSave(models);
+      await localDataSource.saveBatch(preparedModels);
+      return await _mapModelsToEntitiesWithUsers(preparedModels);
     } catch (e) {
       final models = await localDataSource.getByCatchIds(catchIds);
       return await _mapModelsToEntitiesWithUsers(models);
@@ -285,8 +345,9 @@ class OfferRepositoryImpl implements IOfferRepository {
 
     try {
       final models = await remoteDataSource.getByStatus(status);
-      await localDataSource.saveBatch(models);
-      return await _mapModelsToEntitiesWithUsers(models);
+      final preparedModels = _prepareModelsForSave(models);
+      await localDataSource.saveBatch(preparedModels);
+      return await _mapModelsToEntitiesWithUsers(preparedModels);
     } catch (e) {
       final models = await localDataSource.getByStatus(status);
       return await _mapModelsToEntitiesWithUsers(models);
@@ -405,7 +466,14 @@ class OfferRepositoryImpl implements IOfferRepository {
       updatedOffer = offer.copyWith(hasUpdateForBuyer: false);
     }
 
-    final updatedModel = OfferMapper.toModel(updatedOffer);
+    var updatedModel = OfferMapper.toModel(updatedOffer);
+
+    // OfferMapper.toModel ignores buyer/fisher AccountApiModels (converting User back is complex).
+    // We must preserve existing user data from the cache to avoid it becoming null (showing "Loading...").
+    updatedModel = updatedModel.copyWith(
+      buyer: offerModel.buyer,
+      fisher: offerModel.fisher,
+    );
 
     // Update local cache
     await localDataSource.update(updatedModel);
