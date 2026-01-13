@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "530801059734",
+    "project_id": "siren-ammco",
+    "storage_bucket": "siren-ammco.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:530801059734:android:6deb1e981383486ac01fb7",
+        "android_client_info": {
+          "package_name": "org.siren.ammco.siren_marketplace"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZLSeo7KeFN4KJC-cyyBVGCCa2MXU8D8U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

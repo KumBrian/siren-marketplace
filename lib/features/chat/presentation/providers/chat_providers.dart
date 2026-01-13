@@ -69,9 +69,13 @@ class ChatController {
     // For now, we rely on the next fetch or socket update (future) to show 'read'.
   }
 
-  Future<String> startConversation(String targetAccountId) async {
+  Future<String> startConversation(
+    String targetAccountId, {
+    String? productId,
+  }) async {
     final conversation = await _repository.startConversation(
       targetAccountId: targetAccountId,
+      productId: productId,
     );
     _ref.invalidate(conversationsProvider);
     return conversation.id;

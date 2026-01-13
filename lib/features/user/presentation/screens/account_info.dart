@@ -36,8 +36,24 @@ List<ProfileRoute> getProfileRoutes(String? userId) => [
             );
             return Switch.adaptive(
               value: notificationsEnabled,
-              onChanged: (v) {
-                ref.read(notificationSettingsProvider.notifier).state = v;
+              onChanged: (v) async {
+                final notifier = ref.read(
+                  notificationSettingsProvider.notifier,
+                );
+                final success = await notifier.toggleNotifications(v);
+
+                if (!success && v) {
+                  // Show permission denied message
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Notification permission denied. Please enable in device settings.',
+                        ),
+                      ),
+                    );
+                  }
+                }
               },
               activeTrackColor: AppColors.textBlue,
             );

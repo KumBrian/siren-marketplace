@@ -176,10 +176,15 @@ class ChatRepositoryImpl implements IChatRepository {
   @override
   Future<Conversation> startConversation({
     required String targetAccountId,
+    String? productId,
   }) async {
-    return _api.openConversation({
+    final body = <String, dynamic>{
       'targetAccountId': int.parse(targetAccountId),
-    });
+    };
+    if (productId != null) {
+      body['productId'] = int.parse(productId);
+    }
+    return _api.openConversation(body);
   }
 
   @override

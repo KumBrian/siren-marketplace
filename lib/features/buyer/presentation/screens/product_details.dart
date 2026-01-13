@@ -447,6 +447,7 @@ class _ProductDetailsState extends ConsumerState<ProductDetails> {
                                         .read(chatControllerProvider)
                                         .startConversation(
                                           productItem.fisherId,
+                                          productId: productItem.id,
                                         );
                                     if (context.mounted) {
                                       context.push(

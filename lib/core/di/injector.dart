@@ -25,6 +25,7 @@ import '../data/datasources/api/user_api_datasource.dart';
 import '../data/datasources/api/products_api_data_source.dart';
 import '../data/datasources/api/subgroups_api_data_source.dart';
 import '../data/datasources/api/chat_api_data_source.dart';
+import '../data/datasources/api/device_token_api_data_source.dart';
 import '../data/datasources/local/local_product_datasource.dart';
 
 import 'package:dio/dio.dart';
@@ -37,6 +38,7 @@ import '../data/repositories/review_repository_impl.dart';
 import '../data/repositories/session_repository_impl.dart';
 import '../data/repositories/user_repository_impl.dart';
 import '../data/repositories/product_repository_impl.dart';
+import '../data/repositories/device_token_repository_impl.dart';
 import '../domain/repositories/i_catch_repository.dart';
 import '../domain/repositories/i_conversation_repository.dart';
 import '../domain/repositories/i_message_repository.dart';
@@ -46,6 +48,7 @@ import '../domain/repositories/i_review_repository.dart';
 import '../domain/repositories/i_session_repository.dart';
 import '../domain/repositories/i_user_repository.dart';
 import '../domain/repositories/i_product_repository.dart';
+import '../domain/repositories/i_device_token_repository.dart';
 import '../domain/services/expiration_service.dart';
 import '../domain/services/marketplace_service.dart';
 import '../domain/services/message_service.dart';
@@ -55,6 +58,7 @@ import '../domain/services/rating_service.dart';
 import '../domain/services/session_service.dart';
 import '../domain/services/viewed_offers_service.dart';
 import '../domain/services/viewed_conversations_service.dart';
+import '../services/firebase_messaging_service.dart';
 import '../data/api/api_client.dart';
 import '../data/storage/token_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,6 +104,19 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingleton(() => TokenStorage());
   sl.registerLazySingleton<ConnectivityService>(() => ConnectivityService());
+
+  // Register Firebase Messaging Service
+  sl.registerLazySingleton<FirebaseMessagingService>(
+    () => FirebaseMessagingService(),
+  );
+
+  // Register Device Token API Data Source and Repository
+  sl.registerLazySingleton<DeviceTokenApiDataSource>(
+    () => DeviceTokenApiDataSource(sl(instanceName: 'marketplaceApiClient')),
+  );
+  sl.registerLazySingleton<IDeviceTokenRepository>(
+    () => DeviceTokenRepositoryImpl(sl<DeviceTokenApiDataSource>()),
+  );
 
   // Register Core API Client
   sl.registerLazySingleton(

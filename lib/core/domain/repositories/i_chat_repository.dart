@@ -3,7 +3,10 @@ import 'package:siren_marketplace/features/chat/domain/entities/message.dart';
 
 abstract class IChatRepository {
   Future<List<Conversation>> getMyConversations();
-  Future<Conversation> startConversation({required String targetAccountId});
+  Future<Conversation> startConversation({
+    required String targetAccountId,
+    String? productId,
+  });
   Future<List<Message>> getMessages({required String conversationId});
   Future<Message> sendMessage({
     required String conversationId,

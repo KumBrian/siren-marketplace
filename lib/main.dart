@@ -11,6 +11,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:async';
 import 'package:siren_marketplace/core/providers/error_provider.dart';
 import 'package:siren_marketplace/core/widgets/offline_banner.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 Future<void> main() async {
   // Use a variable to handle the provider container, so it can be accessed in the error handler
@@ -19,6 +20,9 @@ Future<void> main() async {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+
+      // Initialize Firebase
+      await Firebase.initializeApp();
 
       // Load environment variables from .env file
       await dotenv.load(fileName: ".env");
