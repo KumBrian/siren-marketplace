@@ -22,39 +22,43 @@ class ProfileRouteWidget extends ConsumerWidget {
     return Material(
       child: InkWell(
         splashColor: AppColors.blue700.withValues(alpha: 0.1),
-        onTap: profileRoute.route == null
-            ? null
-            : () async {
-                if (profileRoute.route == 'logout') {
-                  // Handle Logout
-                  final sessionService = sl<SessionService>();
-                  await sessionService.logout();
+        onTap: () async {
+          if (profileRoute.onTap != null) {
+            profileRoute.onTap!();
+            return;
+          }
 
-                  // Invalidate providers to trigger router refresh and redirection
-                  ref.invalidate(isAuthenticatedProvider);
-                  ref.invalidate(currentUserProvider);
+          if (profileRoute.route == null) return;
 
-                  // No need to manually push /login, the routerProvider redirect logic
-                  // should detect the user is logged out and redirect them.
-                  return;
-                }
+          if (profileRoute.route == 'logout') {
+            // Handle Logout
+            final sessionService = sl<SessionService>();
+            await sessionService.logout();
 
-                final roleSlug = roleToString(role!);
-                String path = '/user-profile/$roleSlug';
-                path = '$path/${profileRoute.route}';
-                if (profileRoute.subRoute != null) {
-                  path = '$path/${profileRoute.subRoute}';
-                  // For reviews route, append userId
-                  if (profileRoute.subRoute == 'reviews') {
-                    // Get userId from context - we'll need to pass it via ProfileRoute
-                    if (profileRoute.userId != null) {
-                      path = '$path/${profileRoute.userId}';
-                    }
-                  }
-                }
+            // Invalidate providers to trigger router refresh and redirection
+            ref.invalidate(isAuthenticatedProvider);
+            ref.invalidate(currentUserProvider);
 
-                context.push(path);
-              },
+            // No need to manually push /login, the routerProvider redirect logic
+            // should detect the user is logged out and redirect them.
+            return;
+          }
+
+          final roleSlug = roleToString(role!);
+          String path = '/user-profile/$roleSlug';
+          path = '$path/${profileRoute.route}';
+          if (profileRoute.subRoute != null) {
+            path = '$path/${profileRoute.subRoute}';
+            // For reviews route, append userId
+            if (profileRoute.subRoute == 'reviews') {
+              // Get userId from context - we'll need to pass it via ProfileRoute
+              if (profileRoute.userId != null) {
+                path = '$path/${profileRoute.userId}';
+              }
+            }
+          }
+          context.push(path);
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           decoration: BoxDecoration(

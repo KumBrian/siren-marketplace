@@ -48,6 +48,26 @@ class DeviceTokenRepositoryImpl implements IDeviceTokenRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, bool>> sendTestNotification({
+    required String title,
+    required String body,
+    Map<String, dynamic>? data,
+  }) async {
+    try {
+      final success = await _dataSource.sendTestNotification(
+        title: title,
+        body: body,
+        data: data,
+      );
+      return Right(success);
+    } catch (e) {
+      return Left(
+        ServerFailure(message: 'Failed to send test notification: $e'),
+      );
+    }
+  }
+
   DeviceToken _mapResponseToEntity(DeviceTokenResponse response) {
     return DeviceToken(
       id: response.id,

@@ -11,7 +11,11 @@ import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/features/user/data/models/profile_route.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/profile_route_widget.dart';
 
-List<ProfileRoute> getProfileRoutes(String? userId) => [
+List<ProfileRoute> getProfileRoutes(
+  BuildContext context,
+  WidgetRef ref,
+  String? userId,
+) => [
   ProfileRoute(
     title: "Personal Information",
     route: "account-info",
@@ -61,6 +65,26 @@ List<ProfileRoute> getProfileRoutes(String? userId) => [
         ),
       ),
     ),
+  ),
+  ProfileRoute(
+    title: "Test Notification",
+    onTap: () async {
+      final notifier = ref.read(notificationSettingsProvider.notifier);
+      final success = await notifier.sendTestNotification();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success
+                  ? 'Test notification sent successfully!'
+                  : 'Failed to send test notification.',
+            ),
+          ),
+        );
+      }
+    },
+    trailing: const Icon(Icons.send, size: 20, color: AppColors.textBlue),
   ),
 ];
 
@@ -133,9 +157,13 @@ class AccountInfo extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: List.generate(
-                      getProfileRoutes(user.id).length,
+                      getProfileRoutes(context, ref, user.id).length,
                       (index) => ProfileRouteWidget(
-                        profileRoute: getProfileRoutes(user.id)[index],
+                        profileRoute: getProfileRoutes(
+                          context,
+                          ref,
+                          user.id,
+                        )[index],
                         role: user.currentRole,
                       ),
                     ),

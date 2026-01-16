@@ -156,6 +156,29 @@ class NotificationSettingsNotifier extends StateNotifier<bool> {
     final service = _ref.read(firebaseMessagingServiceProvider);
     return await service.isAuthorized();
   }
+
+  /// Send a test notification
+  Future<bool> sendTestNotification() async {
+    try {
+      final repository = _ref.read(deviceTokenRepositoryProvider);
+      final result = await repository.sendTestNotification(
+        title: 'Test Notification',
+        body: 'This is a test push notification sent to your device',
+        data: {'custom_key': 'custom_value'},
+      );
+
+      return result.fold(
+        ifLeft: (failure) {
+          debugPrint('Failed to send test notification: ${failure.message}');
+          return false;
+        },
+        ifRight: (success) => success,
+      );
+    } catch (e) {
+      debugPrint('Error sending test notification: $e');
+      return false;
+    }
+  }
 }
 
 /// Provider for handling notification messages

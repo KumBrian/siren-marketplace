@@ -1,4 +1,5 @@
 import 'package:siren_marketplace/core/data/api/api_client.dart';
+import 'package:siren_marketplace/core/data/api/api_config.dart';
 import 'package:siren_marketplace/core/data/api/models/device_token_api_models.dart';
 
 /// API data source for device token operations
@@ -34,5 +35,22 @@ class DeviceTokenApiDataSource {
     }
 
     return DeviceTokenResponse.fromJson(data);
+  }
+
+  /// Send a test notification to the user
+  Future<bool> sendTestNotification({
+    required String title,
+    required String body,
+    Map<String, dynamic>? data,
+  }) async {
+    try {
+      final response = await _client.post(
+        ApiConfig.notifyMe,
+        data: {'title': title, 'body': body, 'data': data ?? {}},
+      );
+      return response.data['success'] == true;
+    } catch (e) {
+      return false;
+    }
   }
 }

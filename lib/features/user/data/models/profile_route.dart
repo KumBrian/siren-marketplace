@@ -7,6 +7,7 @@ class ProfileRoute {
   final Widget? trailing;
   final String? subRoute;
   final String? userId;
+  final VoidCallback? onTap;
 
   const ProfileRoute({
     this.icon,
@@ -15,5 +16,6 @@ class ProfileRoute {
     this.trailing,
     this.subRoute,
     this.userId,
+    this.onTap,
   });
 }

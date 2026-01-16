@@ -13,4 +13,11 @@ abstract class IDeviceTokenRepository {
 
   /// Get a device token by ID
   Future<Either<Failure, DeviceToken>> getDeviceToken(int id);
+
+  /// Send a test notification
+  Future<Either<Failure, bool>> sendTestNotification({
+    required String title,
+    required String body,
+    Map<String, dynamic>? data,
+  });
 }
