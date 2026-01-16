@@ -34,7 +34,7 @@ class ChatRepositoryImpl implements IChatRepository {
   );
 
   @override
-  Future<List<Conversation>> getMyConversations() async {
+  Future<List<Conversation>> getMyConversations({String? productId}) async {
     // Check connectivity
     final isOffline =
         await _connectivity.checkConnectivity() == NetworkStatus.offline;
@@ -44,7 +44,7 @@ class ChatRepositoryImpl implements IChatRepository {
     }
 
     try {
-      final conversations = await _api.getMyConversations();
+      final conversations = await _api.getMyConversations(productId: productId);
       // Cache successful response
       await _cacheConversations(conversations);
 

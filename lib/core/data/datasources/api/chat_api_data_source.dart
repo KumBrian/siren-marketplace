@@ -16,8 +16,18 @@ class ChatApiDataSource {
     return ConversationModel.fromJson(data);
   }
 
-  Future<List<ConversationModel>> getMyConversations() async {
-    final response = await _client.get('/conversations/my-conversations');
+  Future<List<ConversationModel>> getMyConversations({
+    String? productId,
+  }) async {
+    final Map<String, dynamic> queryParameters = {};
+    if (productId != null) {
+      queryParameters['productId'] = productId;
+    }
+
+    final response = await _client.get(
+      '/conversations/my-conversations',
+      queryParameters: queryParameters,
+    );
     // Handle Hydra/API Platform collection format
     final data = response.data;
     List conversations = [];

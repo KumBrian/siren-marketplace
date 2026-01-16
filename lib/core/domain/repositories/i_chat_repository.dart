@@ -2,7 +2,7 @@ import 'package:siren_marketplace/features/chat/domain/entities/conversation.dar
 import 'package:siren_marketplace/features/chat/domain/entities/message.dart';
 
 abstract class IChatRepository {
-  Future<List<Conversation>> getMyConversations();
+  Future<List<Conversation>> getMyConversations({String? productId});
   Future<Conversation> startConversation({
     required String targetAccountId,
     String? productId,

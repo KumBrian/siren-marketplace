@@ -33,6 +33,13 @@ final conversationsProvider = FutureProvider.autoDispose<List<Conversation>>((
   return repository.getMyConversations();
 });
 
+// Conversations List Provider filtered by Product ID
+final conversationsByProductProvider = FutureProvider.autoDispose
+    .family<List<Conversation>, String>((ref, productId) async {
+      final repository = ref.watch(chatRepositoryProvider);
+      return repository.getMyConversations(productId: productId);
+    });
+
 // Messages List Provider (Family)
 final messagesProvider = FutureProvider.autoDispose
     .family<List<Message>, String>((ref, conversationId) async {

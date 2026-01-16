@@ -582,26 +582,24 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
                                     .maybeWhen(
                                       data: (user) {
                                         if (user == null) return 0;
-                                        // Keep existing logic for messages
+                                        // Use conversationsByProductProvider
                                         final conversationsAsync = ref.watch(
-                                          conversationsProvider,
+                                          conversationsByProductProvider(
+                                            widget.catchId,
+                                          ),
                                         );
 
                                         return conversationsAsync.maybeWhen(
                                           data: (conversations) {
-                                            final buyerIds = offers
-                                                .map((o) => o.buyerId)
-                                                .toSet();
-                                            return conversations.where((conv) {
-                                              final otherUser = conv
-                                                  .getOtherParticipant(user);
-                                              return buyerIds.contains(
-                                                    otherUser.id,
-                                                  ) &&
-                                                  conv.hasUnreadMessagesFor(
-                                                    user.id,
-                                                  );
-                                            }).length;
+                                            // API already filters by product, so we just count unread
+                                            return conversations
+                                                .where(
+                                                  (conv) =>
+                                                      conv.hasUnreadMessagesFor(
+                                                        user.id,
+                                                      ),
+                                                )
+                                                .length;
                                           },
                                           orElse: () => 0,
                                         );
@@ -874,7 +872,11 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
           offer: offer,
           clientName: offer.buyer?.name ?? "Unknown",
           clientRating: offer.buyer?.rating.value ?? 0.0,
-          onPressed: () => context.push("/fisher/offer-details/${offer.id}"),
+          onPressed: () async {
+            await context.push("/fisher/offer-details/${offer.id}");
+            // Refresh offers to show updated status (e.g. read/unread)
+            ref.invalidate(productOffersProvider(widget.catchId));
+          },
         );
       },
     );
@@ -894,57 +896,48 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
       );
     }
 
-    final conversationsAsync = ref.watch(conversationsProvider);
+    // Use conversationsByProductProvider
+    final conversationsAsync = ref.watch(
+      conversationsByProductProvider(widget.catchId),
+    );
     final currentUserAsync = ref.watch(currentUserProvider);
 
-    return offersAsync.when(
-      data: (offers) {
-        final buyerIds = offers.map((o) => o.buyerId).toSet();
+    return currentUserAsync.when(
+      data: (user) {
+        if (user == null) {
+          return _buildEmptyState("User not found", "Please log in");
+        }
 
-        return currentUserAsync.when(
-          data: (user) {
-            if (user == null) {
-              return _buildEmptyState("User not found", "Please log in");
+        return conversationsAsync.when(
+          data: (conversations) {
+            // API already filters by product
+            if (conversations.isEmpty) {
+              return _buildEmptyState(
+                "No messages",
+                "Start a conversation from an offer.",
+              );
             }
 
-            return conversationsAsync.when(
-              data: (conversations) {
-                final filtered = conversations.where((c) {
-                  final otherUser = c.getOtherParticipant(user);
-                  return buyerIds.contains(otherUser.id);
-                }).toList();
-
-                if (filtered.isEmpty) {
-                  return _buildEmptyState(
-                    "No messages",
-                    "Start a conversation from an offer.",
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 80, top: 16),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final conv = filtered[index];
-                    return ConversationCard(
-                      conversation: conv,
-                      currentUser: user,
-                      onTap: () => context.push('/fisher/chat/${conv.id}'),
-                    );
-                  },
+            return ListView.builder(
+              padding: const EdgeInsets.only(bottom: 80, top: 16),
+              itemCount: conversations.length,
+              itemBuilder: (context, index) {
+                final conv = conversations[index];
+                return ConversationCard(
+                  conversation: conv,
+                  currentUser: user,
+                  onTap: () => context.push('/fisher/chat/${conv.id}'),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, s) =>
-                  _buildEmptyState("Error loading messages", e.toString()),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, s) => _buildEmptyState("Error loading user", e.toString()),
+          error: (e, s) =>
+              _buildEmptyState("Error loading messages", e.toString()),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, s) => _buildEmptyState("Error loading offers", e.toString()),
+      error: (e, s) => _buildEmptyState("Error loading user", e.toString()),
     );
   }
 
