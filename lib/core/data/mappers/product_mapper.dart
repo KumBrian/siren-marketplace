@@ -83,10 +83,6 @@ class ProductMapper {
           : null,
     );
 
-    print(
-      'DEBUG ProductMapper - Product ${product.id}: API offersCount = ${apiModel.offersCount}',
-    );
-
     return product;
   }
 }

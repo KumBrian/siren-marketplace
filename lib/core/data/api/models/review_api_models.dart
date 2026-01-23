@@ -21,10 +21,10 @@ class ReviewApiRequest with _$ReviewApiRequest {
 class ReviewApiResponse with _$ReviewApiResponse {
   const factory ReviewApiResponse({
     required dynamic id,
-    required double rate,
+    required num rate,
     required String message,
     required bool published,
-    @JsonKey(name: 'sale_order') dynamic saleOrder,
+    @JsonKey(name: 'sale_order') dynamic? saleOrder,
 
     // User details
     AccountApiModel? reviewer,

@@ -51,15 +51,12 @@ class SessionService {
         if (!hasToken) {
           final token = await _tokenStorage.getAccessToken();
           if (token == null) {
-            print(
-              'DEBUG: SessionService: User found but NO token. Clearing session.',
-            );
             await logout();
             return null;
           }
         }
       } else {
-        print('DEBUG: SessionService: Offline, skipping token validation.');
+        // Offline, skipping token validation
       }
     }
 
@@ -96,12 +93,7 @@ class SessionService {
     final authResponse = await _authApiDataSource.login(email, password);
 
     // Debug logging
-    print(
-      'LoginWithApi - Token received: ${authResponse.token.substring(0, 20)}...',
-    );
-    print('LoginWithApi - Token expiry: ${authResponse.tokenExpireAt}');
-    print('LoginWithApi - Token issued at: ${authResponse.tokenIssuedAt}');
-    print('LoginWithApi - Current time: ${DateTime.now()}');
+    // Debug logging
 
     // 2. Store JWT token
     await _tokenStorage.saveToken(
@@ -113,8 +105,6 @@ class SessionService {
     // Verify what was stored
     final storedExpiry = await _tokenStorage.getTokenExpiry();
     final isExpired = await _tokenStorage.isTokenExpired();
-    print('LoginWithApi - Stored expiry: $storedExpiry');
-    print('LoginWithApi - Is token expired: $isExpired');
 
     // 3. Map account to User entity
     final user = AccountApiMapper.toDomain(authResponse.account);
@@ -139,7 +129,7 @@ class SessionService {
       try {
         await _authApiDataSource.logout();
       } catch (e) {
-        print('Warning: API logout failed: $e. Proceeding with local logout.');
+        // Warning: API logout failed. Proceeding with local logout.
       }
     }
 

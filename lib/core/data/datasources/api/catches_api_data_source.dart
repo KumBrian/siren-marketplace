@@ -47,7 +47,8 @@ class CatchesApiDataSource implements ICatchDataSource {
     }
 
     try {
-      print('DEBUG: Fetching species from subgroups for catch mapping...');
+      // Fetching species from subgroups for catch mapping...
+
       final subgroupModels = await _subgroupsDataSource.getMarketSubgroups(1);
       final subgroups = SubgroupMapper.toDomainList(subgroupModels);
 
@@ -64,7 +65,8 @@ class CatchesApiDataSource implements ICatchDataSource {
             ),
           )
           .toList();
-      print('DEBUG: Cached ${_cachedSpecies!.length} species for mapping');
+      // Cached species for mapping
+
       return _cachedSpecies!;
     } catch (e) {
       print('WARNING: Failed to fetch species from subgroups: $e');
@@ -79,10 +81,6 @@ class CatchesApiDataSource implements ICatchDataSource {
 
       // Step 1: Upload images to Pulsebox if any
       if (catchItem.images.isNotEmpty) {
-        print(
-          'DEBUG: Step 1 - Uploading ${catchItem.images.length} images to Pulsebox',
-        );
-
         // Filter out asset images (placeholders) and convert paths to Files
         final realImagePaths = catchItem.images
             .where((path) => !path.startsWith('assets/'))
@@ -95,48 +93,34 @@ class CatchesApiDataSource implements ICatchDataSource {
             final uploadResults = await _mediaDataSource.uploadImages(
               imageFiles,
             );
-            print(
-              'DEBUG: Successfully uploaded ${uploadResults.length} images',
-            );
 
             // Extract storageFilePath from each upload result
             imageUrls = uploadResults
                 .map((result) => result.storageFilePath)
                 .whereType<String>() // Filter out nulls
                 .toList();
-
-            print('DEBUG: Extracted image URLs: $imageUrls');
           } catch (e) {
             print('ERROR: Image upload failed: $e');
             throw Exception('Failed to upload images: $e');
           }
-        } else {
-          print('DEBUG: No real images to upload (only placeholders)');
-        }
+        } else {}
       }
 
       // Step 2: Create catch with image URLs
-      print('DEBUG: Step 2 - Creating catch on Marketplace API');
 
       final request = CatchApiMapper.toCreateRequest(
         catchItem,
         imageUrls: imageUrls,
       );
 
-      print('DEBUG: Catch request: ${request.toJson()}');
-
       final response = await _client.post(
         ApiConfig.fishCatchesCreate,
         data: request.toJson(),
       );
 
-      print('DEBUG: Catch creation response status: ${response.statusCode}');
-
       // Extract ID from response
       final data = response.data['data'] ?? response.data;
       final id = data['id'].toString();
-
-      print('DEBUG: Catch created successfully with ID: $id');
 
       // Invalidate cache since we created a new catch
       _clearCache();
@@ -152,20 +136,17 @@ class CatchesApiDataSource implements ICatchDataSource {
   Future<CatchModel?> getById(String catchId) async {
     // Check cache first
     if (_catchCache.containsKey(catchId)) {
-      print('DEBUG: Cache HIT for catch $catchId');
+      // Cache HIT for catch
+
       return _catchCache[catchId];
     }
 
-    print('DEBUG: Cache MISS for catch $catchId, fetching from API');
+    // Cache MISS for catch, fetching from API
 
     try {
       final url = ApiConfig.fishCatch(catchId);
-      print('DEBUG: Fetching catch by ID: $catchId');
-      print('DEBUG: URL: $url');
 
       final response = await _client.get(url);
-
-      print('DEBUG: Response status: ${response.statusCode}');
 
       final data = response.data['data'] ?? response.data;
 
@@ -184,7 +165,6 @@ class CatchesApiDataSource implements ICatchDataSource {
 
       return catchModel;
     } catch (e) {
-      print('DEBUG: Error fetching catch $catchId: $e');
       return null;
     }
   }
@@ -222,7 +202,7 @@ class CatchesApiDataSource implements ICatchDataSource {
     );
     final List data = response.data['data']['member'] ?? [];
 
-    print('DEBUG: Fetched ${data.length} catches from my-fish-catches');
+    // Fetched catches from my-fish-catches
 
     final species = await _getSpecies();
     final catches = data.map((json) {
@@ -237,9 +217,9 @@ class CatchesApiDataSource implements ICatchDataSource {
     _clearCache(); // Clear old cache first
     for (var catch_ in catches) {
       _catchCache[catch_.id] = catch_;
-      print('DEBUG: Cached catch ${catch_.id}');
+      // Cached catch
     }
-    print('DEBUG: Cache now has ${_catchCache.length} catches');
+    // Cache now has catches
 
     return catches;
   }
@@ -334,34 +314,26 @@ class CatchesApiDataSource implements ICatchDataSource {
 
       final url = ApiConfig.fishCatchUpdate(catchItem.id);
 
-      print('DEBUG: Updating catch ${catchItem.id} with body: $requestBody');
-
       final response = await _client.patch(
         url,
         data: requestBody,
         options: Options(contentType: 'application/merge-patch+json'),
       );
 
-      print('DEBUG: Update response status: ${response.statusCode}');
-      print('DEBUG: Update response data: ${response.data}');
-
       // Check if response contains both fishCatch and product (publish to marketplace)
       final responseData = response.data['data'] ?? response.data;
 
       if (responseData is Map && responseData.containsKey('product')) {
-        print('DEBUG: Catch published to marketplace! Product created.');
+        // Catch published to marketplace! Product created.
 
         // Parse the update response
         try {
-          final updateResponse = UpdateCatchResponse.fromJson(
-            Map<String, dynamic>.from(responseData),
-          );
-          print('DEBUG: Parsed UpdateCatchResponse successfully');
-          print('DEBUG: Product ID: ${updateResponse.product}');
+          UpdateCatchResponse.fromJson(Map<String, dynamic>.from(responseData));
 
           // Trigger the callback to invalidate both catch and product providers
           if (_onCatchPublished != null) {
-            print('DEBUG: Triggering provider invalidation callback');
+            // Triggering provider invalidation callback
+
             _onCatchPublished!();
           } else {
             print('WARNING: No callback set for catch published event');
@@ -428,6 +400,6 @@ class CatchesApiDataSource implements ICatchDataSource {
   /// Clear all cache
   void _clearCache() {
     _catchCache.clear();
-    print('DEBUG: Cache cleared');
+    // Cache cleared
   }
 }

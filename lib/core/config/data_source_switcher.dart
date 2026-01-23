@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../di/injector.dart';
 import 'app_config.dart';
 import 'package:siren_marketplace/core/widgets/error_dialog.dart';
+import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 
 class DataSourceSwitcher extends StatefulWidget {
   final Widget child;
@@ -79,8 +80,10 @@ class _DataSourceSwitcherState extends State<DataSourceSwitcher> {
           if (context.mounted) Navigator.of(context).pop();
 
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Switched to ${mode.name} mode')),
+            showActionSuccessDialog(
+              context,
+              message: 'Switched to ${mode.name} mode',
+              autoCloseSeconds: 2,
             );
           }
         } catch (e) {

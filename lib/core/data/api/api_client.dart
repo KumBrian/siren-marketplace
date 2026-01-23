@@ -1,7 +1,7 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
-import 'package:flutter/foundation.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import 'api_config.dart';
 import 'api_exception.dart';
@@ -63,19 +63,7 @@ class ApiClient {
       ),
     );
 
-    // Add logger in debug mode
-    if (kDebugMode) {
-      _dio.interceptors.add(
-        PrettyDioLogger(
-          requestHeader: true,
-          requestBody: true,
-          responseHeader: true,
-          responseBody: true,
-          error: true,
-          compact: false,
-        ),
-      );
-    }
+    // Logger removed for production
   }
 
   /// Factory constructor for Core API client (authentication, accounts)

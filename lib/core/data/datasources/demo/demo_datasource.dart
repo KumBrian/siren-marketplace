@@ -308,6 +308,11 @@ class DemoOfferDataSource implements IOfferDataSource {
       _offers[offer.id] = offer;
     }
   }
+
+  @override
+  void clearCache() {
+    // Demo implementation empty
+  }
 }
 
 class DemoOrderDataSource implements IOrderDataSource {

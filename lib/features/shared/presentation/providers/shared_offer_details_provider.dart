@@ -56,9 +56,7 @@ final sharedOfferDetailsProvider = FutureProvider.family
       if (offer.product != null) {
         try {
           catchItem = _mapProductToCatch(offer.product!);
-        } catch (e) {
-          print('DEBUG: Failed to map embedded product to catch: $e');
-        }
+        } catch (e) {}
       }
 
       if (catchItem == null) {
@@ -96,9 +94,7 @@ final sharedOfferDetailsProvider = FutureProvider.family
 
         try {
           otherParty = await userRepo.getById(otherPartyId);
-        } catch (e) {
-          print('DEBUG: Failed to fetch other party user: $e');
-        }
+        } catch (e) {}
 
         if (otherParty == null) {
           otherParty = User(

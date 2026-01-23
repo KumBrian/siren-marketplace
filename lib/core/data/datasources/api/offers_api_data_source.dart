@@ -111,9 +111,6 @@ class OffersApiDataSource implements IOfferDataSource {
     // TEMPORARY: Force cache miss to pick up new ID format
     // TODO: Remove this after migration is complete
     if (_offerByIdCache.containsKey(offerId)) {
-      print(
-        'DEBUG: Force invalidating cached offer $offerId to pick up ID format changes',
-      );
       _offerByIdCache.remove(offerId);
       _offerByIdCacheTime.remove(offerId);
     }
@@ -123,14 +120,9 @@ class OffersApiDataSource implements IOfferDataSource {
       final cacheTime = _offerByIdCacheTime[offerId];
       if (cacheTime != null &&
           DateTime.now().difference(cacheTime) < _cacheStaleTime) {
-        print(
-          'DEBUG: Offer cache HIT for $offerId (${DateTime.now().difference(cacheTime).inSeconds}s old)',
-        );
         return _offerByIdCache[offerId];
       }
     }
-
-    print('DEBUG: Offer cache MISS for $offerId, fetching from API');
 
     try {
       final response = await _client.get(ApiConfig.offer(offerId));
@@ -161,14 +153,9 @@ class OffersApiDataSource implements IOfferDataSource {
       final cacheTime = _offersByProductCacheTime[productId];
       if (cacheTime != null &&
           DateTime.now().difference(cacheTime) < _cacheStaleTime) {
-        print('DEBUG: Offers by product cache HIT for product $productId');
         return _offersByProductCache[productId]!;
       }
     }
-
-    print(
-      'DEBUG: Offers by product cache MISS for product $productId (Role: $role)',
-    );
 
     List<OfferModel> offers;
 
@@ -193,9 +180,6 @@ class OffersApiDataSource implements IOfferDataSource {
             .toList();
       } catch (e) {
         // Fallback: fetch all received offers and filter (if API doesn't support product filter on received-offers)
-        print(
-          "DEBUG: Fetching specific product failed, falling back to all received: $e",
-        );
         final allReceived = await getReceivedOffers('me'); // 'me' is ignored
         offers = allReceived.where((o) => o.productId == productId).toList();
       }
@@ -234,12 +218,9 @@ class OffersApiDataSource implements IOfferDataSource {
     if (_receivedOffersCache != null && _receivedOffersCacheTime != null) {
       if (DateTime.now().difference(_receivedOffersCacheTime!) <
           _cacheStaleTime) {
-        print('DEBUG: Received offers cache HIT');
         return _receivedOffersCache!;
       }
     }
-
-    print('DEBUG: Received offers cache MISS');
 
     // API uses token for authentication
     final response = await _client.get(
@@ -272,12 +253,9 @@ class OffersApiDataSource implements IOfferDataSource {
     // Check cache with stale time
     if (_myOffersCache != null && _myOffersCacheTime != null) {
       if (DateTime.now().difference(_myOffersCacheTime!) < _cacheStaleTime) {
-        print('DEBUG: My offers cache HIT');
         return _myOffersCache!;
       }
     }
-
-    print('DEBUG: My offers cache MISS');
 
     final response = await _client.get(
       ApiConfig.myOffers,
@@ -364,7 +342,7 @@ class OffersApiDataSource implements IOfferDataSource {
         DateTime.parse(offer.dateUpdated),
       );
     } catch (e) {
-      print('DEBUG: Failed to persist viewed state: $e');
+      // Ignore
     }
 
     // Update ID cache
@@ -391,8 +369,6 @@ class OffersApiDataSource implements IOfferDataSource {
       _receivedOffersCacheTime = DateTime.now();
     _offersByProductCache.values.forEach(updateList);
     // Note: Not updating product cache times individually as it complicates map iteration
-
-    print('DEBUG: Updated local cache for offer ${offer.id}');
   }
 
   /// Apply local viewed state to override API flags
@@ -424,6 +400,12 @@ class OffersApiDataSource implements IOfferDataSource {
     _receivedOffersCacheTime = null;
     _offersByProductCache.clear();
     _offersByProductCacheTime.clear();
-    print('DEBUG: All offer caches cleared');
+  }
+
+  @override
+  void clearCache() {
+    _clearAllCaches();
+    _offerByIdCache.clear();
+    _offerByIdCacheTime.clear();
   }
 }

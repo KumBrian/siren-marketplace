@@ -84,9 +84,8 @@ class LocalOfferDataSource implements IOfferDataSource {
 
   @override
   Future<List<OfferModel>> getByBuyerId(String buyerId) async {
-    print('DEBUG: LocalOfferDataSource.getByBuyerId($buyerId)');
     final maps = await dbHelper.getOfferMapsByBuyerId(buyerId);
-    print('DEBUG: LocalOfferDataSource found ${maps.length} rows');
+
     return maps.map((m) => OfferModel.fromMap(m)).toList();
   }
 
@@ -147,6 +146,11 @@ class LocalOfferDataSource implements IOfferDataSource {
       );
     }
     await batch.commit(noResult: true);
-    print('DEBUG: LocalOfferDataSource.saveBatch: Saved');
+    await batch.commit(noResult: true);
+  }
+
+  @override
+  void clearCache() {
+    // No memory cache to clear
   }
 }

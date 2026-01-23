@@ -611,7 +611,7 @@ mixin _$AccountApiModel {
   String? get uid => throw _privateConstructorUsedError;
 
   /// Rating distribution (from my-profile endpoint)
-  List<String>? get ratingDistribution => throw _privateConstructorUsedError;
+  dynamic get ratingDistribution => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -644,7 +644,7 @@ abstract class $AccountApiModelCopyWith<$Res> {
       @JsonKey(name: 'created_at') String? createdAt,
       @JsonKey(name: 'updated_at') String? updatedAt,
       String? uid,
-      List<String>? ratingDistribution});
+      dynamic ratingDistribution});
 }
 
 /// @nodoc
@@ -751,7 +751,7 @@ class _$AccountApiModelCopyWithImpl<$Res, $Val extends AccountApiModel>
       ratingDistribution: freezed == ratingDistribution
           ? _value.ratingDistribution
           : ratingDistribution // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
+              as dynamic,
     ) as $Val);
   }
 }
@@ -783,7 +783,7 @@ abstract class _$$AccountApiModelImplCopyWith<$Res>
       @JsonKey(name: 'created_at') String? createdAt,
       @JsonKey(name: 'updated_at') String? updatedAt,
       String? uid,
-      List<String>? ratingDistribution});
+      dynamic ratingDistribution});
 }
 
 /// @nodoc
@@ -886,9 +886,9 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
           : uid // ignore: cast_nullable_to_non_nullable
               as String?,
       ratingDistribution: freezed == ratingDistribution
-          ? _value._ratingDistribution
+          ? _value.ratingDistribution
           : ratingDistribution // ignore: cast_nullable_to_non_nullable
-              as List<String>?,
+              as dynamic,
     ));
   }
 }
@@ -915,9 +915,8 @@ class _$AccountApiModelImpl implements _AccountApiModel {
       @JsonKey(name: 'created_at') this.createdAt,
       @JsonKey(name: 'updated_at') this.updatedAt,
       this.uid,
-      final List<String>? ratingDistribution})
-      : _roles = roles,
-        _ratingDistribution = ratingDistribution;
+      this.ratingDistribution})
+      : _roles = roles;
 
   factory _$AccountApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$AccountApiModelImplFromJson(json);
@@ -996,18 +995,8 @@ class _$AccountApiModelImpl implements _AccountApiModel {
   final String? uid;
 
   /// Rating distribution (from my-profile endpoint)
-  final List<String>? _ratingDistribution;
-
-  /// Rating distribution (from my-profile endpoint)
   @override
-  List<String>? get ratingDistribution {
-    final value = _ratingDistribution;
-    if (value == null) return null;
-    if (_ratingDistribution is EqualUnmodifiableListView)
-      return _ratingDistribution;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
+  final dynamic ratingDistribution;
 
   @override
   String toString() {
@@ -1046,7 +1035,7 @@ class _$AccountApiModelImpl implements _AccountApiModel {
                 other.updatedAt == updatedAt) &&
             (identical(other.uid, uid) || other.uid == uid) &&
             const DeepCollectionEquality()
-                .equals(other._ratingDistribution, _ratingDistribution));
+                .equals(other.ratingDistribution, ratingDistribution));
   }
 
   @JsonKey(ignore: true)
@@ -1070,7 +1059,7 @@ class _$AccountApiModelImpl implements _AccountApiModel {
       createdAt,
       updatedAt,
       uid,
-      const DeepCollectionEquality().hash(_ratingDistribution));
+      const DeepCollectionEquality().hash(ratingDistribution));
 
   @JsonKey(ignore: true)
   @override
@@ -1109,7 +1098,7 @@ abstract class _AccountApiModel implements AccountApiModel {
       @JsonKey(name: 'created_at') final String? createdAt,
       @JsonKey(name: 'updated_at') final String? updatedAt,
       final String? uid,
-      final List<String>? ratingDistribution}) = _$AccountApiModelImpl;
+      final dynamic ratingDistribution}) = _$AccountApiModelImpl;
 
   factory _AccountApiModel.fromJson(Map<String, dynamic> json) =
       _$AccountApiModelImpl.fromJson;
@@ -1179,7 +1168,7 @@ abstract class _AccountApiModel implements AccountApiModel {
   @override
 
   /// Rating distribution (from my-profile endpoint)
-  List<String>? get ratingDistribution;
+  dynamic get ratingDistribution;
   @override
   @JsonKey(ignore: true)
   _$$AccountApiModelImplCopyWith<_$AccountApiModelImpl> get copyWith =>

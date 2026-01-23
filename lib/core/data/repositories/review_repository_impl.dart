@@ -85,7 +85,7 @@ class ReviewRepositoryImpl implements IReviewRepository {
             orderId: r.saleOrder?.toString() ?? '',
             reviewerId: r.reviewer?.id?.toString() ?? '',
             reviewedUserId: r.reviewedAccount?.id?.toString() ?? '',
-            rating: Rating.fromValue(r.rate),
+            rating: Rating.fromValue(r.rate.toDouble()),
             comment: r.message,
             timestamp: r.createdAt != null
                 ? DateTime.parse(r.createdAt!)
@@ -152,7 +152,7 @@ class ReviewRepositoryImpl implements IReviewRepository {
         orderId: orderId,
         reviewerId: reviewerId,
         reviewedUserId: reviewedUserId,
-        rating: Rating.fromValue(response.rate),
+        rating: Rating.fromValue(response.rate.toDouble()),
         comment: response.message,
         timestamp: response.createdAt != null
             ? DateTime.parse(response.createdAt!)

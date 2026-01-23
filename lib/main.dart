@@ -12,6 +12,7 @@ import 'dart:async';
 import 'package:siren_marketplace/core/providers/error_provider.dart';
 import 'package:siren_marketplace/core/widgets/offline_banner.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:siren_marketplace/core/providers/notification_providers.dart';
 
 Future<void> main() async {
   // Use a variable to handle the provider container, so it can be accessed in the error handler
@@ -88,6 +89,9 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Trigger initialization
+    ref.watch(appInitializationProvider);
+
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(

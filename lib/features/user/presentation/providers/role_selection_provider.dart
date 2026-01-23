@@ -13,20 +13,17 @@ class RoleSelectionController extends AutoDisposeAsyncNotifier<void> {
   }
 
   Future<void> selectRole(UserRole role) async {
-    print('RoleSelectionController.selectRole called with $role');
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      print('RoleSelectionController.selectRole - starting guard');
       final sessionService = sl<SessionService>();
 
       if (AppConfig.isApiMode) {
         // API Mode: User is already authenticated, just switch role
-        print('RoleSelectionController - API mode: switching role');
+
         await sessionService.switchRole(role);
-        print('RoleSelectionController - Role switched successfully');
       } else {
         // Demo/Local Mode: Fetch mock user and login
-        print('RoleSelectionController - Demo/Local mode: fetching mock user');
+
         final userRepository = sl<IUserRepository>();
 
         // 1. Fetch user based on role (Simulation for demo)
@@ -35,25 +32,18 @@ class RoleSelectionController extends AutoDisposeAsyncNotifier<void> {
             : await userRepository.getFirstBuyer();
 
         if (user == null) {
-          print('RoleSelectionController.selectRole - User not found');
           throw Exception('No user found for role ${role.name}');
         }
-        print('RoleSelectionController.selectRole - User found: ${user.id}');
 
         // 2. Login
         await sessionService.login(user);
-        print('RoleSelectionController.selectRole - Login successful');
       }
 
       // 3. Refresh global user provider and WAIT for it to complete
       // This ensures we have the new user data before we navigate.
       ref.invalidate(currentUserProvider);
       await ref.read(currentUserProvider.future);
-      print(
-        'RoleSelectionController.selectRole - Provider invalidated and refreshed',
-      );
     });
-    print('RoleSelectionController.selectRole - state updated to: $state');
   }
 }
 

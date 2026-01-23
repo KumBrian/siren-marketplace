@@ -53,68 +53,53 @@ class OrderRepositoryImpl implements IOrderRepository {
   @override
   Future<Order> getById(String orderId) async {
     final isOffline = await _isOffline;
-    print('DEBUG OrderRepository: getById($orderId), isOffline=$isOffline');
 
     // Optimization: Skip remote if offline
     if (isOffline) {
-      print('DEBUG OrderRepository: Offline mode, fetching local only');
       return _getLocalOrder(orderId);
     }
 
     // 1. Try Remote (Embedded)
     try {
-      print('DEBUG OrderRepository: Trying remote fetch with embedded data');
       final order = await getByIdWithEmbeddedData(orderId);
       if (order != null) {
-        print('DEBUG OrderRepository: Remote fetch successful (embedded)');
         return order;
       }
     } catch (e) {
-      print('DEBUG OrderRepository: Remote fetch (embedded) failed: $e');
       // ignore
     }
 
     // 2. Try Remote (Standard)
     try {
-      print('DEBUG OrderRepository: Trying remote fetch (standard)');
       final model = await remoteDataSource.getById(orderId);
       if (model != null) {
-        print(
-          'DEBUG OrderRepository: Remote fetch successful (standard), saving to local',
-        );
         await localDataSource.saveBatch([model]);
         return OrderMapper.toEntity(model);
       }
     } catch (e) {
-      print('DEBUG OrderRepository: Remote fetch (standard) failed: $e');
       // Fallback defined below
     }
 
     // 3. Fallback to Local
-    print(
-      'DEBUG OrderRepository: Remote failed or returned null, failing back to local',
-    );
+
     return _getLocalOrder(orderId);
   }
 
   Future<Order> _getLocalOrder(String orderId) async {
-    print('DEBUG OrderRepository: _getLocalOrder($orderId)');
     final localModel = await localDataSource.getById(orderId);
     if (localModel == null) {
-      print('DEBUG OrderRepository: Order not found in local DB');
       throw NotFoundException(
         "Order not found",
         entityType: 'Order',
         entityId: orderId,
       );
     }
-    print('DEBUG OrderRepository: Found local order, mapping to entity');
+
     try {
       final entity = OrderMapper.toEntity(localModel);
-      print('DEBUG OrderRepository: Mapped entity successfully: ${entity.id}');
+
       return entity;
     } catch (e) {
-      print('DEBUG OrderRepository: Error mapping local model to entity: $e');
       rethrow;
     }
   }

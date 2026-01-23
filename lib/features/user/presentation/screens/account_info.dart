@@ -8,6 +8,8 @@ import 'package:siren_marketplace/core/types/converters.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
+import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 import 'package:siren_marketplace/features/user/data/models/profile_route.dart';
 import 'package:siren_marketplace/features/user/presentation/widgets/profile_route_widget.dart';
 
@@ -49,11 +51,12 @@ List<ProfileRoute> getProfileRoutes(
                 if (!success && v) {
                   // Show permission denied message
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Notification permission denied. Please enable in device settings.',
-                        ),
+                    showDialog(
+                      context: context,
+                      builder: (context) => const ErrorDialog(
+                        title: "Permission Denied",
+                        message:
+                            'Notification permission denied. Please enable in device settings.',
                       ),
                     );
                   }
@@ -73,15 +76,21 @@ List<ProfileRoute> getProfileRoutes(
       final success = await notifier.sendTestNotification();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success
-                  ? 'Test notification sent successfully!'
-                  : 'Failed to send test notification.',
+        if (success) {
+          showActionSuccessDialog(
+            context,
+            message: 'Test notification sent successfully!',
+            autoCloseSeconds: 3,
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (context) => const ErrorDialog(
+              title: "Notification Failed",
+              message: 'Failed to send test notification.',
             ),
-          ),
-        );
+          );
+        }
       }
     },
     trailing: const Icon(Icons.send, size: 20, color: AppColors.textBlue),

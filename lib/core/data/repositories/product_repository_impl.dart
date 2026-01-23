@@ -60,11 +60,8 @@ class ProductRepositoryImpl implements IProductRepository {
         await _localDataSource.saveBatch(
           products.map((p) => ProductModel.fromDomain(p)).toList(),
         );
-        print(
-          'DEBUG ProductRepository: Successfully cached ${products.length} fisher products',
-        );
+        // Successfully cached fisher products
       } catch (e) {
-        print('DEBUG ProductRepository: Failed to cache fisher products: $e');
         // Ignore cache failure
       }
 
@@ -80,9 +77,7 @@ class ProductRepositoryImpl implements IProductRepository {
             final products = localModels.map((m) => m.toDomain()).toList();
             return Right(products);
           }
-        } catch (localError) {
-          print('DEBUG ProductRepository: Fallback failed: $localError');
-        }
+        } catch (localError) {}
       }
       return Left(ServerFailure(message: e.toString()));
     }

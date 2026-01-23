@@ -47,8 +47,6 @@ class LoginController extends AutoDisposeAsyncNotifier<void> {
       // Refresh current user provider
       ref.invalidate(currentUserProvider);
       await ref.read(currentUserProvider.future);
-
-      print('DEBUG: Login complete - auth and user providers refreshed');
     });
   }
 

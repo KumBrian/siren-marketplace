@@ -18,6 +18,7 @@ import 'package:siren_marketplace/core/types/extensions.dart';
 import 'package:siren_marketplace/core/providers/catch_filter_provider.dart';
 import 'package:siren_marketplace/core/providers/catch_providers.dart';
 import 'package:siren_marketplace/core/providers/product_providers.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
 import 'package:siren_marketplace/features/chat/presentation/widgets/conversation_card.dart';
@@ -312,16 +313,9 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
           // Fetch offers if count > 0 using the new provider
           // We use AsyncValue to handle loading/error states for offers
           AsyncValue<List<Offer>> offersAsync = const AsyncValue.data([]);
-          print(
-            'DEBUG: selectedCatch.offersCount = ${selectedCatch.offersCount}',
-          );
+
           if (selectedCatch.offersCount > 0) {
-            print(
-              'DEBUG: Watching productOffersProvider for product ${widget.catchId}',
-            );
             offersAsync = ref.watch(productOffersProvider(widget.catchId));
-          } else {
-            print('DEBUG: offersCount is 0, not fetching offers');
           }
 
           return Scaffold(
@@ -858,27 +852,49 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
 
   Widget _buildOffersList(BuildContext context, List<Offer> offers) {
     if (offers.isEmpty) {
-      return _buildEmptyState("No matching offers.", "Try adjusting filters.");
+      return RefreshIndicator(
+        onRefresh: () async {
+          ref.read(offerRepositoryProvider).clearCache();
+          await ref.refresh(productOffersProvider(widget.catchId).future);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: _buildEmptyState(
+              "No matching offers.",
+              "Try adjusting filters.",
+            ),
+          ),
+        ),
+      );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80, top: 16),
-      itemCount: offers.length,
-      itemBuilder: (context, index) {
-        final offer = offers[index];
-
-        // Use embedded buyer data instead of fetching separately
-        return OfferCard(
-          offer: offer,
-          clientName: offer.buyer?.name ?? "Unknown",
-          clientRating: offer.buyer?.rating.value ?? 0.0,
-          onPressed: () async {
-            await context.push("/fisher/offer-details/${offer.id}");
-            // Refresh offers to show updated status (e.g. read/unread)
-            ref.invalidate(productOffersProvider(widget.catchId));
-          },
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Clear cache and await refresh
+        ref.read(offerRepositoryProvider).clearCache();
+        await ref.refresh(productOffersProvider(widget.catchId).future);
       },
+      child: ListView.builder(
+        padding: const EdgeInsets.only(bottom: 80, top: 16),
+        itemCount: offers.length,
+        itemBuilder: (context, index) {
+          final offer = offers[index];
+
+          // Use embedded buyer data instead of fetching separately
+          return OfferCard(
+            offer: offer,
+            clientName: offer.buyer?.name ?? "Unknown",
+            clientRating: offer.buyer?.rating.value ?? 0.0,
+            onPressed: () async {
+              await context.push("/fisher/offer-details/${offer.id}");
+              // Refresh offers to show updated status (e.g. read/unread)
+              ref.invalidate(productOffersProvider(widget.catchId));
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -912,23 +928,49 @@ class _CatchDetailsState extends ConsumerState<CatchDetails>
           data: (conversations) {
             // API already filters by product
             if (conversations.isEmpty) {
-              return _buildEmptyState(
-                "No messages",
-                "Start a conversation from an offer.",
+              return RefreshIndicator(
+                onRefresh: () async {
+                  await Future.wait([
+                    ref.refresh(
+                      conversationsByProductProvider(widget.catchId).future,
+                    ),
+                    ref.refresh(productByIdProvider(widget.catchId).future),
+                  ]);
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    child: _buildEmptyState(
+                      "No messages",
+                      "Start a conversation from an offer.",
+                    ),
+                  ),
+                ),
               );
             }
 
-            return ListView.builder(
-              padding: const EdgeInsets.only(bottom: 80, top: 16),
-              itemCount: conversations.length,
-              itemBuilder: (context, index) {
-                final conv = conversations[index];
-                return ConversationCard(
-                  conversation: conv,
-                  currentUser: user,
-                  onTap: () => context.push('/fisher/chat/${conv.id}'),
-                );
+            return RefreshIndicator(
+              onRefresh: () async {
+                await Future.wait([
+                  ref.refresh(
+                    conversationsByProductProvider(widget.catchId).future,
+                  ),
+                  ref.refresh(productByIdProvider(widget.catchId).future),
+                ]);
               },
+              child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: 80, top: 16),
+                itemCount: conversations.length,
+                itemBuilder: (context, index) {
+                  final conv = conversations[index];
+                  return ConversationCard(
+                    conversation: conv,
+                    currentUser: user,
+                    onTap: () => context.push('/fisher/chat/${conv.id}'),
+                  );
+                },
+              ),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),

@@ -98,7 +98,7 @@ class AccountApiModel with _$AccountApiModel {
     String? uid,
 
     /// Rating distribution (from my-profile endpoint)
-    List<String>? ratingDistribution,
+    dynamic ratingDistribution,
   }) = _AccountApiModel;
 
   factory AccountApiModel.fromJson(Map<String, dynamic> json) =>

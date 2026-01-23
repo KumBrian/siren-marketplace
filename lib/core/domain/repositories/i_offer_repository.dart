@@ -45,4 +45,7 @@ abstract class IOfferRepository {
 
   /// Execute multiple operations in a transaction
   Future<T> transaction<T>(Future<T> Function() action);
+
+  /// Clear repository caches (memory)
+  void clearCache();
 }

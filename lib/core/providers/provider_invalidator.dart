@@ -22,14 +22,10 @@ void invalidateCatchAndProductProviders() {
     return;
   }
 
-  print('DEBUG: Invalidating fisherCatchesProvider and fisherProductsProvider');
-
   // Invalidate catch providers
   _globalProviderContainer!.invalidate(fisherCatchesProvider);
 
   // Invalidate product providers (all pages)
   // Since fisherProductsProvider is a family provider, we need to invalidate it
   _globalProviderContainer!.invalidate(fisherProductsProvider);
-
-  print('DEBUG: Providers invalidated successfully');
 }

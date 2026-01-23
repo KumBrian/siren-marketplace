@@ -28,13 +28,10 @@ class UserRepositoryImpl implements IUserRepository {
           // Cache to local
           try {
             await localDataSource.update(model);
-          } catch (e) {
-            print('DEBUG: Failed to cache user $userId: $e');
-          }
+          } catch (e) {}
           return UserMapper.toEntity(model);
         }
       } catch (e) {
-        print('DEBUG: Failed to fetch user $userId from remote: $e');
         // Fallback to local
       }
     }
@@ -78,9 +75,7 @@ class UserRepositoryImpl implements IUserRepository {
           final updatedModel = UserMapper.toModel(updatedUser);
           await remoteDataSource!.update(updatedModel);
         }
-      } catch (e) {
-        print('DEBUG: Failed to update role on remote: $e');
-      }
+      } catch (e) {}
     }
 
     // 2. Update Local

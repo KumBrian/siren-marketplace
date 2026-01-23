@@ -17,10 +17,8 @@ const Duration _cacheDuration = Duration(days: 2);
 /// Provider for species API data source
 final speciesApiDataSourceProvider = Provider<SpeciesApiDataSource>((ref) {
   try {
-    print('DEBUG: Creating SpeciesApiDataSource...');
     // Species API is on marketplace, so use marketplace client
     final apiClient = sl<ApiClient>(instanceName: 'marketplaceApiClient');
-    print('DEBUG: Got marketplace API client');
     return SpeciesApiDataSource(client: apiClient);
   } catch (e, stack) {
     print('ERROR: Failed to create SpeciesApiDataSource: $e');
@@ -31,17 +29,11 @@ final speciesApiDataSourceProvider = Provider<SpeciesApiDataSource>((ref) {
 
 /// Provider that fetches and caches species from API
 final speciesProvider = FutureProvider<List<Species>>((ref) async {
-  print('DEBUG: speciesProvider called');
-
   try {
     // Get SharedPreferences
-    print('DEBUG: Getting SharedPreferences instance...');
     final prefs = await SharedPreferences.getInstance();
-    print('DEBUG: SharedPreferences instance obtained');
 
-    print('DEBUG: Getting API data source...');
     final apiDataSource = ref.read(speciesApiDataSourceProvider);
-    print('DEBUG: API data source obtained');
 
     // Check cache first
     final cachedJson = prefs.getString(_speciesCacheKey);
@@ -53,10 +45,6 @@ final speciesProvider = FutureProvider<List<Species>>((ref) async {
 
       // Check if cache is still valid (less than 2 days old)
       if (now.difference(cacheTime) < _cacheDuration) {
-        print(
-          'DEBUG: Using cached species data (age: ${now.difference(cacheTime).inHours}h)',
-        );
-
         try {
           final List<dynamic> jsonList = json.decode(cachedJson);
           final species = jsonList
@@ -66,24 +54,16 @@ final speciesProvider = FutureProvider<List<Species>>((ref) async {
               .toList()
               .cast<Species>();
 
-          print('DEBUG: Loaded ${species.length} species from cache');
           return species;
         } catch (e) {
           print('ERROR: Failed to decode cached species: $e');
           // Continue to fetch from API
         }
-      } else {
-        print(
-          'DEBUG: Cache expired (age: ${now.difference(cacheTime).inHours}h), fetching fresh data',
-        );
       }
-    } else {
-      print('DEBUG: No cached species found');
     }
 
     // Fetch from API
     try {
-      print('DEBUG: Fetching species from API...');
       final apiSpecies = await apiDataSource.fetchSpecies(itemsPerPage: 100);
 
       // Convert to Species entities
@@ -96,8 +76,6 @@ final speciesProvider = FutureProvider<List<Species>>((ref) async {
           scientificName: '', // Not provided by API yet
         );
       }).toList();
-
-      print('DEBUG: Fetched ${species.length} species from API');
 
       // Cache the data
       try {
@@ -116,8 +94,6 @@ final speciesProvider = FutureProvider<List<Species>>((ref) async {
           _speciesTimestampKey,
           DateTime.now().millisecondsSinceEpoch,
         );
-
-        print('DEBUG: Cached ${species.length} species for 2 days');
       } catch (e) {
         print('ERROR: Failed to cache species: $e');
         // Continue anyway, we have the data
@@ -130,7 +106,6 @@ final speciesProvider = FutureProvider<List<Species>>((ref) async {
 
       // Try to return cached data even if expired as fallback
       if (cachedJson != null) {
-        print('DEBUG: API failed, using expired cache as fallback');
         try {
           final List<dynamic> jsonList = json.decode(cachedJson);
           return jsonList
@@ -145,7 +120,6 @@ final speciesProvider = FutureProvider<List<Species>>((ref) async {
       }
 
       // Return empty list if all fails
-      print('ERROR: Returning empty list as final fallback');
       return [];
     }
   } catch (e, stack) {

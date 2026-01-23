@@ -30,10 +30,6 @@ final subgroupsProvider = FutureProvider<List<Subgroup>>((ref) async {
 
       // Check if cache is still valid (less than 2 days old)
       if (now.difference(cacheTime) < _cacheDuration) {
-        print(
-          'DEBUG: Using cached subgroups data (age: ${now.difference(cacheTime).inHours}h)',
-        );
-
         try {
           final Map<String, dynamic> cacheData = json.decode(cachedJson);
           final List<dynamic> subgroupsList = cacheData['subgroups'] ?? [];
@@ -56,26 +52,18 @@ final subgroupsProvider = FutureProvider<List<Subgroup>>((ref) async {
             );
           }).toList();
 
-          print('DEBUG: Loaded ${subgroups.length} subgroups from cache');
           return subgroups;
         } catch (e) {
           print('ERROR: Failed to decode cached subgroups: $e');
           // Continue to fetch from API
         }
-      } else {
-        print(
-          'DEBUG: Cache expired (age: ${now.difference(cacheTime).inHours}h), fetching fresh data',
-        );
-      }
-    } else {
-      print('DEBUG: No cached subgroups found');
-    }
+      } else {}
+    } else {}
 
     // Fetch from API
-    print('DEBUG: Fetching subgroups from API...');
+
     final apiModels = await dataSource.getMarketSubgroups(1);
     final subgroups = SubgroupMapper.toDomainList(apiModels);
-    print('DEBUG: Fetched ${subgroups.length} subgroups from API');
 
     // Cache the data
     try {
@@ -104,8 +92,6 @@ final subgroupsProvider = FutureProvider<List<Subgroup>>((ref) async {
         _subgroupsTimestampKey,
         DateTime.now().millisecondsSinceEpoch,
       );
-
-      print('DEBUG: Cached ${subgroups.length} subgroups for 2 days');
     } catch (e) {
       print('ERROR: Failed to cache subgroups: $e');
       // Continue anyway, we have the data
@@ -121,7 +107,6 @@ final subgroupsProvider = FutureProvider<List<Subgroup>>((ref) async {
     final cachedJson = prefs.getString(_subgroupsCacheKey);
 
     if (cachedJson != null) {
-      print('DEBUG: API failed, using expired cache as fallback');
       try {
         final Map<String, dynamic> cacheData = json.decode(cachedJson);
         final List<dynamic> subgroupsList = cacheData['subgroups'] ?? [];

@@ -24,9 +24,9 @@ class RoleScreen extends ConsumerWidget {
       previous,
       next,
     ) {
-      print('RoleScreen listener: next state = $next');
+      // RoleScreen listener: next state = next
       if (next.hasError) {
-        print('RoleScreen listener: Error - ${next.error}');
+        // RoleScreen listener: Error
         showDialog(
           context: context,
           builder: (context) => ErrorDialog(
@@ -39,9 +39,6 @@ class RoleScreen extends ConsumerWidget {
         // We read the provider here to get the LATEST value
         // even if the widget rebuilt.
         final currentSelectedRole = ref.read(selectedRoleProvider);
-        print(
-          'RoleScreen listener: Success! Navigating to $currentSelectedRole',
-        );
 
         // Success! Navigate based on selected role
         if (currentSelectedRole == UserRole.buyer) {

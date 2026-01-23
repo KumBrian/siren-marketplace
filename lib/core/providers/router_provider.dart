@@ -39,9 +39,6 @@ class AuthNotifier extends ChangeNotifier {
 
   AuthNotifier(this.ref) {
     ref.listen(currentUserProvider, (previous, next) {
-      print(
-        'AuthNotifier: currentUserProvider changed from ${previous?.value?.id} to ${next.value?.id}',
-      );
       notifyListeners();
     });
   }
@@ -61,7 +58,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     // Refresh the router when the user provider changes
     refreshListenable: authNotifier,
     redirect: (context, state) {
-      print('GoRouter: redirect called. Path: ${state.fullPath}');
       final bool isRoot = state.fullPath == '/';
       final bool isLoginRoute = state.fullPath == '/login';
 
@@ -70,19 +66,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         final authAsync = ref.read(isAuthenticatedProvider);
         final isAuthenticated = authAsync.value ?? false;
 
-        print(
-          'GoRouter: API mode - isAuthenticated: $isAuthenticated, path: ${state.fullPath}',
-        );
-
         // Not authenticated and not on login → redirect to login
         if (!isAuthenticated && !isLoginRoute) {
-          print('GoRouter: Not authenticated, redirecting to /login');
           return '/login';
         }
 
         // Authenticated and on login → redirect to role selection
         if (isAuthenticated && isLoginRoute) {
-          print('GoRouter: Already authenticated, redirecting to /');
           return '/';
         }
       }
@@ -90,37 +80,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       // READ the current state, do NOT watch it here to avoid recreating the router
       final userAsync = ref.read(currentUserProvider);
 
-      print('GoRouter: userAsync state: $userAsync');
-
       // Handle loading state
       // Only redirect to splash/root if we are loading AND have no data.
       // If we have data (e.g. background refresh), let the user proceed/stay.
       if (userAsync.isLoading && !userAsync.hasValue) {
-        print('GoRouter: User is loading and has no value. isRoot: $isRoot');
         return (isRoot || isLoginRoute) ? null : '/';
       }
 
       final user = userAsync.value;
       final currentRole = user?.currentRole ?? UserRole.unknown;
-      print('GoRouter: User loaded. Role: $currentRole');
 
       // Rule 1: Not loaded/Unknown role attempts to access non-root path → Redirect to root
       if (currentRole == UserRole.unknown && !isRoot && !isLoginRoute) {
-        print('GoRouter: Unknown role on non-root path. Redirecting to /');
         return '/';
       }
 
       // Rule 2: A valid role loaded attempts to access the root path (`/`).
       // We explicitly allow the user to stay on the root path (the RoleScreen).
       if (currentRole != UserRole.unknown && isRoot) {
-        print(
-          'GoRouter: Valid role on root path. Staying on / (RoleScreen handles navigation)',
-        );
         return null;
       }
 
       // Rule 3: Allow navigation for all other cases
-      print('GoRouter: Allowing navigation to ${state.fullPath}');
       return null;
     },
     routes: [

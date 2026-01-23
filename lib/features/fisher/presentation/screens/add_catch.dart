@@ -8,6 +8,7 @@ import 'package:siren_marketplace/core/providers/navigation_providers.dart';
 import 'package:siren_marketplace/core/providers/subgroups_provider.dart';
 import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 import 'package:siren_marketplace/core/widgets/custom_button.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/core/widgets/number_input_field.dart';
 import 'package:siren_marketplace/core/widgets/section_header.dart';
 import 'package:siren_marketplace/core/domain/entities/species.dart';
@@ -730,8 +731,10 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                 final success = await notifier.saveAsDraft();
                 if (success) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Draft saved locally")),
+                    showActionSuccessDialog(
+                      context,
+                      message: "Draft saved locally",
+                      autoCloseSeconds: 2,
                     );
                     Navigator.pop(context);
                   }
@@ -762,6 +765,8 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                           Expanded(
                             child: CustomButton(
                               title: "Submit",
+                              loading: state.isSubmitting,
+                              disabled: state.isSubmitting,
                               onPressed: () async {
                                 final success = await notifier.submit();
                                 if (success) {
@@ -801,11 +806,12 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                                   }
                                 } else {
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Failed to submit catch. Please check your inputs.",
-                                        ),
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => const ErrorDialog(
+                                        title: "Submission Failed",
+                                        message:
+                                            "Failed to submit catch. Please check your inputs.",
                                       ),
                                     );
                                   }
@@ -820,11 +826,11 @@ class _AddCatchScreenState extends ConsumerState<AddCatchScreen> {
                         onPressed: notifier.canProceed()
                             ? notifier.nextStep
                             : () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      "Please fill in required fields",
-                                    ),
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => const ErrorDialog(
+                                    title: "Incomplete Details",
+                                    message: "Please fill in required fields",
                                   ),
                                 );
                               },

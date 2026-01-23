@@ -181,33 +181,21 @@ class OfferRepositoryImpl implements IOfferRepository {
       // 1. Hydrate Buyer if missing
       if (entity.buyer == null) {
         try {
-          // print(
-          //   'DEBUG: Hydrating buyer for offer ${entity.id}, buyerId: ${entity.buyerId}',
-          // );
           final buyerUser = await userRepository.getById(entity.buyerId);
           if (buyerUser != null) {
-            // print('DEBUG: Found buyer: ${buyerUser.name}');
             entity = entity.copyWith(buyer: buyerUser);
           }
-        } catch (e) {
-          print('DEBUG: Error hydrating buyer: $e');
-        }
+        } catch (e) {}
       }
 
       // 2. Hydrate Fisher if missing (usually via product or direct id)
       if (entity.fisher == null) {
         try {
-          // print(
-          //   'DEBUG: Hydrating fisher for offer ${entity.id}, fisherId: ${entity.fisherId}',
-          // );
           final fisherUser = await userRepository.getById(entity.fisherId);
           if (fisherUser != null) {
-            // print('DEBUG: Found fisher: ${fisherUser.name}');
             entity = entity.copyWith(fisher: fisherUser);
           }
-        } catch (e) {
-          print('DEBUG: Error hydrating fisher: $e');
-        }
+        } catch (e) {}
       }
 
       // 3. Hydrate Product using LocalProductDataSource (offline support)
@@ -222,9 +210,7 @@ class OfferRepositoryImpl implements IOfferRepository {
             final product = productModel.toDomain();
             entity = entity.copyWith(product: product);
           }
-        } catch (e) {
-          print('DEBUG: Error hydrating product from local: $e');
-        }
+        } catch (e) {}
       }
 
       entities.add(entity);
@@ -485,5 +471,15 @@ class OfferRepositoryImpl implements IOfferRepository {
     // The previous implementation used `updateLocalCache` on the dataSource.
     // `IOfferDataSource` has `updateLocalCache`.
     remoteDataSource.updateLocalCache(updatedModel);
+  }
+
+  @override
+  void clearCache() {
+    // Delegate to remote data source if supported
+    // Since we know OffersApiDataSource implements it (via interface), we can call it.
+    // If other data source implementations don't do anything, that's fine.
+    remoteDataSource.clearCache();
+    // Local data source technically has clearCache too but it's empty.
+    localDataSource.clearCache();
   }
 }

@@ -36,8 +36,6 @@ class OfferMapper {
 
   /// Convert data model to domain entity
   static Offer toEntity(OfferModel model) {
-    print('DEBUG OfferMapper.toEntity - model.buyer: ${model.buyer}');
-
     final currentWeight = Weight.fromGrams(model.currentWeightGrams);
     final currentPrice = Price.fromAmount(model.currentPriceAmount);
     final currentPpk = PricePerKg.fromAmount(model.currentPricePerKgAmount);

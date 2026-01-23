@@ -217,11 +217,11 @@ ReviewApiResponse _$ReviewApiResponseFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$ReviewApiResponse {
   dynamic get id => throw _privateConstructorUsedError;
-  double get rate => throw _privateConstructorUsedError;
+  num get rate => throw _privateConstructorUsedError;
   String get message => throw _privateConstructorUsedError;
   bool get published => throw _privateConstructorUsedError;
   @JsonKey(name: 'sale_order')
-  dynamic get saleOrder => throw _privateConstructorUsedError; // User details
+  dynamic? get saleOrder => throw _privateConstructorUsedError; // User details
   AccountApiModel? get reviewer => throw _privateConstructorUsedError;
   AccountApiModel? get reviewedAccount =>
       throw _privateConstructorUsedError; // Timestamps
@@ -247,10 +247,10 @@ abstract class $ReviewApiResponseCopyWith<$Res> {
   @useResult
   $Res call(
       {dynamic id,
-      double rate,
+      num rate,
       String message,
       bool published,
-      @JsonKey(name: 'sale_order') dynamic saleOrder,
+      @JsonKey(name: 'sale_order') dynamic? saleOrder,
       AccountApiModel? reviewer,
       AccountApiModel? reviewedAccount,
       @JsonKey(name: 'created_at') String? createdAt,
@@ -295,7 +295,7 @@ class _$ReviewApiResponseCopyWithImpl<$Res, $Val extends ReviewApiResponse>
       rate: null == rate
           ? _value.rate
           : rate // ignore: cast_nullable_to_non_nullable
-              as double,
+              as num,
       message: null == message
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
@@ -307,7 +307,7 @@ class _$ReviewApiResponseCopyWithImpl<$Res, $Val extends ReviewApiResponse>
       saleOrder: freezed == saleOrder
           ? _value.saleOrder
           : saleOrder // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as dynamic?,
       reviewer: freezed == reviewer
           ? _value.reviewer
           : reviewer // ignore: cast_nullable_to_non_nullable
@@ -370,10 +370,10 @@ abstract class _$$ReviewApiResponseImplCopyWith<$Res>
   @useResult
   $Res call(
       {dynamic id,
-      double rate,
+      num rate,
       String message,
       bool published,
-      @JsonKey(name: 'sale_order') dynamic saleOrder,
+      @JsonKey(name: 'sale_order') dynamic? saleOrder,
       AccountApiModel? reviewer,
       AccountApiModel? reviewedAccount,
       @JsonKey(name: 'created_at') String? createdAt,
@@ -418,7 +418,7 @@ class __$$ReviewApiResponseImplCopyWithImpl<$Res>
       rate: null == rate
           ? _value.rate
           : rate // ignore: cast_nullable_to_non_nullable
-              as double,
+              as num,
       message: null == message
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
@@ -430,7 +430,7 @@ class __$$ReviewApiResponseImplCopyWithImpl<$Res>
       saleOrder: freezed == saleOrder
           ? _value.saleOrder
           : saleOrder // ignore: cast_nullable_to_non_nullable
-              as dynamic,
+              as dynamic?,
       reviewer: freezed == reviewer
           ? _value.reviewer
           : reviewer // ignore: cast_nullable_to_non_nullable
@@ -481,14 +481,14 @@ class _$ReviewApiResponseImpl implements _ReviewApiResponse {
   @override
   final dynamic id;
   @override
-  final double rate;
+  final num rate;
   @override
   final String message;
   @override
   final bool published;
   @override
   @JsonKey(name: 'sale_order')
-  final dynamic saleOrder;
+  final dynamic? saleOrder;
 // User details
   @override
   final AccountApiModel? reviewer;
@@ -570,10 +570,10 @@ class _$ReviewApiResponseImpl implements _ReviewApiResponse {
 abstract class _ReviewApiResponse implements ReviewApiResponse {
   const factory _ReviewApiResponse(
       {required final dynamic id,
-      required final double rate,
+      required final num rate,
       required final String message,
       required final bool published,
-      @JsonKey(name: 'sale_order') final dynamic saleOrder,
+      @JsonKey(name: 'sale_order') final dynamic? saleOrder,
       final AccountApiModel? reviewer,
       final AccountApiModel? reviewedAccount,
       @JsonKey(name: 'created_at') final String? createdAt,
@@ -587,14 +587,14 @@ abstract class _ReviewApiResponse implements ReviewApiResponse {
   @override
   dynamic get id;
   @override
-  double get rate;
+  num get rate;
   @override
   String get message;
   @override
   bool get published;
   @override
   @JsonKey(name: 'sale_order')
-  dynamic get saleOrder;
+  dynamic? get saleOrder;
   @override // User details
   AccountApiModel? get reviewer;
   @override

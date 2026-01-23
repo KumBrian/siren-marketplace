@@ -32,6 +32,7 @@ import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/services/connectivity_service.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
 import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
+import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 
 class OrderDetails extends ConsumerWidget {
   const OrderDetails({super.key, required this.orderId});
@@ -825,11 +826,13 @@ class OrderDetails extends ConsumerWidget {
                       ref.invalidate(fisherOffersProvider);
                       ref.invalidate(fisherCatchesProvider);
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Order relisted successfully'),
-                        ),
-                      );
+                      if (context.mounted) {
+                        showActionSuccessDialog(
+                          context,
+                          message: "Order relisted successfully",
+                          autoCloseSeconds: 2,
+                        );
+                      }
                     }
                   } catch (e) {
                     if (context.mounted) {
@@ -922,12 +925,15 @@ class OrderDetails extends ConsumerWidget {
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Failed to cancel: $e"),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    if (context.mounted) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => ErrorDialog(
+                          title: "Cancellation Failed",
+                          message: "Failed to cancel: $e",
+                        ),
+                      );
+                    }
                   }
                 }
               },

@@ -9,9 +9,17 @@ import 'package:siren_marketplace/core/providers/notification_filter_provider.da
 import 'package:siren_marketplace/core/providers/user_providers.dart';
 import 'package:siren_marketplace/core/types/extensions.dart';
 
+/// Provider for the Offer Repository
+final offerRepositoryProvider = Provider<IOfferRepository>((ref) {
+  return sl<IOfferRepository>();
+});
+
 /// Provider to fetch an Offer by ID
-final offerProvider = FutureProvider.family<Offer?, String>((ref, id) async {
-  final repository = sl<IOfferRepository>();
+final offerProvider = FutureProvider.family.autoDispose<Offer?, String>((
+  ref,
+  id,
+) async {
+  final repository = ref.watch(offerRepositoryProvider);
   return repository.getById(id);
 });
 

@@ -22,9 +22,8 @@ class ApiInterceptor extends Interceptor {
     // Check for proactive refresh
     // If token is expired or about to expire, refresh it before making the request
     if (await _tokenStorage.isTokenExpired()) {
-      print('DEBUG: Token expired, attempting proactive refresh');
       final refreshed = await _tryRefreshToken();
-      print('DEBUG: Proactive refresh result: $refreshed');
+
       if (!refreshed) {
         // If refresh failed, clear tokens and reject request
         await _tokenStorage.clearTokens();
@@ -47,13 +46,10 @@ class ApiInterceptor extends Interceptor {
     // Add JWT token to headers
     final token = await _tokenStorage.getAccessToken();
     if (token != null) {
-      print(
-        'DEBUG: Adding token to header: Bearer ${token.substring(0, 10)}...',
-      );
+      // Adding token to header
+
       options.headers['Authorization'] = 'Bearer $token';
-    } else {
-      print('DEBUG: No token found in storage');
-    }
+    } else {}
 
     return handler.next(options);
   }
@@ -88,9 +84,6 @@ class ApiInterceptor extends Interceptor {
         if (lowerMsg.contains('do not have access') ||
             lowerMsg.contains('access denied') ||
             lowerMsg.contains('unauthorized access')) {
-          print(
-            'DEBUG: 401 received but identified as permission error - skipping refresh. Error: $errorMessage',
-          );
           return handler.next(err);
         }
       }
@@ -126,11 +119,8 @@ class ApiInterceptor extends Interceptor {
     try {
       final currentToken = await _tokenStorage.getAccessToken();
       if (currentToken == null) {
-        print('DEBUG: No current token available for refresh');
         return false;
       }
-
-      print('DEBUG: Attempting to refresh token...');
 
       // Create a new Dio instance to avoid interceptor loop
       final dio = Dio();
@@ -144,15 +134,11 @@ class ApiInterceptor extends Interceptor {
         ),
       );
 
-      print('DEBUG: Refresh response status: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         final data = response.data;
         // ... (existing success logic)
         final newToken = data['token'];
         final newExpiry = data['tokenExpireAt'];
-
-        print('DEBUG: Refresh successful, got new token');
 
         if (newToken != null) {
           await _tokenStorage.saveAccessToken(newToken);
@@ -162,26 +148,19 @@ class ApiInterceptor extends Interceptor {
             try {
               final expiryDate = DateTime.parse(newExpiry);
               await _tokenStorage.saveTokenExpiry(expiryDate);
-              print('DEBUG: New token expires at: $expiryDate');
-            } catch (e) {
-              print('DEBUG: Could not parse expiry date: $e');
-            }
+            } catch (_) {}
           }
 
           return true;
         }
       } else if (response.statusCode == 501 || response.statusCode == 404) {
         // Backend doesn't support refresh or endpoint missing
-        print(
-          'DEBUG: Refresh endpoint not implemented or missing (${response.statusCode}). Cannot refresh.',
-        );
+
         return false;
       }
 
-      print('DEBUG: Refresh failed with status ${response.statusCode}');
       return false;
     } catch (e) {
-      print('DEBUG: Refresh error: $e');
       return false;
     }
   }

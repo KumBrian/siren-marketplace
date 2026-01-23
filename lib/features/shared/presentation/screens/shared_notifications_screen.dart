@@ -89,24 +89,45 @@ class _SharedNotificationsScreenState
           );
         }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 80, top: 16),
-          child: ListView.separated(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: offers.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final offer = offers[index];
+        return RefreshIndicator(
+          onRefresh: () async {
+            // 1. Clear memory cache for offers
+            ref.read(offerRepositoryProvider).clearCache();
 
-              if (role == UserRole.fisher) {
-                // Fisher view - show buyer info
-                return _buildFisherOfferCard(offer, offer.buyer);
+            // 2. Refresh base providers and WAIT for them
+            // This ensures potential network calls finish before spinner hides
+            final user = ref.read(currentUserProvider).value;
+            if (user != null) {
+              if (user.currentRole == UserRole.fisher) {
+                await ref.refresh(fisherOffersProvider.future);
               } else {
-                // Buyer view - show fisher info
-                return _buildBuyerOfferCard(offer, offer.fisher);
+                await ref.refresh(buyerOffersProvider.future);
               }
-            },
+            }
+
+            // 3. Invalidate filtered provider to re-compute list
+            ref.invalidate(filteredNotificationOffersProvider);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 80, top: 16),
+            child: ListView.separated(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: offers.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final offer = offers[index];
+
+                if (role == UserRole.fisher) {
+                  // Fisher view - show buyer info
+                  return _buildFisherOfferCard(offer, offer.buyer);
+                } else {
+                  // Buyer view - show fisher info
+                  return _buildBuyerOfferCard(offer, offer.fisher);
+                }
+              },
+            ),
           ),
         );
       },
@@ -480,25 +501,34 @@ class _SharedNotificationsScreenState
           );
         }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 80, top: 16),
-          child: ListView.separated(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: conversations.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 0),
-            itemBuilder: (context, index) {
-              final conversation = conversations[index];
-              final roleSlug = role == UserRole.fisher ? "fisher" : "buyer";
+        return RefreshIndicator(
+          onRefresh: () async {
+            // TODO: ChatRepository might also have cache, implementing similar clearCache might be needed later.
+            // For now, assume it fetches fresh or relies on shorter/no cache.
+            // Force refresh of the future
+            await ref.refresh(conversationsProvider.future);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 80, top: 16),
+            child: ListView.separated(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: conversations.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 0),
+              itemBuilder: (context, index) {
+                final conversation = conversations[index];
+                final roleSlug = role == UserRole.fisher ? "fisher" : "buyer";
 
-              return ConversationCard(
-                conversation: conversation,
-                currentUser: user,
-                onTap: () {
-                  context.push("/$roleSlug/chat/${conversation.id}");
-                },
-              );
-            },
+                return ConversationCard(
+                  conversation: conversation,
+                  currentUser: user,
+                  onTap: () {
+                    context.push("/$roleSlug/chat/${conversation.id}");
+                  },
+                );
+              },
+            ),
           ),
         );
       },

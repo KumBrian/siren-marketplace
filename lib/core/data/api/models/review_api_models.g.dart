@@ -28,7 +28,7 @@ _$ReviewApiResponseImpl _$$ReviewApiResponseImplFromJson(
         Map<String, dynamic> json) =>
     _$ReviewApiResponseImpl(
       id: json['id'],
-      rate: (json['rate'] as num).toDouble(),
+      rate: json['rate'] as num,
       message: json['message'] as String,
       published: json['published'] as bool,
       saleOrder: json['sale_order'],

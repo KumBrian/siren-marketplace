@@ -39,7 +39,7 @@ class ReviewMapper {
       orderId: api.saleOrder?.toString() ?? '',
       reviewerId: api.reviewer?.id?.toString() ?? '',
       reviewedUserId: api.reviewedAccount?.id?.toString() ?? '',
-      rating: Rating.fromValue(api.rate),
+      rating: Rating.fromValue(api.rate.toDouble()),
       comment: api.message,
       timestamp: api.createdAt != null
           ? DateTime.tryParse(api.createdAt!) ?? DateTime.now()

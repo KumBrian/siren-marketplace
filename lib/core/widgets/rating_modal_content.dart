@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:siren_marketplace/core/constants/app_colors.dart';
+import 'package:siren_marketplace/core/widgets/error_dialog.dart';
+import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 
 import 'animated_rating_stars.dart';
 import 'custom_button.dart';
@@ -58,8 +60,12 @@ class _RatingModalContentState extends State<RatingModalContent> {
   Future<void> _submitRating(BuildContext context) async {
     if (_currentRating == 0 || _isSubmitting) {
       if (_currentRating == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a star rating.')),
+        showDialog(
+          context: context,
+          builder: (context) => const ErrorDialog(
+            title: "Rating Required",
+            message: 'Please select a star rating.',
+          ),
         );
       }
       return;
@@ -80,18 +86,20 @@ class _RatingModalContentState extends State<RatingModalContent> {
 
       // Close modal after successful submission
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Rating submitted successfully!'),
-            backgroundColor: AppColors.success500,
-          ),
+        Navigator.of(context).pop(); // Close the bottom sheet first
+
+        showActionSuccessDialog(
+          context,
+          message: 'Rating submitted successfully!',
+          autoCloseSeconds: 3,
         );
-        Navigator.of(context).pop();
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Submission failed: ${e.toString()}')),
+        showDialog(
+          context: context,
+          builder: (context) =>
+              ErrorDialog(title: "Submission Failed", message: e.toString()),
         );
       }
     } finally {

@@ -4,6 +4,13 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_device_token_repository.dart';
 import 'package:siren_marketplace/core/services/firebase_messaging_service.dart';
+import 'package:siren_marketplace/core/providers/router_provider.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
+import 'package:siren_marketplace/core/domain/enums/user_role.dart';
+import 'package:siren_marketplace/core/providers/offer_providers.dart';
+import 'package:siren_marketplace/core/providers/order_providers.dart';
+import 'package:siren_marketplace/core/providers/conversation_providers.dart';
+import 'package:siren_marketplace/core/providers/catch_providers.dart';
 
 /// Provider for notification settings (toggle state)
 /// This now persists to SharedPreferences via FirebaseMessagingService
@@ -238,8 +245,11 @@ class NotificationMessageHandler {
   NotificationMessageHandler(this._ref);
 
   /// Initialize notification handlers
-  void initialize() {
+  Future<void> initialize() async {
     final service = _ref.read(firebaseMessagingServiceProvider);
+
+    // Initialize local notifications
+    await service.initializeLocalNotifications();
 
     // Handle foreground messages
     service.setupForegroundMessageHandler(_handleForegroundMessage);
@@ -255,17 +265,18 @@ class NotificationMessageHandler {
     debugPrint('Foreground message received: ${message.notification?.title}');
     debugPrint('Message data: ${message.data}');
 
-    // TODO: Show local notification or update UI
-    // For now, just log the message
+    // Show local notification
+    final service = _ref.read(firebaseMessagingServiceProvider);
+    service.showLocalNotification(message);
+
+    // Refresh data based on notification type
+    _refreshData(message.data);
   }
 
   void _handleMessageOpened(RemoteMessage message) {
     debugPrint('Notification opened: ${message.notification?.title}');
     debugPrint('Message data: ${message.data}');
 
-    // TODO: Navigate to appropriate screen based on message data
-    // e.g., if it's a chat message, navigate to ChatPage
-    // if it's an offer update, navigate to OfferDetailsScreen
     _handleNotificationNavigation(message.data);
   }
 
@@ -281,25 +292,88 @@ class NotificationMessageHandler {
     }
   }
 
-  void _handleNotificationNavigation(Map<String, dynamic> data) {
+  void _refreshData(Map<String, dynamic> data) async {
+    final type = data['type'] as String?;
+    final userAsync = _ref.read(currentUserProvider);
+    final user = userAsync.value;
+
+    if (user == null) return;
+
+    switch (type) {
+      case 'offer':
+      case 'new_offer':
+      case 'offer_update':
+        _ref.invalidate(fisherOffersProvider);
+        _ref.invalidate(buyerOffersProvider);
+        if (data.containsKey('product_id')) {
+          _ref.invalidate(offersByProductProvider(data['product_id']));
+        }
+        break;
+      case 'order':
+      case 'new_order':
+      case 'order_update':
+        _ref.invalidate(fisherOrdersProvider);
+        _ref.invalidate(fisherOrdersWithProductProvider);
+        _ref.invalidate(buyerOrdersWithProductProvider);
+        _ref.invalidate(myOrdersProvider);
+        break;
+      case 'message':
+      case 'new_message':
+        _ref.invalidate(userConversationsProvider(user.id));
+        if (data.containsKey('conversation_id')) {
+          // If we had a provider for messages in a conversation, we'd invalidate it here
+          // e.g. _ref.invalidate(conversationMessagesProvider(data['conversation_id']));
+        }
+        break;
+      case 'catch':
+        _ref.invalidate(fisherCatchesProvider);
+        break;
+    }
+  }
+
+  void _handleNotificationNavigation(Map<String, dynamic> data) async {
     // Extract notification type and relevant ID from data
     final type = data['type'] as String?;
     final id = data['id'] as String?;
 
     debugPrint('Notification navigation - type: $type, id: $id');
 
-    // TODO: Implement navigation based on notification type
-    // This would typically use GoRouter or similar
-    // switch (type) {
-    //   case 'message':
-    //     // Navigate to chat
-    //     break;
-    //   case 'offer':
-    //     // Navigate to offer details
-    //     break;
-    //   case 'order':
-    //     // Navigate to order details
-    //     break;
-    // }
+    final userAsync = await _ref.read(currentUserProvider.future);
+    if (userAsync == null) return;
+
+    final role = userAsync.currentRole;
+    final rolePrefix = role == UserRole.fisher ? '/fisher' : '/buyer';
+    final router = _ref.read(routerProvider);
+
+    if (id == null) return;
+
+    switch (type) {
+      case 'message':
+      case 'new_message':
+        // Navigate to chat
+        // Assuming id is conversationId. If it's userId, logic might differ.
+        // Usually notifications send the conversation ID.
+        router.push('$rolePrefix/chat/$id');
+        break;
+      case 'offer':
+      case 'new_offer':
+      case 'offer_update':
+        // Navigate to offer details
+        router.push('$rolePrefix/offer-details/$id');
+        break;
+      case 'order':
+      case 'new_order':
+      case 'order_update':
+        // Navigate to order details
+        router.push('$rolePrefix/order-details/$id');
+        break;
+      default:
+        debugPrint('Unknown notification type for navigation: $type');
+    }
   }
 }
+
+/// Provider to handle app initialization (e.g. notifications)
+final appInitializationProvider = FutureProvider<void>((ref) async {
+  await ref.read(notificationMessageHandlerProvider).initialize();
+});

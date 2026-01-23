@@ -386,17 +386,6 @@ void _initApiMode(DatabaseHelper dbHelper) {
       ),
     );
 
-    // Add logging interceptor
-    dio.interceptors.add(
-      LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
-        responseBody: true,
-        error: true,
-      ),
-    );
-
     return MediaApiDataSource(dio: dio, tokenStorage: sl<TokenStorage>());
   });
 
@@ -499,23 +488,14 @@ void setupProviderInvalidation(ProviderContainer container) {
 
     // Set callback to invalidate both catch and product providers
     catchesDataSource.setOnCatchPublishedCallback(() {
-      print(
-        'DEBUG: Catch published callback triggered, invalidating providers',
-      );
       container.invalidate(fisherCatchesProvider);
       container.invalidate(fisherProductsProvider);
     });
-
-    print('DEBUG: Provider invalidation callback set up successfully');
   }
 }
 
 void _setupCatchPublishedCallback() {
   // This will be called later from main() after ProviderScope is created
-  // For now, just log that we're in API mode
-  print(
-    'DEBUG: API mode initialized, provider callback will be set in setupProviderInvalidation()',
-  );
 }
 
 // ============================================================================

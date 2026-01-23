@@ -35,4 +35,7 @@ abstract class IOfferDataSource {
   void updateLocalCache(OfferModel offer);
 
   Future<void> saveBatch(List<OfferModel> offers);
+
+  /// Clear any memory caches
+  void clearCache();
 }

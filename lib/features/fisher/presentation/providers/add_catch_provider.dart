@@ -49,6 +49,7 @@ class AddCatchState {
   final double? latitude;
   final double? longitude;
   final bool isLoadingLocation;
+  final bool isSubmitting;
 
   // Images (Strings for now, representing paths or assets)
   final List<String> images;
@@ -75,6 +76,7 @@ class AddCatchState {
     this.latitude,
     this.longitude,
     this.isLoadingLocation = false,
+    this.isSubmitting = false,
     this.images = const [],
   });
 
@@ -101,6 +103,7 @@ class AddCatchState {
     double? longitude,
     bool? isLoadingLocation,
     List<String>? images,
+    bool? isSubmitting,
   }) {
     return AddCatchState(
       currentStep: currentStep ?? this.currentStep,
@@ -125,6 +128,7 @@ class AddCatchState {
       longitude: longitude ?? this.longitude,
       isLoadingLocation: isLoadingLocation ?? this.isLoadingLocation,
       images: images ?? this.images,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
     );
   }
 
@@ -191,14 +195,13 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           // Permissions are denied
-          print("Location permissions are denied");
           state = state.copyWith(isLoadingLocation: false);
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        print("Location permissions are permanently denied");
+        // Permissions are permanently denied
         state = state.copyWith(isLoadingLocation: false);
         return;
       }
@@ -227,7 +230,7 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
           }
         }
       } catch (e) {
-        print("Error decoding location: $e");
+        // Error decoding location
       }
 
       // 4. Generate Observation ID
@@ -243,7 +246,6 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
         isLoadingLocation: false,
       );
     } catch (e) {
-      print("Error getting location: $e");
       state = state.copyWith(isLoadingLocation: false);
     }
   }
@@ -262,7 +264,7 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
         addImage(image.path);
       }
     } catch (e) {
-      print("Error picking image: $e");
+      // Error picking image
     }
   }
 
@@ -398,11 +400,14 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
 
   Future<bool> submit() async {
     if (!canProceed()) return false;
+    if (state.isSubmitting) return false;
+
+    state = state.copyWith(isSubmitting: true);
 
     try {
       final user = await ref.read(currentUserProvider.future);
       if (user == null) {
-        print("Error: User not found");
+        state = state.copyWith(isSubmitting: false);
         return false;
       }
 
@@ -454,7 +459,6 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
         try {
           await catchRepository.create(catchEntity);
         } catch (e) {
-          print("Network error during create, falling back to draft: $e");
           // Fallback to draft
           await catchRepository.saveDraft(
             catchEntity.copyWith(status: CatchStatus.draft),
@@ -476,13 +480,13 @@ class AddCatchNotifier extends StateNotifier<AddCatchState> {
         ref.invalidate(availableProductsProvider);
       }
 
-      // Clear state
+      // Clear state (isSubmitting will reset to false with new state)
       state = const AddCatchState();
 
       return true;
     } catch (e) {
       // Log error or handle it
-      print("Error submitting catch: $e");
+      state = state.copyWith(isSubmitting: false);
       return false;
     }
   }

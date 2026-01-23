@@ -284,6 +284,15 @@ class MockIOfferRepository extends _i1.Mock implements _i4.IOfferRepository {
               ),
             ),
       ) as _i2.Future<T>);
+
+  @override
+  void clearCache() => super.noSuchMethod(
+        Invocation.method(
+          #clearCache,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }
 
 /// A class which mocks [IOrderRepository].

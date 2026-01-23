@@ -50,7 +50,6 @@ class ChatRepositoryImpl implements IChatRepository {
 
       return _processViewedStatus(conversations);
     } catch (e) {
-      print('DEBUG: API fetch failed, falling back to local: $e');
       return _getLocalConversations();
     }
   }
@@ -245,12 +244,9 @@ class ChatRepositoryImpl implements IChatRepository {
   Future<void> _flushReadMessages() async {
     if (_pendingReadMessageIds.isEmpty) return;
 
-    final idsToSend = _pendingReadMessageIds.toList();
     _pendingReadMessageIds.clear();
 
     // API Call disabled as per user request
-    print(
-      'DEBUG: Skipped flushing ${idsToSend.length} read messages to API (disabled)',
-    );
+    // API Call disabled as per user request
   }
 }

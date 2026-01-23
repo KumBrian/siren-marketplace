@@ -78,9 +78,7 @@ _$AccountApiModelImpl _$$AccountApiModelImplFromJson(
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
       uid: json['uid'] as String?,
-      ratingDistribution: (json['ratingDistribution'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
+      ratingDistribution: json['ratingDistribution'],
     );
 
 Map<String, dynamic> _$$AccountApiModelImplToJson(

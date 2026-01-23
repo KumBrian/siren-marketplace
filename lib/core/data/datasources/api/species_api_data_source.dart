@@ -13,21 +13,13 @@ class SpeciesApiDataSource {
     int itemsPerPage = 20,
   }) async {
     try {
-      print(
-        'DEBUG: Fetching species from API (page: $page, items: $itemsPerPage)',
-      );
-
       final response = await _client.get(
         ApiConfig.speciesList,
         queryParameters: {'page': page, 'itemsPerPage': itemsPerPage},
       );
 
-      print('DEBUG: Species fetch response status: ${response.statusCode}');
-
       final speciesResponse = SpeciesListResponse.fromJson(response.data);
       final species = speciesResponse.data.member;
-
-      print('DEBUG: Fetched ${species.length} species');
 
       return species;
     } catch (e) {

@@ -179,6 +179,7 @@ class FisherHome extends ConsumerWidget {
                                     productsWithUnviewedOffers,
                                     hasUnreadMessages,
                                     context,
+                                    ref,
                                   ),
                                   // Sold Tab
                                   _buildSoldTab(
@@ -186,6 +187,7 @@ class FisherHome extends ConsumerWidget {
                                     catches,
                                     offers,
                                     context,
+                                    ref,
                                   ),
                                 ],
                               ),
@@ -215,6 +217,7 @@ class FisherHome extends ConsumerWidget {
     Set<String> productsWithUnviewedOffers,
     bool hasUnreadMessages,
     BuildContext context,
+    WidgetRef ref,
   ) {
     return productsAsync.when(
       data: (products) {
@@ -228,51 +231,72 @@ class FisherHome extends ConsumerWidget {
           ..sort((a, b) => b.datePosted.compareTo(a.datePosted));
 
         if (sortedProducts.isEmpty) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 120,
-                width: 120,
-                child: Image.asset("assets/images/no-offers.png"),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "Your shop is empty for now.",
-                style: TextStyle(
-                  color: AppColors.textBlue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+          return RefreshIndicator(
+            onRefresh: () async {
+              await ref.refresh(fisherProductsProvider(1).future);
+              ref.invalidate(fisherTurnoverProvider);
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 120,
+                      width: 120,
+                      child: Image.asset("assets/images/no-offers.png"),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Your shop is empty for now.",
+                      style: TextStyle(
+                        color: AppColors.textBlue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Text(
+                      "Add your first item to start selling.",
+                      style: TextStyle(
+                        color: AppColors.textGray,
+                        fontWeight: FontWeight.w300,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Text(
-                "Add your first item to start selling.",
-                style: TextStyle(
-                  color: AppColors.textGray,
-                  fontWeight: FontWeight.w300,
-                  fontSize: 12,
-                ),
-              ),
-            ],
+            ),
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.only(bottom: 80, top: 16),
-          itemCount: sortedProducts.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final item = sortedProducts[index];
-            final hasNotifications =
-                productsWithUnviewedOffers.contains(item.id) ||
-                hasUnreadMessages;
-
-            return ForSaleCard(
-              product: item,
-              hasNotifications: hasNotifications,
-              onPressed: () => context.go('/fisher/catch-details/${item.id}'),
-            );
+        return RefreshIndicator(
+          onRefresh: () async {
+            // Note: Product Repository hits remote API (no memory cache to clear usually)
+            // But we must await the ref.refresh
+            await ref.refresh(fisherProductsProvider(1).future);
+            ref.invalidate(fisherTurnoverProvider);
           },
+          child: ListView.separated(
+            padding: const EdgeInsets.only(bottom: 80, top: 16),
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: sortedProducts.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final item = sortedProducts[index];
+              final hasNotifications =
+                  productsWithUnviewedOffers.contains(item.id) ||
+                  hasUnreadMessages;
+
+              return ForSaleCard(
+                product: item,
+                hasNotifications: hasNotifications,
+                onPressed: () => context.go('/fisher/catch-details/${item.id}'),
+              );
+            },
+          ),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -286,6 +310,7 @@ class FisherHome extends ConsumerWidget {
     List<Catch> allCatches,
     List<Offer> offers,
     BuildContext context,
+    WidgetRef ref,
   ) {
     return ordersAsync.when(
       data: (List<Order> orders) {
@@ -318,66 +343,85 @@ class FisherHome extends ConsumerWidget {
         });
 
         if (completedOrders.isEmpty) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 120,
-                width: 120,
-                child: Image.asset("assets/images/no-offers.png"),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "No sales recorded yet.",
-                style: TextStyle(
-                  color: AppColors.textBlue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+          return RefreshIndicator(
+            onRefresh: () async {
+              await ref.refresh(fisherOrdersWithProductProvider.future);
+              ref.invalidate(fisherTurnoverProvider);
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 120,
+                      width: 120,
+                      child: Image.asset("assets/images/no-offers.png"),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "No sales recorded yet.",
+                      style: TextStyle(
+                        color: AppColors.textBlue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const Text(
+                      "Complete an accepted offer to see your turnover.",
+                      style: TextStyle(
+                        color: AppColors.textGray,
+                        fontWeight: FontWeight.w300,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Text(
-                "Complete an accepted offer to see your turnover.",
-                style: TextStyle(
-                  color: AppColors.textGray,
-                  fontWeight: FontWeight.w300,
-                  fontSize: 12,
-                ),
-              ),
-            ],
+            ),
           );
         }
 
-        return ListView.separated(
-          padding: const EdgeInsets.only(bottom: 80, top: 16),
-          itemCount: completedOrders.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 8),
-          itemBuilder: (context, index) {
-            final order = completedOrders[index];
-
-            // Use embedded product data (no need to search catches!)
-            final product = order.product;
-            if (product == null) {
-              return const SizedBox.shrink(); // Skip if no embedded product
-            }
-
-            // Use product data from embedded object
-            final catchImageUrl = product.images.isNotEmpty
-                ? product.images.first
-                : "";
-            final catchTitle = product.species.name;
-
-            // Display order with embedded product data and order terms
-            return SoldCard(
-              offer: null,
-              catchImageUrl: catchImageUrl,
-              catchTitle: catchTitle,
-              orderStatus: order.status,
-              weight: order.terms.weight.kilograms,
-              price: order.terms.totalPrice.amount,
-              onPressed: () =>
-                  context.push("/fisher/order-details/${order.id}"),
-            );
+        return RefreshIndicator(
+          onRefresh: () async {
+            await ref.refresh(fisherOrdersWithProductProvider.future);
+            ref.invalidate(fisherTurnoverProvider);
           },
+          child: ListView.separated(
+            padding: const EdgeInsets.only(bottom: 80, top: 16),
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: completedOrders.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final order = completedOrders[index];
+
+              // Use embedded product data (no need to search catches!)
+              final product = order.product;
+              if (product == null) {
+                return const SizedBox.shrink(); // Skip if no embedded product
+              }
+
+              // Use product data from embedded object
+              final catchImageUrl = product.images.isNotEmpty
+                  ? product.images.first
+                  : "";
+              final catchTitle = product.species.name;
+
+              // Display order with embedded product data and order terms
+              return SoldCard(
+                offer: null,
+                catchImageUrl: catchImageUrl,
+                catchTitle: catchTitle,
+                orderStatus: order.status,
+                weight: order.terms.weight.kilograms,
+                price: order.terms.totalPrice.amount,
+                onPressed: () =>
+                    context.push("/fisher/order-details/${order.id}"),
+              );
+            },
+          ),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),

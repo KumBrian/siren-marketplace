@@ -549,6 +549,15 @@ class MockIOfferRepository extends _i1.Mock implements _i14.IOfferRepository {
               ),
             ),
       ) as _i2.Future<T>);
+
+  @override
+  void clearCache() => super.noSuchMethod(
+        Invocation.method(
+          #clearCache,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }
 
 /// A class which mocks [IOrderRepository].
@@ -2005,6 +2014,15 @@ class MockIOfferDataSource extends _i1.Mock implements _i35.IOfferDataSource {
         returnValue: _i2.Future<void>.value(),
         returnValueForMissingStub: _i2.Future<void>.value(),
       ) as _i2.Future<void>);
+
+  @override
+  void clearCache() => super.noSuchMethod(
+        Invocation.method(
+          #clearCache,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }
 
 /// A class which mocks [IOrderDataSource].

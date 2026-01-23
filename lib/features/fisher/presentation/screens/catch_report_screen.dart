@@ -15,6 +15,7 @@ import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price.dart';
 import 'package:siren_marketplace/core/domain/value_objects/price_per_kg.dart';
 import 'package:siren_marketplace/core/domain/value_objects/weight.dart';
+import 'package:siren_marketplace/core/utils/custom_dialogs.dart';
 import 'package:siren_marketplace/features/buyer/presentation/widgets/product_image_carousel.dart';
 
 class CatchReportScreen extends ConsumerStatefulWidget {
@@ -526,11 +527,10 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
                             Navigator.of(dialogCtx).pop(); // Close dialog
                           }
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Catch listed for sale!"),
-                                backgroundColor: AppColors.success500,
-                              ),
+                            showActionSuccessDialog(
+                              context,
+                              message: "Catch listed for sale!",
+                              autoCloseSeconds: 2,
                             );
 
                             // Redirect to new ID if it changed (local draft -> published catch)
@@ -586,11 +586,10 @@ class _CatchReportScreenState extends ConsumerState<CatchReportScreen> {
                   ref.invalidate(catchByIdProvider(selectedCatch.id));
 
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Catch deleted successfully"),
-                        backgroundColor: AppColors.success500,
-                      ),
+                    showActionSuccessDialog(
+                      context,
+                      message: "Catch deleted successfully",
+                      autoCloseSeconds: 2,
                     );
                     Navigator.of(context).pop(); // Go back to list
                   }
