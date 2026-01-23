@@ -1,11 +1,13 @@
 import '../../api/api_client.dart';
 import '../../api/api_config.dart';
 import '../../api/models/auth_api_models.dart';
+import '../../api/models/account_statistics_model.dart';
 
 /// Interface for authentication API data source
 abstract class IAuthApiDataSource {
   Future<AuthorizeResponse> login(String email, String password);
   Future<AccountApiModel> getMyProfile();
+  Future<AccountStatisticsModel> getMyStatistics();
   Future<void> logout();
   Future<AuthorizeResponse> authenticate();
   Future<String> refreshToken();
@@ -31,6 +33,12 @@ class AuthApiDataSource implements IAuthApiDataSource {
   Future<AccountApiModel> getMyProfile() async {
     final response = await _client.get(ApiConfig.myProfile);
     return AccountApiModel.fromJson(response.data['data']);
+  }
+
+  @override
+  Future<AccountStatisticsModel> getMyStatistics() async {
+    final response = await _client.get(ApiConfig.myStatistics);
+    return AccountStatisticsModel.fromJson(response.data['data']);
   }
 
   @override

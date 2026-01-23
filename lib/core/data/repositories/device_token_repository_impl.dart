@@ -79,4 +79,16 @@ class DeviceTokenRepositoryImpl implements IDeviceTokenRepository {
       active: response.active,
     );
   }
+
+  @override
+  Future<Either<Failure, bool>> toggleNotifications(bool enabled) async {
+    try {
+      final success = await _dataSource.toggleNotifications(enabled);
+      return Right(success);
+    } on ApiException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(message: 'Failed to toggle notifications: $e'));
+    }
+  }
 }

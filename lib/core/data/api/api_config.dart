@@ -38,6 +38,7 @@ class ApiConfig {
   static const String accountsList = '/accounts/list';
   static const String toggleNotifications = '/accounts/toggle-notifications';
   static const String notifyMe = '/accounts/notify-me';
+  static const String myStatistics = '/accounts/my-statistics';
 
   // Marketplace API Endpoints
   static const String fishCatches = '/fish-catches';

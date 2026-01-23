@@ -84,7 +84,11 @@ class ChatController {
       targetAccountId: targetAccountId,
       productId: productId,
     );
-    _ref.invalidate(conversationsProvider);
+    // Server currently returns 500 error for global /my-conversations without productId
+    // _ref.invalidate(conversationsProvider);
+    if (productId != null && productId.isNotEmpty) {
+      _ref.invalidate(conversationsByProductProvider(productId));
+    }
     return conversation.id;
   }
 

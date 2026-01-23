@@ -75,6 +75,30 @@ class AccountApiModel with _$AccountApiModel {
     @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
     int? totalReviews,
     String? avatar,
+
+    /// Phone number (from my-profile endpoint)
+    String? phoneNumber,
+
+    /// Address (from my-profile endpoint)
+    String? address,
+
+    /// Profile picture URL (from my-profile endpoint)
+    String? profilePictureUrl,
+
+    /// Whether notifications are enabled
+    @Default(false) bool notificationEnabled,
+
+    /// Account creation date
+    @JsonKey(name: 'created_at') String? createdAt,
+
+    /// Account update date
+    @JsonKey(name: 'updated_at') String? updatedAt,
+
+    /// Unique identifier string
+    String? uid,
+
+    /// Rating distribution (from my-profile endpoint)
+    List<String>? ratingDistribution,
   }) = _AccountApiModel;
 
   factory AccountApiModel.fromJson(Map<String, dynamic> json) =>

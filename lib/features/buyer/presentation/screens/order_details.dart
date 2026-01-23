@@ -27,17 +27,12 @@ import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/core/widgets/page_title.dart';
 import 'package:siren_marketplace/core/widgets/rating_modal_content.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
+import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
 
 class BuyerOrderDetails extends ConsumerWidget {
   const BuyerOrderDetails({super.key, required this.orderId});
 
   final String orderId;
-
-  /// Generate conversation ID from buyer and fisher IDs
-  String _generateConversationId(String buyerId, String fisherId) {
-    final ids = [buyerId, fisherId]..sort();
-    return '${ids[0]}_${ids[1]}';
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -326,7 +321,21 @@ class BuyerOrderDetails extends ConsumerWidget {
                     width: double.infinity,
                     child: CustomButton(
                       title: "Call Seller",
-                      onPressed: () => makePhoneCall("651204966", context),
+                      onPressed: () {
+                        final phone = fisher.phone;
+                        if (phone != null && phone.isNotEmpty) {
+                          makePhoneCall(phone, context);
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (context) => const ErrorDialog(
+                              title: "Phone Unavailable",
+                              message:
+                                  "Phone number not available for this seller.",
+                            ),
+                          );
+                        }
+                      },
                       hugeIcon: HugeIcons.strokeRoundedCall02,
                       bordered: true,
                     ),
@@ -336,12 +345,28 @@ class BuyerOrderDetails extends ConsumerWidget {
                     width: double.infinity,
                     child: CustomButton(
                       title: "Message Seller",
-                      onPressed: () {
-                        final conversationId = _generateConversationId(
-                          order.buyerId,
-                          order.fisherId,
-                        );
-                        context.push("/buyer/chat/$conversationId");
+                      onPressed: () async {
+                        try {
+                          final conversationId = await ref
+                              .read(chatControllerProvider)
+                              .startConversation(
+                                order.fisherId,
+                                productId: product.id,
+                              );
+                          if (context.mounted) {
+                            context.push("/buyer/chat/$conversationId");
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            showDialog(
+                              context: context,
+                              builder: (context) => ErrorDialog(
+                                title: "Chat Error",
+                                message: "Failed to open chat: $e",
+                              ),
+                            );
+                          }
+                        }
                       },
                       icon: CustomIcons.chatbubble,
                     ),

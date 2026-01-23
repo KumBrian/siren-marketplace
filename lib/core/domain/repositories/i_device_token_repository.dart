@@ -20,4 +20,7 @@ abstract class IDeviceTokenRepository {
     required String body,
     Map<String, dynamic>? data,
   });
+
+  /// Toggle notifications for the account
+  Future<Either<Failure, bool>> toggleNotifications(bool enabled);
 }

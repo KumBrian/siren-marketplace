@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/domain/entities/review.dart';
 import 'package:siren_marketplace/core/domain/repositories/i_review_repository.dart';
+import 'package:siren_marketplace/core/providers/user_providers.dart';
 
 /// Provider to fetch a Review by ID
 final reviewProvider = FutureProvider.family<Review?, String>((ref, id) async {
@@ -18,8 +19,16 @@ final reviewsForUserProvider = FutureProvider.family<List<Review>, String>((
   userId,
 ) async {
   final repository = sl<IReviewRepository>();
-  // Always use getReviewsForUser to leverage the unified offline/caching logic
-  // implemented in the repository for that method.
+
+  // Check if we are looking at our own reviews
+  final currentUserAsync = ref.watch(currentUserProvider);
+  final currentUser = currentUserAsync.value;
+
+  if (currentUser != null && currentUser.id == userId) {
+    return repository.getMyReviews();
+  }
+
+  // Otherwise fetch public reviews for that user
   return repository.getReviewsForUser(userId);
 });
 

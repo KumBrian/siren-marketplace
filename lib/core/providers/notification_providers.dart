@@ -53,6 +53,7 @@ class NotificationSettingsNotifier extends StateNotifier<bool> {
 
     try {
       final service = _ref.read(firebaseMessagingServiceProvider);
+      final repository = _ref.read(deviceTokenRepositoryProvider);
 
       if (enable) {
         // Request permission first
@@ -64,53 +65,95 @@ class NotificationSettingsNotifier extends StateNotifier<bool> {
           return false;
         }
 
-        // Get FCM token and register with backend
-        final fcmToken = await service.getToken();
-        if (fcmToken == null) {
-          debugPrint('Failed to get FCM token');
-          _isRegistering = false;
-          return false;
+        // Check if device is already registered
+        final storedId = await service.getDeviceTokenId();
+        bool isRegistered = false;
+
+        if (storedId != null) {
+          final checkResult = await repository.getDeviceToken(storedId);
+          if (checkResult.isRight) {
+            isRegistered = true;
+          }
         }
 
-        // Register device token with backend
-        final deviceId = await service.getDeviceId();
-        final platform = service.getPlatform();
+        if (!isRegistered) {
+          // Get FCM token and register with backend
+          final fcmToken = await service.getToken();
+          if (fcmToken == null) {
+            debugPrint('Failed to get FCM token');
+            _isRegistering = false;
+            return false;
+          }
 
-        final repository = _ref.read(deviceTokenRepositoryProvider);
-        final result = await repository.registerDeviceToken(
-          token: fcmToken,
-          platform: platform,
-          deviceId: deviceId,
-        );
+          // Register device token with backend
+          final deviceId = await service.getDeviceId();
+          final platform = service.getPlatform();
 
-        result.fold(
+          final result = await repository.registerDeviceToken(
+            token: fcmToken,
+            platform: platform,
+            deviceId: deviceId,
+          );
+
+          final registrationSuccess = result.fold(
+            ifLeft: (failure) {
+              debugPrint('Failed to register device token: ${failure.message}');
+              return false;
+            },
+            ifRight: (deviceToken) {
+              debugPrint(
+                'Device token registered successfully: ${deviceToken.id}',
+              );
+              service.saveDeviceTokenId(deviceToken.id);
+              return true;
+            },
+          );
+
+          if (!registrationSuccess) {
+            _isRegistering = false;
+            return false;
+          }
+        }
+
+        // Use toggle endpoint to enable notifications
+        final toggleResult = await repository.toggleNotifications(true);
+
+        return toggleResult.fold(
           ifLeft: (failure) {
-            debugPrint('Failed to register device token: ${failure.message}');
+            debugPrint('Failed to enable notifications: ${failure.message}');
+            return false;
           },
-          ifRight: (deviceToken) {
-            debugPrint(
-              'Device token registered successfully: ${deviceToken.id}',
-            );
-            service.saveDeviceTokenId(deviceToken.id);
+          ifRight: (success) async {
+            if (success) {
+              await service.setNotificationEnabled(true);
+              state = true;
+
+              // Set up token refresh listener if not already set
+              service.onTokenRefresh((newToken) {
+                _handleTokenRefresh(newToken);
+              });
+            }
+            return success;
           },
         );
-
-        // Save enabled state
-        await service.setNotificationEnabled(true);
-        state = true;
-
-        // Set up token refresh listener
-        service.onTokenRefresh((newToken) {
-          _handleTokenRefresh(newToken);
-        });
-
-        return true;
       } else {
-        // Disable notifications
-        await service.setNotificationEnabled(false);
-        await service.clearDeviceTokenId();
-        state = false;
-        return true;
+        // Disable notifications via toggle endpoint
+        final toggleResult = await repository.toggleNotifications(false);
+
+        return toggleResult.fold(
+          ifLeft: (failure) {
+            debugPrint('Failed to disable notifications: ${failure.message}');
+            return false;
+          },
+          ifRight: (success) async {
+            if (success) {
+              await service.setNotificationEnabled(false);
+              // Do NOT clear device token ID so we can re-enable easily
+              state = false;
+            }
+            return success;
+          },
+        );
       }
     } catch (e) {
       debugPrint('Error toggling notifications: $e');

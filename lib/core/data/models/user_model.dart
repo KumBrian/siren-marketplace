@@ -11,11 +11,13 @@ class UserModel extends User {
     required super.id,
     required super.name,
     String? avatarUrl,
+    String? phone,
     required double rating,
     required int reviewCount,
     required String currentRole,
   }) : super(
          avatarUrl: avatarUrl,
+         phone: phone,
          rating: Rating.fromValue(rating),
          reviewCount: reviewCount,
          currentRole: UserRole.values.firstWhere(
@@ -29,6 +31,7 @@ class UserModel extends User {
     required String id,
     required String name,
     String? avatarUrl,
+    String? phone,
     required double rating,
     required int reviewCount,
     required String currentRole,
@@ -43,6 +46,7 @@ class UserModel extends User {
       id: id,
       name: name,
       avatarUrl: avatarUrl,
+      phone: phone,
       rating: Rating.fromValue(rating),
       reviewCount: reviewCount,
       currentRole: roleEnum,
@@ -54,6 +58,7 @@ class UserModel extends User {
     required String id,
     required String name,
     String? avatarUrl,
+    String? phone,
     required Rating rating,
     required int reviewCount,
     required UserRole currentRole,
@@ -61,6 +66,7 @@ class UserModel extends User {
          id: id,
          name: name,
          avatarUrl: avatarUrl,
+         phone: phone,
          rating: rating,
          reviewCount: reviewCount,
          currentRole: currentRole,
@@ -70,6 +76,7 @@ class UserModel extends User {
     'id': id,
     'name': name,
     'avatar_url': avatarUrl,
+    'phone': phone,
     'rating': rating.value,
     'review_count': reviewCount,
     'role': currentRole.name,
@@ -85,11 +92,18 @@ class UserModel extends User {
         json['name'] as String? ??
         '${json['firstName'] ?? ''} ${json['lastName'] ?? ''}'.trim();
 
+    // Get phone from various possible field names
+    final phone =
+        json['phone'] as String? ??
+        json['phoneNumber'] as String? ??
+        json['phone_number'] as String?;
+
     return UserModel(
       id: idString,
       name: name.isNotEmpty ? name : 'Unknown User',
       avatarUrl:
           json['avatar_url'] as String? ?? json['profilePictureUrl'] as String?,
+      phone: phone,
       rating:
           (json['rating'] as num?)?.toDouble() ??
           (json['averageRating'] as num?)?.toDouble() ??
@@ -107,6 +121,7 @@ class UserModel extends User {
     'id': id,
     'name': name,
     'avatar_url': avatarUrl,
+    'phone': phone,
     'rating': rating.value,
     'review_count': reviewCount,
     'role': currentRole.name,
@@ -116,6 +131,7 @@ class UserModel extends User {
     id: map['id'] as String,
     name: map['name'] as String,
     avatarUrl: map['avatar_url'] as String?,
+    phone: map['phone'] as String?,
     rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
     reviewCount: (map['review_count'] as num?)?.toInt() ?? 0,
     currentRole: map['role'] as String? ?? 'buyer',

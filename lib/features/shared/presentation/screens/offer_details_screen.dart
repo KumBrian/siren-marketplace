@@ -741,8 +741,20 @@ class _SharedOfferDetailsScreenState
           width: double.infinity,
           child: CustomButton(
             title: "Call ${state.otherParty.currentRole.displayName}",
-            onPressed: () =>
-                makePhoneCall('651204966', context), // Placeholder number
+            onPressed: () {
+              final phone = state.otherParty.phone;
+              if (phone != null && phone.isNotEmpty) {
+                makePhoneCall(phone, context);
+              } else {
+                showDialog(
+                  context: context,
+                  builder: (context) => const ErrorDialog(
+                    title: "Phone Unavailable",
+                    message: "Phone number not available for this user.",
+                  ),
+                );
+              }
+            },
             hugeIcon: HugeIcons.strokeRoundedCall02,
             bordered: true,
           ),
@@ -758,9 +770,16 @@ class _SharedOfferDetailsScreenState
                   : 'fisher';
 
               try {
+                final targetId = state.currentUserRole == UserRole.buyer
+                    ? state.offer.fisherId
+                    : state.offer.buyerId;
+
                 final conversationId = await ref
                     .read(chatControllerProvider)
-                    .startConversation(state.otherParty.id);
+                    .startConversation(
+                      targetId,
+                      productId: state.offer.productId,
+                    );
 
                 if (context.mounted) {
                   context.push("/$prefix/chat/$conversationId");

@@ -31,17 +31,12 @@ import 'package:siren_marketplace/core/widgets/error_dialog.dart';
 import 'package:siren_marketplace/core/di/injector.dart';
 import 'package:siren_marketplace/core/services/connectivity_service.dart';
 import 'package:siren_marketplace/features/shared/presentation/widgets/partner_card.dart';
+import 'package:siren_marketplace/features/chat/presentation/providers/chat_providers.dart';
 
 class OrderDetails extends ConsumerWidget {
   const OrderDetails({super.key, required this.orderId});
 
   final String orderId;
-
-  /// Generate conversation ID from buyer and fisher IDs
-  String _generateConversationId(String buyerId, String fisherId) {
-    final ids = [buyerId, fisherId]..sort();
-    return '${ids[0]}_${ids[1]}';
-  }
 
   Future<void> _markOrderAsCompleted(
     WidgetRef ref,
@@ -448,14 +443,27 @@ class OrderDetails extends ConsumerWidget {
                         children: [
                           CustomButton(
                             title: "Call Buyer",
-                            onPressed: () =>
-                                makePhoneCall("651204966", context),
+                            onPressed: () {
+                              final phone = selectedOrder.buyer?.phone;
+                              if (phone != null && phone.isNotEmpty) {
+                                makePhoneCall(phone, context);
+                              } else {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => const ErrorDialog(
+                                    title: "Phone Unavailable",
+                                    message:
+                                        "Phone number not available for this buyer.",
+                                  ),
+                                );
+                              }
+                            },
                             bordered: true,
                             hugeIcon: HugeIcons.strokeRoundedCall02,
                           ),
                           CustomButton(
                             title: "Message Buyer",
-                            onPressed: () {
+                            onPressed: () async {
                               if (!isOnline) {
                                 showDialog(
                                   context: context,
@@ -467,11 +475,27 @@ class OrderDetails extends ConsumerWidget {
                                 );
                                 return;
                               }
-                              final conversationId = _generateConversationId(
-                                selectedOrder.buyerId,
-                                selectedOrder.fisherId,
-                              );
-                              context.push("/fisher/chat/$conversationId");
+                              try {
+                                final conversationId = await ref
+                                    .read(chatControllerProvider)
+                                    .startConversation(
+                                      selectedOrder.buyerId,
+                                      productId: product.id,
+                                    );
+                                if (context.mounted) {
+                                  context.push("/fisher/chat/$conversationId");
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => ErrorDialog(
+                                      title: "Chat Error",
+                                      message: "Failed to open chat: $e",
+                                    ),
+                                  );
+                                }
+                              }
                             },
                             bordered: true,
                             icon: CustomIcons.chatbubble,

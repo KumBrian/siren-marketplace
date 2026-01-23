@@ -587,6 +587,32 @@ mixin _$AccountApiModel {
   int? get totalReviews => throw _privateConstructorUsedError;
   String? get avatar => throw _privateConstructorUsedError;
 
+  /// Phone number (from my-profile endpoint)
+  String? get phoneNumber => throw _privateConstructorUsedError;
+
+  /// Address (from my-profile endpoint)
+  String? get address => throw _privateConstructorUsedError;
+
+  /// Profile picture URL (from my-profile endpoint)
+  String? get profilePictureUrl => throw _privateConstructorUsedError;
+
+  /// Whether notifications are enabled
+  bool get notificationEnabled => throw _privateConstructorUsedError;
+
+  /// Account creation date
+  @JsonKey(name: 'created_at')
+  String? get createdAt => throw _privateConstructorUsedError;
+
+  /// Account update date
+  @JsonKey(name: 'updated_at')
+  String? get updatedAt => throw _privateConstructorUsedError;
+
+  /// Unique identifier string
+  String? get uid => throw _privateConstructorUsedError;
+
+  /// Rating distribution (from my-profile endpoint)
+  List<String>? get ratingDistribution => throw _privateConstructorUsedError;
+
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $AccountApiModelCopyWith<AccountApiModel> get copyWith =>
@@ -610,7 +636,15 @@ abstract class $AccountApiModelCopyWith<$Res> {
       @JsonKey(name: 'averageRating') double? rating,
       @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
       int? totalReviews,
-      String? avatar});
+      String? avatar,
+      String? phoneNumber,
+      String? address,
+      String? profilePictureUrl,
+      bool notificationEnabled,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      String? uid,
+      List<String>? ratingDistribution});
 }
 
 /// @nodoc
@@ -636,6 +670,14 @@ class _$AccountApiModelCopyWithImpl<$Res, $Val extends AccountApiModel>
     Object? rating = freezed,
     Object? totalReviews = freezed,
     Object? avatar = freezed,
+    Object? phoneNumber = freezed,
+    Object? address = freezed,
+    Object? profilePictureUrl = freezed,
+    Object? notificationEnabled = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? uid = freezed,
+    Object? ratingDistribution = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -678,6 +720,38 @@ class _$AccountApiModelCopyWithImpl<$Res, $Val extends AccountApiModel>
           ? _value.avatar
           : avatar // ignore: cast_nullable_to_non_nullable
               as String?,
+      phoneNumber: freezed == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profilePictureUrl: freezed == profilePictureUrl
+          ? _value.profilePictureUrl
+          : profilePictureUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      notificationEnabled: null == notificationEnabled
+          ? _value.notificationEnabled
+          : notificationEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ratingDistribution: freezed == ratingDistribution
+          ? _value.ratingDistribution
+          : ratingDistribution // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
     ) as $Val);
   }
 }
@@ -701,7 +775,15 @@ abstract class _$$AccountApiModelImplCopyWith<$Res>
       @JsonKey(name: 'averageRating') double? rating,
       @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
       int? totalReviews,
-      String? avatar});
+      String? avatar,
+      String? phoneNumber,
+      String? address,
+      String? profilePictureUrl,
+      bool notificationEnabled,
+      @JsonKey(name: 'created_at') String? createdAt,
+      @JsonKey(name: 'updated_at') String? updatedAt,
+      String? uid,
+      List<String>? ratingDistribution});
 }
 
 /// @nodoc
@@ -725,6 +807,14 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
     Object? rating = freezed,
     Object? totalReviews = freezed,
     Object? avatar = freezed,
+    Object? phoneNumber = freezed,
+    Object? address = freezed,
+    Object? profilePictureUrl = freezed,
+    Object? notificationEnabled = null,
+    Object? createdAt = freezed,
+    Object? updatedAt = freezed,
+    Object? uid = freezed,
+    Object? ratingDistribution = freezed,
   }) {
     return _then(_$AccountApiModelImpl(
       id: freezed == id
@@ -767,6 +857,38 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
           ? _value.avatar
           : avatar // ignore: cast_nullable_to_non_nullable
               as String?,
+      phoneNumber: freezed == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profilePictureUrl: freezed == profilePictureUrl
+          ? _value.profilePictureUrl
+          : profilePictureUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      notificationEnabled: null == notificationEnabled
+          ? _value.notificationEnabled
+          : notificationEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      updatedAt: freezed == updatedAt
+          ? _value.updatedAt
+          : updatedAt // ignore: cast_nullable_to_non_nullable
+              as String?,
+      uid: freezed == uid
+          ? _value.uid
+          : uid // ignore: cast_nullable_to_non_nullable
+              as String?,
+      ratingDistribution: freezed == ratingDistribution
+          ? _value._ratingDistribution
+          : ratingDistribution // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
     ));
   }
 }
@@ -785,8 +907,17 @@ class _$AccountApiModelImpl implements _AccountApiModel {
       @JsonKey(name: 'averageRating') this.rating,
       @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
       this.totalReviews,
-      this.avatar})
-      : _roles = roles;
+      this.avatar,
+      this.phoneNumber,
+      this.address,
+      this.profilePictureUrl,
+      this.notificationEnabled = false,
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt,
+      this.uid,
+      final List<String>? ratingDistribution})
+      : _roles = roles,
+        _ratingDistribution = ratingDistribution;
 
   factory _$AccountApiModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$AccountApiModelImplFromJson(json);
@@ -833,9 +964,54 @@ class _$AccountApiModelImpl implements _AccountApiModel {
   @override
   final String? avatar;
 
+  /// Phone number (from my-profile endpoint)
+  @override
+  final String? phoneNumber;
+
+  /// Address (from my-profile endpoint)
+  @override
+  final String? address;
+
+  /// Profile picture URL (from my-profile endpoint)
+  @override
+  final String? profilePictureUrl;
+
+  /// Whether notifications are enabled
+  @override
+  @JsonKey()
+  final bool notificationEnabled;
+
+  /// Account creation date
+  @override
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+
+  /// Account update date
+  @override
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
+
+  /// Unique identifier string
+  @override
+  final String? uid;
+
+  /// Rating distribution (from my-profile endpoint)
+  final List<String>? _ratingDistribution;
+
+  /// Rating distribution (from my-profile endpoint)
+  @override
+  List<String>? get ratingDistribution {
+    final value = _ratingDistribution;
+    if (value == null) return null;
+    if (_ratingDistribution is EqualUnmodifiableListView)
+      return _ratingDistribution;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   String toString() {
-    return 'AccountApiModel(id: $id, firstName: $firstName, lastName: $lastName, username: $username, email: $email, phone: $phone, roles: $roles, rating: $rating, totalReviews: $totalReviews, avatar: $avatar)';
+    return 'AccountApiModel(id: $id, firstName: $firstName, lastName: $lastName, username: $username, email: $email, phone: $phone, roles: $roles, rating: $rating, totalReviews: $totalReviews, avatar: $avatar, phoneNumber: $phoneNumber, address: $address, profilePictureUrl: $profilePictureUrl, notificationEnabled: $notificationEnabled, createdAt: $createdAt, updatedAt: $updatedAt, uid: $uid, ratingDistribution: $ratingDistribution)';
   }
 
   @override
@@ -856,7 +1032,21 @@ class _$AccountApiModelImpl implements _AccountApiModel {
             (identical(other.rating, rating) || other.rating == rating) &&
             (identical(other.totalReviews, totalReviews) ||
                 other.totalReviews == totalReviews) &&
-            (identical(other.avatar, avatar) || other.avatar == avatar));
+            (identical(other.avatar, avatar) || other.avatar == avatar) &&
+            (identical(other.phoneNumber, phoneNumber) ||
+                other.phoneNumber == phoneNumber) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.profilePictureUrl, profilePictureUrl) ||
+                other.profilePictureUrl == profilePictureUrl) &&
+            (identical(other.notificationEnabled, notificationEnabled) ||
+                other.notificationEnabled == notificationEnabled) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.updatedAt, updatedAt) ||
+                other.updatedAt == updatedAt) &&
+            (identical(other.uid, uid) || other.uid == uid) &&
+            const DeepCollectionEquality()
+                .equals(other._ratingDistribution, _ratingDistribution));
   }
 
   @JsonKey(ignore: true)
@@ -872,7 +1062,15 @@ class _$AccountApiModelImpl implements _AccountApiModel {
       const DeepCollectionEquality().hash(_roles),
       rating,
       totalReviews,
-      avatar);
+      avatar,
+      phoneNumber,
+      address,
+      profilePictureUrl,
+      notificationEnabled,
+      createdAt,
+      updatedAt,
+      uid,
+      const DeepCollectionEquality().hash(_ratingDistribution));
 
   @JsonKey(ignore: true)
   @override
@@ -903,7 +1101,15 @@ abstract class _AccountApiModel implements AccountApiModel {
       @JsonKey(name: 'averageRating') final double? rating,
       @JsonKey(name: 'total_reviews', readValue: _readTotalReviews)
       final int? totalReviews,
-      final String? avatar}) = _$AccountApiModelImpl;
+      final String? avatar,
+      final String? phoneNumber,
+      final String? address,
+      final String? profilePictureUrl,
+      final bool notificationEnabled,
+      @JsonKey(name: 'created_at') final String? createdAt,
+      @JsonKey(name: 'updated_at') final String? updatedAt,
+      final String? uid,
+      final List<String>? ratingDistribution}) = _$AccountApiModelImpl;
 
   factory _AccountApiModel.fromJson(Map<String, dynamic> json) =
       _$AccountApiModelImpl.fromJson;
@@ -940,6 +1146,40 @@ abstract class _AccountApiModel implements AccountApiModel {
   int? get totalReviews;
   @override
   String? get avatar;
+  @override
+
+  /// Phone number (from my-profile endpoint)
+  String? get phoneNumber;
+  @override
+
+  /// Address (from my-profile endpoint)
+  String? get address;
+  @override
+
+  /// Profile picture URL (from my-profile endpoint)
+  String? get profilePictureUrl;
+  @override
+
+  /// Whether notifications are enabled
+  bool get notificationEnabled;
+  @override
+
+  /// Account creation date
+  @JsonKey(name: 'created_at')
+  String? get createdAt;
+  @override
+
+  /// Account update date
+  @JsonKey(name: 'updated_at')
+  String? get updatedAt;
+  @override
+
+  /// Unique identifier string
+  String? get uid;
+  @override
+
+  /// Rating distribution (from my-profile endpoint)
+  List<String>? get ratingDistribution;
   @override
   @JsonKey(ignore: true)
   _$$AccountApiModelImplCopyWith<_$AccountApiModelImpl> get copyWith =>

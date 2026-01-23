@@ -48,9 +48,28 @@ class DeviceTokenApiDataSource {
         ApiConfig.notifyMe,
         data: {'title': title, 'body': body, 'data': data ?? {}},
       );
-      return response.data['success'] == true;
+
+      dynamic responseData = response.data;
+      if (responseData is Map<String, dynamic> &&
+          responseData.containsKey('data')) {
+        responseData = responseData['data'];
+      }
+
+      if (responseData is Map<String, dynamic>) {
+        return responseData['success'] == true;
+      }
+      return false;
     } catch (e) {
       return false;
     }
+  }
+
+  /// Toggle notifications for the account
+  Future<bool> toggleNotifications(bool enabled) async {
+    final response = await _client.post(
+      ApiConfig.toggleNotifications,
+      data: {'notificationEnabled': enabled},
+    );
+    return response.statusCode == 200 || response.statusCode == 201;
   }
 }

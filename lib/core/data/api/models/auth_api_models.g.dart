@@ -71,6 +71,16 @@ _$AccountApiModelImpl _$$AccountApiModelImplFromJson(
       rating: (json['averageRating'] as num?)?.toDouble(),
       totalReviews: (_readTotalReviews(json, 'total_reviews') as num?)?.toInt(),
       avatar: json['avatar'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
+      address: json['address'] as String?,
+      profilePictureUrl: json['profilePictureUrl'] as String?,
+      notificationEnabled: json['notificationEnabled'] as bool? ?? false,
+      createdAt: json['created_at'] as String?,
+      updatedAt: json['updated_at'] as String?,
+      uid: json['uid'] as String?,
+      ratingDistribution: (json['ratingDistribution'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$$AccountApiModelImplToJson(
@@ -86,4 +96,12 @@ Map<String, dynamic> _$$AccountApiModelImplToJson(
       'averageRating': instance.rating,
       'total_reviews': instance.totalReviews,
       'avatar': instance.avatar,
+      'phoneNumber': instance.phoneNumber,
+      'address': instance.address,
+      'profilePictureUrl': instance.profilePictureUrl,
+      'notificationEnabled': instance.notificationEnabled,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
+      'uid': instance.uid,
+      'ratingDistribution': instance.ratingDistribution,
     };
